@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "d=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); u=$(git log @{u}..HEAD --oneline 2>/dev/null | wc -l | tr -d ' '); m=\"\"; [ \"$d\" -gt 0 ] && m=\"$d uncommitted file(s)\"; [ \"$u\" -gt 0 ] && m=\"${m:+$m, }$u unpushed commit(s)\"; [ -n \"$m\" ] && printf '{\"systemMessage\":\"Git reminder: %s - not yet saved to GitHub. Ask Claude to commit and push.\"}\\n' \"$m\"; exit 0",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
