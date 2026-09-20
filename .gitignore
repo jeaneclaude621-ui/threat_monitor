@@ -1,0 +1,10 @@
+# Runtime state and logs (contain live scoring state and API debug dumps)
+data/
+# Generated daily reports
+reports/
+# Local secrets, if ever added
+.env
+# OS / Python noise
+.DS_Store
+__pycache__/
+*.pyc

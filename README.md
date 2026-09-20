@@ -1,0 +1,188 @@
+# Russia \u2192 NATO/EU/Ukraine Hybrid Threat Monitor
+
+A local app that watches mainstream reporting on Russia's hybrid activity
+toward NATO/EU/Ukraine, checks hourly for corrections and narrative
+drift, tracks source and author transparency over time, and produces a
+consolidated PowerPoint status report every morning at 05:00.
+
+## What it does
+
+- **Every hour, 24/day**: rechecks a watchlist of 6 active threads
+  against their last known status. Logs whether each is unchanged, has
+  a new development, was formally corrected by an outlet, or shows a
+  narrative shift without a formal correction.
+- **Every day at 05:00**: self-checks yesterday's scored claims against
+  what actually happened since; runs a broad research sweep for new
+  developments; recomputes the 1\u201310 threat index; refreshes the
+  watchlist; proposes exactly one concrete methodology improvement; and
+  builds `reports/YYYY-MM-DD_hybrid_threat_monitor.pptx`. If email is
+  configured (see "Email delivery" below), it then sends the report to
+  admin.one@example.org as an iPhone-friendly HTML digest with the deck attached.
+- Persists everything in `data/state.json`: source-tier methodology,
+  outlet transparency scores, author track records (evidence-based
+  only \u2014 corrections and contradictions, never subjective judgments),
+  and the threat-index history.
+
+## Setup
+
+1. **Get an Anthropic API key** at https://console.anthropic.com \u2014
+   this is separate from a claude.ai login and runs on metered billing
+   (pay-per-use, not your Claude subscription).
+
+2. **Install Python 3.9+** if you don't have it — and if you're not sure
+   what you have, or already know you don't, the easiest path is:
+   ```
+   bash setup/check_environment.sh
+   ```
+   This only checks and reports — it changes nothing. It tells you
+   exactly what's missing (Xcode Command Line Tools, Homebrew, Python,
+   pip, the project's Python packages, your API key). Then:
+   ```
+   bash setup/install_missing.sh
+   ```
+   installs only what that check found missing, skips what's already
+   there, and is safe to re-run. If it stops partway (e.g. after
+   installing Xcode Command Line Tools, which needs a one-time GUI
+   click-through), just run both commands again once it tells you to.
+
+3. **Install dependencies** (skip this if `install_missing.sh` already
+   did it for you):
+   ```
+   python3 -m pip install -r requirements.txt
+   ```
+   (On Mac/Linux, Python's pip is invoked via `python3 -m pip`, not a
+   bare `pip` command, unless you've separately aliased it.)
+
+4. **Set your API key** as an environment variable:
+   - macOS/Linux: `export ANTHROPIC_API_KEY=sk-ant-...`
+   - Windows (PowerShell): `$env:ANTHROPIC_API_KEY="sk-ant-..."`
+
+   For scheduled/unattended runs, this needs to be set permanently
+   (system environment variable on Windows; directly in the crontab
+   on macOS/Linux) \u2014 see the scripts in `schedule/`.
+
+5. **Do one manual run first** to seed the data folder and check
+   everything works before scheduling anything:
+   ```
+   python3 src/hourly_monitor.py
+   python3 src/daily_report.py
+   ```
+   Open the resulting file in `reports/` to check it looks right.
+
+6. **Set up the schedule:**
+   - Windows: open PowerShell as Administrator in this folder, run
+     `schedule/setup_windows.ps1`
+   - macOS/Linux: run `bash schedule/setup_macos_linux.sh`
+
+   Both register an hourly run and a 05:00 daily run without touching
+   any other scheduled tasks/cron entries you already have.
+
+## Responding to the daily methodology proposal
+
+Each day's report ends with one proposed, scoped change to the scoring
+methodology. Resolve it before the next day's report runs - either by
+**replying to the report email** with a single word, `accept` or `deny`
+(the reply is picked up at the start of the next scheduled run, and a
+short confirmation is mailed back), or from the command line:
+
+```
+python3 src/daily_report.py --resolve accept
+python3 src/daily_report.py --resolve deny
+```
+
+Email replies are read from the `MAIL_FROM` inbox over IMAP using the
+same credentials as sending (`src/reply_checker.py`; Gmail needs IMAP
+access enabled, which it is by default). Only replies from `MAIL_TO` or
+the sending address count; a reply containing both words, or neither,
+is logged and ignored. `python3 src/reply_checker.py --dry-run` shows
+what would happen without changing anything. Override the mailbox with
+`IMAP_HOST` / `IMAP_PORT` / `IMAP_USERNAME` / `IMAP_PASSWORD` if it is
+not the same Gmail account.
+
+Accepted changes are appended to `state.json` and are included as
+context in every future research prompt. If a proposal is left
+unresolved, the next daily run keeps it pending rather than generating
+a new one \u2014 only one proposal is ever open at a time.
+
+## Email delivery (optional)
+
+The 05:00 run emails the report to **admin.one@example.org** automatically
+once you configure SMTP - an iPhone-friendly HTML digest in the
+message body (renders directly in Apple Mail, no attachment tap
+needed) plus the full deck attached as a PowerPoint file. If SMTP
+isn't configured, this step is skipped with a log line - it never
+blocks or breaks the rest of the report.
+
+Set these environment variables the same way you set
+`ANTHROPIC_API_KEY` (permanently, so the scheduled/cron runs see
+them too):
+
+```
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your.address@gmail.com
+SMTP_PASSWORD=your-app-password
+MAIL_FROM=your.address@gmail.com
+MAIL_TO=admin.one@example.org          # optional - this is already the default
+```
+
+**Gmail example:** use an **app password**, not your normal Gmail
+password - Google blocks plain-password SMTP logins. Create one at
+https://myaccount.google.com/apppasswords (requires 2-Step
+Verification to be on). Any standard SMTP provider works the same
+way (iCloud Mail, Outlook, a custom domain's mail host, etc.) - just
+point `SMTP_HOST`/`SMTP_PORT` at it and use that provider's own app
+password or SMTP credential, never your main account password.
+
+To test it once by hand before trusting the schedule:
+```
+python3 -c "from src.mailer import send_daily_email; import json; d=json.load(open('reports/<today>_report_data.json')); send_daily_email(d, 'reports/<today>_hybrid_threat_monitor.pptx')"
+```
+
+
+`config/methodology.json` is the starting configuration (only read the
+very first time the app runs, to seed `data/state.json`). After that,
+`data/state.json` is the live copy \u2014 edit it directly if you want to
+hand-adjust the source tiers, the watchlist, or anything else. It's
+plain JSON.
+
+## Cost note
+
+Each hourly run makes one Claude API call per watchlist thread (6 by
+default) with web search enabled; the daily run makes a few larger
+calls. This is ongoing, metered API usage on your own key \u2014 check
+https://console.anthropic.com for current pricing and keep an eye on
+usage for the first few days to see what a day/week actually costs
+before leaving it running long-term.
+
+## Files
+
+```
+threat_monitor/
+  setup/check_environment.sh   diagnoses what's missing on your Mac (no changes)
+  setup/install_missing.sh     installs only what the check found missing
+  config/methodology.json      starting source-tier & watchlist config
+  src/common.py                state persistence, logging, API wrapper
+  src/hourly_monitor.py        hourly thread-check
+  src/daily_report.py          05:00 consolidation, self-check, proposal, deck build
+  src/pptx_builder.py          PowerPoint generation (python-pptx)
+  src/mailer.py                daily HTML digest email + PPTX attachment
+  schedule/setup_windows.ps1   Windows Task Scheduler setup
+  schedule/setup_macos_linux.sh cron setup for macOS/Linux
+  data/state.json              persistent state (created on first run)
+  data/logs/                   hourly logs (rolled into daily summaries)
+  reports/                     daily PPTX + JSON output
+```
+
+## A few honest caveats
+
+- The 1\u201310 threat index and the byline/outlet scores are Claude's
+  ongoing analytical synthesis of the reporting it finds \u2014 not an
+  official metric. Treat the deck as a structured read, not ground
+  truth.
+- Web search results depend on what's indexed and discoverable at run
+  time; a quiet hour in search results doesn't always mean nothing
+  happened.
+- This is unattended and unsupervised by design. Check in on it
+  periodically \u2014 especially the accepted-changes list \u2014 rather than
+  treating it as fire-and-forget forever.

@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "last_updated": "2026-09-19",
+  "scale_definition": "1 = peace. 5 = active gray-zone/hybrid conflict. 10 = open Russia-NATO/EU war.",
+  "credibility_scale": "1 = unverified/single unreliable source. 10 = confirmed by 10+ independent outlets.",
+  "tiers": [
+    {"name": "Tier 1 - Wire / Primary", "range": [9, 10], "examples": ["Reuters", "AP", "AFP", "BBC"]},
+    {"name": "Tier 2 - Major Outlets", "range": [7, 9], "examples": ["Al Jazeera", "PBS", "Euronews", "DW", "NATO.int", "national government ministries"]},
+    {"name": "Tier 3 - Interested-Party Press", "range": [5, 7], "examples": ["Kyiv Independent", "Kyiv Post", "Moscow Times"], "note": "flag for bias, cross-check against Tier 1/2"},
+    {"name": "Tier 4 - Opinion / Analysis", "range": [3, 4], "examples": ["Substack", "think-tank commentary", "single-author blogs"]},
+    {"name": "Excluded - Russian State Media & Unverified Accounts", "range": [1, 2], "examples": ["Sputnik", "RT", "TASS", "unattributed Telegram/X", "bot-suspected accounts"], "note": "never enters the credibility-weighted evidence base; tracked separately for narrative-pattern purposes only"}
+  ],
+  "byline_scoring_rules": {
+    "principle": "Evidence-only. Every score change must cite what it is based on. No subjective 'seems truthful' judgments.",
+    "signals": [
+      "correction formally attached to this byline (negative, but transparency-partial-credit if self-initiated quickly)",
+      "retraction history",
+      "claims later contradicted by independent Tier 1/2 reporting without the author correcting (negative, no partial credit)",
+      "claims confirmed by subsequent independent reporting (positive)"
+    ]
+  },
+  "outlet_transparency_rules": {
+    "principle": "Separate from the static tier score. Tracks how an outlet handles being wrong.",
+    "signals": [
+      "prompt, visible correction issued -> transparency score up",
+      "silent edit with no correction note -> transparency score down",
+      "claim contradicted by others and left uncorrected -> transparency score down"
+    ]
+  },
+  "watchlist_size": 6,
+  "default_watchlist": [
+    {"id": "sanctions-bill", "label": "Trump Russia sanctions law: implementation, market and diplomatic response", "last_snapshot": "Signed into law 18-19 Sept 2026; targets energy, defense, shadow fleet; up to 100% tariffs on top oil buyers.", "last_checked": null},
+    {"id": "airspace-incursions", "label": "Russian drone/airspace incursions into Poland, Romania, Baltic states and NATO response", "last_snapshot": "Pattern of incursions through 2026; Tusk warned Russia may stage incidents framed as accidental.", "last_checked": null},
+    {"id": "leipzig-sabotage", "label": "Leipzig airport explosive-drone sabotage: investigation, attribution fallout, policy response", "last_snapshot": "Germany formally attributed the Sept 1 explosive-drone attack on a Ukrainian cargo aircraft to Russia.", "last_checked": null},
+    {"id": "baltic-infrastructure", "label": "Baltic Sea undersea cable / critical infrastructure sabotage pattern", "last_snapshot": "Recurring pattern of cable/pipeline incidents attributed to shadow-fleet vessels.", "last_checked": null},
+    {"id": "ukraine-strikes", "label": "Russian strikes on Ukrainian civilian infrastructure (pattern tracking)", "last_snapshot": "Sumy apartment block hit by guided bomb, 2 killed, 8 injured (mid-Sept 2026).", "last_checked": null},
+    {"id": "kremlin-rhetoric", "label": "Kremlin rhetoric: Medvedev, Zakharova, Peskov statements toward NATO/EU", "last_snapshot": "Recurring war-adjacent and nuclear-adjacent messaging; framed by Western analysts as pressure signaling.", "last_checked": null}
+  ]
+}
