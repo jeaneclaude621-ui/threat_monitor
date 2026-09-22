@@ -77,6 +77,26 @@ consolidated PowerPoint status report every morning at 05:00.
    Both register an hourly run and a 05:00 daily run without touching
    any other scheduled tasks/cron entries you already have.
 
+## Spoken Swedish briefing (podcast mode)
+
+Each daily report is also rendered as a ~4 minute spoken briefing in
+Swedish and attached to the email as an `.m4a`, which plays inline in
+Apple Mail on an iPhone. It covers results only - no sources, no
+outlet names, no scores read aloud.
+
+The script is written by Claude from the finished report data and saved
+next to the deck as `<date>_briefing_sv.txt`; the audio is rendered
+locally by macOS `say` with the Swedish voice Alva and converted with
+`afconvert`, so it needs no extra service or API key. On a machine
+without those tools the script is still produced and the report goes
+out as before - the briefing is best-effort and never blocks the run.
+
+```
+python3 src/podcast.py                 # today's report
+python3 src/podcast.py 2026-09-21      # a specific date
+python3 src/podcast.py --script-only   # script, no audio
+```
+
 ## Responding to the daily methodology proposal
 
 Each day's report ends with one proposed, scoped change to the scoring

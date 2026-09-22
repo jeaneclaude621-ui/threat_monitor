@@ -55,7 +55,7 @@ def _score_color(score) -> str:
     return "#B3261E"
 
 
-def build_html_digest(report_data: dict) -> str:
+def build_html_digest(report_data: dict, has_audio: bool = False) -> str:
     """Single-column, inline-CSS HTML email - deliberately simple
     markup (tables + inline styles) since that's what survives Apple
     Mail's rendering on iPhone, unlike a linked stylesheet."""
@@ -78,6 +78,7 @@ def build_html_digest(report_data: dict) -> str:
 
     proposal = d.get("proposal") or {}
     trend_color = _trend_color(d.get("trend_label", ""))
+    audio_note = " &middot; 4-minute spoken briefing in Swedish attached (.m4a)" if has_audio else ""
 
     return f"""<!DOCTYPE html>
 <html>
@@ -128,7 +129,7 @@ def build_html_digest(report_data: dict) -> str:
     </tr>
     <tr>
       <td style="padding:14px 20px;text-align:center;">
-        <div style="color:#9AA3BC;font-size:11px;">Full deck attached (PowerPoint) &middot; Automated OSINT synthesis, not for operational decision-making</div>
+        <div style="color:#9AA3BC;font-size:11px;">Full deck attached (PowerPoint){audio_note} &middot; Automated OSINT synthesis, not for operational decision-making</div>
       </td>
     </tr>
   </table>
@@ -136,7 +137,7 @@ def build_html_digest(report_data: dict) -> str:
 </html>"""
 
 
-def send_daily_email(report_data: dict, pptx_path: str) -> bool:
+def send_daily_email(report_data: dict, pptx_path: str, audio_path: str = None) -> bool:
     """Returns True if sent, False if skipped or failed. Never raises -
     a mail problem should never take down the rest of the daily run."""
     host = os.environ.get("SMTP_HOST")
@@ -159,7 +160,7 @@ def send_daily_email(report_data: dict, pptx_path: str) -> bool:
     msg["From"] = mail_from
     msg["To"] = mail_to
     msg.set_content("This report needs an HTML-capable mail client to view the digest. The full deck is attached as a PowerPoint file.")
-    msg.add_alternative(build_html_digest(report_data), subtype="html")
+    msg.add_alternative(build_html_digest(report_data, has_audio=bool(audio_path)), subtype="html")
 
     pptx_file = Path(pptx_path)
     if pptx_file.exists():
@@ -168,6 +169,15 @@ def send_daily_email(report_data: dict, pptx_path: str) -> bool:
             maintype="application",
             subtype="vnd.openxmlformats-officedocument.presentationml.presentation",
             filename=pptx_file.name,
+        )
+
+    if audio_path and Path(audio_path).exists():
+        audio_file = Path(audio_path)
+        msg.add_attachment(
+            audio_file.read_bytes(),
+            maintype="audio",
+            subtype="mp4",          # .m4a - plays inline in Apple Mail
+            filename=audio_file.name,
         )
 
     try:

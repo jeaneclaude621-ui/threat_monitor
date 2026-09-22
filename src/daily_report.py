@@ -24,6 +24,7 @@ from common import (
 from pptx_builder import build_deck
 from mailer import send_daily_email
 from reply_checker import check_replies
+from podcast import build_podcast
 
 SYSTEM = """You are a senior OSINT analyst producing a daily intelligence
 synthesis on Russia's posture toward NATO/EU/Ukraine. You cross-reference
@@ -281,7 +282,8 @@ def run_daily_report():
     build_deck(report_data, str(pptx_path))
     print(f"Report built: {pptx_path}")
 
-    send_daily_email(report_data, str(pptx_path))
+    _, audio_path = build_podcast(report_data)
+    send_daily_email(report_data, str(pptx_path), str(audio_path) if audio_path else None)
 
     archive_and_clear_log(today - timedelta(days=1))
     save_state(state)
