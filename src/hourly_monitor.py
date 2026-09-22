@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import load_state, save_state, ask_claude, extract_json, append_hourly_entry
+from common import load_state, save_state, ask_claude_json, append_hourly_entry
 from reply_checker import check_replies
 
 SYSTEM = """You are an OSINT monitoring analyst. You track a specific news
@@ -37,12 +37,16 @@ Compare it to the last known status above and classify the change:
 Respond as strict JSON:
 {{
   "classification": "...",
-  "outlets": ["outlet names involved"],
+  "outlets": ["outlet names involved - the 5 most significant, no more"],
   "correcting_outlet": "outlet name if classification is CORRECTION, else null",
   "byline": "journalist name if attributable, else null",
-  "summary": "1-2 sentence summary of what changed",
-  "new_snapshot": "updated 1-2 sentence status to replace the last known status with"
-}}"""
+  "summary": "1-2 sentence summary of what changed - 60 words maximum",
+  "new_snapshot": "updated 1-2 sentence status to replace the last known status with - 60 words maximum"
+}}
+
+Output the JSON object and nothing else: no preamble, no notes on your
+searches, no commentary after it. Respect the length limits above - this
+is a scannable hourly delta, not a full report."""
 
 
 def update_outlet_score(state, outlet, positive_transparency=None, contradiction=False):
@@ -77,8 +81,9 @@ def run_once():
     for thread in state["watchlist"]:
         prompt = PROMPT_TEMPLATE.format(label=thread["label"], last_snapshot=thread["last_snapshot"])
         try:
-            raw = ask_claude(prompt, system=SYSTEM, max_tokens=800)
-            result = extract_json(raw)
+            # Web search + a multi-outlet delta does not fit in ~800 tokens;
+            # responses were being truncated before the JSON closed.
+            result = ask_claude_json(prompt, system=SYSTEM, max_tokens=2500)
         except Exception as e:
             print(f"  ! {thread['id']}: failed ({e})")
             continue
