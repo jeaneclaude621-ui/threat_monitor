@@ -87,9 +87,15 @@ the JSON object."""
 # --------------------------------------------------------------------------
 def run_broad_sweep(state, hourly_entries):
     tiers_desc = "\n".join(f"- {t['name']} ({t['range'][0]}-{t['range'][1]}): {', '.join(t['examples'])}" for t in state["methodology"]["tiers"])
+    m = state["methodology"]
+    anchors_desc = "\n".join(f"- {k}: {v}" for k, v in sorted(m.get("index_anchors", {}).items(), key=lambda kv: int(kv[0])))
+    history = state["threat_index_history"][-7:]
+    history_desc = ", ".join(f"{h['date']} = {h['value']}" for h in history) or "(no history yet)"
+    prior = history[-1]["value"] if history else None
     accepted_notes = "\n".join(f"- {c}" for c in state["accepted_changes"]) or "(none yet)"
     hourly_summary = "\n".join(f"- [{e['classification']}] {e['thread_label']}: {e['summary']}" for e in hourly_entries) or "(no hourly entries logged)"
 
+    scoring_note = m.get("index_scoring_note", "")
     prompt = f"""Search mainstream media for the last 24 hours of reporting on
 Russia's hybrid activity, threats, and posture toward NATO/EU/Ukraine.
 
@@ -106,8 +112,34 @@ them in, don't just repeat them:
 Produce:
 1. Up to 6 of the most important events from the last 24h, each scored
    for credibility per the tiers above, with the corroborating outlets named.
-2. An updated NATO/EU-Russia threat index (1-10, 1=peace, 10=open war)
-   with a one-line justification.
+2. An updated NATO/EU-Russia threat index (1-10), scored against these
+   anchors - each band names the observable condition that must be met:
+{anchors_desc}
+
+   {scoring_note}
+
+   Recent index values: {history_desc}
+   Yesterday's value: {prior}
+
+   Before choosing today's value, do this explicitly:
+   a) list what escalated in the last 24h;
+   b) list what de-escalated, stabilised, or failed to materialise -
+      talks held, restraint shown, a threatened action not taken, a
+      feared attribution not confirmed. If you find nothing, say so,
+      but look for it with the same effort as for escalation;
+   c) choose the anchor band today's evidence actually meets, BEFORE
+      you look at yesterday's number. A band's condition must be met,
+      not merely approached: if band 8 requires fatalities on NATO/EU
+      territory and there were none, the band is not 8, however severe
+      the fighting inside Ukraine was.
+   d) give "threat_index" as that band plus or minus at most 0.5, to
+      place today within the band. A value further from the band than
+      that will be rejected. The index is derived from the band; it is
+      not a separate judgment anchored on yesterday.
+   The index may go down as well as up. Do not carry yesterday's value
+   forward out of caution: an unchanged value must be defended by
+   today's evidence just as a changed one must. Prior values are given
+   for trend context only and carry no evidential weight.
 3. A one-sentence "top development" headline.
 4. Up to 4 "deception watch" items - recurring Kremlin narrative/denial
    patterns observed in the last 24h (not scored, tracked separately).
@@ -118,12 +150,32 @@ Respond as strict JSON:
   "events": [{{"title": "...", "detail": "...", "sources": "...", "score": 0}}],
   "threat_index": 0.0,
   "threat_index_justification": "...",
+  "index_band": 0,
+  "escalation_factors": ["..."],
+  "deescalation_factors": ["..."],
+  "index_delta_reason": "why it moved from yesterday's value, or why it did not",
   "top_development": "...",
   "deception_items": [{{"heading": "...", "body": "..."}}],
   "key_signals": ["..."]
 }}"""
-    raw = ask_claude(prompt, system=SYSTEM, max_tokens=4096)
-    return extract_json(raw)
+    result = ask_claude_json(prompt, system=SYSTEM, max_tokens=5000)
+
+    idx, band = result.get("threat_index"), result.get("index_band")
+
+    # The band is the evidence-based judgment; the index is derived from it.
+    # Left free, the model anchors on yesterday's number and the index only
+    # ever ratchets upward - so hold it to the band it chose itself.
+    if band and idx is not None and abs(idx - band) > 0.5:
+        corrected = round(band + max(-0.5, min(0.5, idx - band)), 1)
+        print(f"  ! Threat index {idx} inconsistent with its own anchor band {band} "
+              f"- corrected to {corrected}")
+        result["threat_index"] = idx = corrected
+
+    if prior is not None and idx is not None and abs(idx - prior) >= 1.5:
+        print(f"  ! Threat index moved {prior} -> {idx} in one day - check the justification")
+    if not result.get("deescalation_factors"):
+        print("  ! No de-escalation factors identified - index may be drifting upward unchecked")
+    return result
 
 
 # --------------------------------------------------------------------------

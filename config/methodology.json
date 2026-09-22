@@ -1,14 +1,77 @@
 {
-  "version": 1,
-  "last_updated": "2026-09-19",
-  "scale_definition": "1 = peace. 5 = active gray-zone/hybrid conflict. 10 = open Russia-NATO/EU war.",
+  "version": 2,
+  "last_updated": "2026-09-22",
+  "scale_definition": "1 = peace. 5 = active gray-zone/hybrid conflict. 10 = open Russia-NATO/EU war. Use index_anchors for the level in between - each band names the observable condition that must be met.",
   "credibility_scale": "1 = unverified/single unreliable source. 10 = confirmed by 10+ independent outlets.",
   "tiers": [
-    {"name": "Tier 1 - Wire / Primary", "range": [9, 10], "examples": ["Reuters", "AP", "AFP", "BBC"]},
-    {"name": "Tier 2 - Major Outlets", "range": [7, 9], "examples": ["Al Jazeera", "PBS", "Euronews", "DW", "NATO.int", "national government ministries"]},
-    {"name": "Tier 3 - Interested-Party Press", "range": [5, 7], "examples": ["Kyiv Independent", "Kyiv Post", "Moscow Times"], "note": "flag for bias, cross-check against Tier 1/2"},
-    {"name": "Tier 4 - Opinion / Analysis", "range": [3, 4], "examples": ["Substack", "think-tank commentary", "single-author blogs"]},
-    {"name": "Excluded - Russian State Media & Unverified Accounts", "range": [1, 2], "examples": ["Sputnik", "RT", "TASS", "unattributed Telegram/X", "bot-suspected accounts"], "note": "never enters the credibility-weighted evidence base; tracked separately for narrative-pattern purposes only"}
+    {
+      "name": "Tier 1 - Wire / Primary",
+      "range": [
+        9,
+        10
+      ],
+      "examples": [
+        "Reuters",
+        "AP",
+        "AFP",
+        "BBC"
+      ]
+    },
+    {
+      "name": "Tier 2 - Major Outlets",
+      "range": [
+        7,
+        9
+      ],
+      "examples": [
+        "Al Jazeera",
+        "PBS",
+        "Euronews",
+        "DW",
+        "NATO.int",
+        "national government ministries"
+      ]
+    },
+    {
+      "name": "Tier 3 - Interested-Party Press",
+      "range": [
+        5,
+        7
+      ],
+      "examples": [
+        "Kyiv Independent",
+        "Kyiv Post",
+        "Moscow Times"
+      ],
+      "note": "flag for bias, cross-check against Tier 1/2"
+    },
+    {
+      "name": "Tier 4 - Opinion / Analysis",
+      "range": [
+        3,
+        4
+      ],
+      "examples": [
+        "Substack",
+        "think-tank commentary",
+        "single-author blogs"
+      ]
+    },
+    {
+      "name": "Excluded - Russian State Media & Unverified Accounts",
+      "range": [
+        1,
+        2
+      ],
+      "examples": [
+        "Sputnik",
+        "RT",
+        "TASS",
+        "unattributed Telegram/X",
+        "bot-suspected accounts"
+      ],
+      "note": "never enters the credibility-weighted evidence base; tracked separately for narrative-pattern purposes only"
+    }
   ],
   "byline_scoring_rules": {
     "principle": "Evidence-only. Every score change must cite what it is based on. No subjective 'seems truthful' judgments.",
@@ -29,11 +92,54 @@
   },
   "watchlist_size": 6,
   "default_watchlist": [
-    {"id": "sanctions-bill", "label": "Trump Russia sanctions law: implementation, market and diplomatic response", "last_snapshot": "Signed into law 18-19 Sept 2026; targets energy, defense, shadow fleet; up to 100% tariffs on top oil buyers.", "last_checked": null},
-    {"id": "airspace-incursions", "label": "Russian drone/airspace incursions into Poland, Romania, Baltic states and NATO response", "last_snapshot": "Pattern of incursions through 2026; Tusk warned Russia may stage incidents framed as accidental.", "last_checked": null},
-    {"id": "leipzig-sabotage", "label": "Leipzig airport explosive-drone sabotage: investigation, attribution fallout, policy response", "last_snapshot": "Germany formally attributed the Sept 1 explosive-drone attack on a Ukrainian cargo aircraft to Russia.", "last_checked": null},
-    {"id": "baltic-infrastructure", "label": "Baltic Sea undersea cable / critical infrastructure sabotage pattern", "last_snapshot": "Recurring pattern of cable/pipeline incidents attributed to shadow-fleet vessels.", "last_checked": null},
-    {"id": "ukraine-strikes", "label": "Russian strikes on Ukrainian civilian infrastructure (pattern tracking)", "last_snapshot": "Sumy apartment block hit by guided bomb, 2 killed, 8 injured (mid-Sept 2026).", "last_checked": null},
-    {"id": "kremlin-rhetoric", "label": "Kremlin rhetoric: Medvedev, Zakharova, Peskov statements toward NATO/EU", "last_snapshot": "Recurring war-adjacent and nuclear-adjacent messaging; framed by Western analysts as pressure signaling.", "last_checked": null}
-  ]
+    {
+      "id": "sanctions-bill",
+      "label": "Trump Russia sanctions law: implementation, market and diplomatic response",
+      "last_snapshot": "Signed into law 18-19 Sept 2026; targets energy, defense, shadow fleet; up to 100% tariffs on top oil buyers.",
+      "last_checked": null
+    },
+    {
+      "id": "airspace-incursions",
+      "label": "Russian drone/airspace incursions into Poland, Romania, Baltic states and NATO response",
+      "last_snapshot": "Pattern of incursions through 2026; Tusk warned Russia may stage incidents framed as accidental.",
+      "last_checked": null
+    },
+    {
+      "id": "leipzig-sabotage",
+      "label": "Leipzig airport explosive-drone sabotage: investigation, attribution fallout, policy response",
+      "last_snapshot": "Germany formally attributed the Sept 1 explosive-drone attack on a Ukrainian cargo aircraft to Russia.",
+      "last_checked": null
+    },
+    {
+      "id": "baltic-infrastructure",
+      "label": "Baltic Sea undersea cable / critical infrastructure sabotage pattern",
+      "last_snapshot": "Recurring pattern of cable/pipeline incidents attributed to shadow-fleet vessels.",
+      "last_checked": null
+    },
+    {
+      "id": "ukraine-strikes",
+      "label": "Russian strikes on Ukrainian civilian infrastructure (pattern tracking)",
+      "last_snapshot": "Sumy apartment block hit by guided bomb, 2 killed, 8 injured (mid-Sept 2026).",
+      "last_checked": null
+    },
+    {
+      "id": "kremlin-rhetoric",
+      "label": "Kremlin rhetoric: Medvedev, Zakharova, Peskov statements toward NATO/EU",
+      "last_snapshot": "Recurring war-adjacent and nuclear-adjacent messaging; framed by Western analysts as pressure signaling.",
+      "last_checked": null
+    }
+  ],
+  "index_anchors": {
+    "1": "Peace. Normal diplomatic and economic relations; no coercive activity.",
+    "2": "Friction. Hostile rhetoric and routine espionage; no operations against NATO/EU targets.",
+    "3": "Political warfare. Sustained disinformation and election interference; no physical effects.",
+    "4": "Gray-zone pressure. Deniable sabotage, GPS jamming, airspace probing; no casualties on NATO/EU soil.",
+    "5": "Active hybrid conflict. State-directed sabotage on NATO/EU soil attributed by governments; proxy war ongoing.",
+    "6": "Intensified hybrid. NATO members respond militarily (interceptions, shootdowns); attributed sabotage with casualty risk; force posture changes.",
+    "7": "Pre-crisis. Article 4 consultations, or kinetic incidents on NATO territory without fatalities; visible reinforcement.",
+    "8": "Crisis. Fatalities on NATO/EU territory from Russian action, or direct limited fire exchange between Russian and NATO forces.",
+    "9": "Brink. Sustained direct military exchange between Russia and a NATO member; Article 5 under active consideration.",
+    "10": "Open Russia-NATO/EU war."
+  },
+  "index_scoring_note": "Score the Russia-NATO/EU relationship, not the intensity of the war in Ukraine. Severe fighting inside Ukraine does not by itself raise this index above 5-6; what moves it is what happens to NATO/EU members and forces. The index must be able to fall: if the evidence for a previous level has weakened, say so and lower it."
 }
