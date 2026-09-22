@@ -92,7 +92,7 @@ python3 src/daily_report.py --resolve deny
 
 Email replies are read from the `MAIL_FROM` inbox over IMAP using the
 same credentials as sending (`src/reply_checker.py`; Gmail needs IMAP
-access enabled, which it is by default). Only replies from `MAIL_TO` or
+access enabled, which it is by default). Only replies from an address in `MAIL_TO` or
 the sending address count; a reply containing both words, or neither,
 is logged and ignored. `python3 src/reply_checker.py --dry-run` shows
 what would happen without changing anything. Override the mailbox with
@@ -123,7 +123,8 @@ SMTP_PORT=587
 SMTP_USERNAME=your.address@gmail.com
 SMTP_PASSWORD=your-app-password
 MAIL_FROM=your.address@gmail.com
-MAIL_TO=admin.one@example.org          # optional - this is already the default
+MAIL_TO=admin.one@example.org,reader.one@example.org   # optional - comma-separated;
+                                                      # defaults to admin.one@example.org alone
 ```
 
 **Gmail example:** use an **app password**, not your normal Gmail

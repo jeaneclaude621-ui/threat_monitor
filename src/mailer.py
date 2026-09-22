@@ -7,7 +7,8 @@ Configured entirely through environment variables so no credentials
 ever live in this repo:
     SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, MAIL_FROM
 Optional:
-    MAIL_TO   (defaults to admin.one@example.org)
+    MAIL_TO   one or more comma-separated addresses
+              (defaults to admin.one@example.org)
 
 If the required variables aren't set, sending is skipped with a clear
 log line rather than crashing the rest of the daily report - see
@@ -20,6 +21,17 @@ from email.message import EmailMessage
 from pathlib import Path
 
 DEFAULT_RECIPIENT = "admin.one@example.org"
+
+
+def recipients() -> list:
+    """MAIL_TO as a list - it may name several comma-separated people."""
+    raw = os.environ.get("MAIL_TO") or DEFAULT_RECIPIENT
+    return [addr.strip() for addr in raw.split(",") if addr.strip()]
+
+
+def recipients_str() -> str:
+    """MAIL_TO as a single To: header value."""
+    return ", ".join(recipients())
 
 
 def _trend_color(trend_label: str) -> str:
@@ -132,7 +144,7 @@ def send_daily_email(report_data: dict, pptx_path: str) -> bool:
     user = os.environ.get("SMTP_USERNAME")
     password = os.environ.get("SMTP_PASSWORD")
     mail_from = os.environ.get("MAIL_FROM")
-    mail_to = os.environ.get("MAIL_TO", DEFAULT_RECIPIENT)
+    mail_to = recipients_str()
 
     missing = [name for name, val in [
         ("SMTP_HOST", host), ("SMTP_PORT", port), ("SMTP_USERNAME", user),

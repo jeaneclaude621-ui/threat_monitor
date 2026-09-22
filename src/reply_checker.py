@@ -32,7 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import load_state, resolve_proposal
-from mailer import DEFAULT_RECIPIENT, send_plain_email
+from mailer import recipients, send_plain_email
 
 SUBJECT_MARKER = "Hybrid Threat Monitor"
 DECISION_RE = re.compile(r"\b(accept(?:ed)?|den(?:y|ied))\b", re.IGNORECASE)
@@ -53,7 +53,7 @@ def _imap_config():
 
 
 def _trusted_senders():
-    senders = {os.environ.get("MAIL_TO", DEFAULT_RECIPIENT)}
+    senders = set(recipients())
     for var in ("MAIL_FROM", "SMTP_USERNAME"):
         if os.environ.get(var):
             senders.add(os.environ[var])
