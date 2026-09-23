@@ -158,7 +158,8 @@ Respond as strict JSON:
   "deception_items": [{{"heading": "...", "body": "..."}}],
   "key_signals": ["..."]
 }}"""
-    result = ask_claude_json(prompt, system=SYSTEM, max_tokens=5000)
+    # The added escalation/de-escalation/delta fields pushed this past 5000.
+    result = ask_claude_json(prompt, system=SYSTEM, max_tokens=8000)
 
     idx, band = result.get("threat_index"), result.get("index_band")
 
