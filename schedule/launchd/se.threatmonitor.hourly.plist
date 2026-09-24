@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key><string>se.threatmonitor.hourly</string>
+	<!-- Sources ~/.zshrc so the API key and SMTP settings stay in one
+	     place instead of being copied into this file. launchd runs a
+	     missed job when the Mac wakes, which cron does not. -->
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/zsh</string>
+		<string>-c</string>
+		<string>source "$HOME/.zshrc"; exec /usr/bin/python3 /Users/jeaneclaude/threat_monitor/src/hourly_monitor.py</string>
+	</array>
+	<key>WorkingDirectory</key><string>/Users/jeaneclaude/threat_monitor</string>
+	<key>StartCalendarInterval</key>
+	<array>
+		<dict><key>Hour</key><integer>1</integer><key>Minute</key><integer>0</integer></dict>
+		<dict><key>Hour</key><integer>16</integer><key>Minute</key><integer>0</integer></dict>
+	</array>
+	<key>StandardOutPath</key><string>/Users/jeaneclaude/threat_monitor/data/logs/hourly_run.log</string>
+	<key>StandardErrorPath</key><string>/Users/jeaneclaude/threat_monitor/data/logs/hourly_run.log</string>
+</dict>
+</plist>

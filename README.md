@@ -77,6 +77,31 @@ consolidated PowerPoint status report every morning at 05:00.
    Both register an hourly run and a 05:00 daily run without touching
    any other scheduled tasks/cron entries you already have.
 
+   **On macOS, prefer launchd over cron** (`schedule/launchd/*.plist`):
+
+   ```
+   cp schedule/launchd/*.plist ~/Library/LaunchAgents/
+   launchctl bootstrap gui/$UID ~/Library/LaunchAgents/se.threatmonitor.daily.plist
+   launchctl bootstrap gui/$UID ~/Library/LaunchAgents/se.threatmonitor.hourly.plist
+   ```
+
+   cron silently skips any run scheduled while the Mac is asleep and
+   never replays it - two daily reports were lost that way. launchd
+   runs a missed job as soon as the machine wakes. The plists source
+   `~/.zshrc`, so credentials stay in one place rather than being
+   copied into them. To have the report arrive on time rather than at
+   wake, also schedule a wake:
+
+   ```
+   sudo pmset repeat wakeorpoweron MTWRFSU 04:55:00
+   ```
+
+   **Keep the project outside `~/Documents`, `~/Desktop` and
+   `~/Downloads`.** macOS guards those folders, and a launchd agent
+   (running as zsh/python, not as an app you can grant access to)
+   fails there with `Operation not permitted` before it reads a single
+   file. `~/threat_monitor` works without any privacy exemption.
+
 ## Spoken Swedish briefing (podcast mode)
 
 Each daily report is also rendered as a ~4 minute spoken briefing in
