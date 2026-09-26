@@ -3,14 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key><string>se.threatmonitor.daily</string>
-	<!-- Sources ~/.zshrc so the API key and SMTP settings stay in one
+	<!-- caffeinate -i -s holds the Mac awake for the job's duration:
+	     without it the machine sleeps mid-run and suspends the process,
+	     which delayed the report by ~3 hours on 25 and 26 Sep.
+	     Sources ~/.zshrc so the API key and SMTP settings stay in one
 	     place instead of being copied into this file. launchd runs a
 	     missed job when the Mac wakes, which cron does not. -->
 	<key>ProgramArguments</key>
 	<array>
 		<string>/bin/zsh</string>
 		<string>-c</string>
-		<string>source "$HOME/.zshrc"; exec /usr/bin/python3 /Users/jeaneclaude/threat_monitor/src/daily_report.py</string>
+		<string>source "$HOME/.zshrc"; exec /usr/bin/caffeinate -i -s /usr/bin/python3 /Users/jeaneclaude/threat_monitor/src/daily_report.py</string>
 	</array>
 	<key>WorkingDirectory</key><string>/Users/jeaneclaude/threat_monitor</string>
 	<key>StartCalendarInterval</key>

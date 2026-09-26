@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (
-    load_state, save_state, ask_claude, ask_claude_json, extract_json,
+    load_state, save_state, ask_claude_json,
     load_hourly_log, archive_and_clear_log, resolve_proposal, OUTPUT_DIR,
 )
 from pptx_builder import build_deck
@@ -218,8 +218,8 @@ and whether any new thread from today's events deserves to be added.
 Keep the total at exactly {size} threads. Respond as strict JSON:
 {{"watchlist": [{{"id": "short-kebab-id", "label": "..."}}]}}"""
     try:
-        raw = ask_claude(prompt, system=SYSTEM, max_tokens=800, use_search=False)
-        result = extract_json(raw)
+        # Six ids plus labels describing today's events does not fit in 800.
+        result = ask_claude_json(prompt, system=SYSTEM, max_tokens=2000, use_search=False)
         new_list = result.get("watchlist", [])
         if len(new_list) == size:
             existing_by_id = {t["id"]: t for t in state["watchlist"]}
@@ -252,8 +252,7 @@ propose vague things like "be more careful" - propose a concrete rule.
 
 Respond as strict JSON:
 {{"title": "...", "rationale": "...", "change_detail": "..."}}"""
-    raw = ask_claude(prompt, system=SYSTEM, max_tokens=600, use_search=False)
-    proposal = extract_json(raw)
+    proposal = ask_claude_json(prompt, system=SYSTEM, max_tokens=1500, use_search=False)
     proposal["date_proposed"] = date.today().isoformat()
     proposal["status"] = "pending"
     state["pending_proposal"] = proposal
