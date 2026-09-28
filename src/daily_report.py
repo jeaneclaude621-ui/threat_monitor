@@ -1,8 +1,8 @@
 """
 Runs once a day at 05:00 CET. Consolidates the day's hourly monitoring,
 self-checks yesterday's assessments against what actually happened,
-does a broad research sweep for new stories, recomputes the threat
-index, refreshes the watchlist, generates one proposed methodology
+does a broad research sweep for new stories, recomputes the two threat
+indices (general, and a 30-day forecast), refreshes the watchlist, generates one proposed methodology
 change, and builds the PPTX.
 
 Usage:
@@ -83,45 +83,22 @@ the JSON object."""
 
 
 # --------------------------------------------------------------------------
-# 2. Broad sweep: fresh event log + threat index for today
+# Threat indices: shared by the daily sweep and src/recalibrate.py, so a
+# recalibrated history is scored by exactly the rules used going forward.
 # --------------------------------------------------------------------------
-def run_broad_sweep(state, hourly_entries):
-    tiers_desc = "\n".join(f"- {t['name']} ({t['range'][0]}-{t['range'][1]}): {', '.join(t['examples'])}" for t in state["methodology"]["tiers"])
-    m = state["methodology"]
+def index_instructions(m, history_desc, prior):
     anchors_desc = "\n".join(f"- {k}: {v}" for k, v in sorted(m.get("index_anchors", {}).items(), key=lambda kv: int(kv[0])))
-    history = state["threat_index_history"][-7:]
-    history_desc = ", ".join(f"{h['date']} = {h['value']}" for h in history) or "(no history yet)"
-    prior = history[-1]["value"] if history else None
-    accepted_notes = "\n".join(f"- {c}" for c in state["accepted_changes"]) or "(none yet)"
-    hourly_summary = "\n".join(f"- [{e['classification']}] {e['thread_label']}: {e['summary']}" for e in hourly_entries) or "(no hourly entries logged)"
-
-    scoring_note = m.get("index_scoring_note", "")
-    prompt = f"""Search mainstream media for the last 24 hours of reporting on
-Russia's hybrid activity, threats, and posture toward NATO/EU/Ukraine.
-
-Credibility tiers to use when scoring each item (1-10):
-{tiers_desc}
-
-Additional accepted methodology refinements to apply:
-{accepted_notes}
-
-Today's hourly monitoring already logged these thread updates - factor
-them in, don't just repeat them:
-{hourly_summary}
-
-Produce:
-1. Up to 6 of the most important events from the last 24h, each scored
-   for credibility per the tiers above, with the corroborating outlets named.
-2. An updated NATO/EU-Russia threat index (1-10), scored against these
+    return f"""2. Two NATO/EU-Russia threat indices (1-10), both scored against these
    anchors - each band names the observable condition that must be met:
 {anchors_desc}
 
-   {scoring_note}
+   {m.get("index_scoring_note", "")}
 
-   Recent index values: {history_desc}
-   Yesterday's value: {prior}
+   Recent index values (general / 30-day): {history_desc}
+   Yesterday's general value: {prior}
 
-   Before choosing today's value, do this explicitly:
+   GENERAL INDEX - where the relationship stands today. Before choosing
+   it, do this explicitly:
    a) list what escalated in the last 24h;
    b) list what de-escalated, stabilised, or failed to materialise -
       talks held, restraint shown, a threatened action not taken, a
@@ -140,6 +117,75 @@ Produce:
    forward out of caution: an unchanged value must be defended by
    today's evidence just as a changed one must. Prior values are given
    for trend context only and carry no evidential weight.
+
+   30-DAY INDEX - a forecast: the anchor band you expect to best
+   describe the relationship over the next 30 days. Base it on dated,
+   known drivers inside that window (deadlines, votes, summits,
+   exercises, expiring measures, announced deployments) and on the
+   direction of current trends - list them in "forecast_drivers", each
+   marked up or down. It may be above today's general index (a known
+   flashpoint is approaching) or below it (pressure is expected to ease).
+   Equal is fine when the drivers balance out, but argue it from them -
+   do not default to today's value. Give "index_band_30d" and
+   "threat_index_30d" as that band plus or minus at most 0.5, same rule
+   as above.
+"""
+
+
+INDEX_JSON_FIELDS = """  "threat_index": 0.0,
+  "threat_index_justification": "...",
+  "index_band": 0,
+  "escalation_factors": ["..."],
+  "deescalation_factors": ["..."],
+  "index_delta_reason": "why it moved from yesterday's value, or why it did not",
+  "threat_index_30d": 0.0,
+  "index_band_30d": 0,
+  "threat_index_30d_justification": "...",
+  "forecast_drivers": [{"when": "date or window", "driver": "...", "direction": "up|down"}],"""
+
+
+def enforce_bands(result):
+    """The band is the evidence-based judgment; the index is derived from
+    it. Left free, the model anchors on yesterday's number and the index
+    only ever ratchets upward - so hold each index to the band it chose."""
+    for idx_key, band_key in (("threat_index", "index_band"), ("threat_index_30d", "index_band_30d")):
+        idx, band = result.get(idx_key), result.get(band_key)
+        if band and idx is not None and abs(idx - band) > 0.5:
+            corrected = round(band + max(-0.5, min(0.5, idx - band)), 1)
+            print(f"  ! {idx_key} {idx} inconsistent with its own anchor band {band} - corrected to {corrected}")
+            result[idx_key] = corrected
+    return result
+
+
+# --------------------------------------------------------------------------
+# 2. Broad sweep: fresh event log + both threat indices for today
+# --------------------------------------------------------------------------
+def run_broad_sweep(state, hourly_entries):
+    tiers_desc = "\n".join(f"- {t['name']} ({t['range'][0]}-{t['range'][1]}): {', '.join(t['examples'])}" for t in state["methodology"]["tiers"])
+    m = state["methodology"]
+    history = [h for h in state["threat_index_history"] if h["date"] != date.today().isoformat()][-7:]
+    history_desc = ", ".join(f"{h['date']} = {h['value']} / {h.get('value_30d', '-')}" for h in history) or "(no history yet)"
+    prior = history[-1]["value"] if history else None
+    accepted_notes = "\n".join(f"- {c}" for c in state["accepted_changes"]) or "(none yet)"
+    hourly_summary = "\n".join(f"- [{e['classification']}] {e['thread_label']}: {e['summary']}" for e in hourly_entries) or "(no hourly entries logged)"
+
+    prompt = f"""Search mainstream media for the last 24 hours of reporting on
+Russia's hybrid activity, threats, and posture toward NATO/EU/Ukraine.
+
+Credibility tiers to use when scoring each item (1-10):
+{tiers_desc}
+
+Additional accepted methodology refinements to apply:
+{accepted_notes}
+
+Today's hourly monitoring already logged these thread updates - factor
+them in, don't just repeat them:
+{hourly_summary}
+
+Produce:
+1. Up to 6 of the most important events from the last 24h, each scored
+   for credibility per the tiers above, with the corroborating outlets named.
+{index_instructions(m, history_desc, prior)}
 3. A one-sentence "top development" headline.
 4. Up to 4 "deception watch" items - recurring Kremlin narrative/denial
    patterns observed in the last 24h (not scored, tracked separately).
@@ -148,30 +194,17 @@ Produce:
 Respond as strict JSON:
 {{
   "events": [{{"title": "...", "detail": "...", "sources": "...", "score": 0}}],
-  "threat_index": 0.0,
-  "threat_index_justification": "...",
-  "index_band": 0,
-  "escalation_factors": ["..."],
-  "deescalation_factors": ["..."],
-  "index_delta_reason": "why it moved from yesterday's value, or why it did not",
+{INDEX_JSON_FIELDS}
   "top_development": "...",
   "deception_items": [{{"heading": "...", "body": "..."}}],
   "key_signals": ["..."]
 }}"""
-    # The added escalation/de-escalation/delta fields pushed this past 5000.
-    result = ask_claude_json(prompt, system=SYSTEM, max_tokens=8000)
+    # The escalation/de-escalation/delta fields pushed this past 5000, and
+    # the 30-day forecast with its drivers adds roughly another 1500.
+    result = ask_claude_json(prompt, system=SYSTEM, max_tokens=10000)
 
-    idx, band = result.get("threat_index"), result.get("index_band")
-
-    # The band is the evidence-based judgment; the index is derived from it.
-    # Left free, the model anchors on yesterday's number and the index only
-    # ever ratchets upward - so hold it to the band it chose itself.
-    if band and idx is not None and abs(idx - band) > 0.5:
-        corrected = round(band + max(-0.5, min(0.5, idx - band)), 1)
-        print(f"  ! Threat index {idx} inconsistent with its own anchor band {band} "
-              f"- corrected to {corrected}")
-        result["threat_index"] = idx = corrected
-
+    enforce_bands(result)
+    idx = result.get("threat_index")
     if prior is not None and idx is not None and abs(idx - prior) >= 1.5:
         print(f"  ! Threat index moved {prior} -> {idx} in one day - check the justification")
     if not result.get("deescalation_factors"):
@@ -301,9 +334,14 @@ def run_daily_report():
     narrative_rows = build_narrative_stability(state, hourly_entries)
     refresh_watchlist(state, sweep)
 
-    prior_value = state["threat_index_history"][-1]["value"] if state["threat_index_history"] else sweep["threat_index"]
+    earlier = [h for h in state["threat_index_history"] if h["date"] != today.isoformat()]
+    prior_value = earlier[-1]["value"] if earlier else sweep["threat_index"]
     trend_label = "Trending up" if sweep["threat_index"] > prior_value else ("Trending down" if sweep["threat_index"] < prior_value else "Stable")
-    state["threat_index_history"].append({"date": today.isoformat(), "value": sweep["threat_index"]})
+    # A second run on the same day (a manual rerun) replaces that day's
+    # entry instead of adding a duplicate date to the trend chart.
+    state["threat_index_history"] = [h for h in state["threat_index_history"] if h["date"] != today.isoformat()]
+    state["threat_index_history"].append({"date": today.isoformat(), "value": sweep["threat_index"],
+                                          "value_30d": sweep.get("threat_index_30d")})
     state["threat_index_history"] = state["threat_index_history"][-180:]
 
     proposal, was_already_pending = generate_proposal(state)
@@ -313,6 +351,9 @@ def run_daily_report():
         "threat_index": sweep["threat_index"],
         "trend_label": trend_label,
         "threat_reading": sweep.get("threat_index_justification", ""),
+        "threat_index_30d": sweep.get("threat_index_30d"),
+        "threat_reading_30d": sweep.get("threat_index_30d_justification", ""),
+        "forecast_drivers": sweep.get("forecast_drivers", []),
         "self_check_summary": self_check["summary"],
         "top_development": sweep.get("top_development", ""),
         "events": sweep.get("events", []),

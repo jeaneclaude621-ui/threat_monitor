@@ -83,6 +83,16 @@ def build_html_digest(report_data: dict, has_audio: bool = False) -> str:
     trend_color = _trend_color(d.get("trend_label", ""))
     audio_note = " &middot; 4-minute spoken briefing in Swedish attached (.m4a)" if has_audio else ""
 
+    forecast_cell = forecast_reading = ""
+    if d.get("threat_index_30d") is not None:
+        forecast_cell = f"""<td style="vertical-align:top;width:50%;">
+              <div style="color:#CADCFC;font-size:11px;font-weight:700;letter-spacing:1px;">NEXT 30 DAYS</div>
+              <div style="color:#ffffff;font-size:48px;font-weight:700;line-height:1.1;margin-top:4px;">{d['threat_index_30d']:.1f}<span style="font-size:18px;color:#8A93B5;"> / 10</span></div>
+              <div style="color:#8A93B5;font-size:13px;font-weight:700;margin-top:4px;">Forecast</div>
+            </td>"""
+        forecast_reading = f"""<div style="color:#D98A2B;font-size:11px;font-weight:700;letter-spacing:1px;margin-top:14px;">30-DAY OUTLOOK</div>
+        <div style="color:#CADCFC;font-size:13px;margin-top:4px;line-height:1.4;">{d.get('threat_reading_30d','')}</div>"""
+
     return f"""<!DOCTYPE html>
 <html>
 <body style="margin:0;padding:0;background:#F4F6FB;font-family:-apple-system,Helvetica,Arial,sans-serif;">
@@ -96,10 +106,18 @@ def build_html_digest(report_data: dict, has_audio: bool = False) -> str:
     </tr>
     <tr>
       <td style="background:#1E2761;padding:20px;">
-        <div style="color:#CADCFC;font-size:11px;font-weight:700;letter-spacing:1px;">THREAT INDEX</div>
-        <div style="color:{trend_color};font-size:48px;font-weight:700;line-height:1.1;margin-top:4px;">{d.get('threat_index',0):.1f}<span style="font-size:18px;color:#8A93B5;"> / 10</span></div>
-        <div style="color:{trend_color};font-size:13px;font-weight:700;margin-top:4px;">{d.get('trend_label','')}</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="vertical-align:top;width:50%;">
+              <div style="color:#CADCFC;font-size:11px;font-weight:700;letter-spacing:1px;">THREAT INDEX &middot; GENERAL</div>
+              <div style="color:{trend_color};font-size:48px;font-weight:700;line-height:1.1;margin-top:4px;">{d.get('threat_index',0):.1f}<span style="font-size:18px;color:#8A93B5;"> / 10</span></div>
+              <div style="color:{trend_color};font-size:13px;font-weight:700;margin-top:4px;">{d.get('trend_label','')}</div>
+            </td>
+            {forecast_cell}
+          </tr>
+        </table>
         <div style="color:#CADCFC;font-size:13px;margin-top:10px;line-height:1.4;">{d.get('threat_reading','')}</div>
+        {forecast_reading}
       </td>
     </tr>
     <tr>
@@ -159,7 +177,10 @@ def send_daily_email(report_data: dict, pptx_path: str, audio_path: str = None) 
         return False
 
     msg = EmailMessage()
-    msg["Subject"] = f"Hybrid Threat Monitor - {report_data.get('date','')} - Index {report_data.get('threat_index',0):.1f}/10"
+    subject = f"Hybrid Threat Monitor - {report_data.get('date','')} - Index {report_data.get('threat_index',0):.1f}/10"
+    if report_data.get("threat_index_30d") is not None:
+        subject += f", 30d {report_data['threat_index_30d']:.1f}"
+    msg["Subject"] = subject
     msg["From"] = mail_from
     msg["To"] = mail_to
     msg.set_content("This report needs an HTML-capable mail client to view the digest. The full deck is attached as a PowerPoint file.")

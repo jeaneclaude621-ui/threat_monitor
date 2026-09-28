@@ -13,7 +13,8 @@ consolidated PowerPoint status report every morning at 05:00.
   narrative shift without a formal correction.
 - **Every day at 05:00**: self-checks yesterday's scored claims against
   what actually happened since; runs a broad research sweep for new
-  developments; recomputes the 1\u201310 threat index; refreshes the
+  developments; recomputes the two 1\u201310 threat indices (see "Threat
+  indices" below); refreshes the
   watchlist; proposes exactly one concrete methodology improvement; and
   builds `reports/YYYY-MM-DD_hybrid_threat_monitor.pptx`. If email is
   configured (see "Email delivery" below), it then sends the report to
@@ -122,6 +123,30 @@ python3 src/podcast.py 2026-09-21      # a specific date
 python3 src/podcast.py --script-only   # script, no audio
 ```
 
+## Threat indices
+
+Each report carries two indices, both scored against the anchor bands in
+`config/methodology.json` (each band names an observable condition that
+must be met):
+
+- **General** \u2014 where the Russia\u2013NATO/EU relationship stands today.
+- **Next 30 days** \u2014 a forecast: the band expected to best describe
+  the relationship over the coming 30 days, from dated drivers inside
+  that window (deadlines, summits, exercises, expiring measures) and the
+  direction of current trends. It can sit above or below the general one.
+
+To rescore the whole history against the current methodology (after the
+anchors change, say):
+
+```
+python3 src/recalibrate.py --dry-run   # print old vs new, save nothing
+python3 src/recalibrate.py             # save to state and data/recalibration.json
+```
+
+Each past day is rescored blind, from the evidence its own report
+recorded, without web search and without its old value. Sent reports are
+not changed.
+
 ## Responding to the daily methodology proposal
 
 Each day's report ends with one proposed, scoped change to the scoring
@@ -211,6 +236,7 @@ threat_monitor/
   src/common.py                state persistence, logging, API wrapper
   src/hourly_monitor.py        hourly thread-check
   src/daily_report.py          05:00 consolidation, self-check, proposal, deck build
+  src/recalibrate.py           rescores the threat-index history against current rules
   src/pptx_builder.py          PowerPoint generation (python-pptx)
   src/mailer.py                daily HTML digest email + PPTX attachment
   schedule/setup_windows.ps1   Windows Task Scheduler setup
@@ -222,7 +248,7 @@ threat_monitor/
 
 ## A few honest caveats
 
-- The 1\u201310 threat index and the byline/outlet scores are Claude's
+- The 1\u201310 threat indices and the byline/outlet scores are Claude's
   ongoing analytical synthesis of the reporting it finds \u2014 not an
   official metric. Treat the deck as a structured read, not ground
   truth.

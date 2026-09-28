@@ -44,10 +44,12 @@ Krav:
 - ENDAST resultat och slutsatser. Nämn aldrig källor, tidningar,
   nyhetsbyråer eller varifrån en uppgift kommer. Inga uttryck som
   "enligt", "rapporterar" eller "uppges".
-- Läs inte upp siffror som poäng eller listor. Hotindex och riktning
-  får nämnas en gång i klartext, till exempel "hotnivån ligger kvar
-  på åtta komma två av tio".
-- Täck: läget och riktningen, den viktigaste utvecklingen, de övriga
+- Läs inte upp siffror som poäng eller listor. Det finns två hotindex:
+  det generella (läget i dag) och en prognos för de kommande 30 dagarna.
+  Nämn båda en gång i klartext, till exempel "hotnivån ligger på sex
+  komma tre av tio, och för den kommande månaden bedöms den till sju",
+  och säg kort vad som driver prognosen.
+- Täck: läget och riktningen, trettiodagarsprognosen, den viktigaste utvecklingen, de övriga
   händelserna under dygnet, mönstren i den ryska informationspåverkan,
   och till sist det metodförslag som väntar på besked.
 - Skrivet för örat: korta meningar, talspråkliga övergångar som "det

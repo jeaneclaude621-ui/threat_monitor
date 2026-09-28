@@ -7,7 +7,7 @@ from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.chart.data import CategoryChartData
-from pptx.enum.chart import XL_CHART_TYPE
+from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
 
 NAVY = RGBColor(0x1E, 0x27, 0x61)
 NAVY_DK = RGBColor(0x14, 0x1B, 0x47)
@@ -70,6 +70,7 @@ def build_deck(report_data: dict, output_path: str):
     blank = prs.slide_layouts[6]
 
     _slide_dashboard(prs.slides.add_slide(blank), report_data)
+    _slide_assessment(prs.slides.add_slide(blank), report_data)
     _slide_event_log(prs.slides.add_slide(blank), report_data)
     _slide_trend(prs.slides.add_slide(blank), report_data)
     _slide_narrative_stability(prs.slides.add_slide(blank), report_data)
@@ -86,21 +87,82 @@ def _slide_dashboard(s, d):
     _box(s, 0.6, 0.8, 12.1, 0.7, "Hybrid Threat & Escalation Monitor", 30, WHITE, bold=True, font=FONT_HEAD)
     _box(s, 0.6, 1.45, 12.1, 0.35, f"Report date: {d['date']}  |  24h monitoring, consolidated 05:00 CET", 12, SLATE, italic=True)
 
-    _card(s, 0.6, 2.0, 3.9, 3.1, NAVY)
+    _card(s, 0.6, 2.0, 3.9, 4.9, NAVY)
     _box(s, 0.9, 2.2, 3.3, 0.35, "NATO / EU\u2013RUSSIA THREAT INDEX", 11, ICE, bold=True)
-    _box(s, 0.9, 2.5, 2.2, 1.2, f"{d['threat_index']:.1f}", 70, AMBER, bold=True, font=FONT_HEAD)
-    _box(s, 0.9, 3.75, 3.3, 0.3, f"Trend: {d['trend_label']}", 12, AMBER, bold=True)
-    _box(s, 0.9, 4.15, 3.3, 0.85, d["threat_reading"], 10.5, ICE)
+    _box(s, 0.9, 2.55, 1.6, 0.25, "GENERAL", 9, ICE, bold=True)
+    _box(s, 0.9, 2.75, 1.6, 0.9, f"{d['threat_index']:.1f}", 48, AMBER, bold=True, font=FONT_HEAD)
+    if d.get("threat_index_30d") is not None:
+        _box(s, 2.6, 2.55, 1.7, 0.25, "NEXT 30 DAYS", 9, ICE, bold=True)
+        _box(s, 2.6, 2.75, 1.7, 0.9, f"{d['threat_index_30d']:.1f}", 48, WHITE, bold=True, font=FONT_HEAD)
+    _box(s, 0.9, 3.7, 3.3, 0.3, f"Trend: {d['trend_label']}", 12, AMBER, bold=True)
+    # The full justification runs to ~1800 characters; only an excerpt fits
+    # here at a readable size. The whole text is on the next slide.
+    _box(s, 0.9, 4.05, 3.3, 2.35, _excerpt(d["threat_reading"], 520), 10.5, ICE)
+    _box(s, 0.9, 6.45, 3.3, 0.3, "Full reasoning on the next slide", 9.5, SLATE, italic=True)
 
     _card(s, 4.75, 2.0, 7.95, 1.35, NAVY)
     _box(s, 5.0, 2.2, 7.5, 0.3, "SELF-CHECK: YESTERDAY'S ASSESSMENTS", 10.5, AMBER, bold=True)
     _box(s, 5.0, 2.55, 7.5, 0.7, d["self_check_summary"], 12, WHITE)
 
-    _card(s, 4.75, 3.5, 7.95, 1.6, NAVY)
+    _card(s, 4.75, 3.5, 7.95, 3.4, NAVY)
     _box(s, 5.0, 3.7, 7.5, 0.3, "TOP DEVELOPMENT, LAST 24H", 10.5, AMBER, bold=True)
-    _box(s, 5.0, 4.05, 7.5, 1.0, d["top_development"], 12, WHITE)
+    _box(s, 5.0, 4.05, 7.5, 2.7, d["top_development"], 14, WHITE)
 
     _box(s, 0.6, 7.1, 12.1, 0.3, "AUTOMATED OSINT SYNTHESIS - NOT FOR OPERATIONAL DECISION-MAKING", 9, SLATE)
+
+
+def _excerpt(text, limit):
+    """Whole sentences up to `limit` characters; a first sentence longer
+    than that is cut at a word boundary."""
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    end = cut.rfind(". ")
+    if end > limit // 3:
+        return cut[:end + 1]
+    return cut[:cut.rfind(" ")].rstrip(",;:") + "\u2026"
+
+
+def _fit_size(text, sizes):
+    """Largest font size whose character budget the text fits in, from
+    [(size, max_chars), ...] largest first; the smallest one otherwise."""
+    for size, max_chars in sizes:
+        if len(text) <= max_chars:
+            return size
+    return sizes[-1][0]
+
+
+def _slide_assessment(s, d):
+    _bg(s, PAPER)
+    _box(s, 0.6, 0.4, 8, 0.35, "THREAT ASSESSMENT", 12, AMBER, bold=True)
+    _box(s, 0.6, 0.72, 12.1, 0.55, "Why the Indices Stand Where They Do", 24, INK, bold=True, font=FONT_HEAD)
+
+    # Budgets are what fits the 5.9 x 5.1 in column at each size; past
+    # the smallest, text is cut at a sentence rather than shrunk further.
+    budget = [(12, 1700), (11, 2100), (10.5, 2400)]
+    reading = d["threat_reading"]
+    _card(s, 0.6, 1.5, 6.0, 5.5, WHITE, line_color=RGBColor(0xE3, 0xE7, 0xF1))
+    _box(s, 0.85, 1.65, 5.5, 0.3, f"GENERAL  {d['threat_index']:.1f}", 11, AMBER, bold=True)
+    _box(s, 0.85, 1.95, 5.5, 4.95, _excerpt(reading, budget[-1][1]), _fit_size(reading, budget), INK)
+
+    _card(s, 6.75, 1.5, 6.0, 5.5, NAVY)
+    if d.get("threat_index_30d") is None:
+        _box(s, 7.0, 1.65, 5.5, 0.3, "NEXT 30 DAYS", 11, AMBER, bold=True)
+        _box(s, 7.0, 1.95, 5.5, 0.5, "No 30-day forecast in this report.", 12, ICE)
+        return
+    _box(s, 7.0, 1.65, 5.5, 0.3, f"NEXT 30 DAYS  {d['threat_index_30d']:.1f}", 11, AMBER, bold=True)
+    outlook = _excerpt(d.get("threat_reading_30d", ""), 1100)
+    _box(s, 7.0, 1.95, 5.5, 2.9, outlook, _fit_size(outlook, [(12, 850), (11, 1100)]), WHITE)
+
+    drivers = d.get("forecast_drivers", [])[:4]
+    if drivers:
+        _box(s, 7.0, 4.95, 5.5, 0.3, "DRIVERS", 10, AMBER, bold=True)
+        ty = 5.25
+        for drv in drivers:
+            arrow = "\u25B2" if drv.get("direction") == "up" else "\u25BC"
+            line = f"{arrow} {drv.get('when', '')}: {_excerpt(drv.get('driver', ''), 95)}"
+            _box(s, 7.0, ty, 5.5, 0.38, line, 10, ICE)
+            ty += 0.42
 
 
 def _slide_event_log(s, d):
@@ -143,18 +205,26 @@ def _slide_trend(s, d):
     hist = d["threat_index_history"][-30:]
     chart_data = CategoryChartData()
     chart_data.categories = [h["date"][5:] for h in hist]  # MM-DD
-    chart_data.add_series("Threat Index", [h["value"] for h in hist])
+    chart_data.add_series("General", [h["value"] for h in hist])
+    # Days before the 30-day index existed have no value and plot as a gap.
+    chart_data.add_series("Next 30 days", [h.get("value_30d") for h in hist])
     x, y, cx, cy = Inches(0.6), Inches(1.5), Inches(8.1), Inches(5.2)
     gframe = s.shapes.add_chart(XL_CHART_TYPE.LINE_MARKERS, x, y, cx, cy, chart_data)
     chart = gframe.chart
-    chart.has_legend = False
+    chart.has_legend = True
+    chart.legend.position = XL_LEGEND_POSITION.BOTTOM
+    chart.legend.include_in_layout = False
     chart.has_title = False
     val_axis = chart.value_axis
     val_axis.minimum_scale = 0
     val_axis.maximum_scale = 10
     plot = chart.plots[0]
-    plot.series[0].format.line.color.rgb = AMBER
-    plot.series[0].format.line.width = Pt(2.5)
+    for series, color in zip(plot.series, (AMBER, NAVY)):
+        series.format.line.color.rgb = color
+        series.format.line.width = Pt(2.5)
+        series.marker.format.fill.solid()
+        series.marker.format.fill.fore_color.rgb = color
+        series.marker.format.line.color.rgb = color
 
     _card(s, 8.95, 1.5, 3.8, 5.2, NAVY)
     _box(s, 9.2, 1.7, 3.3, 0.3, "KEY SIGNALS THIS WEEK", 11, ICE, bold=True)
