@@ -8,6 +8,7 @@ module uses to do its research.
 import json
 import os
 import re
+import time
 from datetime import datetime, date
 from pathlib import Path
 
@@ -23,6 +24,11 @@ LOG_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 MODEL = "claude-sonnet-4-6"
+
+# Waits between attempts when the network is down. launchd can start a job
+# during a brief maintenance wake before Wi-Fi/DNS is back (27 Sep: the
+# report died on its first API call), so give the network ~15 minutes.
+NETWORK_RETRY_DELAYS = [30, 60, 120, 240, 300, 300]
 
 
 # --------------------------------------------------------------------------
@@ -160,12 +166,12 @@ def ask_claude(prompt: str, system: str = None, max_tokens: int = 2000, use_sear
     # Web search can involve multiple tool round-trips; the SDK's
     # .messages.create already returns the final assistant turn for
     # single-turn tool use, but if the model stops on a tool call we loop.
-    response = client.messages.create(**kwargs)
+    response = _create_with_retry(client, kwargs)
     while response.stop_reason == "tool_use":
         # The API executes web_search server-side for this tool type, so a
         # plain create() call already resolves it in practice; this loop is
         # a safety net for future multi-turn tool behavior.
-        response = client.messages.create(**kwargs)
+        response = _create_with_retry(client, kwargs)
         break
 
     if response.stop_reason == "max_tokens":
@@ -173,6 +179,21 @@ def ask_claude(prompt: str, system: str = None, max_tokens: int = 2000, use_sear
 
     parts = [b.text for b in response.content if getattr(b, "type", "") == "text"]
     return "\n".join(parts).strip()
+
+
+def _create_with_retry(client, kwargs):
+    """client.messages.create, retried with long waits on connection
+    errors. The SDK's own retries (a few seconds apart) cover API hiccups
+    but not a Mac whose network is still coming up after sleep."""
+    import anthropic
+    for delay in NETWORK_RETRY_DELAYS + [None]:
+        try:
+            return client.messages.create(**kwargs)
+        except (anthropic.APIConnectionError, anthropic.APITimeoutError) as e:
+            if delay is None:
+                raise
+            print(f"  ! Claude API unreachable ({e}); retrying in {delay}s")
+            time.sleep(delay)
 
 
 def ask_claude_json(prompt: str, system: str = None, max_tokens: int = 2000, use_search: bool = True) -> dict:

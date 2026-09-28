@@ -17,8 +17,11 @@ README.md for setup (Gmail app-password example included).
 import os
 import smtplib
 import ssl
+import time
 from email.message import EmailMessage
 from pathlib import Path
+
+from common import NETWORK_RETRY_DELAYS
 
 DEFAULT_RECIPIENT = "admin.one@example.org"
 
@@ -180,13 +183,27 @@ def send_daily_email(report_data: dict, pptx_path: str, audio_path: str = None) 
             filename=audio_file.name,
         )
 
-    try:
-        _smtp_send(host, port, user, password, msg)
-        print(f"  Email sent to {mail_to}")
-        return True
-    except Exception as e:
-        print(f"  ! Email failed to send: {e}")
-        return False
+    for delay in NETWORK_RETRY_DELAYS + [None]:
+        try:
+            _smtp_send(host, port, user, password, msg)
+            print(f"  Email sent to {mail_to}")
+            return True
+        except smtplib.SMTPResponseException as e:
+            # The server answered and said no (bad login, rejected
+            # recipient) - waiting won't change that. Checked first because
+            # SMTP exceptions are OSError subclasses.
+            print(f"  ! Email failed to send: {e}")
+            return False
+        except OSError as e:
+            # Network trouble (DNS, refused, timeout, dropped connection).
+            if delay is None:
+                print(f"  ! Email failed to send: {e}")
+                return False
+            print(f"  ! SMTP unreachable ({e}); retrying in {delay}s")
+            time.sleep(delay)
+        except Exception as e:
+            print(f"  ! Email failed to send: {e}")
+            return False
 
 
 def _smtp_send(host, port, user, password, msg):
