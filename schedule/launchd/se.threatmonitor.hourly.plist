@@ -8,12 +8,15 @@
 	     which delayed the report by ~3 hours on 25 and 26 Sep.
 	     Sources ~/.zshrc so the API key and SMTP settings stay in one
 	     place instead of being copied into this file. launchd runs a
-	     missed job when the Mac wakes, which cron does not. -->
+	     missed job when the Mac wakes, which cron does not.
+	     Calls the Command Line Tools python directly: /usr/bin/python3
+	     is a shim that refuses to start until the Xcode license is
+	     accepted, which killed the 29 Sep report after an Xcode change. -->
 	<key>ProgramArguments</key>
 	<array>
 		<string>/bin/zsh</string>
 		<string>-c</string>
-		<string>source "$HOME/.zshrc"; exec /usr/bin/caffeinate -i -s /usr/bin/python3 /Users/jeaneclaude/threat_monitor/src/hourly_monitor.py</string>
+		<string>source "$HOME/.zshrc"; exec /usr/bin/caffeinate -i -s /Library/Developer/CommandLineTools/usr/bin/python3 /Users/jeaneclaude/threat_monitor/src/hourly_monitor.py</string>
 	</array>
 	<key>WorkingDirectory</key><string>/Users/jeaneclaude/threat_monitor</string>
 	<key>StartCalendarInterval</key>
