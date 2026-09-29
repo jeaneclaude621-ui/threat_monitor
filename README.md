@@ -123,6 +123,19 @@ python3 src/podcast.py 2026-09-21      # a specific date
 python3 src/podcast.py --script-only   # script, no audio
 ```
 
+## Svensk Super Executive
+
+The top of each morning email carries a one-screen Swedish summary:
+both indices, the top development, then every heading of the deck with
+one short sentence per topic. Claude writes it from the finished report
+data as structured JSON, saved as `<date>_executive_sv.json`. Like the
+podcast it is best-effort: if it fails, the email goes out without it.
+
+```
+python3 src/executive_sv.py              # today's report
+python3 src/executive_sv.py 2026-09-28   # a specific date
+```
+
 ## Threat indices
 
 Each report carries two indices, both scored against the anchor bands in

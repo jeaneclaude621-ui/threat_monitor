@@ -14,6 +14,7 @@ If the required variables aren't set, sending is skipped with a clear
 log line rather than crashing the rest of the daily report - see
 README.md for setup (Gmail app-password example included).
 """
+import html
 import os
 import smtplib
 import ssl
@@ -58,7 +59,29 @@ def _score_color(score) -> str:
     return "#B3261E"
 
 
-def build_html_digest(report_data: dict, has_audio: bool = False) -> str:
+def build_executive_html(brief: dict) -> str:
+    """The Swedish one-sentence-per-topic summary as a table row for the
+    top of the digest. Model text is escaped - it is content, not markup."""
+    esc = lambda v: html.escape(str(v or ""))
+    rows = ""
+    for section in brief.get("sections", []):
+        items = ""
+        for item in section.get("items", []):
+            label = f'<span style="font-weight:700;color:#1B2340;">{esc(item.get("label"))}:</span> ' if item.get("label") else ""
+            items += f'<div style="color:#1B2340;font-size:14px;line-height:1.45;margin-top:4px;">{label}{esc(item.get("text"))}</div>'
+        rows += f"""<div style="color:#D98A2B;font-size:11px;font-weight:700;letter-spacing:1px;margin-top:14px;">{esc(section.get('heading')).upper()}</div>
+        {items}"""
+    return f"""<tr>
+      <td style="background:#ffffff;padding:18px 20px;border-bottom:4px solid #141B47;">
+        <div style="color:#141B47;font-size:17px;font-weight:700;">Svensk Super Executive</div>
+        <div style="color:#1B2340;font-size:15px;font-weight:700;margin-top:8px;line-height:1.4;">{esc(brief.get('index_line'))}</div>
+        <div style="color:#1B2340;font-size:14px;margin-top:6px;line-height:1.45;">{esc(brief.get('top'))}</div>
+        {rows}
+      </td>
+    </tr>"""
+
+
+def build_html_digest(report_data: dict, has_audio: bool = False, executive: dict = None) -> str:
     """Single-column, inline-CSS HTML email - deliberately simple
     markup (tables + inline styles) since that's what survives Apple
     Mail's rendering on iPhone, unlike a linked stylesheet."""
@@ -81,6 +104,7 @@ def build_html_digest(report_data: dict, has_audio: bool = False) -> str:
 
     proposal = d.get("proposal") or {}
     trend_color = _trend_color(d.get("trend_label", ""))
+    executive_html = build_executive_html(executive) if executive else ""
     audio_note = " &middot; 4-minute spoken briefing in Swedish attached (.m4a)" if has_audio else ""
 
     forecast_cell = forecast_reading = ""
@@ -104,6 +128,7 @@ def build_html_digest(report_data: dict, has_audio: bool = False) -> str:
         <div style="color:#8A93B5;font-size:13px;margin-top:4px;">{d.get('date','')} &middot; consolidated 05:00 CET</div>
       </td>
     </tr>
+    {executive_html}
     <tr>
       <td style="background:#1E2761;padding:20px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -158,7 +183,7 @@ def build_html_digest(report_data: dict, has_audio: bool = False) -> str:
 </html>"""
 
 
-def send_daily_email(report_data: dict, pptx_path: str, audio_path: str = None) -> bool:
+def send_daily_email(report_data: dict, pptx_path: str, audio_path: str = None, executive: dict = None) -> bool:
     """Returns True if sent, False if skipped or failed. Never raises -
     a mail problem should never take down the rest of the daily run."""
     host = os.environ.get("SMTP_HOST")
@@ -184,7 +209,7 @@ def send_daily_email(report_data: dict, pptx_path: str, audio_path: str = None) 
     msg["From"] = mail_from
     msg["To"] = mail_to
     msg.set_content("This report needs an HTML-capable mail client to view the digest. The full deck is attached as a PowerPoint file.")
-    msg.add_alternative(build_html_digest(report_data, has_audio=bool(audio_path)), subtype="html")
+    msg.add_alternative(build_html_digest(report_data, has_audio=bool(audio_path), executive=executive), subtype="html")
 
     pptx_file = Path(pptx_path)
     if pptx_file.exists():
