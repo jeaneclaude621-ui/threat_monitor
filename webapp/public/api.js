@@ -1,0 +1,270 @@
+// Data layer: reports, the signed-in user and operator assessments, with an
+// offline outbox so a swipe made without coverage is uploaded later.
+// Shapes follow webapp/CONTRACT.md.
+
+const ME_KEY = 'hm.me';
+const OUTBOX_KEY = 'hm.outbox';
+
+export class AuthError extends Error {}
+export class OfflineError extends Error {}
+export class HttpError extends Error {
+  constructor(status, message) { super(message); this.status = status; }
+}
+
+function lsGet(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+}
+function lsSet(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode: keep in memory only */ }
+}
+
+export function uuid() {
+  if (globalThis.crypto && crypto.randomUUID) return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+  const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
+async function getJSON(url, opts = {}) {
+  let res;
+  try {
+    res = await fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' }, ...opts });
+  } catch (e) {
+    throw new OfflineError(String(e));
+  }
+  if (res.status === 401 || res.status === 403) throw new AuthError(`HTTP ${res.status}`);
+  const type = res.headers.get('content-type') || '';
+  // An expired Access session answers with a redirect to its login page.
+  if (!type.includes('application/json')) throw new AuthError('not json');
+  const body = await res.json();
+  if (res.status === 503 && body && body.error === 'offline') throw new OfflineError('offline');
+  if (!res.ok) throw new HttpError(res.status, (body && body.error) || `HTTP ${res.status}`);
+  return body;
+}
+
+export const store = {
+  me: null,
+  index: null,           // [{date, threat_index, threat_index_30d, top_sv}] newest first
+  reports: new Map(),    // date -> normalized report
+  assessments: [],       // all rows, plus local pending rows
+  outbox: lsGet(OUTBOX_KEY, []),
+  stale: false,          // true when showing cached data because the server was unreachable
+};
+
+const listeners = new Set();
+export function onChange(fn) { listeners.add(fn); }
+function emit() { for (const fn of listeners) fn(); }
+
+export function isAdmin() { return !!store.me && store.me.role === 'admin'; }
+
+export async function loadMe() {
+  try {
+    store.me = await getJSON('/api/me', { cache: 'no-store' });
+    lsSet(ME_KEY, store.me);
+    store.stale = false;
+  } catch (e) {
+    const cached = lsGet(ME_KEY, null);
+    if (e instanceof OfflineError && cached) {
+      store.me = cached;
+      store.stale = true;
+    } else if (e instanceof OfflineError && navigator.onLine) {
+      throw new AuthError('unreachable');
+    } else {
+      throw e;
+    }
+  }
+  emit();
+  return store.me;
+}
+
+export async function loadIndex(force = false) {
+  if (store.index && !force) return store.index;
+  const list = await getJSON('/api/reports');
+  store.index = [...list].sort((a, b) => (a.date < b.date ? 1 : -1));
+  return store.index;
+}
+
+const arr = (v) => (Array.isArray(v) ? v : []);
+
+function normalize(r) {
+  const events = arr(r.events).map((e, i) => ({
+    ...e,
+    id: e.id || `${r.date}-e${i + 1}`,
+    topics: arr(e.topics),
+    countries: arr(e.countries),
+    articles: arr(e.articles),
+  }));
+  return { ...r, events };
+}
+
+export async function loadReport(date) {
+  if (store.reports.has(date)) return store.reports.get(date);
+  const r = normalize(await getJSON(`/api/reports/${encodeURIComponent(date)}`));
+  store.reports.set(date, r);
+  return r;
+}
+
+export async function loadAllReports() {
+  const index = await loadIndex();
+  const out = [];
+  const queue = [...index];
+  async function worker() {
+    while (queue.length) {
+      const item = queue.shift();
+      try { out.push(await loadReport(item.date)); } catch (e) {
+        if (e instanceof AuthError) throw e;
+      }
+    }
+  }
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  return out.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+export async function loadAssessments() {
+  const rows = await getJSON('/api/assessments');
+  const serverClientIds = new Set(rows.map((r) => r.client_id).filter(Boolean));
+  // Anything the server already has was uploaded before a reload: drop it.
+  store.outbox = store.outbox.filter((o) => !serverClientIds.has(o.client_id));
+  lsSet(OUTBOX_KEY, store.outbox);
+  const pending = store.outbox.map(pendingRow);
+  store.assessments = [...rows, ...pending];
+  emit();
+  flush();
+  return store.assessments;
+}
+
+function pendingRow(item) {
+  return {
+    ...item,
+    id: `pending:${item.client_id}`,
+    ts: item.queued_at || new Date().toISOString(),
+    operator: store.me ? store.me.email : '',
+    pending: true,
+  };
+}
+
+// --- The current user's verdicts --------------------------------------------
+
+export function myRows() {
+  const me = store.me && store.me.email;
+  return store.assessments.filter((a) => a.operator === me);
+}
+
+// article_id -> the latest row of each of my chains (value 0 = withdrawn).
+export function currentByArticle() {
+  const rows = myRows();
+  const superseded = new Set(rows.map((r) => r.supersedes).filter(Boolean));
+  const current = new Map();
+  for (const r of rows) {
+    if (superseded.has(r.id)) continue;
+    const prev = current.get(r.article_id);
+    if (!prev || r.ts > prev.ts) current.set(r.article_id, r);
+  }
+  return current;
+}
+
+export function chainOf(row) {
+  const byId = new Map(store.assessments.map((a) => [a.id, a]));
+  const out = [];
+  const seen = new Set();
+  let r = row;
+  while (r && !seen.has(r.id)) {
+    out.push(r);
+    seen.add(r.id);
+    r = r.supersedes ? byId.get(r.supersedes) : null;
+  }
+  return out;
+}
+
+// target = { article, event, date }. Returns the local (pending) row.
+export function assess(target, value, supersedesRow) {
+  const item = {
+    client_id: uuid(),
+    article_id: target.article.id,
+    report_date: target.date,
+    event_id: target.event.id,
+    outlet: target.article.outlet || '',
+    value,
+    supersedes: supersedesRow ? supersedesRow.id : null,
+    queued_at: new Date().toISOString(),
+  };
+  const local = pendingRow(item);
+  store.assessments.push(local);
+  store.outbox.push(item);
+  lsSet(OUTBOX_KEY, store.outbox);
+  emit();
+  flush();
+  return local;
+}
+
+// Take back a row: drop it if it never left the phone, otherwise record a
+// withdrawal (value 0) that supersedes it, keeping the history intact.
+const undoRequested = new Set();
+export function undo(row, target) {
+  if (row.pending) {
+    const cid = row.client_id;
+    if (inFlight === cid) { undoRequested.add(cid); return; }
+    store.outbox = store.outbox.filter((o) => o.client_id !== cid);
+    store.assessments = store.assessments.filter((a) => a.id !== row.id);
+    lsSet(OUTBOX_KEY, store.outbox);
+    emit();
+    return;
+  }
+  assess(target, 0, row);
+}
+
+let flushing = false;
+let inFlight = null;
+export async function flush() {
+  if (flushing || !store.outbox.length) return;
+  flushing = true;
+  try {
+    while (store.outbox.length) {
+      const item = store.outbox[0];
+      const body = { ...item };
+      delete body.queued_at;
+      if (body.supersedes && body.supersedes.startsWith('pending:')) break; // predecessor not uploaded yet
+      inFlight = item.client_id;
+      let row;
+      try {
+        row = await getJSON('/api/assessments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(body),
+        });
+      } catch (e) {
+        if (e instanceof HttpError && e.status >= 400 && e.status < 500) {
+          // The server rejected this row; retrying will not help.
+          store.outbox.shift();
+          store.assessments = store.assessments.filter((a) => a.id !== `pending:${item.client_id}`);
+          store.lastError = e.message;
+          lsSet(OUTBOX_KEY, store.outbox);
+          emit();
+          continue;
+        }
+        throw e;
+      } finally {
+        inFlight = null;
+      }
+      const pid = `pending:${item.client_id}`;
+      store.assessments = store.assessments.map((a) => (a.id === pid ? row : a.supersedes === pid ? { ...a, supersedes: row.id } : a));
+      store.outbox = store.outbox.filter((o) => o.client_id !== item.client_id)
+        .map((o) => (o.supersedes === pid ? { ...o, supersedes: row.id } : o));
+      lsSet(OUTBOX_KEY, store.outbox);
+      if (undoRequested.delete(item.client_id)) {
+        const target = { article: { id: row.article_id, outlet: row.outlet }, event: { id: row.event_id }, date: row.report_date };
+        assess(target, 0, row);
+      }
+      emit();
+    }
+  } catch (e) {
+    store.lastError = e.message;
+    if (e instanceof AuthError) store.authLost = true;
+    emit();
+  } finally {
+    flushing = false;
+  }
+}
+
+window.addEventListener('online', () => flush());

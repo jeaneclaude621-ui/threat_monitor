@@ -1,0 +1,32 @@
+// Hotmonitor: one Worker serving the static app (public/) and the API (/api/*).
+// See CONTRACT.md for the data/API contract and DEPLOY.md for setup.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hotmonitor",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-09-30",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
+    "not_found_handling": "single-page-application"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hotmonitor",
+      "database_id": "REPLACE_AT_DEPLOY",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Auth is fail-closed: until TEAM_DOMAIN and ACCESS_AUD are set, every
+  // /api request is refused. DEV_AUTH_* bypasses live only in .dev.vars.
+  "vars": {
+    "TEAM_DOMAIN": "",
+    "ACCESS_AUD": "",
+    "ADMINS": "admin.one@example.org,admin.two@example.org,the.owner@example.org",
+    "READERS": "",
+    "MACHINE_CLIENT_ID": ""
+  }
+}

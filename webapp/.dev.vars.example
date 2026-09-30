@@ -1,0 +1,3 @@
+DEV_AUTH_EMAIL=the.owner@example.org
+DEV_AUTH_MACHINE=1
+READERS=reader@example.com

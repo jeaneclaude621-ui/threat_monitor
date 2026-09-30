@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hotmonitor</title>
+<meta name="description" content="Daglig bedömning av ryska hybridhot mot Nato, EU och Ukraina.">
+<meta name="theme-color" content="#15203B">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Hotmonitor">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/app.css">
+<script type="module" src="/app.js"></script>
+</head>
+<body>
+<div id="banner" class="banner" hidden></div>
+<main id="view" class="view" tabindex="-1" aria-live="polite">
+  <p class="loading">Laddar…</p>
+</main>
+<div id="pending" class="pending" role="status" hidden></div>
+<nav class="tabbar" aria-label="Flikar">
+  <a href="#/" data-tab="idag">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M8 8h8M8 12h8M8 16h5"></path></svg>
+    <span>Idag</span>
+  </a>
+  <a href="#/arkiv" data-tab="arkiv">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+    <span>Arkiv</span>
+  </a>
+  <a href="#/amnen" data-tab="amnen">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M20 20l-4.2-4.2"></path></svg>
+    <span>Ämnen</span>
+  </a>
+  <a href="#/karta" data-tab="karta">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"></path><path d="M9 4v14M15 6v14"></path></svg>
+    <span>Karta</span>
+  </a>
+  <a href="#/bedom" data-tab="bedom" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h5M15 12h5M12 4v5M12 15v5"></path><circle cx="12" cy="12" r="2.5"></circle></svg>
+    <span>Bedöm</span>
+  </a>
+</nav>
+</body>
+</html>

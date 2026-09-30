@@ -1,0 +1,16 @@
+{
+  "name": "hotmonitor-webapp",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Hotmonitor web app: Cloudflare Worker API + static PWA",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "migrate:local": "wrangler d1 migrations apply hotmonitor --local",
+    "migrate:remote": "wrangler d1 migrations apply hotmonitor --remote"
+  },
+  "devDependencies": {
+    "wrangler": "4.144.0"
+  }
+}
