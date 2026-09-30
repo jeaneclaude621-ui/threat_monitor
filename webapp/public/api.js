@@ -4,8 +4,12 @@
 
 const ME_KEY = 'hm.me';
 const OUTBOX_KEY = 'hm.outbox';
+const READS_KEY = 'hm.readsOutbox';
+const READ_CACHE_KEY = 'hm.reads';
 
 export class AuthError extends Error {}
+// The email is verified but the app does not let it in (removed or never added).
+export class DeniedError extends AuthError {}
 export class OfflineError extends Error {}
 export class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -33,11 +37,18 @@ async function getJSON(url, opts = {}) {
   } catch (e) {
     throw new OfflineError(String(e));
   }
-  if (res.status === 401 || res.status === 403) throw new AuthError(`HTTP ${res.status}`);
+  if (res.status === 401) throw new AuthError(`HTTP ${res.status}`);
   const type = res.headers.get('content-type') || '';
   // An expired Access session answers with a redirect to its login page.
   if (!type.includes('application/json')) throw new AuthError('not json');
   const body = await res.json();
+  if (res.status === 403) {
+    const reason = String((body && (body.reason || body.error)) || '');
+    if (/not[_ ]allowed|not in users|inactive/i.test(reason) || String(url).startsWith('/api/me')) {
+      throw new DeniedError(reason || 'not allowed');
+    }
+    throw new HttpError(403, reason || 'Åtgärden är inte tillåten');
+  }
   if (res.status === 503 && body && body.error === 'offline') throw new OfflineError('offline');
   if (!res.ok) throw new HttpError(res.status, (body && body.error) || `HTTP ${res.status}`);
   return body;
@@ -50,6 +61,11 @@ export const store = {
   assessments: [],       // all rows, plus local pending rows
   outbox: lsGet(OUTBOX_KEY, []),
   stale: false,          // true when showing cached data because the server was unreachable
+  updates: [],           // live feed rows, newest first
+  reads: new Set(lsGet(READ_CACHE_KEY, [])), // item ids I have read (events and updates)
+  lastVisit: null,       // my previous visit, from the server
+  readsOutbox: lsGet(READS_KEY, []),
+  refreshedAt: null,
 };
 
 const listeners = new Set();
@@ -268,3 +284,99 @@ export async function flush() {
 }
 
 window.addEventListener('online', () => flush());
+
+// --- Live feed and read marks -------------------------------------------------
+
+export async function loadUpdates() {
+  const rows = await getJSON('/api/updates');
+  store.updates = [...(Array.isArray(rows) ? rows : [])].sort((a, b) => (a.ts < b.ts ? 1 : -1));
+  emit();
+  return store.updates;
+}
+
+export async function loadReads() {
+  const body = await getJSON('/api/reads', { cache: 'no-store' });
+  const ids = Array.isArray(body && body.item_ids) ? body.item_ids : [];
+  // Marks still waiting in the outbox stay read locally.
+  store.reads = new Set([...ids, ...store.readsOutbox.flatMap((o) => o.item_ids || [])]);
+  if (body && body.last_visit) store.lastVisit = body.last_visit;
+  lsSet(READ_CACHE_KEY, [...store.reads]);
+  emit();
+  flushReads();
+  return store.reads;
+}
+
+export function isRead(id) { return store.reads.has(id); }
+
+export function markRead(ids) {
+  const fresh = [...new Set(ids)].filter((id) => id && !store.reads.has(id));
+  if (!fresh.length) return;
+  for (const id of fresh) store.reads.add(id);
+  lsSet(READ_CACHE_KEY, [...store.reads]);
+  // Batches of 200 keep each request small.
+  for (let i = 0; i < fresh.length; i += 200) store.readsOutbox.push({ item_ids: fresh.slice(i, i + 200) });
+  lsSet(READS_KEY, store.readsOutbox);
+  emit();
+  flushReads();
+}
+
+let flushingReads = false;
+export async function flushReads() {
+  if (flushingReads || !store.readsOutbox.length) return;
+  flushingReads = true;
+  try {
+    while (store.readsOutbox.length) {
+      try {
+        await getJSON('/api/reads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(store.readsOutbox[0]),
+        });
+      } catch (e) {
+        // A rejected mark (4xx) will never succeed; drop it and go on.
+        if (!(e instanceof HttpError && e.status >= 400 && e.status < 500)) throw e;
+      }
+      store.readsOutbox.shift();
+      lsSet(READS_KEY, store.readsOutbox);
+    }
+  } catch (e) {
+    if (e instanceof AuthError) store.authLost = true;
+  } finally {
+    flushingReads = false;
+  }
+}
+
+// Everything that can change on the server: the report list (a new morning
+// report), the newest report itself (a same-day rerun), the live feed, my
+// read marks and the assessments.
+export async function refreshAll() {
+  const before = store.index && store.index[0] && store.index[0].date;
+  const index = await loadIndex(true);
+  if (index.length) {
+    store.reports.delete(index[0].date);
+    if (before && before !== index[0].date) store.reports.delete(before);
+  }
+  await Promise.all([
+    loadUpdates().catch((e) => { if (e instanceof AuthError) throw e; }),
+    loadReads().catch((e) => { if (e instanceof AuthError) throw e; }),
+    loadAssessments().catch((e) => { if (e instanceof AuthError) throw e; }),
+  ]);
+  store.refreshedAt = new Date().toISOString();
+  store.stale = false;
+  emit();
+}
+
+// --- Admin --------------------------------------------------------------------
+
+export function adminGet(path) { return getJSON(path, { cache: 'no-store' }); }
+
+export function adminSend(method, path, body) {
+  return getJSON(path, {
+    method,
+    cache: 'no-store',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: body == null ? undefined : JSON.stringify(body),
+  });
+}
+
+window.addEventListener('online', () => flushReads());

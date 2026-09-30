@@ -1,9 +1,10 @@
-// Hotmonitor: reports, archive, topics, map and the operator's swipe
-// assessments. All data is rendered as text (textContent / createElement),
-// never as HTML.
+// Hotmonitor: reports, archive, topics, map, sources, the operator's swipe
+// assessments and the admin/status pages. All data is rendered as text
+// (textContent / createElement), never as HTML.
 import {
   store, onChange, isAdmin, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
-  currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError,
+  currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
+  loadUpdates, loadReads, markRead, isRead, refreshAll, adminGet, adminSend,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
 
@@ -115,6 +116,16 @@ function parseHash() {
   return { parts, q: new URLSearchParams(qs) };
 }
 
+// Change query parameters of the current view without a new history entry.
+function updateHash(mutate) {
+  const { parts, q } = parseHash();
+  mutate(q);
+  const path = `#/${parts.map(encodeURIComponent).join('/')}`;
+  const qs = q.toString();
+  history.replaceState(null, '', `${path}${qs ? `?${qs}` : ''}`);
+  route({ keepScroll: true });
+}
+
 function setTab(tab) {
   for (const a of document.querySelectorAll('.tabbar a')) {
     if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page');
@@ -130,18 +141,21 @@ async function route({ keepScroll = false } = {}) {
   let tab = 'idag';
   let view;
   switch (first) {
-    case undefined: view = () => viewReport(null); break;
-    case 'rapport': tab = 'arkiv'; view = () => viewReport(rest[0]); break;
+    case undefined: view = () => viewReport(null, q); break;
+    case 'rapport': tab = 'arkiv'; view = () => viewReport(rest[0], q); break;
     case 'handelse': view = () => viewEvent(rest[0], rest[1]); break;
     case 'arkiv': tab = 'arkiv'; view = () => viewArchive(q); break;
     case 'amnen': tab = 'amnen'; view = () => viewTopics(q); break;
     case 'karta': tab = 'karta'; view = () => viewMap(q); break;
-    case 'bedom': tab = 'bedom'; view = () => viewAssess(); break;
+    case 'bedom': tab = 'bedom'; view = () => viewAssess(q); break;
     case 'mina': tab = 'bedom'; view = () => viewMine(); break;
-    default: view = () => viewReport(null);
+    case 'kalla': view = () => viewSource(rest.join('/')); break;
+    case 'admin': tab = ''; view = () => viewAdmin(q); break;
+    default: view = () => viewReport(null, q);
   }
   setTab(tab);
   const main = document.getElementById('view');
+  if (!main) return;
   const y = window.scrollY;
   let node;
   try { node = await view(); } catch (e) { node = errorView(e); }
@@ -150,9 +164,14 @@ async function route({ keepScroll = false } = {}) {
   window.scrollTo(0, keepScroll ? y : 0);
 }
 
-function rerender() { if (!isDragging()) route({ keepScroll: true }); }
+function rerender() { if (!isDragging() && !document.querySelector('dialog[open]')) route({ keepScroll: true }); }
 
 function errorView(e) {
+  if (e instanceof DeniedError) {
+    return h('div', { class: 'empty' },
+      h('p', { class: 'title-m' }, 'Ingen åtkomst'),
+      h('p', { class: 'muted' }, 'Din e-postadress är verifierad, men den har inte åtkomst till Hotmonitor. Kontakta en administratör om du behöver komma in.'));
+  }
   if (e instanceof AuthError) {
     return h('div', { class: 'empty' },
       h('p', { class: 'title-m' }, 'Logga in igen'),
@@ -175,38 +194,303 @@ function errorView(e) {
 function emptyState(text, ...extra) { return h('div', { class: 'empty' }, h('p', null, text), ...extra); }
 function adminOnly() { return emptyState('Den här delen är bara för administratörer.'); }
 
+// ---------------------------------------------------------------- sheets
+// Bottom sheets are native modal <dialog>s: the rest of the page is inert,
+// focus stays inside, and Esc closes them.
+function openSheet(build, { label } = {}) {
+  const dlg = h('dialog', { class: 'sheet', 'aria-label': label || null });
+  const close = () => { if (dlg.open) dlg.close(); };
+  // Changes made while the sheet was open were not painted: catch up now.
+  dlg.addEventListener('close', () => { dlg.remove(); if (LIVE_ROUTES.has(currentRoute)) rerender(); });
+  dlg.addEventListener('click', (ev) => { if (ev.target === dlg) close(); });
+  append(dlg, [h('div', { class: 'sheet-body' }, build(close))]);
+  document.body.append(dlg);
+  dlg.showModal();
+  const first = dlg.querySelector('[autofocus]');
+  if (first) first.focus();
+  return dlg;
+}
+
+function hostOf(url) {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
+    return u.hostname.replace(/^www\./, '');
+  } catch { return null; }
+}
+
+// Every link that leaves the app goes through this warning first.
+function openExternal(url, info = {}) {
+  const host = hostOf(url);
+  if (!host) return;
+  openSheet((close) => frag(
+    h('h2', { class: 'title-m', id: 'ext-title' }, 'Du lämnar Hotmonitor'),
+    h('p', null, 'Du öppnar ', h('b', null, host), info.outlet ? ` (${info.outlet})` : '', '.'),
+    h('p', { class: 'small muted' }, [
+      info.tier ? `Källnivå ${info.tier}` : null,
+      info.date ? `hämtad ${dateShort(info.date)}` : null,
+    ].filter(Boolean).join(' · ')),
+    h('p', { class: 'small muted' }, 'Externa sidor kan spåra dig. Det mesta av innehållet finns sammanfattat här i appen.'),
+    h('div', { class: 'sheet-actions' },
+      h('button', { class: 'btn', type: 'button', autofocus: true, onclick: close }, 'Stanna kvar'),
+      h('a', { class: 'btn primary', href: url, target: '_blank', rel: 'noopener noreferrer', onclick: () => setTimeout(close, 0) }, 'Öppna originalet', extIcon()))),
+  { label: 'Du lämnar Hotmonitor' });
+}
+
+function externalButton(url, info, label = 'Läs originalet') {
+  if (!url || !hostOf(url)) return null;
+  return h('button', { class: 'btn', type: 'button', onclick: (ev) => { ev.preventDefault(); ev.stopPropagation(); openExternal(url, info); } }, label, extIcon());
+}
+
+// ---------------------------------------------------------------- new / read
+// Only the last week counts as news: an account's first visit should not
+// flag the whole archive as unread.
+const SCOPE_DAYS = 7;
+let scopeStart = '';            // first report date inside the news window
+const badgeCounts = { idag: 0, arkiv: 0, bedom: 0 };
+
+function updatesInScope() {
+  const cutoff = Date.now() - SCOPE_DAYS * 86400000;
+  return store.updates.filter((u) => new Date(u.ts).getTime() >= cutoff);
+}
+function unreadUpdates() { return updatesInScope().filter((u) => !isRead(u.id)); }
+function eventState(date, e) {
+  if (!scopeStart || date < scopeStart) return null;
+  if (!isRead(e.id)) return 'new';
+  if (e.thread_id && unreadUpdates().some((u) => u.thread_id === e.thread_id)) return 'updated';
+  return null;
+}
+function stateBadge(state) {
+  if (state === 'new') return h('span', { class: 'nbadge' }, 'Ny');
+  if (state === 'updated') return h('span', { class: 'nbadge upd' }, 'Uppdaterad');
+  return null;
+}
+
+async function computeBadges() {
+  try {
+    const index = await loadIndex();
+    if (!index.length) return;
+    const latest = index[0].date;
+    scopeStart = addDays(latest, -(SCOPE_DAYS - 1));
+    let idag = unreadUpdates().length;
+    let arkiv = 0;
+    for (const item of index) {
+      if (item.date < scopeStart) break;
+      const r = await loadReport(item.date);
+      const n = r.events.filter((e) => eventState(r.date, e) === 'new').length;
+      if (item.date === latest) idag += n; else arkiv += n;
+    }
+    let bedom = 0;
+    if (isAdmin()) {
+      const cur = currentByArticle();
+      const r = await loadReport(latest);
+      for (const e of r.events) for (const a of e.articles) { const c = cur.get(a.id); if (!c || c.value === 0) bedom += 1; }
+    }
+    Object.assign(badgeCounts, { idag, arkiv, bedom });
+    paintBadges();
+  } catch (e) {
+    if (!(e instanceof OfflineError)) console.warn('badges', e);
+  }
+}
+
+function paintBadges() {
+  for (const a of document.querySelectorAll('.tabbar a')) {
+    const n = badgeCounts[a.dataset.tab] || 0;
+    let b = a.querySelector('.tbadge');
+    if (!n) { if (b) b.remove(); a.removeAttribute('aria-description'); continue; }
+    if (!b) { b = h('span', { class: 'tbadge', 'aria-hidden': 'true' }); a.append(b); }
+    b.textContent = n > 99 ? '99+' : String(n);
+    a.setAttribute('aria-description', a.dataset.tab === 'bedom' ? `${n} att bedöma` : `${n} olästa`);
+  }
+}
+
+// ---------------------------------------------------------------- filters
+// Facets are the fixed topics plus every country, ranked by how many events
+// mention them in the period, top 10. Several selected = all must match.
+const isCountryKey = (k) => /^[A-Z]{2}$/.test(k);
+const facetLabel = (k) => (isCountryKey(k) ? countryName(k) : k);
+
+function parseFacets(q) {
+  const out = (q.get('f') || '').split(',').map((s) => s.trim()).filter(Boolean);
+  const t = q.get('t');
+  if (t && !out.includes(t)) out.push(t); // links from before the filter bar
+  return [...new Set(out)];
+}
+
+function topFacets(events, selected = []) {
+  const counts = new Map();
+  for (const e of events) {
+    for (const t of e.topics) if (TOPICS.includes(t)) counts.set(t, (counts.get(t) || 0) + 1);
+    for (const c of new Set(e.countries)) counts.set(c, (counts.get(c) || 0) + 1);
+  }
+  const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1] || facetLabel(a[0]).localeCompare(facetLabel(b[0]), 'sv'));
+  const top = ranked.slice(0, 10);
+  for (const s of selected) if (!top.some(([k]) => k === s)) top.push([s, counts.get(s) || 0]);
+  return top;
+}
+
+function matchesFacets(e, selected) {
+  return selected.every((k) => (isCountryKey(k) ? e.countries.includes(k) : e.topics.includes(k)));
+}
+
+function textMatchesFacets(text, selected) {
+  const t = norm(text);
+  return selected.every((k) => t.includes(norm(facetLabel(k))));
+}
+
+function filterBar(facets, selected, onChange) {
+  const toggle = (k) => onChange(selected.includes(k) ? selected.filter((x) => x !== k) : [...selected, k]);
+  return h('div', { class: 'fbar-wrap' },
+    h('div', { class: 'fbar', role: 'group', 'aria-label': 'Filtrera på ämne eller land' },
+      selected.length ? h('button', { class: 'chip fchip clear', type: 'button', onclick: () => onChange([]) }, 'Rensa') : null,
+      facets.map(([k, n]) => h('button', {
+        class: 'chip fchip', type: 'button', 'aria-pressed': String(selected.includes(k)),
+        'aria-label': `${facetLabel(k)}, ${plural(n, 'händelse', 'händelser')}`,
+        onclick: () => toggle(k),
+      }, facetLabel(k), h('span', { class: 'fcount', 'aria-hidden': 'true' }, String(n))))),
+    selected.length ? h('p', { class: 'small muted' }, `Filter: ${selected.map(facetLabel).join(' + ')}`) : null);
+}
+
+function setFacets(sel) { updateHash((q) => { q.delete('t'); if (sel.length) q.set('f', sel.join(',')); else q.delete('f'); }); }
+const facetHref = (base, k) => `${base}?f=${encodeURIComponent(k)}`;
+
 // ---------------------------------------------------------------- Idag / rapport
-async function viewReport(date) {
+const FACET_DAYS = 30;          // the filter bar on Idag and Bedöm ranks over this window
+const openUpdates = new Set();
+
+function ensureScope(index) { if (index.length) scopeStart = addDays(index[0].date, -(SCOPE_DAYS - 1)); }
+
+async function viewReport(date, q) {
   const index = await loadIndex();
   if (!index.length) return emptyState('Inga rapporter ännu.');
+  ensureScope(index);
   const latest = index[0].date;
   const d = date || latest;
-  const r = await loadReport(d);
+  const [r, reports] = await Promise.all([loadReport(d), loadAllReports()]);
   const archived = d !== latest;
   const top = (r.executive_sv && r.executive_sv.top) || r.top_development;
+  const selected = parseFacets(q);
+  const windowStart = addDays(d, -(FACET_DAYS - 1));
+  const facetEvents = reports.filter((x) => x.date >= windowStart && x.date <= d).flatMap((x) => x.events);
+  const events = r.events.filter((e) => matchesFacets(e, selected));
 
+  // Updates shown with this report: today's (or, for an archived report,
+  // that day's); with none today, the latest few so the section is never stale.
+  const dayOf = (ts) => new Date(ts).toLocaleDateString('sv-SE');
+  const todayLocal = new Date().toLocaleDateString('sv-SE');
+  let feedTitle = archived ? 'Löpande den dagen' : 'Löpande i dag';
+  let feed = store.updates.filter((u) => (archived ? u.ts && u.ts.slice(0, 10) === d : dayOf(u.ts) === todayLocal));
+  if (!archived && !feed.length && store.updates.length) { feed = store.updates.slice(0, 3); feedTitle = 'Senaste uppdateringar'; }
+  if (selected.length) feed = feed.filter((u) => textMatchesFacets(`${u.title_sv || ''} ${u.summary_sv || ''} ${u.thread_label || ''}`, selected));
+
+  const admin = isAdmin();
   return frag(
     date ? backLink('#/arkiv', 'Arkiv') : null,
     h('header', { class: 'page-head' },
       h('div', null,
         h('div', { class: 'kicker' }, dateLong(d)),
         h('h1', { class: 'title-xl' }, archived ? 'Rapport' : 'Hotläget')),
-      date ? null : h('a', { class: 'head-link', href: '#/arkiv' }, 'Tidigare dagar')),
+      h('div', { class: 'head-actions' },
+        date ? null : h('a', { class: 'head-link', href: '#/arkiv' }, 'Tidigare dagar'),
+        admin ? h('a', { class: 'icon-btn', href: '#/admin', 'aria-label': 'Status och administration', title: 'Status och administration' }, gearIcon()) : null)),
+    archived ? null : newBox(latest, r),
     heroCard(r),
     top ? h('section', { class: 'section' },
       h('div', { class: 'kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
       h('p', { class: 'lead' }, top)) : null,
-    isAdmin() ? h('div', { class: 'btn-row' },
+    admin ? h('div', { class: 'btn-row' },
       h('a', { class: 'btn primary', href: '#/bedom' }, 'Bedöm artiklar'),
       h('a', { class: 'btn', href: '#/mina' }, 'Mina bedömningar')) : null,
+    filterBar(topFacets(facetEvents, selected), selected, setFacets),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Dygnets händelser'),
-      r.events.length
-        ? h('div', { class: 'card list' }, r.events.map((e) => eventRow(r.date, e)))
-        : h('p', { class: 'muted' }, 'Inga händelser registrerade.')),
+      events.length
+        ? h('div', { class: 'card list' }, events.map((e) => eventRow(r.date, e)))
+        : selected.length
+          ? h('div', { class: 'card card-pad' },
+            h('p', { class: 'small' }, `Inga händelser ${archived ? 'den dagen' : 'i dag'} för ${selected.map(facetLabel).join(' + ')}.`),
+            h('a', { class: 'btn', href: `#/arkiv?f=${encodeURIComponent(selected.join(','))}&r=30` }, 'Visa i arkivet'))
+          : h('p', { class: 'muted' }, 'Inga händelser registrerade.')),
+    feed.length || !archived ? h('section', { class: 'section' },
+      h('div', { class: 'sec-head' },
+        h('h2', { class: 'kicker' }, feedTitle),
+        archived ? null : h('button', { class: 'linkbtn', type: 'button', onclick: () => doRefresh() }, 'Uppdatera')),
+      feed.length
+        ? h('div', { class: 'card list' }, feed.map((u) => updateRow(u, reports)))
+        : h('p', { class: 'small muted' }, selected.length ? 'Inga uppdateringar för filtret.' : 'Inga uppdateringar ännu i dag.')) : null,
     executiveBlock(r.executive_sv),
   );
 }
+
+function gearIcon() {
+  const s = icon(['M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',
+    'M19.4 13.5l1.6 1.2-2 3.4-1.9-.7a7.5 7.5 0 0 1-2 1.2l-.3 2h-4l-.3-2a7.5 7.5 0 0 1-2-1.2l-1.9.7-2-3.4 1.6-1.2a7.6 7.6 0 0 1 0-2.4L2.6 9.9l2-3.4 1.9.7a7.5 7.5 0 0 1 2-1.2l.3-2h4l.3 2a7.5 7.5 0 0 1 2 1.2l1.9-.7 2 3.4-1.6 1.2a7.6 7.6 0 0 1 0 2.4z'], '', '0 0 24 24');
+  return s;
+}
+
+function newBox(latest, r) {
+  const newEvents = r.events.filter((e) => eventState(latest, e) === 'new');
+  const ups = unreadUpdates();
+  const older = badgeCounts.arkiv;
+  const total = newEvents.length + ups.length + older;
+  if (!total) {
+    return store.refreshedAt ? h('p', { class: 'small muted' }, `Allt är läst · uppdaterat ${tsFmt(store.refreshedAt)}`) : null;
+  }
+  const parts = [
+    newEvents.length ? plural(newEvents.length, 'ny händelse', 'nya händelser') : null,
+    ups.length ? plural(ups.length, 'uppdatering', 'uppdateringar') : null,
+    older ? `${older} olästa i arkivet` : null,
+  ].filter(Boolean);
+  const markAll = async () => {
+    const index = await loadIndex();
+    const ids = [...ups.map((u) => u.id)];
+    for (const item of index) {
+      if (item.date < scopeStart) break;
+      const rep = await loadReport(item.date);
+      for (const e of rep.events) ids.push(e.id);
+    }
+    markRead(ids);
+    computeBadges().then(rerender);
+  };
+  return h('section', { class: 'newbox', 'aria-label': 'Nytt sedan senast' },
+    h('div', { class: 'kicker amber' }, 'Nytt sedan senast'),
+    h('p', { class: 'newbox-main' }, parts.join(' · ')),
+    store.lastVisit ? h('p', { class: 'small muted' }, `Ditt förra besök: ${tsFmt(store.lastVisit)}`) : null,
+    h('div', { class: 'btn-row' },
+      h('button', { class: 'btn', type: 'button', onclick: markAll }, 'Markera allt som läst'),
+      h('button', { class: 'btn', type: 'button', onclick: () => doRefresh() }, 'Uppdatera')));
+}
+
+function updateRow(u, reports) {
+  const read = isRead(u.id);
+  const open = openUpdates.has(u.id);
+  const t = new Date(u.ts);
+  const time = Number.isNaN(t.getTime()) ? '' : t.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+  const threadEvent = u.thread_id
+    ? reports.flatMap((r) => r.events.map((e) => ({ r, e }))).find(({ e }) => e.thread_id === u.thread_id)
+    : null;
+  const outlets = Array.isArray(u.outlets) ? u.outlets : [];
+  const toggle = () => {
+    if (openUpdates.has(u.id)) openUpdates.delete(u.id); else { openUpdates.add(u.id); markRead([u.id]); computeBadges(); }
+    rerender();
+  };
+  return h('div', { class: `upd-wrap${read ? '' : ' unread'}` },
+    h('button', { class: 'row rowbtn', type: 'button', 'aria-expanded': String(open), onclick: toggle },
+      h('span', { class: 'upd-time' }, time),
+      h('span', { class: 'row-main' },
+        h('span', { class: 'row-sub' }, u.thread_label || 'Tråd'),
+        h('span', { class: 'row-title' }, u.title_sv || firstSentence(u.summary_sv, 90) || 'Uppdatering')),
+      read ? null : h('span', { class: 'nbadge' }, 'Ny'),
+      chevDown()),
+    open ? h('div', { class: 'expand' },
+      u.summary_sv ? h('p', { class: 'body-sm' }, u.summary_sv) : null,
+      outlets.length ? h('p', { class: 'small muted' }, 'Källor: ', outlets.map((o, i) => frag(i ? ', ' : '', h('a', { href: `#/kalla/${encodeURIComponent(o)}` }, o)))) : null,
+      u.classification ? h('p', { class: 'small muted' }, classLabel(u.classification)) : null,
+      threadEvent ? h('a', { class: 'btn', href: eventHref(threadEvent.r.date, threadEvent.e.id) }, 'Visa tråden') : null) : null);
+}
+
+const CLASS_SV = { NEW_DEVELOPMENT: 'Ny utveckling', CORRECTION: 'Rättelse', NARRATIVE_SHIFT: 'Ändrad berättelse', NO_CHANGE: 'Ingen förändring' };
+function classLabel(c) { return CLASS_SV[c] || c; }
 
 function heroCard(r) {
   const oi = r.operator_influence;
@@ -238,11 +522,13 @@ function heroCard(r) {
 
 function eventRow(date, e) {
   const sub = [e.topics.join(' · '), e.countries.map(countryName).join(', ')].filter(Boolean).join(' · ');
-  return h('a', { class: 'row', href: eventHref(date, e.id) },
+  const state = eventState(date, e);
+  return h('a', { class: `row${state ? ' unread' : ''}`, href: eventHref(date, e.id) },
     h('span', { class: scoreClass(e.score), 'aria-label': `Trovärdighet ${fmtScore(e.score)} av 10` }, fmtScore(e.score)),
     h('span', { class: 'row-main' },
       h('span', { class: 'row-title' }, e.title_sv || e.title),
       sub ? h('span', { class: 'row-sub' }, sub) : null),
+    stateBadge(state),
     chevRight());
 }
 
@@ -264,7 +550,7 @@ function executiveBlock(ex) {
 function traceList(trace) {
   return h('ul', { class: 'trace' }, trace.map((t) => h('li', null,
     h('div', { class: 't-top' },
-      h('b', null, t.outlet || 'Okänd källa'),
+      t.outlet ? h('a', { href: `#/kalla/${encodeURIComponent(t.outlet)}` }, h('b', null, t.outlet)) : h('b', null, 'Okänd källa'),
       t.value != null && VERDICT[t.value] ? verdictPill(t.value) : null,
       t.date ? h('span', { class: 'muted small' }, dateShort(t.date)) : null),
     h('div', { class: 'small' },
@@ -274,13 +560,25 @@ function traceList(trace) {
 }
 
 // ---------------------------------------------------------------- Händelse
+const openArticles = new Set();
+const RELATION = { bekräftar: 'Bekräftar', motsäger: 'Motsäger', tillför: 'Tillför' };
+function relationChip(rel) { return RELATION[rel] ? h('span', { class: `rel rel-${rel === 'bekräftar' ? 'ok' : rel === 'motsäger' ? 'no' : 'add'}` }, RELATION[rel]) : null; }
+
 async function viewEvent(date, id) {
-  const [r] = await Promise.all([loadReport(date), assessmentsReady]);
-  const index = await loadIndex();
+  const [r, reports, index] = await Promise.all([loadReport(date), loadAllReports(), loadIndex(), assessmentsReady]);
+  ensureScope(index);
   const e = r.events.find((x) => x.id === id);
   const isLatest = index.length && index[0].date === date;
   const back = isLatest ? backLink('#/', 'Idag') : backLink(`#/rapport/${encodeURIComponent(date)}`, dateShort(date));
   if (!e) return frag(back, emptyState('Händelsen finns inte i rapporten.'));
+
+  const threadUpdates = e.thread_id ? store.updates.filter((u) => u.thread_id === e.thread_id) : [];
+  const state = eventState(date, e);
+  // Opening the event reads it, and the thread updates shown below with it.
+  setTimeout(() => {
+    const ids = [e.id, ...threadUpdates.map((u) => u.id)].filter((x) => !isRead(x));
+    if (ids.length) { markRead(ids); computeBadges(); }
+  }, 0);
 
   const detailP = h('p', { class: 'body-serif', hidden: !!e.summary_sv }, e.detail || '');
   const toggle = e.summary_sv && e.detail
@@ -297,29 +595,38 @@ async function viewEvent(date, id) {
   const op = e.operator || null;
   const trace = op && Array.isArray(op.trace) ? op.trace : [];
   const changed = e.model_score != null && Number(e.model_score) !== Number(e.score);
+  const known = Array.isArray(e.known_sv) ? e.known_sv.filter(Boolean) : [];
+  const unknown = Array.isArray(e.unknown_sv) ? e.unknown_sv.filter(Boolean) : [];
+  const reportHref = isLatest ? '#/' : `#/rapport/${encodeURIComponent(date)}`;
 
   return frag(
     back,
     h('div', { class: 'section' },
       h('div', { class: 'chips' },
-        e.topics.map((t) => h('a', { class: 'chip', href: `#/amnen?t=${encodeURIComponent(t)}` }, t)),
+        e.topics.map((t) => h('a', { class: 'chip', href: facetHref('#/amnen', t) }, t)),
         e.countries.map((c) => h('a', { class: 'chip', href: `#/karta?p=all&c=${encodeURIComponent(c)}` }, countryName(c)))),
       h('h1', { class: 'title-l' }, e.title_sv || e.title),
-      h('div', { class: 'small muted', style: 'display:flex;gap:10px;align-items:center;flex-wrap:wrap' },
+      h('div', { class: 'small muted meta-line' },
         h('span', { class: scoreClass(e.score), style: 'width:auto;height:auto;padding:3px 8px;border-radius:8px;font-size:13px' }, `${fmtScore(e.score)}/10`),
         changed ? h('span', null, `Modellens poäng ${fmtScore(e.model_score)}`) : null,
-        h('span', null, dateLong(date)))),
+        h('a', { href: reportHref }, dateLong(date)),
+        stateBadge(state))),
     e.summary_sv ? h('p', { class: 'body-serif' }, e.summary_sv) : null,
     detailP,
     toggle ? h('div', null, toggle) : null,
+    known.length || unknown.length ? h('section', { class: 'kv2' },
+      known.length ? h('div', { class: 'card card-pad' },
+        h('h2', { class: 'kicker' }, 'Vad vi vet'),
+        h('ul', { class: 'bullets' }, known.map((k) => h('li', null, k)))) : null,
+      unknown.length ? h('div', { class: 'card card-pad' },
+        h('h2', { class: 'kicker amber' }, 'Vad vi inte vet'),
+        h('ul', { class: 'bullets' }, unknown.map((k) => h('li', null, k)))) : null) : null,
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Källor och artiklar'),
-      isAdmin() && e.articles.length
-        ? h('p', { class: 'hint' }, 'Svep en källa åt höger (trovärdig) eller vänster (tveksam) – längre svep ger starkare bedömning. Tryck på bedömningen för knappar.')
-        : null,
       e.articles.length
         ? h('div', { class: 'card list' }, e.articles.map((a) => articleRow({ article: a, event: e, date })))
         : h('p', { class: 'muted small' }, e.sources || 'Inga källor registrerade.')),
+    threadSection(e, date, reports, threadUpdates),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Varför denna poäng?'),
       h('div', { class: 'card card-pad' },
@@ -332,15 +639,54 @@ async function viewEvent(date, id) {
             traceList(trace))
           : h('p', { class: 'small' }, 'Modellens bedömning utan operatörspåverkan.'),
         e.articles.length && e.sources ? h('p', { class: 'small muted' }, `Källunderlag: ${e.sources}`) : null)),
+    relatedSection(e, date, reports),
   );
 }
 
-function paintUnder(under, value, dx, text) {
-  under.className = `under${value != null ? ` v-${value}` : ''}`;
-  const [left, right] = under.children;
-  const label = text || (value != null ? VERDICT[value] : '');
-  left.textContent = dx > 0 ? label : '';
-  right.textContent = dx < 0 ? label : '';
+function threadSection(e, date, reports, threadUpdates) {
+  if (!e.thread_id) return null;
+  const items = [];
+  for (const r of reports) {
+    for (const x of r.events) {
+      if (x.thread_id === e.thread_id) items.push({ key: `${r.date}T05:00`, date: r.date, event: x, self: x.id === e.id && r.date === date });
+    }
+  }
+  for (const u of threadUpdates) items.push({ key: u.ts || '', update: u });
+  if (items.length < 2) return null;
+  items.sort((a, b) => (a.key < b.key ? 1 : -1));
+  const label = (threadUpdates[0] && threadUpdates[0].thread_label) || 'Tråden';
+  return h('section', { class: 'section' },
+    h('h2', { class: 'kicker' }, `Tråden · ${label}`),
+    h('ol', { class: 'timeline' }, items.slice(0, 12).map((it) => h('li', { class: it.self ? 'self' : null },
+      h('span', { class: 'tl-when' }, it.update ? tsFmt(it.update.ts) : dateShort(it.date)),
+      it.update
+        ? h('span', { class: 'tl-what' }, it.update.title_sv || firstSentence(it.update.summary_sv, 120), isRead(it.update.id) ? null : h('span', { class: 'nbadge' }, 'Ny'))
+        : it.self
+          ? h('span', { class: 'tl-what' }, h('b', null, 'Denna händelse: '), it.event.title_sv || it.event.title)
+          : h('a', { class: 'tl-what', href: eventHref(it.date, it.event.id) }, it.event.title_sv || it.event.title)))));
+}
+
+function relatedSection(e, date, reports) {
+  const out = [];
+  for (const r of reports) {
+    for (const x of r.events) {
+      if (x.id === e.id) continue;
+      if (e.thread_id && x.thread_id === e.thread_id) continue; // already in the thread timeline
+      const topic = x.topics.some((t) => e.topics.includes(t));
+      const country = x.countries.some((c) => e.countries.includes(c));
+      if (topic && country) out.push({ r, x });
+    }
+  }
+  if (!out.length) return null;
+  out.sort((a, b) => (a.r.date < b.r.date ? 1 : -1));
+  return h('section', { class: 'section' },
+    h('h2', { class: 'kicker' }, 'Relaterat'),
+    h('div', { class: 'card list' }, out.slice(0, 5).map(({ r, x }) => h('a', { class: 'row', href: eventHref(r.date, x.id) },
+      h('span', { class: 'small muted date-col' }, dateShort(r.date)),
+      h('span', { class: 'row-main' },
+        h('span', { class: 'row-title' }, x.title_sv || x.title),
+        h('span', { class: 'row-sub' }, [x.topics.join(' · '), x.countries.map(countryName).join(', ')].filter(Boolean).join(' · '))),
+      chevRight()))));
 }
 
 function verdictButtons(onPick, middle) {
@@ -353,60 +699,137 @@ function verdictButtons(onPick, middle) {
     b('a-2', 'Mycket trovärdig', 'Mycket trovärdig', () => onPick(2)));
 }
 
+function assessSheet(target) {
+  const a = target.article;
+  openSheet((close) => {
+    const cur = currentByArticle().get(a.id);
+    const apply = (v) => {
+      const now = currentByArticle().get(a.id);
+      if (v === 0 && (!now || now.value === 0)) { close(); return; }
+      if (!(now && now.value === v)) { assess(target, v, now || null); vibrate(); }
+      close();
+    };
+    return frag(
+      h('h2', { class: 'title-m' }, `Bedöm ${a.outlet || 'källan'}`),
+      h('p', { class: 'small muted' }, target.event.title_sv || target.event.title || ''),
+      cur && cur.value !== 0 ? h('p', { class: 'small' }, 'Nuvarande: ', verdictPill(cur.value, cur.pending)) : null,
+      verdictButtons(apply, h('button', { class: 'a-skip', type: 'button', disabled: !cur || cur.value === 0, onclick: () => apply(0) }, 'Återkalla')),
+      h('div', { class: 'sheet-actions' }, h('button', { class: 'btn', type: 'button', autofocus: true, onclick: close }, 'Avbryt')));
+  }, { label: `Bedöm ${a.outlet || 'källan'}` });
+}
+
+// Tapping a source always reads; assessing is a separate button (and the
+// Bedöm tab), so nobody assesses by accident while scrolling.
 function articleRow(target) {
   const a = target.article;
   const cur = currentByArticle().get(a.id);
-  const admin = isAdmin();
-  const under = h('div', { class: 'under', 'aria-hidden': 'true' }, h('span'), h('span'));
-  const apply = (v) => {
-    const now = currentByArticle().get(a.id);
-    if (v === 0 && (!now || now.value === 0)) return;
-    if (now && now.value === v) return;
-    assess(target, v, now || null);
-    vibrate();
-  };
-  const panel = admin ? h('div', { class: 'expand', hidden: true },
-    verdictButtons(apply, h('button', { class: 'a-skip', type: 'button', disabled: !cur || cur.value === 0, onclick: () => apply(0) }, 'Återkalla'))) : null;
-  const pill = admin
-    ? h('button', {
-      class: `verdict v-${cur ? cur.value : 'skip'}${cur && cur.pending ? ' v-pending' : ''}`,
-      type: 'button', 'aria-expanded': 'false',
-      style: 'border:none;cursor:pointer;min-height:32px',
-      onclick: (ev) => { panel.hidden = !panel.hidden; ev.currentTarget.setAttribute('aria-expanded', String(!panel.hidden)); },
-    }, cur ? VERDICT[cur.value] : 'Bedöm')
-    : (cur && cur.value !== 0 ? verdictPill(cur.value, cur.pending) : null);
-  const row = h('div', { class: 'row' },
-    h('div', { class: 'row-main' },
-      h('span', { class: 'row-title' }, a.outlet || 'Okänd källa'),
-      a.title ? h('span', { class: 'row-sub' }, a.title) : null),
-    tierBadge(a.tier),
-    pill,
-    a.url ? h('a', { class: 'out-link', href: a.url, target: '_blank', rel: 'noopener noreferrer', 'aria-label': `Öppna artikeln hos ${a.outlet || 'källan'}` }, extIcon()) : null);
-  const wrap = h('div', { class: 'swipe-row' }, under, row);
-  if (admin) {
-    gesture(row, {
-      mode: 'row',
-      onDrag: (dx) => {
-        row.classList.add('dragging');
-        row.style.transform = `translateX(${dx}px)`;
-        paintUnder(under, verdictFor(dx, 0, false), dx);
-      },
-      onEnd: (dx) => {
-        row.classList.remove('dragging');
-        row.style.transform = '';
-        const v = verdictFor(dx, 0, false);
-        if (v != null) apply(v);
-      },
-    });
+  const open = openArticles.has(a.id);
+  const toggle = () => { if (openArticles.has(a.id)) openArticles.delete(a.id); else openArticles.add(a.id); rerender(); };
+  const sub = a.title || (a.summary_sv ? firstSentence(a.summary_sv, 90) : null);
+  return h('div', { class: 'art-wrap' },
+    h('button', { class: 'row rowbtn', type: 'button', 'aria-expanded': String(open), onclick: toggle },
+      h('span', { class: 'row-main' },
+        h('span', { class: 'row-title' }, a.outlet || 'Okänd källa'),
+        sub ? h('span', { class: 'row-sub' }, sub) : null),
+      relationChip(a.relation),
+      tierBadge(a.tier),
+      cur && cur.value !== 0 ? verdictPill(cur.value, cur.pending) : null,
+      chevDown()),
+    open ? h('div', { class: 'expand' },
+      a.summary_sv ? h('p', { class: 'body-sm' }, a.summary_sv) : h('p', { class: 'small muted' }, 'Ingen separat sammanfattning av artikeln – se händelsens sammanfattning ovan.'),
+      a.published || a.relation ? h('p', { class: 'small muted' }, [a.published ? `Publicerad ${dateShort(a.published)}` : null, a.relation ? `${RELATION[a.relation] || a.relation} övriga källor` : null].filter(Boolean).join(' · ')) : null,
+      h('div', { class: 'btn-row' },
+        externalButton(a.url, { tier: a.tier, date: target.date, outlet: a.outlet }),
+        a.outlet ? h('a', { class: 'btn', href: `#/kalla/${encodeURIComponent(a.outlet)}` }, 'Om källan') : null,
+        isAdmin() ? h('button', { class: 'btn', type: 'button', onclick: () => assessSheet(target) }, cur && cur.value !== 0 ? 'Ändra bedömning' : 'Bedöm') : null),
+      !a.url ? h('p', { class: 'small muted' }, 'Ingen länk sparad för den här artikeln.') : null) : null);
+}
+
+// ---------------------------------------------------------------- Källa
+function currentAllByOperator() {
+  const superseded = new Set(store.assessments.map((r) => r.supersedes).filter(Boolean));
+  const cur = new Map();
+  for (const r of store.assessments) {
+    if (superseded.has(r.id)) continue;
+    const k = `${r.operator}|${r.article_id}`;
+    const prev = cur.get(k);
+    if (!prev || r.ts > prev.ts) cur.set(k, r);
   }
-  return frag(wrap, panel);
+  return [...cur.values()].filter((r) => r.value !== 0);
+}
+
+async function viewSource(name) {
+  const [reports] = await Promise.all([loadAllReports(), assessmentsReady]);
+  const key = norm(name);
+  const hits = [];
+  for (const r of reports) for (const e of r.events) for (const a of e.articles) if (norm(a.outlet) === key) hits.push({ r, e, a });
+  const back = h('a', { class: 'back', href: '#/', onclick: (ev) => { if (history.length > 1) { ev.preventDefault(); history.back(); } } }, icon(['M12.5 4l-6 6 6 6'], '', '0 0 20 20'), 'Tillbaka');
+  if (!hits.length) return frag(back, emptyState(`Ingen källa som heter ”${name}” finns i rapporterna.`));
+  const tiers = new Map();
+  for (const { a } of hits) if (a.tier) tiers.set(a.tier, (tiers.get(a.tier) || 0) + 1);
+  const tier = [...tiers.entries()].sort((x, y) => y[1] - x[1])[0];
+  const dates = hits.map((x) => x.r.date).sort();
+  const ids = new Set(hits.map((x) => x.a.id));
+  const mine = currentByArticle();
+  const myHere = [...mine.values()].filter((v) => ids.has(v.article_id) && v.value !== 0);
+  const me = store.me && store.me.email;
+  const others = currentAllByOperator().filter((v) => v.operator !== me && ids.has(v.article_id));
+  const countBy = (rows) => [2, 1, -1, -2].map((v) => [v, rows.filter((x) => x.value === v).length]).filter(([, n]) => n);
+  const events = new Map();
+  for (const x of hits) events.set(`${x.r.date}|${x.e.id}`, x);
+  const displayName = hits[0].a.outlet;
+
+  return frag(
+    back,
+    h('header', null,
+      h('div', { class: 'kicker' }, 'Källa'),
+      h('h1', { class: 'title-xl' }, displayName)),
+    h('section', { class: 'stat-grid' },
+      statTile('Källnivå', tier ? `Nivå ${tier[0]}` : '–'),
+      statTile('Artiklar', String(hits.length)),
+      statTile('Händelser', String(events.size)),
+      statTile('Period', dates[0] === dates[dates.length - 1] ? dateShort(dates[0]) : `${dateShort(dates[0])} – ${dateShort(dates[dates.length - 1])}`)),
+    h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, 'Bedömningar av källan'),
+      h('div', { class: 'card card-pad' },
+        h('p', { class: 'small' }, h('b', null, 'Mina: '),
+          myHere.length ? countBy(myHere).map(([v, n], i) => frag(i ? ' ' : '', verdictPill(v), ` ${n}`)) : 'inga ännu'),
+        h('p', { class: 'small' }, h('b', null, 'Andra administratörer: '),
+          others.length ? countBy(others).map(([v, n], i) => frag(i ? ' ' : '', verdictPill(v), ` ${n}`)) : 'inga ännu'))),
+    h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, 'Förekommer i'),
+      h('div', { class: 'card list' }, [...events.values()].sort((x, y) => (x.r.date < y.r.date ? 1 : -1)).map(({ r, e, a }) => {
+        const v = mine.get(a.id);
+        return h('div', { class: 'row' },
+          h('span', { class: 'small muted date-col' }, dateShort(r.date)),
+          h('a', { class: 'row-main plain', href: eventHref(r.date, e.id) },
+            h('span', { class: 'row-title' }, e.title_sv || e.title),
+            a.title ? h('span', { class: 'row-sub' }, a.title) : null),
+          v && v.value !== 0 ? verdictPill(v.value, v.pending) : null,
+          a.url ? h('button', { class: 'out-link', type: 'button', 'aria-label': `Läs originalet hos ${displayName}`, onclick: () => openExternal(a.url, { tier: a.tier, date: r.date, outlet: a.outlet }) }, extIcon()) : null);
+      }))));
+}
+
+function statTile(label, value, cls = '') {
+  return h('div', { class: `stat ${cls}` }, h('div', { class: 'stat-label' }, label), h('div', { class: 'stat-value' }, value));
+}
+
+// The label under a swiped row (Mina bedömningar).
+function paintUnder(under, value, dx, text) {
+  under.className = `under${value != null ? ` v-${value}` : ''}`;
+  const [left, right] = under.children;
+  const label = text || (value != null ? VERDICT[value] : '');
+  left.textContent = dx > 0 ? label : '';
+  right.textContent = dx < 0 ? label : '';
 }
 
 // ---------------------------------------------------------------- Arkiv
 async function viewArchive(q) {
   const index = await loadIndex();
   if (!index.length) return emptyState('Inga rapporter ännu.');
-  const latest = await loadReport(index[0].date);
+  ensureScope(index);
+  const [latest, reports] = await Promise.all([loadReport(index[0].date), loadAllReports()]);
+  const byReport = new Map(reports.map((r) => [r.date, r]));
   // The latest report carries the recalibrated history; older report files
   // may still hold the values they were first published with.
   const hist = new Map((latest.threat_index_history || []).map((x) => [x.date, x]));
@@ -422,57 +845,95 @@ async function viewArchive(q) {
   const days = [];
   for (let d = start; d <= last; d = addDays(d, 1)) days.push(d);
 
-  const present = days.map(valueOf).concat(days.map(forecastOf)).filter((v) => v != null);
-  let lo = present.length ? Math.max(0, Math.floor(Math.min(...present)) - 1) : 0;
-  let hi = present.length ? Math.min(10, Math.ceil(Math.max(...present)) + 1) : 10;
-  if (hi - lo < 2) { lo = Math.max(0, lo - 1); hi = Math.min(10, hi + 1); }
-  const px = (v) => `${Math.round(((v - lo) / (hi - lo)) * 110)}px`;
+  const selected = parseFacets(q);
+  const filtering = selected.length > 0;
+  const inRange = reports.filter((r) => r.date >= start);
+  const matchesOn = (d) => { const r = byReport.get(d); return r ? r.events.filter((e) => matchesFacets(e, selected)) : []; };
+
+  let lo; let hi; let px;
+  if (filtering) {
+    const maxN = Math.max(1, ...days.map((d) => matchesOn(d).length));
+    lo = 0; hi = maxN;
+    px = (v) => `${Math.round((v / maxN) * 110)}px`;
+  } else {
+    const present = days.map(valueOf).concat(days.map(forecastOf)).filter((v) => v != null);
+    lo = present.length ? Math.max(0, Math.floor(Math.min(...present)) - 1) : 0;
+    hi = present.length ? Math.min(10, Math.ceil(Math.max(...present)) + 1) : 10;
+    if (hi - lo < 2) { lo = Math.max(0, lo - 1); hi = Math.min(10, hi + 1); }
+    px = (v) => `${Math.round(((v - lo) / (hi - lo)) * 110)}px`;
+  }
   const every = Math.ceil(days.length / 14);
 
   const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Period' },
     [['7', '7 dagar'], ['14', '14 dagar'], ['30', '30 dagar'], ['all', 'Allt']].map(([k, label]) => h('button', {
       type: 'button', 'aria-pressed': String(k === range),
-      onclick: () => { location.hash = `#/arkiv?r=${k}`; },
+      onclick: () => updateHash((qq) => qq.set('r', k)),
     }, label)));
 
-  const chart = h('section', { class: 'card card-pad', 'aria-label': 'Hotindex över tid' },
-    h('div', { style: 'display:flex;justify-content:space-between;align-items:baseline' },
-      h('h2', { style: 'font-size:15px;font-weight:600' }, 'Hotindex'),
-      h('div', { class: 'chart-legend' },
+  const bars = days.map((d) => {
+    const hasReport = byDate.has(d);
+    if (filtering) {
+      const n = matchesOn(d).length;
+      return h('div', { class: 'bar-slot', title: `${dateShort(d)}: ${hasReport ? plural(n, 'händelse', 'händelser') : 'ingen rapport'}` },
+        !hasReport ? h('div', { class: 'bar missing', style: 'height:60px' }) : n ? h('div', { class: 'bar amberbar', style: `height:${px(n)}` }) : null);
+    }
+    const v = valueOf(d);
+    const f = forecastOf(d);
+    return h('div', { class: 'bar-slot', title: `${dateShort(d)}: ${v == null ? 'ingen rapport' : fmt1(v)}${f != null ? ` / ${fmt1(f)}` : ''}` },
+      v == null ? h('div', { class: 'bar missing', style: 'height:60px' }) : h('div', { class: 'bar', style: `height:${px(v)}` }),
+      f != null ? h('div', { class: 'bar-f', style: `bottom:${px(f)}` }) : null);
+  });
+
+  const chart = h('section', { class: 'card card-pad', 'aria-label': filtering ? 'Antal händelser per dag för filtret' : 'Hotindex över tid' },
+    h('div', { style: 'display:flex;justify-content:space-between;align-items:baseline;gap:8px' },
+      h('h2', { style: 'font-size:15px;font-weight:600' }, filtering ? `Händelser: ${selected.map(facetLabel).join(' + ')}` : 'Hotindex'),
+      filtering ? null : h('div', { class: 'chart-legend' },
         h('span', null, h('i', { class: 'lg-bar' }), 'I dag'),
         h('span', null, h('i', { class: 'lg-tick' }), '30 dagar'))),
-    h('div', { class: 'chart', role: 'img', 'aria-label': days.map((d) => `${dateShort(d)}: ${valueOf(d) == null ? 'ingen rapport' : fmt1(valueOf(d))}`).join(', ') },
-      days.map((d) => {
-        const v = valueOf(d);
-        const f = forecastOf(d);
-        return h('div', { class: 'bar-slot', title: `${dateShort(d)}: ${v == null ? 'ingen rapport' : fmt1(v)}${f != null ? ` / ${fmt1(f)}` : ''}` },
-          v == null ? h('div', { class: 'bar missing', style: 'height:60px' }) : h('div', { class: 'bar', style: `height:${px(v)}` }),
-          f != null ? h('div', { class: 'bar-f', style: `bottom:${px(f)}` }) : null);
-      })),
+    h('div', { class: 'chart', role: 'img', 'aria-label': days.map((d) => `${dateShort(d)}: ${filtering ? matchesOn(d).length : valueOf(d) == null ? 'ingen rapport' : fmt1(valueOf(d))}`).join(', ') }, bars),
     h('div', { class: 'chart-days', 'aria-hidden': 'true' },
       days.map((d, i) => h('span', null, (days.length - 1 - i) % every === 0 ? String(toDate(d).getUTCDate()) : ''))),
-    h('p', { class: 'small muted' }, `Skala ${lo}–${hi}`));
+    h('p', { class: 'small muted' }, filtering ? `Antal händelser per dag, 0–${hi}` : `Skala ${lo}–${hi}`));
 
   const rows = [];
   for (let d = last; d >= first; d = addDays(d, -1)) {
+    if (filtering && d < start) break;
     const it = byDate.get(d);
     const dayBox = h('span', { class: 'day' }, h('b', null, String(toDate(d).getUTCDate())), h('span', null, weekdayShort(d)));
     if (!it) {
-      rows.push(h('div', { class: 'row', style: 'color:var(--muted)' }, dayBox, h('span', { class: 'row-main' }, h('span', { class: 'small' }, 'Ingen rapport'))));
+      if (!filtering) rows.push(h('div', { class: 'row', style: 'color:var(--muted)' }, dayBox, h('span', { class: 'row-main' }, h('span', { class: 'small' }, 'Ingen rapport'))));
       continue;
     }
+    const r = byReport.get(d);
+    const unread = r ? r.events.filter((e) => eventState(d, e) === 'new').length : 0;
     const f = forecastOf(d);
-    rows.push(h('a', { class: 'row', href: d === last ? '#/' : `#/rapport/${d}` },
+    const href = d === last ? '#/' : `#/rapport/${d}`;
+    if (filtering) {
+      const hits = matchesOn(d);
+      if (!hits.length) continue;
+      rows.push(h('a', { class: 'row', href: `${href}?f=${encodeURIComponent(selected.join(','))}` },
+        dayBox,
+        h('span', { class: 'row-main' },
+          h('span', { class: 'row-title', style: 'font-size:14px' }, hits[0].title_sv || hits[0].title),
+          hits.length > 1 ? h('span', { class: 'row-sub' }, `+ ${plural(hits.length - 1, 'händelse till', 'händelser till')}`) : null),
+        h('span', { class: 'vals' }, h('b', null, String(hits.length)), h('span', null, 'träffar'))));
+      continue;
+    }
+    rows.push(h('a', { class: `row${unread ? ' unread' : ''}`, href },
       dayBox,
       h('span', { class: 'row-main' }, h('span', { style: 'font-size:14px;line-height:1.35' }, firstSentence(it.top_sv || '', 110) || dateLong(d))),
+      unread ? h('span', { class: 'nbadge' }, `${unread} nya`) : null,
       h('span', { class: 'vals' }, h('b', null, fmt1(valueOf(d))), f != null ? h('span', null, `30d ${fmt1(f)}`) : null)));
   }
 
   return frag(
     h('header', null, h('div', { class: 'kicker' }, `${dateShort(first)} – ${dateShort(last)}`), h('h1', { class: 'title-xl' }, 'Arkiv')),
     seg,
+    filterBar(topFacets(inRange.flatMap((r) => r.events), selected), selected, setFacets),
     chart,
-    h('section', { class: 'section' }, h('h2', { class: 'kicker' }, 'Rapporter'), h('div', { class: 'card list' }, rows)));
+    h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, filtering ? 'Dagar med träffar' : 'Rapporter'),
+      rows.length ? h('div', { class: 'card list' }, rows) : h('p', { class: 'muted' }, 'Inga träffar i perioden.')));
 }
 
 // ---------------------------------------------------------------- Ämnen
@@ -500,9 +961,10 @@ function highlight(text, terms) {
 }
 
 async function viewTopics(q) {
-  const reports = await loadAllReports();
+  const [reports, index] = await Promise.all([loadAllReports(), loadIndex()]);
+  ensureScope(index);
   let query = q.get('q') || '';
-  let topic = TOPICS.includes(q.get('t')) ? q.get('t') : '';
+  let selected = parseFacets(q);
 
   const all = [];
   for (const r of reports) {
@@ -510,45 +972,50 @@ async function viewTopics(q) {
       const outlets = e.articles.map((a) => a.outlet).filter(Boolean);
       all.push({
         r, e, outlets,
-        hay: norm([e.title_sv, e.summary_sv, e.title, e.detail, outlets.join(' '), e.sources, e.countries.map(countryName).join(' ')].join(' ')),
+        hay: norm([e.title_sv, e.summary_sv, e.title, e.detail, outlets.join(' '), e.sources, e.countries.map(countryName).join(' '),
+          e.articles.map((a) => `${a.title || ''} ${a.summary_sv || ''}`).join(' ')].join(' ')),
       });
     }
   }
+  const facets = () => topFacets(all.map((x) => x.e), selected);
 
   const input = h('input', { id: 'sok', type: 'search', value: query, placeholder: 't.ex. Milrem, Rumänien, skuggflotta', autocomplete: 'off', enterkeyhint: 'search' });
   const results = h('section', { class: 'section', 'aria-live': 'polite' });
-  const chips = TOPICS.map((t) => h('button', {
-    class: 'chip big', type: 'button', 'aria-pressed': String(t === topic),
-    onclick: () => { topic = topic === t ? '' : t; update(); },
-  }, t));
+  const barHolder = h('div');
+
+  // Filters and search update in place, so the search field keeps focus.
+  function setSelected(sel) { selected = sel; update(); }
 
   function update() {
-    for (const c of chips) c.setAttribute('aria-pressed', String(c.textContent === topic));
+    barHolder.replaceChildren(filterBar(facets(), selected, setSelected));
     const qs = new URLSearchParams();
     if (query) qs.set('q', query);
-    if (topic) qs.set('t', topic);
+    if (selected.length) qs.set('f', selected.join(','));
     // Only while this view is still the one on screen: a slow first render
     // must not rewrite the address after the user has moved on.
     if (currentRoute === 'amnen' && parseHash().parts[0] === 'amnen') {
       history.replaceState(null, '', `#/amnen${qs.toString() ? `?${qs}` : ''}`);
     }
     const terms = query.trim().split(/\s+/).filter(Boolean);
-    if (!terms.length && !topic) {
-      results.replaceChildren(h('p', { class: 'hint' }, 'Välj ett ämne eller sök i alla rapporter.'));
+    if (!terms.length && !selected.length) {
+      results.replaceChildren(h('p', { class: 'hint' }, 'Välj ett eller flera områden ovan, eller sök i alla rapporter.'));
       return;
     }
     const nterms = terms.map(norm);
-    const hits = all.filter((x) => (!topic || x.e.topics.includes(topic)) && nterms.every((t) => x.hay.includes(t)));
+    const hits = all.filter((x) => matchesFacets(x.e, selected) && nterms.every((t) => x.hay.includes(t)));
     results.replaceChildren(frag(
-      h('div', { style: 'display:flex;justify-content:space-between;align-items:baseline' },
-        h('h2', { class: 'title-m' }, topic || 'Sökträffar'),
+      h('div', { style: 'display:flex;justify-content:space-between;align-items:baseline;gap:8px' },
+        h('h2', { class: 'title-m' }, selected.length ? selected.map(facetLabel).join(' + ') : 'Sökträffar'),
         h('span', { class: 'small muted' }, plural(hits.length, 'träff', 'träffar'))),
       hits.length ? null : h('p', { class: 'muted' }, 'Inga träffar.'),
-      hits.slice(0, 100).map(({ r, e, outlets }) => h('a', { class: 'card result', href: eventHref(r.date, e.id) },
-        h('span', { class: 'result-top' }, h('b', null, dateShort(r.date)), h('span', null, e.countries.map(countryName).join(', '))),
-        h('span', { class: 'result-title' }, highlight(e.title_sv || e.title, terms)),
-        h('span', { class: 'result-text' }, highlight(firstSentence(e.summary_sv || e.detail), terms)),
-        outlets.length || e.sources ? h('span', { class: 'result-src' }, firstSentence(outlets.join(', ') || e.sources, 90)) : null))));
+      hits.slice(0, 100).map(({ r, e, outlets }) => {
+        const state = eventState(r.date, e);
+        return h('a', { class: `card result${state ? ' unread' : ''}`, href: eventHref(r.date, e.id) },
+          h('span', { class: 'result-top' }, h('b', null, dateShort(r.date)), stateBadge(state), h('span', { class: 'grow-right' }, e.countries.map(countryName).join(', '))),
+          h('span', { class: 'result-title' }, highlight(e.title_sv || e.title, terms)),
+          h('span', { class: 'result-text' }, highlight(firstSentence(e.summary_sv || e.detail), terms)),
+          outlets.length || e.sources ? h('span', { class: 'result-src' }, firstSentence(outlets.join(', ') || e.sources, 90)) : null);
+      })));
   }
 
   let timer = 0;
@@ -561,13 +1028,14 @@ async function viewTopics(q) {
     h('div', { class: 'section', style: 'gap:4px' },
       h('label', { class: 'search-label', for: 'sok' }, 'Sök i alla rapporter'),
       h('div', { class: 'search' }, searchIcon(), input)),
-    h('div', { class: 'chips', role: 'group', 'aria-label': 'Ämnen' }, chips),
+    barHolder,
     results);
 }
 
 // ---------------------------------------------------------------- Karta
 async function viewMap(q) {
-  const reports = await loadAllReports();
+  const [reports, index] = await Promise.all([loadAllReports(), loadIndex()]);
+  ensureScope(index);
   if (!reports.length) return emptyState('Inga rapporter ännu.');
   const period = ['7', '30', 'all'].includes(q.get('p')) ? q.get('p') : '7';
   const ref = reports[0].date;
@@ -635,6 +1103,7 @@ async function viewMap(q) {
         h('span', { class: 'row-main' },
           h('span', { class: 'row-title' }, e.title_sv || e.title),
           e.topics.length ? h('span', { class: 'row-sub' }, e.topics.join(' · ')) : null),
+        stateBadge(eventState(r.date, e)),
         chevRight()))) : null));
 }
 
@@ -644,7 +1113,7 @@ function loadSkipped() { try { return new Set(JSON.parse(sessionStorage.getItem(
 function saveSkipped(set) { try { sessionStorage.setItem(SKIP_KEY, JSON.stringify([...set])); } catch { /* ignore */ } }
 const assessHistory = []; // this session's swipes, newest last, for "Ångra"
 
-async function viewAssess() {
+async function viewAssess(q) {
   if (!isAdmin()) return adminOnly();
   await assessmentsReady;
   const reports = await loadAllReports();
@@ -652,8 +1121,12 @@ async function viewAssess() {
   const cur = currentByArticle();
   const seen = new Set();
   const targets = [];
+  const selected = parseFacets(q);
+  const facetStart = reports.length ? addDays(reports[0].date, -(FACET_DAYS - 1)) : '';
+  const facetBar = filterBar(topFacets(reports.filter((r) => r.date >= facetStart).flatMap((r) => r.events), selected), selected, setFacets);
   for (const r of reports) {
     for (const e of r.events) {
+      if (!matchesFacets(e, selected)) continue;
       for (const a of e.articles) {
         if (!a.id || seen.has(a.id)) continue;
         seen.add(a.id);
@@ -727,7 +1200,11 @@ async function viewAssess() {
       h('p', { class: 'sc-summary' }, e.summary_sv || e.detail || ''),
       h('div', { class: 'sc-foot' },
         h('span', null, `Modellens poäng ${fmtScore(e.model_score != null ? e.model_score : e.score)}/10`),
-        a.url ? h('a', { href: a.url, target: '_blank', rel: 'noopener noreferrer' }, 'Läs artikeln') : null));
+        a.url && hostOf(a.url) ? h('button', {
+          class: 'linkbtn', type: 'button',
+          onpointerdown: (ev) => ev.stopPropagation(),
+          onclick: (ev) => { ev.stopPropagation(); openExternal(a.url, { tier: a.tier, date: t.date, outlet: a.outlet }); },
+        }, 'Läs originalet') : null));
     if (!behind) {
       gesture(el, {
         mode: 'free',
@@ -752,7 +1229,7 @@ async function viewAssess() {
   function renderStack() {
     updateChrome();
     if (!targets.length) {
-      stack.replaceChildren(emptyState('Allt är bedömt.',
+      stack.replaceChildren(emptyState(selected.length ? `Allt inom ${selected.map(facetLabel).join(' + ')} är bedömt.` : 'Allt är bedömt.',
         h('a', { class: 'btn', href: '#/mina' }, 'Mina bedömningar'),
         skipped.size ? h('button', {
           class: 'btn', type: 'button',
@@ -773,6 +1250,7 @@ async function viewAssess() {
     h('header', { class: 'page-head' },
       h('div', null, h('div', { class: 'kicker' }, 'Operatörsbedömning'), h('h1', { class: 'title-xl' }, 'Bedöm')),
       h('a', { class: 'head-link', href: '#/mina' }, 'Mina bedömningar')),
+    facetBar,
     h('div', { style: 'display:flex;justify-content:space-between;align-items:center;gap:8px' },
       h('p', { class: 'hint' }, 'Höger: trovärdig, längre: mycket. Vänster: tveksam, längre: inte trovärdig. Upp: hoppa över.'),
       counter),
@@ -879,6 +1357,242 @@ function mineRow(row, event, article) {
   return frag(wrap, panel);
 }
 
+// ---------------------------------------------------------------- Admin
+const ADMIN_TABS = [['users', 'Användare'], ['security', 'Säkerhet'], ['status', 'Status'], ['audit', 'Ändringslogg']];
+const REASONS = [
+  ['not_allowed', 'Ej behörig', 'Verifierad e-post som inte finns bland användarna'],
+  ['invalid_jwt', 'Ogiltig inloggning', 'Förfalskad, utgången eller trasig inloggningsbiljett'],
+  ['forbidden', 'Otillåten åtgärd', 'Rollen får inte göra detta, t.ex. läsare som bedömer'],
+  ['bad_request', 'Felaktig data', 'Trasiga eller manipulerade anrop'],
+  ['rate_limited', 'För många anrop', 'Anropsgränsen nåddes'],
+  ['bad_origin', 'Fel ursprung', 'Ändring skickad från en annan webbplats'],
+];
+const REASON_SV = Object.fromEntries(REASONS.map(([k, l]) => [k, l]));
+const ACTION_SV = {
+  add_user: 'Lade till', user_add: 'Lade till', add: 'Lade till', reactivate: 'Återaktiverade', user_reactivate: 'Återaktiverade',
+  role_change: 'Ändrade roll', set_role: 'Ändrade roll', user_role: 'Ändrade roll', change_role: 'Ändrade roll',
+  deactivate: 'Tog bort', user_deactivate: 'Tog bort', remove_user: 'Tog bort', delete_user: 'Tog bort',
+};
+const ROLE_SV = { admin: 'Administratör', reader: 'Läsare' };
+const adminMsg = { text: '', error: false };
+
+function rowsOf(body, key) { return Array.isArray(body) ? body : Array.isArray(body && body[key]) ? body[key] : Array.isArray(body && body.rows) ? body.rows : []; }
+const whenFmt = (ts) => (ts ? tsFmt(ts) : '–');
+const ago = (ts) => {
+  if (!ts) return 'aldrig';
+  const s = (Date.now() - new Date(ts).getTime()) / 1000;
+  if (Number.isNaN(s)) return '–';
+  if (s < 90) return 'nyss';
+  if (s < 3600) return `${Math.round(s / 60)} min sedan`;
+  if (s < 86400) return `${Math.round(s / 3600)} h sedan`;
+  return tsFmt(ts);
+};
+
+async function viewAdmin(q) {
+  if (!isAdmin()) return adminOnly();
+  const tab = ADMIN_TABS.some(([k]) => k === q.get('s')) ? q.get('s') : 'users';
+  let body;
+  try {
+    body = tab === 'users' ? await adminUsers()
+      : tab === 'security' ? await adminSecurity()
+        : tab === 'status' ? await adminStatus()
+          : await adminAudit();
+  } catch (e) {
+    if (e instanceof AuthError) throw e;
+    body = h('div', { class: 'card card-pad' }, h('p', { class: 'small' }, `Kunde inte hämta: ${e.message || e}`),
+      h('button', { class: 'btn', type: 'button', onclick: () => route({ keepScroll: true }) }, 'Försök igen'));
+  }
+  return frag(
+    backLink('#/', 'Idag'),
+    h('header', null, h('div', { class: 'kicker' }, 'Administration'), h('h1', { class: 'title-xl' }, 'Status')),
+    h('div', { class: 'seg seg-tight', role: 'tablist', 'aria-label': 'Delar' },
+      ADMIN_TABS.map(([k, label]) => h('button', {
+        type: 'button', role: 'tab', 'aria-selected': String(k === tab), 'aria-pressed': String(k === tab),
+        onclick: () => { adminMsg.text = ''; updateHash((qq) => qq.set('s', k)); },
+      }, label))),
+    adminMsg.text ? h('p', { class: `notice${adminMsg.error ? ' err' : ''}`, role: 'status' }, adminMsg.text) : null,
+    body);
+}
+
+async function adminMutate(method, path, payload, okText) {
+  try {
+    await adminSend(method, path, payload);
+    adminMsg.text = okText; adminMsg.error = false;
+  } catch (e) {
+    if (e instanceof AuthError) throw e;
+    adminMsg.text = e instanceof OfflineError ? 'Ingen anslutning – ändringen gjordes inte.' : `Ändringen gjordes inte: ${e.message}`;
+    adminMsg.error = true;
+  }
+  route({ keepScroll: true });
+}
+
+async function adminUsers() {
+  const users = rowsOf(await adminGet('/api/admin/users'), 'users');
+  const me = store.me && store.me.email;
+  const isOwnerRow = (u) => u.is_owner === true || u.owner === true || (store.me && store.me.is_owner && u.email === me);
+  const activeAdmins = users.filter((u) => u.active !== false && u.active !== 0 && u.role === 'admin');
+  users.sort((a, b) => (Number(b.active !== false && b.active !== 0) - Number(a.active !== false && a.active !== 0))
+    || (a.role === b.role ? 0 : a.role === 'admin' ? -1 : 1) || String(a.email).localeCompare(String(b.email)));
+
+  const email = h('input', { id: 'nu-email', type: 'email', required: true, autocomplete: 'off', autocapitalize: 'none', spellcheck: 'false', placeholder: 'namn@exempel.se', inputmode: 'email' });
+  const role = h('select', { id: 'nu-role' }, h('option', { value: 'reader' }, 'Läsare – kan inte bedöma'), h('option', { value: 'admin' }, 'Administratör'));
+  const addForm = h('form', {
+    class: 'card card-pad form',
+    onsubmit: (ev) => {
+      ev.preventDefault();
+      const v = email.value.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { adminMsg.text = 'Skriv en giltig e-postadress.'; adminMsg.error = true; route({ keepScroll: true }); return; }
+      adminMutate('POST', '/api/admin/users', { email: v, role: role.value }, `${v} har lagts till som ${ROLE_SV[role.value].toLowerCase()}.`);
+    },
+  },
+  h('h2', { class: 'kicker' }, 'Lägg till användare'),
+  h('label', { class: 'search-label', for: 'nu-email' }, 'E-postadress'), email,
+  h('label', { class: 'search-label', for: 'nu-role' }, 'Roll'), role,
+  h('button', { class: 'btn primary', type: 'submit' }, 'Lägg till'),
+  h('p', { class: 'small muted' }, 'Personen loggar in med en engångskod till adressen. Inget lösenord.'));
+
+  const card = (u) => {
+    const active = u.active !== false && u.active !== 0;
+    const owner = isOwnerRow(u);
+    const self = u.email === me;
+    const lastAdmin = active && u.role === 'admin' && activeAdmins.length <= 1;
+    const lockReason = owner ? 'Ägaren är alltid administratör och kan inte ändras eller tas bort.'
+      : lastAdmin ? 'Sista administratören – lägg till en till innan du ändrar här.'
+        : self ? 'Du kan inte ändra din egen roll eller ta bort dig själv.' : null;
+    const n = u.assessments ?? u.assessment_count ?? u.assessments_count ?? u.n_assessments;
+    const target = `/api/admin/users/${encodeURIComponent(u.email)}`;
+    return h('div', { class: `ucard${active ? '' : ' inactive'}` },
+      h('div', { class: 'ucard-top' },
+        h('b', { class: 'uemail' }, u.email),
+        h('span', { class: `pill ${u.role === 'admin' ? 'pill-admin' : ''}` }, ROLE_SV[u.role] || u.role),
+        owner ? h('span', { class: 'pill pill-owner' }, 'Ägare') : null,
+        active ? null : h('span', { class: 'pill pill-off' }, 'Borttagen')),
+      h('p', { class: 'small muted' }, `Senast inne: ${ago(u.last_seen)}${n != null ? ` · ${plural(Number(n), 'bedömning', 'bedömningar')}` : ''}`),
+      lockReason ? h('p', { class: 'small lock' }, lockReason) : null,
+      h('div', { class: 'btn-row' },
+        active
+          ? frag(
+            h('button', {
+              class: 'btn', type: 'button', disabled: !!lockReason,
+              onclick: () => {
+                const next = u.role === 'admin' ? 'reader' : 'admin';
+                adminMutate('PATCH', target, { role: next }, `${u.email} är nu ${ROLE_SV[next].toLowerCase()}.`);
+              },
+            }, u.role === 'admin' ? 'Gör till läsare' : 'Gör till administratör'),
+            h('button', {
+              class: 'btn danger', type: 'button', disabled: !!lockReason,
+              onclick: () => openSheet((close) => frag(
+                h('h2', { class: 'title-m' }, `Ta bort ${u.email}?`),
+                h('p', { class: 'small' }, 'Personen kommer inte längre in i appen. Historik och bedömningar sparas, och personen kan läggas till igen.'),
+                h('div', { class: 'sheet-actions' },
+                  h('button', { class: 'btn', type: 'button', autofocus: true, onclick: close }, 'Avbryt'),
+                  h('button', { class: 'btn danger', type: 'button', onclick: () => { close(); adminMutate('DELETE', target, null, `${u.email} har tagits bort.`); } }, 'Ta bort'))),
+              { label: `Ta bort ${u.email}` }),
+            }, 'Ta bort'))
+          : h('button', { class: 'btn', type: 'button', onclick: () => adminMutate('POST', '/api/admin/users', { email: u.email, role: u.role || 'reader' }, `${u.email} är återaktiverad.`) }, 'Återaktivera')));
+  };
+
+  return frag(
+    h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, `Användare · ${users.filter((u) => u.active !== false && u.active !== 0).length} aktiva`),
+      h('div', { class: 'ulist' }, users.map(card))),
+    addForm);
+}
+
+async function adminSecurity() {
+  const data = await adminGet('/api/admin/security?days=7');
+  const rows = rowsOf(data, 'rows').slice().sort((a, b) => (a.ts < b.ts ? 1 : -1));
+  const now = Date.now();
+  const fromRows = (reason, ms) => rows.filter((r) => r.reason === reason && now - new Date(r.ts).getTime() <= ms).length;
+  const pick = (reason, win) => {
+    const c = data && data.counts;
+    const alt = data && data[`counts_${win}`];
+    if (c && c[win] && c[win][reason] != null) return Number(c[win][reason]);
+    if (c && c[reason] && typeof c[reason] === 'object' && c[reason][win] != null) return Number(c[reason][win]);
+    if (alt && alt[reason] != null) return Number(alt[reason]);
+    return fromRows(reason, win === '24h' ? 86400000 : 7 * 86400000);
+  };
+  const tiles = REASONS.map(([k, label, help]) => {
+    const d1 = pick(k, '24h');
+    const d7 = pick(k, '7d');
+    const cls = d1 > 20 ? 'danger' : d1 || d7 ? 'warn' : '';
+    return h('div', { class: `stat ${cls}`, title: help },
+      h('div', { class: 'stat-label' }, label),
+      h('div', { class: 'stat-value' }, String(d1)),
+      h('div', { class: 'small' }, `senaste dygnet · ${d7} på 7 dygn`));
+  });
+  const total24 = REASONS.reduce((n, [k]) => n + pick(k, '24h'), 0);
+  return frag(
+    h('p', { class: 'small muted' }, total24 ? `${plural(total24, 'händelse', 'händelser')} det senaste dygnet.` : 'Inga misslyckade eller misstänkta försök det senaste dygnet.'),
+    h('section', { class: 'stat-grid' }, tiles),
+    h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, 'Senaste händelser'),
+      rows.length ? h('div', { class: 'card list' }, rows.slice(0, 200).map((r) => h('div', { class: 'row srow' },
+        h('div', { class: 'row-main' },
+          h('span', { class: 'row-title' }, h('span', { class: `pill ${r.reason === 'not_allowed' || r.reason === 'invalid_jwt' ? 'pill-warn' : ''}` }, REASON_SV[r.reason] || r.reason || 'Okänt'), ' ', r.email || 'okänd avsändare'),
+          h('span', { class: 'row-sub' }, [whenFmt(r.ts), r.ip_country, [r.method, r.path].filter(Boolean).join(' ')].filter(Boolean).join(' · ')),
+          r.detail ? h('span', { class: 'row-sub' }, r.detail) : null)))) : h('p', { class: 'muted small' }, 'Inga registrerade händelser de senaste 7 dygnen.')));
+}
+
+async function adminStatus() {
+  const s = await adminGet('/api/admin/status');
+  const c = (s && s.counts) || {};
+  const tiles = [];
+  // The morning report is due at about 05:05; after 05:30 today's should be in.
+  const now = new Date();
+  const todayLocal = now.toLocaleDateString('sv-SE');
+  const up = s.last_report_uploaded_at ? new Date(s.last_report_uploaded_at) : null;
+  let reportState = '';
+  let reportCls = '';
+  if (s.last_report_date) {
+    const dueNow = now.getHours() > 5 || (now.getHours() === 5 && now.getMinutes() >= 30);
+    if (s.last_report_date !== todayLocal && dueNow) { reportState = 'Dagens rapport saknas'; reportCls = 'danger'; }
+    else if (up && up.toLocaleDateString('sv-SE') === s.last_report_date) {
+      const onTime = up.getHours() < 5 || (up.getHours() === 5 && up.getMinutes() <= 30);
+      reportState = onTime ? `I tid · ${up.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}` : `Sen · ${up.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`;
+      reportCls = onTime ? 'ok' : 'warn';
+    } else if (up) { reportState = `Uppladdad ${tsFmt(up.toISOString())}`; }
+  }
+  tiles.push(h('div', { class: `stat ${reportCls}` }, h('div', { class: 'stat-label' }, 'Senaste rapport'),
+    h('div', { class: 'stat-value' }, s.last_report_date ? dateShort(s.last_report_date) : '–'), reportState ? h('div', { class: 'small' }, reportState) : null));
+  tiles.push(statTile('Senaste uppdatering', s.last_update_at ? ago(s.last_update_at) : '–'));
+  const pullOld = s.last_machine_pull_at && Date.now() - new Date(s.last_machine_pull_at).getTime() > 36 * 3600000;
+  tiles.push(h('div', { class: `stat ${pullOld ? 'warn' : ''}` }, h('div', { class: 'stat-label' }, 'Macen hämtade senast'),
+    h('div', { class: 'stat-value' }, s.last_machine_pull_at ? ago(s.last_machine_pull_at) : 'aldrig'),
+    pullOld ? h('div', { class: 'small' }, 'Mer än ett och ett halvt dygn sedan') : null));
+  const exp = s.service_token_expires ? new Date(s.service_token_expires) : null;
+  const daysLeft = exp ? Math.floor((exp.getTime() - Date.now()) / 86400000) : null;
+  tiles.push(h('div', { class: `stat ${daysLeft == null ? '' : daysLeft < 0 ? 'danger' : daysLeft <= 30 ? 'warn' : ''}` },
+    h('div', { class: 'stat-label' }, 'Macens nyckel går ut'),
+    h('div', { class: 'stat-value' }, exp ? exp.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' }) : '–'),
+    daysLeft == null ? null : h('div', { class: 'small' }, daysLeft < 0 ? 'Har gått ut – Macen kan inte ladda upp' : daysLeft <= 30 ? `Om ${plural(daysLeft, 'dag', 'dagar')} – förnya nyckeln` : `Om ${daysLeft} dagar`)));
+  return frag(
+    h('section', { class: 'stat-grid' }, tiles),
+    h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, 'Innehåll'),
+      h('section', { class: 'stat-grid' },
+        statTile('Rapporter', String(c.reports ?? '–')),
+        statTile('Händelser', String(c.events ?? '–')),
+        statTile('Bedömningar', String(c.assessments ?? '–')),
+        statTile('Användare', String(c.users ?? '–')))));
+}
+
+async function adminAudit() {
+  const rows = rowsOf(await adminGet('/api/admin/audit'), 'rows').slice().sort((a, b) => (a.ts < b.ts ? 1 : -1));
+  if (!rows.length) return h('p', { class: 'muted small' }, 'Inga ändringar ännu.');
+  const detailText = (d) => {
+    if (d == null || d === '') return '';
+    if (typeof d === 'string') { try { return detailText(JSON.parse(d)); } catch { return d; } }
+    if (typeof d === 'object') return Object.entries(d).map(([k, v]) => `${k}: ${k === 'role' || k === 'from' || k === 'to' ? ROLE_SV[v] || v : v}`).join(', ');
+    return String(d);
+  };
+  return h('div', { class: 'card list' }, rows.map((r) => h('div', { class: 'row srow' },
+    h('div', { class: 'row-main' },
+      h('span', { class: 'row-title' }, `${ACTION_SV[r.action] || r.action || 'Ändring'} ${r.target || ''}`.trim()),
+      h('span', { class: 'row-sub' }, [whenFmt(r.ts), r.actor ? `av ${r.actor}` : null].filter(Boolean).join(' · ')),
+      detailText(r.detail) ? h('span', { class: 'row-sub' }, detailText(r.detail)) : null))));
+}
+
 // ---------------------------------------------------------------- chrome
 function updateChrome() {
   const pending = document.getElementById('pending');
@@ -896,12 +1610,74 @@ function updateChrome() {
   } else {
     banner.hidden = true;
   }
+  paintBadges();
 }
 
+// Views that show read marks or verdicts follow the data; the search view
+// does not, so its field keeps focus while typing.
+const LIVE_ROUTES = new Set(['', 'rapport', 'mina', 'handelse', 'kalla']);
+let rerenderQueued = false;
 onChange(() => {
   updateChrome();
-  if ((currentRoute === 'mina' || currentRoute === 'handelse') && !isDragging()) rerender();
+  if (!LIVE_ROUTES.has(currentRoute) || isDragging() || rerenderQueued) return;
+  rerenderQueued = true;
+  Promise.resolve().then(() => { rerenderQueued = false; rerender(); });
 });
+
+// ---------------------------------------------------------------- refresh
+let refreshing = null;
+let lastRefresh = 0;
+async function doRefresh({ quiet = false } = {}) {
+  if (refreshing) return refreshing;
+  const ptr = document.getElementById('ptr');
+  if (!quiet) { ptr.textContent = 'Uppdaterar…'; ptr.hidden = false; ptr.classList.add('busy'); }
+  refreshing = (async () => {
+    try {
+      await refreshAll();
+      await computeBadges();
+      lastRefresh = Date.now();
+      if (!quiet) { ptr.textContent = `Uppdaterat ${new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`; }
+    } catch (e) {
+      if (e instanceof DeniedError) { document.getElementById('view').replaceChildren(errorView(e)); return; }
+      if (e instanceof AuthError) store.authLost = true;
+      else store.stale = true;
+      if (!quiet) ptr.textContent = 'Kunde inte uppdatera';
+    } finally {
+      updateChrome();
+      if (currentRoute !== 'amnen') rerender();
+      setTimeout(() => { ptr.hidden = true; ptr.classList.remove('busy'); ptr.style.transform = ''; }, quiet ? 0 : 900);
+      refreshing = null;
+    }
+  })();
+  return refreshing;
+}
+
+// Pull down at the top of Idag to refresh. Touch only; the Uppdatera
+// buttons do the same for mouse and keyboard.
+function installPullToRefresh() {
+  const ptr = document.getElementById('ptr');
+  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let startY = null;
+  let dy = 0;
+  window.addEventListener('touchstart', (ev) => {
+    if (currentRoute !== '' || window.scrollY > 0 || refreshing || document.querySelector('dialog[open]') || ev.touches.length !== 1) { startY = null; return; }
+    startY = ev.touches[0].clientY; dy = 0;
+  }, { passive: true });
+  window.addEventListener('touchmove', (ev) => {
+    if (startY == null) return;
+    dy = ev.touches[0].clientY - startY;
+    if (dy <= 8 || window.scrollY > 0) { if (!refreshing) ptr.hidden = true; return; }
+    ptr.hidden = false;
+    ptr.textContent = dy > 70 ? 'Släpp för att uppdatera' : 'Dra för att uppdatera';
+    ptr.style.transform = reduce() ? '' : `translate(-50%, ${Math.min(dy / 2, 48)}px)`;
+  }, { passive: true });
+  window.addEventListener('touchend', () => {
+    if (startY == null) return;
+    const pulled = dy > 70;
+    startY = null;
+    if (pulled) doRefresh(); else if (!refreshing) { ptr.hidden = true; ptr.style.transform = ''; }
+  }, { passive: true });
+}
 
 async function init() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
@@ -913,14 +1689,27 @@ async function init() {
   }
   document.querySelector('[data-tab="bedom"]').hidden = !isAdmin();
   assessmentsReady = loadAssessments().catch((e) => { console.warn('assessments', e); });
+  const side = Promise.all([
+    loadUpdates().catch((e) => { console.warn('updates', e); }),
+    loadReads().catch((e) => { console.warn('reads', e); }),
+  ]);
   window.addEventListener('hashchange', () => route());
   window.addEventListener('offline', updateChrome);
   window.addEventListener('online', () => { loadMe().catch(() => {}).finally(updateChrome); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && Date.now() - lastRefresh > 60000) doRefresh({ quiet: true });
+  });
+  installPullToRefresh();
   updateChrome();
   route();
+  await Promise.all([side, assessmentsReady]);
+  store.refreshedAt = new Date().toISOString();
+  lastRefresh = Date.now();
+  await computeBadges();
+  if (currentRoute !== 'amnen') rerender();
 }
 
 init();
 
 // Exposed for tests and debugging only.
-window.__hm = { store, myRows };
+window.__hm = { store, myRows, doRefresh, computeBadges };

@@ -35,11 +35,44 @@ async function sign(claims, { key = good.privateKey, header = { alg: 'RS256', ki
 
 const now = Math.floor(Date.now() / 1000);
 const base = { aud: [AUD], iss: `https://${TEAM}`, iat: now, nbf: now - 10, exp: now + 3600 };
+// Just enough of D1 for identity: the users table (seeded by the Worker on
+// first use), plus sinks for the audit and security logs.
+class MockD1 {
+  constructor() { this.users = new Map(); this.securityLog = []; this.audit = []; }
+  prepare(sql) {
+    const db = this;
+    let args = [];
+    const stmt = {
+      bind(...a) { args = a; return stmt; },
+      async first() {
+        if (/^SELECT COUNT\(\*\) AS n FROM users/.test(sql)) return { n: db.users.size };
+        if (/FROM users WHERE email = \?/.test(sql)) return db.users.get(args[0]) || null;
+        return null;
+      },
+      async run() {
+        if (/^INSERT OR IGNORE INTO users/.test(sql) && !db.users.has(args[0])) {
+          db.users.set(args[0], { role: args[1], active: 1, last_seen: null, prev_visit: null });
+        } else if (/^UPDATE users SET last_seen/.test(sql)) {
+          const u = db.users.get(args[1]); if (u) u.last_seen = args[0];
+        } else if (/^INSERT INTO security_log/.test(sql)) {
+          db.securityLog.push(args[5]);
+        } else if (/^INSERT INTO audit_log/.test(sql)) {
+          db.audit.push(args[2]);
+        }
+        return { meta: { changes: 1 } };
+      },
+      async all() { return { results: [] }; },
+    };
+    return stmt;
+  }
+}
+const db = new MockD1();
 const env = {
   TEAM_DOMAIN: TEAM, ACCESS_AUD: AUD,
-  ADMINS: 'admin.one@example.org,admin.two@example.org,the.owner@example.org',
+  ADMINS: 'admin.one@example.org,admin.two@example.org',
   READERS: 'reader@example.com', MACHINE_CLIENT_ID: MACHINE_ID,
-  DB: {}, ASSETS: { fetch: () => new Response('asset') },
+  OWNER: 'the.owner@example.org',
+  DB: db, ASSETS: { fetch: () => new Response('asset') },
 };
 
 let pass = 0, fail = 0;
@@ -65,6 +98,17 @@ r = await me(await sign({ ...base, email: 'reader@example.com' }));
 expect('reader role', r.body.role, 'reader');
 r = await me(await sign({ ...base, email: 'stranger@example.com' }));
 expect('verified but unlisted email', r.status, 403);
+expect('unlisted email logged not_allowed', db.securityLog.at(-1), 'not_allowed');
+r = await me(await sign({ ...base, email: 'the.owner@example.org' }));
+expect('owner is admin', r.body.role, 'admin'); expect('owner flagged', r.body.is_owner, true);
+db.users.get('admin.one@example.org').active = 0;
+r = await me(await sign({ ...base, email: 'admin.one@example.org' }));
+expect('deactivated user refused', r.status, 403);
+db.users.get('admin.one@example.org').active = 1;
+db.users.delete('the.owner@example.org');
+r = await me(await sign({ ...base, email: 'the.owner@example.org' }));
+expect('owner admin even without a users row', r.body.role, 'admin');
+expect('seed wrote an audit row', db.audit[0], 'seed');
 r = await me(null);
 expect('no token', r.status, 401);
 r = await me(await sign({ ...base, email: 'admin.one@example.org', aud: ['other-aud'] }));

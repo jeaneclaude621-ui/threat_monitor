@@ -168,3 +168,53 @@ READERS=reader@example.com
 The dev bypass works only on `localhost`/`127.0.0.1` and only with these
 vars set; `X-Dev-Email: <addr>` picks another identity and
 `X-Dev-Machine: 1` acts as the Mac.
+
+## Version 2: the app decides who gets in
+
+From version 2 (CONTRACT.md, "Version 2") Access only proves that the
+visitor owns an email address; the Worker decides who is let in from
+the D1 `users` table, managed on the app's admin page. Deploy in this
+order, so the new gate is in place before Access opens up:
+
+1. Apply the new tables to the live database:
+
+   ```sh
+   npx wrangler d1 migrations apply hotmonitor --remote
+   ```
+
+2. Deploy the Worker (`OWNER`, `READERS` and `SERVICE_TOKEN_EXPIRES` are
+   in `wrangler.jsonc`):
+
+   ```sh
+   npx wrangler deploy
+   ```
+
+   The first request after this seeds `users` - it is empty - from
+   `OWNER` and `ADMINS` (admins) and `READERS` (readers), and writes a
+   `seed` row to `audit_log`. After that the vars no longer matter except
+   `OWNER`, who is always an active admin (break-glass: the owner cannot
+   be locked out, demoted or removed).
+
+3. Open the Access allow policy to any verified email (One-time PIN is
+   still the only login method, so every visitor has proven their
+   address). With `CLOUDFLARE_API_TOKEN` (Access: Apps and Policies Edit):
+
+   ```sh
+   ACC=b117299f0c6ac472366156984ab0c796
+   POLICY=06b01c26-3cf8-4836-8131-b05b0c038921   # "Hotmonitor users"
+   curl -s -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
+     https://api.cloudflare.com/client/v4/accounts/$ACC/access/policies/$POLICY -d '{
+       "name":"Hotmonitor verified email","decision":"allow","session_duration":"720h",
+       "include":[{"everyone":{}}]}' | jq '.success, .result.include'
+   ```
+
+   Someone not in `users` can now reach the app shell (which holds no
+   data) but every `/api` call answers 403 and is logged as
+   `not_allowed` on the admin page's Säkerhet tab.
+
+4. Check: `/api/me` as an admin shows `is_owner` for the owner; the admin
+   page lists the five seeded users; an address not in the list gets 403.
+
+Rate limiting is per Worker isolate (in memory, ~120 requests a minute per
+email, or per IP without a valid login) - no binding or extra setup.
+Security log rows older than 90 days are pruned by the Worker itself.

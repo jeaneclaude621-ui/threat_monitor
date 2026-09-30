@@ -104,3 +104,77 @@ High, never decisive. Caps are enforced in code, not left to the model.
 - When operator and model clearly disagree, `divergent: true`: the report
   shows "Operatören avviker" instead of overriding.
 Every effect is listed in a `trace` so the app can show why.
+
+---
+
+# Version 2 (1 Oct 2026)
+
+## Access model: A - the app decides who gets in
+
+Cloudflare Access only proves the visitor owns an email address
+(one-time PIN, policy "Hotmonitor verified email": include everyone,
+login method OTP only). The Worker decides who is let in, from the D1
+`users` table. Unknown or removed emails get 403 and are logged. The
+Mac's service token policy is unchanged.
+
+`OWNER` (Worker var, `the.owner@example.org`) is always an active
+admin, whatever the table says - the break-glass key so nobody can lock
+the owner out. `ADMINS`/`READERS` vars only seed the table on first use.
+
+## New D1 tables
+
+- `users(email PK, role 'admin'|'reader', active 0/1, created_at, created_by, last_seen)`
+- `audit_log(id, ts, actor, action, target, detail)` - append-only (triggers), every user change
+- `security_log(id, ts, email, ip_country, path, method, reason, detail)` - reasons:
+  `not_allowed` (verified email not in users / inactive), `invalid_jwt`,
+  `forbidden` (role may not do this), `bad_request` (validation failed),
+  `rate_limited`, `bad_origin`. Kept 90 days.
+- `reads(email, item_id, ts, PK(email,item_id))` - item_id is an event id
+  (`2026-09-30-e1`) or an update id.
+- `updates(id PK, ts, thread_id, thread_label, classification, title_sv, summary_sv, outlets TEXT json, report_date)`
+  - the live feed from the Mac's hourly monitor.
+
+## New and changed API
+
+| Method | Path | Who | |
+|---|---|---|---|
+| GET | `/api/me` | user | `{ email, role, is_owner }` |
+| GET | `/api/updates?since=<ts>` | user | live feed rows, newest first (default last 7 days) |
+| GET | `/api/reads` | user | `{ item_ids: [...], last_visit }` for me |
+| POST | `/api/reads` | user | `{ item_ids: [...] }` or `{ all_before: <ts> }` -> marks read |
+| GET | `/api/admin/users` | admin | users with last_seen and assessment counts |
+| POST | `/api/admin/users` | admin | `{ email, role }` add (or reactivate) |
+| PATCH | `/api/admin/users/:email` | admin | `{ role }` or `{ active: false }` |
+| DELETE | `/api/admin/users/:email` | admin | deactivate (kept for history) |
+| GET | `/api/admin/security?days=7` | admin | `{ counts: {reason: n} for 24h and 7d, rows: [...] }` newest first, max 200 |
+| GET | `/api/admin/audit` | admin | audit rows newest first |
+| GET | `/api/admin/status` | admin | `{ last_report_date, last_report_uploaded_at, last_update_at, last_machine_pull_at, counts: {reports, events, assessments, users}, service_token_expires }` |
+| PUT | `/api/ingest/updates` | machine | `[update rows]`, upsert by id |
+
+Rules: the last active admin cannot be demoted or removed; OWNER can't
+be demoted or removed. Every mutating request must carry
+`Origin` equal to the app's own origin (else `bad_origin`). Per-email
+rate limit ~120 requests/min (else 429 `rate_limited`).
+
+## Richer report JSON (from 2 Oct reports; older ones lack these - render only if present)
+
+Per event: `known_sv` [strings], `unknown_sv` [strings], `thread_id`
+(one of the watchlist thread ids, or null).
+Per article: `summary_sv` (2-3 sentences, what this article says),
+`published` (YYYY-MM-DD or null), `relation` one of
+`bekräftar` | `motsäger` | `tillför` | null.
+
+## App behaviour (frontend)
+
+- New/unread: an event or update not in my reads is "Ny"; an event whose
+  thread got an update after I read it is "Uppdaterad". Opening marks read.
+  Tab badges show unread counts. "Nytt sedan senast" box on Idag.
+- Filter bar: facets = TOPICS + countries, counted over events in the
+  chosen period, top 10 by count, shown with counts. Multi-select = AND.
+  On Idag, Arkiv, Ämnen and Bedöm; state in the hash (`f=Drönare,RO`).
+- Every title, outlet, topic, country and date is a link. Outlet ->
+  `#/kalla/<outlet>` (tier, appearances, my verdicts, latest articles).
+- External links always go through an in-app warning sheet first
+  ("Du lämnar Hotmonitor och öppnar <domän>…" [Stanna kvar] [Öppna originalet]).
+- Tap always reads; swipe only in Bedöm (event page source rows become tap targets).
+- `#/admin` (admins): Användare, Säkerhet, Systemstatus, Ändringslogg.

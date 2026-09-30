@@ -1,7 +1,7 @@
 // Offline support: the app shell is cache-first, report data network-first
 // with the last good copy as fallback. Writes (POST) are never cached; the
 // app keeps its own outbox for those.
-const VERSION = 'hm-v1';
+const VERSION = 'hm-v2';
 const SHELL = `${VERSION}-shell`;
 const DATA = `${VERSION}-data`;
 const FONTS = `${VERSION}-fonts`;
@@ -44,8 +44,9 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (url.pathname.startsWith('/api/')) {
-    // /api/me decides whether the user must log in again: never answer it from cache.
-    if (url.pathname === '/api/me') return;
+    // /api/me decides whether the user must log in again, and admin data
+    // (users, security log) should not linger on the phone: never cache them.
+    if (url.pathname === '/api/me' || url.pathname.startsWith('/api/admin/')) return;
     event.respondWith((async () => {
       const cache = await caches.open(DATA);
       try {
