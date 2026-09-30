@@ -34,6 +34,13 @@
     // ADMINS/READERS only seed the users table the first time it is empty;
     // after that, people are managed on the app's admin page.
     "OWNER": "the.owner@example.org",
-    "SERVICE_TOKEN_EXPIRES": "2027-09-30"
-  }
+    "SERVICE_TOKEN_EXPIRES": "2027-09-30",
+    // Web Push (CONTRACT.md, Version 3). The private key is the Worker
+    // secret VAPID_PRIVATE_KEY (wrangler secret put), never in this file.
+    "VAPID_PUBLIC_KEY": "BK26uWj_E45yGG0S4xHUSPeoVnbYb2pawCH2rkHpsU4yaQE5rSSkq7zEOoaadkGte6na53T2dbC_WBrB6mCFFqM"
+  },
+  // Missing-report alarm: every 30 min 03:00-09:30 UTC; the handler itself
+  // checks Stockholm local time (DST-safe), so the UTC window covers both
+  // CET and CEST.
+  "triggers": { "crons": ["*/30 3-9 * * *"] }
 }

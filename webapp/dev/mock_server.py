@@ -33,6 +33,11 @@ PORT = int(os.environ.get("MOCK_PORT", "8787"))
 AUTH_FAIL = os.environ.get("MOCK_AUTH") == "fail"   # every /api call answers 401
 AUTH_DENIED = os.environ.get("MOCK_AUTH") == "denied"  # every /api call answers 403 not_allowed
 OWNER = os.environ.get("MOCK_OWNER", EMAIL if ROLE == "admin" else "owner@example.test")
+ALARM = os.environ.get("MOCK_ALARM") == "1"         # today's report is missing
+# A real P-256 public key (uncompressed, base64url) so the browser accepts
+# the subscription; nothing is ever sent with it.
+VAPID_PUBLIC = "BGtaPHvxosJ2B0_wo51rsv8waq1od-6bZIzGaQcW8sHo9QnG6akuEoh9ii-jHgb1036i5H2AWoqfZQVs9G1KOXo"
+PUSH_SUBS = {}
 
 TOPIC_RULES = {
     "Drönare": r"drone|drönar|uav|shahed|geran",
@@ -105,10 +110,27 @@ def load_reports():
             ev["operator"] = {"delta": 0.5, "divergent": False, "trace": trace}
             latest["operator_influence"] = {"index_delta": 0.1, "trace": trace,
                                             "note_sv": "Operatörens bedömningar av två källor höjde indexet något."}
+        # Version 3: yesterday's events re-checked, and a track record.
+        dates = sorted(out)
+        if len(dates) >= 2:
+            prev = out[dates[-2]]
+            outcomes = ["CONFIRMED", "CONFIRMED", "CONTRADICTED", "UNRESOLVED", "CONFIRMED", "CONFIRMED"]
+            notes = {"CONFIRMED": "Senare rapportering från flera nyhetsbyråer stöder uppgiften.",
+                     "CONTRADICTED": "Myndigheten gick senare ut och drog tillbaka uppgiften.",
+                     "UNRESOLVED": "Ingen ny information sedan dess."}
+            latest["self_check_results"] = [{"event_id": e["id"], "outcome": outcomes[i % 6], "note": notes[outcomes[i % 6]]}
+                                            for i, e in enumerate(prev.get("events", []))]
+        latest["operator_track_record"] = {
+            EMAIL: {"evaluated": 9, "agreed": 7, "rate": 7 / 9},
+            "johan@example.test": {"evaluated": 4, "agreed": 2, "rate": 0.5},
+            "greger@example.test": {"evaluated": 0, "agreed": 0, "rate": None},
+        }
     return out
 
 
 REPORT_DATA = load_reports()
+# The alarm is for the day after the newest report (as if it never came).
+MISSING_DATE = (datetime.fromisoformat(max(REPORT_DATA)) + timedelta(days=1)).date().isoformat() if REPORT_DATA else None
 ASSESSMENTS = []
 
 THREADS = [
@@ -176,6 +198,8 @@ for email, role in [(OWNER, "admin"), (EMAIL, ROLE), ("johan@example.test", "adm
 USERS["gammal@example.test"] = {"email": "gammal@example.test", "role": "reader", "active": False,
                                 "created_at": ago(days=9), "created_by": OWNER, "last_seen": ago(days=6)}
 USERS["johan@example.test"]["last_seen"] = ago(hours=3)
+USERS["johan@example.test"].update({"installed_at": ago(hours=20), "platform": "ios"})
+USERS["daniel@example.test"].update({"platform": "android"})
 AUDIT = [{"id": str(uuid.uuid4()), "ts": ago(days=3), "actor": OWNER, "action": "add_user", "target": e,
           "detail": json.dumps({"role": u["role"]})} for e, u in USERS.items() if e != OWNER]
 AUDIT.append({"id": str(uuid.uuid4()), "ts": ago(days=2), "actor": OWNER, "action": "deactivate", "target": "gammal@example.test", "detail": ""})
@@ -260,7 +284,11 @@ class Handler(SimpleHTTPRequestHandler):
         me = user_of(EMAIL)
         if path == "/api/me":
             USERS.get(EMAIL, {})["last_seen"] = now()
-            return self._json(200, {"email": EMAIL, "role": me["role"], "is_owner": EMAIL == OWNER})
+            alarm = {"missing_report": MISSING_DATE if ALARM else None,
+                     "checked_at": ago(minutes=12) if ALARM else None}
+            return self._json(200, {"email": EMAIL, "role": me["role"], "is_owner": EMAIL == OWNER, "alarm": alarm})
+        if path == "/api/push/key":
+            return self._json(200, {"publicKey": VAPID_PUBLIC})
         if path == "/api/updates":
             return self._json(200, sorted(UPDATES, key=lambda u: u["ts"], reverse=True))
         if path == "/api/reads":
@@ -289,7 +317,10 @@ class Handler(SimpleHTTPRequestHandler):
                 "last_update_at": max((u["ts"] for u in UPDATES), default=None), "last_machine_pull_at": MACHINE_PULL,
                 "counts": {"reports": len(REPORT_DATA), "events": sum(len(r.get("events", [])) for r in REPORT_DATA.values()),
                            "assessments": len(ASSESSMENTS), "users": len([u for u in USERS.values() if u["active"]])},
-                "service_token_expires": TOKEN_EXPIRES})
+                "service_token_expires": TOKEN_EXPIRES,
+                "alarm": {"missing_report": MISSING_DATE if ALARM else None,
+                          "checked_at": ago(minutes=12) if ALARM else None},
+                "push_subscriptions": len(PUSH_SUBS)})
         if path == "/api/reports":
             rows = [{"date": d, "threat_index": r.get("threat_index"), "threat_index_30d": r.get("threat_index_30d"),
                      "top_sv": (r.get("executive_sv") or {}).get("top") or r.get("top_development")}
@@ -353,6 +384,28 @@ class Handler(SimpleHTTPRequestHandler):
         err = self._gate(path, "POST")
         if err is not None:
             return err
+        if path == "/api/me/device":
+            body = self._body() or {}
+            if not isinstance(body.get("standalone"), bool) or body.get("platform") not in ("ios", "android", "desktop"):
+                log_security("bad_request", path, "POST", "standalone/platform")
+                return self._json(400, {"error": "standalone and platform required"})
+            u = USERS.setdefault(EMAIL, {"email": EMAIL, "role": ROLE, "active": True, "created_at": now(), "created_by": "seed", "last_seen": now()})
+            u["platform"] = body["platform"]
+            if body["standalone"] and not u.get("installed_at"):
+                u["installed_at"] = now()
+            return self._json(200, {"ok": True, "installed_at": u.get("installed_at"), "platform": u["platform"]})
+        if path == "/api/push/subscribe":
+            body = self._body() or {}
+            keys = body.get("keys") or {}
+            if not str(body.get("endpoint", "")).startswith("https://") or not keys.get("p256dh") or not keys.get("auth"):
+                log_security("bad_request", path, "POST", "ogiltig prenumeration")
+                return self._json(400, {"error": "invalid subscription"})
+            PUSH_SUBS[body["endpoint"]] = {"email": EMAIL, "created_at": now()}
+            return self._json(201, {"ok": True})
+        if path == "/api/push/unsubscribe":
+            body = self._body() or {}
+            PUSH_SUBS.pop(str(body.get("endpoint", "")), None)
+            return self._json(200, {"ok": True})
         if path == "/api/reads":
             body = self._body() or {}
             ids = body.get("item_ids")

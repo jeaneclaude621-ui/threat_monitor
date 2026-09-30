@@ -1,7 +1,7 @@
 // Offline support: the app shell is cache-first, report data network-first
 // with the last good copy as fallback. Writes (POST) are never cached; the
 // app keeps its own outbox for those.
-const VERSION = 'hm-v2';
+const VERSION = 'hm-v3.1';
 const SHELL = `${VERSION}-shell`;
 const DATA = `${VERSION}-data`;
 const FONTS = `${VERSION}-fonts`;
@@ -46,7 +46,7 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/api/')) {
     // /api/me decides whether the user must log in again, and admin data
     // (users, security log) should not linger on the phone: never cache them.
-    if (url.pathname === '/api/me' || url.pathname.startsWith('/api/admin/')) return;
+    if (url.pathname === '/api/me' || url.pathname.startsWith('/api/admin/') || url.pathname.startsWith('/api/push/')) return;
     event.respondWith((async () => {
       const cache = await caches.open(DATA);
       try {
@@ -78,5 +78,43 @@ self.addEventListener('fetch', (event) => {
       return res;
     }).catch(() => hit);
     return hit || fresh;
+  })());
+});
+
+// Notifications for serious events and for a missing morning report. The
+// payload is {title, body, url}; the url must stay inside the app.
+function safeUrl(url) {
+  try {
+    const u = new URL(url || '/', self.location.origin);
+    return u.origin === self.location.origin ? u.href : self.location.origin + '/';
+  } catch { return self.location.origin + '/'; }
+}
+
+self.addEventListener('push', (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = { body: event.data ? event.data.text() : '' }; }
+  const title = String(data.title || 'Hotmonitor').slice(0, 120);
+  event.waitUntil(self.registration.showNotification(title, {
+    body: String(data.body || '').slice(0, 300),
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: data.tag ? String(data.tag) : undefined,
+    data: { url: safeUrl(data.url) },
+  }));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = safeUrl(event.notification.data && event.notification.data.url);
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const w of wins) {
+      if (new URL(w.url).origin === self.location.origin) {
+        await w.focus();
+        if ('navigate' in w) { try { await w.navigate(url); } catch { /* cross-state navigation refused */ } }
+        return;
+      }
+    }
+    await self.clients.openWindow(url);
   })());
 });

@@ -178,3 +178,62 @@ Per article: `summary_sv` (2-3 sentences, what this article says),
   ("Du lämnar Hotmonitor och öppnar <domän>…" [Stanna kvar] [Öppna originalet]).
 - Tap always reads; swipe only in Bedöm (event page source rows become tap targets).
 - `#/admin` (admins): Användare, Säkerhet, Systemstatus, Ändringslogg.
+
+---
+
+# Version 3 (1 Oct 2026)
+
+## Report JSON additions (from the Mac)
+
+- `self_check_results`: `[{ event_id, outcome: "CONFIRMED"|"CONTRADICTED"|"UNRESOLVED", note }]`
+  - yesterday's events re-checked today (event ids of the PREVIOUS report).
+- `operator_track_record`: `{ "<email>": { evaluated, agreed, rate } }` - an
+  operator's current verdicts on articles whose event later got a
+  CONFIRMED/CONTRADICTED outcome; agreed = (+ and CONFIRMED) or (- and
+  CONTRADICTED). rate = agreed/evaluated (null if evaluated = 0). Shown,
+  not (yet) used as weight.
+- Outlet names are canonical (aliases merged: "Associated Press" -> "AP",
+  "The Guardian" -> "Guardian", ...), so the app can group by outlet.
+
+## Missing-report alarm (Worker cron)
+
+Worker `scheduled` handler, cron `*/30 3-9 * * *` (UTC). When Europe/Stockholm
+local time is past 06:30 and no report for today's Stockholm date exists,
+set `meta.alarm_missing_report = <date>` (once per date), write an
+audit row `alarm` and send a push (below) to admins. Cleared when that
+date's report is ingested. `/api/admin/status` gains `alarm: { missing_report: <date>|null }`,
+and `/api/me` gains `alarm` (same object) so the app can show a red banner
+to everyone: "Dagens rapport har inte kommit än".
+
+## Web Push
+
+VAPID keys: public key in var `VAPID_PUBLIC_KEY`, private key as Worker
+secret `VAPID_PRIVATE_KEY` (JWK or base64url raw), subject `mailto:<OWNER>`.
+- D1 `push_subscriptions(endpoint PK, email, p256dh, auth, created_at, prefs TEXT json)`.
+- `GET /api/push/key` -> `{ publicKey }`; `POST /api/push/subscribe` body = PushSubscription JSON
+  (+ optional `prefs`); `POST /api/push/unsubscribe` `{ endpoint }`.
+- Sent (aes128gcm, RFC 8291/8292, WebCrypto only) on ingest of a report when
+  (a) threat_index moved >= 0.5 from the previous report, or (b) any event
+  score >= 9 that is new; and for the missing-report alarm (admins only).
+  Payload `{ title, body, url }` in Swedish, e.g. "Hotindex 7,1 (+0,6)".
+  Expired subscriptions (404/410) are deleted.
+- Endpoint host must be a known push service (web.push.apple.com,
+  fcm.googleapis.com, updates.push.services.mozilla.com, *.notify.windows.com).
+
+## Home screen
+
+- `POST /api/me/device` `{ standalone: bool, platform: "ios"|"android"|"desktop" }`
+  - stored on the user (`users.installed_at` when standalone first seen, `users.platform`).
+  Admin users list shows "Hemskärm: ja/nej".
+- App: a "Lägg till på hemskärmen" button/card on Idag until the app runs
+  standalone (`navigator.standalone` or `display-mode: standalone`). iOS has
+  no install prompt: the button opens a sheet with the three Safari steps
+  (Dela-ikonen -> Lägg till på hemskärmen -> Lägg till), drawn as inline
+  SVG; on Android/Chrome use `beforeinstallprompt`. "Inte nu" hides it 7 days.
+  Push can only be enabled once installed on iOS - the push toggle explains that.
+
+## Backup
+
+`GET /api/export/all` (machine): `{ users, audit_log, security_log, reads,
+updates, push_subscription_count, exported_at }` - no push keys. The Mac
+saves it daily to `data/backups/app-<date>.json` (keeps 30).

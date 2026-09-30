@@ -94,11 +94,21 @@ export async function loadMe() {
   return store.me;
 }
 
+// Views ask for the same data at the same time; one request serves them
+// all instead of each starting its own (startup made ~50 report fetches).
+const inflight = new Map();
+function once(key, fn) {
+  if (!inflight.has(key)) inflight.set(key, fn().finally(() => inflight.delete(key)));
+  return inflight.get(key);
+}
+
 export async function loadIndex(force = false) {
   if (store.index && !force) return store.index;
-  const list = await getJSON('/api/reports');
-  store.index = [...list].sort((a, b) => (a.date < b.date ? 1 : -1));
-  return store.index;
+  return once('index', async () => {
+    const list = await getJSON('/api/reports');
+    store.index = [...list].sort((a, b) => (a.date < b.date ? 1 : -1));
+    return store.index;
+  });
 }
 
 const arr = (v) => (Array.isArray(v) ? v : []);
@@ -116,9 +126,11 @@ function normalize(r) {
 
 export async function loadReport(date) {
   if (store.reports.has(date)) return store.reports.get(date);
-  const r = normalize(await getJSON(`/api/reports/${encodeURIComponent(date)}`));
-  store.reports.set(date, r);
-  return r;
+  return once(`report:${date}`, async () => {
+    const r = normalize(await getJSON(`/api/reports/${encodeURIComponent(date)}`));
+    store.reports.set(date, r);
+    return r;
+  });
 }
 
 export async function loadAllReports() {
@@ -357,6 +369,8 @@ export async function refreshAll() {
     if (before && before !== index[0].date) store.reports.delete(before);
   }
   await Promise.all([
+    // /api/me also carries the missing-report alarm, so refresh it too.
+    loadMe().catch((e) => { if (e instanceof AuthError) throw e; }),
     loadUpdates().catch((e) => { if (e instanceof AuthError) throw e; }),
     loadReads().catch((e) => { if (e instanceof AuthError) throw e; }),
     loadAssessments().catch((e) => { if (e instanceof AuthError) throw e; }),
@@ -370,7 +384,31 @@ export async function refreshAll() {
 
 export function adminGet(path) { return getJSON(path, { cache: 'no-store' }); }
 
-export function adminSend(method, path, body) {
+export function adminSend(method, path, body) { return sendJSON(method, path, body); }
+
+// --- Device, notifications ------------------------------------------------------
+
+// Once per session: whether the app runs from the home screen, and on what.
+export async function reportDevice(info) {
+  try {
+    if (sessionStorage.getItem('hm.deviceSent') === JSON.stringify(info)) return;
+  } catch { /* ignore */ }
+  try {
+    await sendJSON('POST', '/api/me/device', info);
+    try { sessionStorage.setItem('hm.deviceSent', JSON.stringify(info)); } catch { /* ignore */ }
+  } catch (e) {
+    console.warn('device report', e);
+  }
+}
+
+export async function pushKey() {
+  const body = await getJSON('/api/push/key', { cache: 'no-store' });
+  return body && body.publicKey;
+}
+export const pushSubscribe = (sub) => sendJSON('POST', '/api/push/subscribe', sub);
+export const pushUnsubscribe = (endpoint) => sendJSON('POST', '/api/push/unsubscribe', { endpoint });
+
+function sendJSON(method, path, body) {
   return getJSON(path, {
     method,
     cache: 'no-store',

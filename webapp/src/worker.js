@@ -11,7 +11,12 @@
  * Worker some other way, is refused rather than trusted. Without
  * TEAM_DOMAIN and ACCESS_AUD every request is refused (fail closed).
  * OWNER is always an active admin: the key nobody can lock out.
+ *
+ * Also (Version 3): Web Push on notable reports, and a cron that raises
+ * an alarm when the morning report has not arrived by 06:30 Stockholm time.
  */
+
+import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
 
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const JWKS_TTL_MS = 60 * 60 * 1000;
@@ -29,6 +34,11 @@ const ARTICLE_ID_RE = /^[0-9a-f]{16}$/;
 const CLIENT_ID_RE = /^[0-9A-Za-z-]{8,64}$/;
 const ITEM_ID_RE = /^[\w.:-]{1,128}$/;
 const EMAIL_RE = /^[^\s@,;"'<>]{1,64}@[^\s@,;"'<>]{1,190}\.[a-z]{2,}$/i;
+
+const ALARM_AFTER_MINUTES = 6 * 60 + 30;   // 06:30 Stockholm time
+const MAX_SUBSCRIPTIONS_PER_USER = 10;
+const INDEX_PUSH_DELTA = 0.5;
+const HIGH_SCORE = 9;
 
 // Reasons written to security_log (CONTRACT.md, Version 2).
 const R = {
@@ -68,6 +78,13 @@ export default {
       return json({ error: 'internal error' }, 500);
     }
   },
+
+  // Cron (wrangler.jsonc triggers): the missing-report alarm.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(checkMissingReport(env, event.scheduledTime || Date.now()).catch((err) => {
+      console.error('missing-report check failed', err && err.stack ? err.stack : err);
+    }));
+  },
 };
 
 function defaultReason(status) {
@@ -106,7 +123,32 @@ async function route(req) {
   if (path === '/api/me') {
     allow(method, 'GET');
     requireUser(who);
-    return json({ email: who.email, role: who.role, is_owner: who.is_owner });
+    return json({ email: who.email, role: who.role, is_owner: who.is_owner, alarm: await getAlarm(env) });
+  }
+
+  if (path === '/api/me/device') {
+    allow(method, 'POST');
+    requireUser(who);
+    return recordDevice(request, env, who);
+  }
+
+  if (path === '/api/push/key') {
+    allow(method, 'GET');
+    requireUser(who);
+    if (!env.VAPID_PUBLIC_KEY) throw new HttpError(503, 'push is not configured');
+    return json({ publicKey: env.VAPID_PUBLIC_KEY });
+  }
+
+  if (path === '/api/push/subscribe') {
+    allow(method, 'POST');
+    requireUser(who);
+    return subscribePush(request, env, who);
+  }
+
+  if (path === '/api/push/unsubscribe') {
+    allow(method, 'POST');
+    requireUser(who);
+    return unsubscribePush(request, env, who);
   }
 
   if (path === '/api/reports') {
@@ -166,13 +208,19 @@ async function route(req) {
   if (m) {
     allow(method, 'PUT');
     requireMachine(who);
-    return ingestReport(request, env, m[1]);
+    return ingestReport(req, m[1]);
   }
 
   if (path === '/api/ingest/updates') {
     allow(method, 'PUT');
     requireMachine(who);
     return ingestUpdates(request, env);
+  }
+
+  if (path === '/api/export/all') {
+    allow(method, 'GET');
+    requireMachine(who);
+    return exportAll(env);
   }
 
   if (path === '/api/export/assessments') {
@@ -328,7 +376,8 @@ async function createAssessment(request, env, who) {
   return json(row, 201);
 }
 
-async function ingestReport(request, env, date) {
+async function ingestReport(req, date) {
+  const { request, env, ctx } = req;
   if (!DATE_RE.test(date)) throw new HttpError(400, 'bad date');
   const body = await readJson(request);
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
@@ -351,6 +400,18 @@ async function ingestReport(request, env, date) {
        updated_at = excluded.updated_at`
   ).bind(date, num(body.threat_index), num(body.threat_index_30d), topSv,
          JSON.stringify(body), new Date().toISOString()).run();
+
+  // The report the alarm was waiting for has come.
+  const alarm = await getAlarm(env);
+  if (alarm.missing_report === date) {
+    await env.DB.prepare("DELETE FROM meta WHERE key = 'alarm_missing_report'").run();
+    await audit(env, 'system', 'alarm_cleared', null, { missing_report: date });
+  }
+
+  const push = reportPush(env, body, date).catch((err) => {
+    console.error('report push failed', err && err.stack ? err.stack : err);
+  });
+  if (ctx && ctx.waitUntil) ctx.waitUntil(push); else await push;
   return json({ ok: true });
 }
 
@@ -461,13 +522,16 @@ async function markRead(request, env, who) {
 async function listUsers(env) {
   const { results } = await env.DB.prepare(
     `SELECT u.email, u.role, u.active, u.created_at, u.created_by, u.last_seen,
-            (SELECT COUNT(*) FROM assessments a WHERE a.operator = u.email) AS assessments
+            u.installed_at, u.platform,
+            (SELECT COUNT(*) FROM assessments a WHERE a.operator = u.email) AS assessments,
+            (SELECT COUNT(*) FROM push_subscriptions p WHERE p.email = u.email) AS push_devices
      FROM users u ORDER BY u.active DESC, u.role, u.email`
   ).all();
   const owner = ownerEmail(env);
   for (const r of results) {
     r.active = !!r.active;
     r.is_owner = r.email === owner;
+    r.installed = !!r.installed_at;   // "Hemskärm: ja/nej"
     if (r.is_owner) { r.role = 'admin'; r.active = true; }
   }
   return json(results);
@@ -589,7 +653,11 @@ async function status(env) {
   const users = await env.DB.prepare('SELECT COUNT(*) AS n FROM users WHERE active = 1').first();
   const lastUpdate = await env.DB.prepare('SELECT MAX(ts) AS ts FROM updates').first();
   const pull = await env.DB.prepare("SELECT value FROM meta WHERE key = 'last_machine_pull_at'").first();
+  const subs = await env.DB.prepare('SELECT COUNT(*) AS n FROM push_subscriptions').first();
+  const lastPush = await env.DB.prepare("SELECT value FROM meta WHERE key = 'last_push'").first();
   return json({
+    alarm: await getAlarm(env),
+    push: { subscriptions: subs.n, last: lastPush ? JSON.parse(lastPush.value) : null },
     last_report_date: reports.last_date || null,
     last_report_uploaded_at: reports.last_uploaded || null,
     last_update_at: lastUpdate.ts || null,
@@ -609,6 +677,231 @@ async function setMeta(env, key, value) {
   await env.DB.prepare(
     'INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
   ).bind(key, value).run();
+}
+
+// ---------------------------------------------------------------------------
+// Missing-report alarm, home screen, Web Push, backup export (Version 3)
+// ---------------------------------------------------------------------------
+/** Stockholm local date and minutes past midnight at `ms` - DST-safe via Intl. */
+function stockholmClock(ms) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Stockholm', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).formatToParts(new Date(ms)).map((p) => [p.type, p.value]));
+  return { date: `${parts.year}-${parts.month}-${parts.day}`, minutes: Number(parts.hour) * 60 + Number(parts.minute) };
+}
+
+async function getAlarm(env) {
+  const row = await env.DB.prepare("SELECT value FROM meta WHERE key = 'alarm_missing_report'").first();
+  return { missing_report: row && row.value ? row.value : null };
+}
+
+/** Past 06:30 Stockholm time with no report for today: raise the alarm once per date. */
+async function checkMissingReport(env, nowMs) {
+  const { date, minutes } = stockholmClock(nowMs);
+  if (minutes < ALARM_AFTER_MINUTES) return { checked: false, date };
+  const report = await env.DB.prepare('SELECT 1 AS ok FROM reports WHERE date = ?').bind(date).first();
+  if (report) return { checked: true, date, missing: false };
+  const current = await getAlarm(env);
+  if (current.missing_report === date) return { checked: true, date, missing: true, raised: false };
+  await setMeta(env, 'alarm_missing_report', date);
+  await audit(env, 'system', 'alarm', null, { missing_report: date });
+  await pushTo(env, { adminsOnly: true, pref: 'alarm' }, {
+    title: 'Dagens rapport har inte kommit',
+    body: `Ingen morgonrapport för ${date} kl. 06:30. Kontrollera Macen.`,
+    url: '/#/admin',
+  }, 'high');
+  return { checked: true, date, missing: true, raised: true };
+}
+
+async function recordDevice(request, env, who) {
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'body must be a JSON object');
+  if (typeof body.standalone !== 'boolean') throw new HttpError(400, 'standalone must be true or false');
+  if (!['ios', 'android', 'desktop'].includes(body.platform)) throw new HttpError(400, "platform must be 'ios', 'android' or 'desktop'");
+  const now = new Date().toISOString();
+  await env.DB.prepare(
+    `UPDATE users SET platform = ?,
+       installed_at = CASE WHEN installed_at IS NULL AND ? = 1 THEN ? ELSE installed_at END
+     WHERE email = ?`
+  ).bind(body.platform, body.standalone ? 1 : 0, now, who.email).run();
+  const row = await env.DB.prepare('SELECT installed_at, platform FROM users WHERE email = ?').bind(who.email).first();
+  return json({ ok: true, installed_at: row ? row.installed_at : null, platform: row ? row.platform : body.platform });
+}
+
+/** A fake push server origin for local tests - honoured only with the dev auth bypass on. */
+function devPushAllow(env) {
+  return env.DEV_AUTH_EMAIL && env.DEV_PUSH_ALLOW ? env.DEV_PUSH_ALLOW : '';
+}
+
+async function subscribePush(request, env, who) {
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'body must be a PushSubscription object');
+  const { endpoint, keys } = body;
+  if (typeof endpoint !== 'string' || endpoint.length > 1024 || !allowedEndpoint(endpoint, devPushAllow(env))) {
+    throw new HttpError(400, 'endpoint must be an https URL of a known push service');
+  }
+  if (!keys || typeof keys !== 'object' || typeof keys.p256dh !== 'string' || typeof keys.auth !== 'string') {
+    throw new HttpError(400, 'keys.p256dh and keys.auth are required');
+  }
+  try {
+    checkPoint(b64uDecode(keys.p256dh));
+  } catch {
+    throw new HttpError(400, 'keys.p256dh must be a 65-byte P-256 public key (base64url)');
+  }
+  let authLen = 0;
+  try { authLen = b64uDecode(keys.auth).length; } catch { /* reported below */ }
+  if (authLen !== 16) throw new HttpError(400, 'keys.auth must be 16 bytes (base64url)');
+
+  let prefs = null;
+  if (body.prefs !== undefined && body.prefs !== null) {
+    const p = body.prefs;
+    if (typeof p !== 'object' || Array.isArray(p) || Object.keys(p).length > 10
+        || Object.entries(p).some(([k, v]) => !/^[a-z_]{1,32}$/.test(k) || typeof v !== 'boolean')) {
+      throw new HttpError(400, 'prefs must be an object of true/false flags');
+    }
+    prefs = JSON.stringify(p);
+  }
+
+  const existing = await env.DB.prepare('SELECT email FROM push_subscriptions WHERE endpoint = ?').bind(endpoint).first();
+  if (!existing) {
+    const mine = await env.DB.prepare('SELECT COUNT(*) AS n FROM push_subscriptions WHERE email = ?').bind(who.email).first();
+    if (mine.n >= MAX_SUBSCRIPTIONS_PER_USER) throw new HttpError(400, `at most ${MAX_SUBSCRIPTIONS_PER_USER} devices per user`);
+  }
+  // The endpoint belongs to whoever is signed in on that device now.
+  await env.DB.prepare(
+    `INSERT INTO push_subscriptions (endpoint, email, p256dh, auth, created_at, prefs)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(endpoint) DO UPDATE SET email = excluded.email, p256dh = excluded.p256dh,
+       auth = excluded.auth, prefs = excluded.prefs`
+  ).bind(endpoint, who.email, keys.p256dh, keys.auth, new Date().toISOString(), prefs).run();
+  return json({ ok: true }, existing ? 200 : 201);
+}
+
+async function unsubscribePush(request, env, who) {
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || typeof body.endpoint !== 'string' || body.endpoint.length > 1024) {
+    throw new HttpError(400, 'endpoint is required');
+  }
+  // Only your own devices.
+  const res = await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ? AND email = ?')
+    .bind(body.endpoint, who.email).run();
+  return json({ ok: true, removed: res.meta?.changes || 0 });
+}
+
+const svNum = (v) => v.toFixed(1).replace('.', ',');
+
+/**
+ * A push for a newly ingested report when (a) the general index moved
+ * 0.5 or more from the previous report, or (b) it has events scored 9+
+ * not pushed before. Only for today's or yesterday's Stockholm date, so
+ * re-uploading old reports never notifies anyone.
+ */
+async function reportPush(env, body, date) {
+  const today = stockholmClock(Date.now()).date;
+  const yesterday = stockholmClock(Date.parse(`${today}T12:00:00Z`) - 86400000).date;
+  if (date !== today && date !== yesterday) return { sent: 0, reason: 'old report' };
+
+  const key = `push_sent:${date}`;
+  const row = await env.DB.prepare('SELECT value FROM meta WHERE key = ?').bind(key).first();
+  const sent = row ? JSON.parse(row.value) : { index: false, events: [] };
+
+  const idx = typeof body.threat_index === 'number' ? body.threat_index : null;
+  const prev = await env.DB.prepare(
+    'SELECT threat_index FROM reports WHERE date < ? AND threat_index IS NOT NULL ORDER BY date DESC LIMIT 1'
+  ).bind(date).first();
+  const delta = idx !== null && prev ? Math.round((idx - prev.threat_index) * 10) / 10 : 0;
+  const indexTrigger = !sent.index && Math.abs(delta) >= INDEX_PUSH_DELTA;
+
+  const events = Array.isArray(body.events) ? body.events : [];
+  const high = events.filter((e) => e && typeof e.id === 'string' && typeof e.score === 'number'
+    && e.score >= HIGH_SCORE && !sent.events.includes(e.id));
+  if (!indexTrigger && !high.length) return { sent: 0, reason: 'nothing notable' };
+
+  // Recorded before sending, so a quick re-upload cannot notify twice.
+  await setMeta(env, key, JSON.stringify({
+    index: sent.index || indexTrigger, events: [...sent.events, ...high.map((e) => e.id)],
+  }));
+
+  const top = (body.executive_sv && body.executive_sv.top) || body.top_development || '';
+  const eventTitle = (e) => String(e.title_sv || e.title || '').slice(0, 160);
+  let payload;
+  if (indexTrigger) {
+    const more = high.length ? ` · ${high.length} ${high.length === 1 ? 'händelse' : 'händelser'} med poäng 9–10` : '';
+    payload = {
+      title: `Hotindex ${svNum(idx)} (${delta > 0 ? '+' : '−'}${svNum(Math.abs(delta))})`,
+      body: `${String(top).slice(0, 170)}${more}`,
+      url: '/#/',
+    };
+  } else if (high.length === 1) {
+    payload = { title: `Ny händelse ${high[0].score}/10`, body: eventTitle(high[0]), url: `/#/handelse/${date}/${high[0].id}` };
+  } else {
+    payload = { title: `${high.length} nya händelser med poäng 9–10`, body: eventTitle(high[0]), url: '/#/' };
+  }
+  return pushTo(env, { adminsOnly: false, pref: 'report' }, payload, indexTrigger ? 'high' : 'normal');
+}
+
+/** Sends to every matching subscription; dead ones (404/410) are deleted. */
+async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal') {
+  if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) {
+    console.warn('push skipped: VAPID keys not configured');
+    return { sent: 0, reason: 'not configured' };
+  }
+  const owner = ownerEmail(env);
+  const { results } = await env.DB.prepare(
+    adminsOnly
+      ? `SELECT p.* FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
+         WHERE p.email = ? OR (u.role = 'admin' AND u.active = 1)`
+      : `SELECT p.* FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
+         WHERE p.email = ? OR u.active = 1`
+  ).bind(owner).all();
+
+  const vapid = { subject: `mailto:${owner}`, publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY };
+  const devAllow = devPushAllow(env);
+  let sent = 0, failed = 0, removed = 0;
+  for (const s of results) {
+    let prefs = {};
+    try { prefs = s.prefs ? JSON.parse(s.prefs) : {}; } catch { prefs = {}; }
+    if (pref && prefs[pref] === false) continue;
+    // Stored endpoints were checked on subscribe; check again before any request.
+    if (!allowedEndpoint(s.endpoint, devAllow)) continue;
+    try {
+      const r = await sendPush({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, vapid, { urgency });
+      if (r.ok) sent++;
+      else {
+        failed++;
+        if (r.gone) {
+          await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').bind(s.endpoint).run();
+          removed++;
+        }
+      }
+    } catch (err) {
+      failed++;
+      console.error('push send failed', err && err.message);
+    }
+  }
+  const summary = { at: new Date().toISOString(), title: payload.title, sent, failed, removed };
+  await setMeta(env, 'last_push', JSON.stringify(summary));
+  return summary;
+}
+
+/** Everything the Mac keeps as a daily backup - no push keys. */
+async function exportAll(env) {
+  const all = async (sql) => (await env.DB.prepare(sql).all()).results;
+  const updates = await all('SELECT * FROM updates ORDER BY ts');
+  for (const u of updates) {
+    try { u.outlets = JSON.parse(u.outlets || '[]'); } catch { u.outlets = []; }
+  }
+  const subs = await env.DB.prepare('SELECT COUNT(*) AS n FROM push_subscriptions').first();
+  return json({
+    users: await all('SELECT email, role, active, created_at, created_by, last_seen, prev_visit, installed_at, platform FROM users ORDER BY email'),
+    audit_log: await all('SELECT * FROM audit_log ORDER BY id'),
+    security_log: await all('SELECT * FROM security_log ORDER BY id'),
+    reads: await all('SELECT * FROM reads ORDER BY email, ts'),
+    updates,
+    push_subscription_count: subs.n,
+    exported_at: new Date().toISOString(),
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -898,4 +1191,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { verifyAccessJwt, authenticate, identify, userFor };
+export const _test = { verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport };

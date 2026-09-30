@@ -218,3 +218,42 @@ order, so the new gate is in place before Access opens up:
 Rate limiting is per Worker isolate (in memory, ~120 requests a minute per
 email, or per IP without a valid login) - no binding or extra setup.
 Security log rows older than 90 days are pruned by the Worker itself.
+
+## Version 3: push, missing-report alarm, home screen, backup export
+
+Run from `webapp/`, in this order (with the OAuth login, not the Access
+API token: `env -u CLOUDFLARE_API_TOKEN npx wrangler ...`):
+
+1. The VAPID private key, as a Worker secret (never in wrangler.jsonc or
+   the repo). The matching public key is already in `vars.VAPID_PUBLIC_KEY`.
+   ```sh
+   npx wrangler secret put VAPID_PRIVATE_KEY < /path/to/vapid_private.txt
+   ```
+   The value is the base64url private scalar `d` (a JWK also works).
+   Rotating the pair means every device must subscribe again.
+2. The migration (push_subscriptions; users.installed_at, users.platform):
+   ```sh
+   npx wrangler d1 migrations apply hotmonitor --remote
+   ```
+3. Deploy. This also registers the cron trigger `*/30 3-9 * * *` (UTC)
+   from `wrangler.jsonc`; the handler checks Stockholm time itself.
+   ```sh
+   npx wrangler deploy
+   ```
+4. Check:
+   - `/api/push/key` (signed in) returns the public key.
+   - Workers & Pages -> hotmonitor -> Settings -> Trigger Events lists the cron.
+   - Machine: `curl -H "CF-Access-Client-Id: ..." -H "CF-Access-Client-Secret: ..."
+     https://<host>/api/export/all` returns users/audit/security/reads/updates
+     and no push keys.
+
+Pushes go out only for reports dated today or yesterday (Stockholm), so
+`app_sync.py push-all` of old reports never notifies anyone. The alarm
+push goes to admins; report pushes to every subscribed active user,
+respecting `prefs.report` / `prefs.alarm` = false.
+
+Local testing: `.dev.vars` holds a separate local VAPID pair and
+`DEV_PUSH_ALLOW=http://127.0.0.1:8799` (a fake push server, honoured only
+together with the DEV_AUTH bypass). Run `npx wrangler dev --port 8787
+--test-scheduled` and `scripts/smoke_test.sh`; the cron is triggered via
+`/cdn-cgi/handler/scheduled?cron=...&time=<ms>`.

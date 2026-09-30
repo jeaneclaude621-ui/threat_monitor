@@ -4,6 +4,9 @@
 #   DEV_AUTH_EMAIL=the.owner@example.org
 #   DEV_AUTH_MACHINE=1
 #   READERS=reader@example.com
+#   VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY   a local key pair
+#   DEV_PUSH_ALLOW=http://127.0.0.1:8799  the fake push server
+# run under `wrangler dev --test-scheduled` (for the cron tests),
 # and OWNER=the.owner@example.org from wrangler.jsonc. The users table
 # is seeded by the Worker on first use from OWNER, ADMINS and READERS.
 #
@@ -184,6 +187,100 @@ LAST=""
 for i in $(seq 1 125); do LAST=$(curl -s -o /dev/null -w '%{http_code}' "${FLOOD[@]}" "$BASE/api/me"); done
 check "request 125 in a minute is limited" 429 "$LAST"
 req GET "/api/admin/security?days=1";      contains "logged rate_limited" "$BODY" '"reason":"rate_limited"'
+
+echo "Version 3: home screen"
+req POST /api/me/device "${JSONH[@]}" -d '{"standalone":true,"platform":"ios"}'; check "record standalone device" 200 "$STATUS" "$BODY"; contains "installed_at set" "$BODY" '"installed_at":"20'
+req POST /api/me/device "${JSONH[@]}" "${READER[@]}" -d '{"standalone":false,"platform":"android"}'; check "reader records browser" 200 "$STATUS"; contains "not installed" "$BODY" '"installed_at":null'
+req POST /api/me/device "${JSONH[@]}" -d '{"standalone":true,"platform":"tv"}'; check "bad platform" 400 "$STATUS"
+req POST /api/me/device "${JSONH[@]}" -d '{"standalone":"yes","platform":"ios"}'; check "bad standalone" 400 "$STATUS"
+req POST /api/me/device -H 'Content-Type: application/json' -d '{"standalone":true,"platform":"ios"}'; check "device needs Origin" 403 "$STATUS"
+req GET /api/admin/users; contains "admin list has installed flag" "$BODY" '"installed":true'; contains "admin list has platform" "$BODY" '"platform":"ios"'
+contains "admin list has push device count" "$BODY" '"push_devices":'
+
+echo "Version 3: push subscriptions"
+# Start from a clean push/alarm state so the suite can run again on the same DB.
+d1 "DELETE FROM push_subscriptions; DELETE FROM reports WHERE date = '2026-10-05'; DELETE FROM meta WHERE key = 'alarm_missing_report' OR key LIKE 'push_sent:%'" >/dev/null
+PUSH_LOG=$(mktemp); PUSH_PORT=8799; PB="http://127.0.0.1:$PUSH_PORT"
+node scripts/fake_push_server.mjs $PUSH_PORT "$PUSH_LOG" & PUSH_PID=$!
+trap 'kill $PUSH_PID 2>/dev/null' EXIT
+sleep 1
+field() { node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const o=JSON.parse(s);const v=process.argv[1].split(".").reduce((x,k)=>x==null?x:x[k],o);console.log(typeof v==="object"?JSON.stringify(v):v)})' "$1"; }
+VPUB=$(grep '^VAPID_PUBLIC_KEY=' .dev.vars | cut -d= -f2-)
+KA=$(node scripts/push_helper.mjs keys); KR=$(node scripts/push_helper.mjs keys); KN=$(node scripts/push_helper.mjs keys)
+A_P=$(printf '%s' "$KA" | field p256dh); A_A=$(printf '%s' "$KA" | field auth); A_D=$(printf '%s' "$KA" | field d)
+R_P=$(printf '%s' "$KR" | field p256dh); R_A=$(printf '%s' "$KR" | field auth); R_D=$(printf '%s' "$KR" | field d)
+N_P=$(printf '%s' "$KN" | field p256dh); N_A=$(printf '%s' "$KN" | field auth)
+sub() { printf '{"endpoint":"%s","expirationTime":null,"keys":{"p256dh":"%s","auth":"%s"}%s}' "$1" "$2" "$3" "${4:-}"; }
+req GET /api/push/key; check "push key" 200 "$STATUS"; contains "public key served" "$BODY" "\"publicKey\":\"$VPUB\""
+req POST /api/push/subscribe "${JSONH[@]}" -d "$(sub https://evil.example/x "$A_P" "$A_A")"; check "unknown push host refused" 400 "$STATUS"
+req POST /api/push/subscribe "${JSONH[@]}" -d "$(sub http://web.push.apple.com/x "$A_P" "$A_A")"; check "http push endpoint refused" 400 "$STATUS"
+req POST /api/push/subscribe "${JSONH[@]}" -d "$(sub https://web.push.apple.com.evil.example/x "$A_P" "$A_A")"; check "lookalike push host refused" 400 "$STATUS"
+req POST /api/push/subscribe "${JSONH[@]}" -d "$(sub "$PB/p/admin" AAAA "$A_A")"; check "bad p256dh refused" 400 "$STATUS"
+req POST /api/push/subscribe "${JSONH[@]}" -d "$(sub "$PB/p/admin" "$A_P" AAAAAAAA)"; check "short auth refused" 400 "$STATUS"
+req POST /api/push/subscribe "${JSONH[@]}" -d "$(sub "$PB/p/admin" "$A_P" "$A_A" ',"prefs":{"report":"yes"}')"; check "non-boolean prefs refused" 400 "$STATUS"
+req POST /api/push/subscribe -H 'Content-Type: application/json' -d "$(sub "$PB/p/admin" "$A_P" "$A_A")"; check "subscribe needs Origin" 403 "$STATUS"
+req POST /api/push/subscribe "${JSONH[@]}" "${MACHINE[@]}" -d "$(sub "$PB/p/admin" "$A_P" "$A_A")"; check "machine cannot subscribe" 403 "$STATUS"
+req POST /api/push/subscribe "${JSONH[@]}" -d "$(sub "$PB/p/admin" "$A_P" "$A_A")"; check "admin subscribes" 201 "$STATUS" "$BODY"
+req POST /api/push/subscribe "${JSONH[@]}" -d "$(sub "$PB/p/admin" "$A_P" "$A_A")"; check "re-subscribe is an update" 200 "$STATUS"
+req POST /api/push/subscribe "${JSONH[@]}" "${READER[@]}" -d "$(sub "$PB/p/reader" "$R_P" "$R_A")"; check "reader subscribes" 201 "$STATUS"
+req POST /api/push/subscribe "${JSONH[@]}" -d "$(sub "$PB/gone/admin2" "$N_P" "$N_A")"; check "expiring device subscribes" 201 "$STATUS"
+req POST /api/push/subscribe "${JSONH[@]}" -H 'X-Dev-Email: admin.one@example.org' -d "$(sub "$PB/p/noreport" "$N_P" "$N_A" ',"prefs":{"report":false,"alarm":false}')"; check "subscribe with prefs" 201 "$STATUS"
+req POST /api/push/unsubscribe "${JSONH[@]}" "${READER[@]}" -d "{\"endpoint\":\"$PB/p/admin\"}"; check "unsubscribe call" 200 "$STATUS"; contains "cannot remove another user's device" "$BODY" '"removed":0'
+req GET /api/admin/status; contains "4 subscriptions" "$BODY" '"subscriptions":4'
+req GET "/api/export/all" "${MACHINE[@]}"; check "export all (machine)" 200 "$STATUS"
+contains "export has users" "$BODY" '"users":\['; contains "export has audit" "$BODY" '"audit_log":\['; contains "export has security log" "$BODY" '"security_log":\['
+contains "export has reads" "$BODY" '"reads":\['; contains "export has updates" "$BODY" '"updates":\['; contains "export counts subscriptions" "$BODY" '"push_subscription_count":4'
+if printf '%s' "$BODY" | grep -q -e "$A_P" -e '"p256dh"' -e '"auth"'; then FAIL=$((FAIL+1)); echo "  FAIL  export leaks push keys"; else PASS=$((PASS+1)); echo "  ok    export has no push keys"; fi
+req GET "/api/export/all";                 check "user cannot export all" 403 "$STATUS"
+
+echo "Version 3: missing-report alarm (cron)"
+CRON="$BASE/cdn-cgi/handler/scheduled?cron=*/30+3-9+*+*+*"
+AD=2026-10-05   # a date with no report
+curl -s -o /dev/null "$CRON&time=$(node -e "console.log(Date.parse('${AD}T04:00:00Z'))")"; sleep 1
+req GET /api/me; contains "06:00 Stockholm: no alarm yet" "$BODY" '"alarm":{"missing_report":null}'
+curl -s -o /dev/null "$CRON&time=$(node -e "console.log(Date.parse('${AD}T05:00:00Z'))")"; sleep 2
+req GET /api/me; contains "07:00 Stockholm: alarm raised" "$BODY" "\"missing_report\":\"$AD\""
+req GET /api/me "${READER[@]}"; contains "readers see the alarm too" "$BODY" "\"missing_report\":\"$AD\""
+OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/admin "$A_D" "$A_P" "$A_A" "$VPUB")
+contains "admin got the alarm push" "$OUT" 'Dagens rapport har inte kommit'
+contains "VAPID JWT verifies" "$OUT" '"jwtOk":true'; contains "aud is the push origin" "$OUT" "\"aud\":\"$PB\""
+contains "aes128gcm on the wire" "$OUT" '"encoding":"aes128gcm"'
+OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/reader "$R_D" "$R_P" "$R_A" "$VPUB"); contains "reader got no alarm push" "$OUT" '"count":0'
+OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/noreport x "$N_P" "$N_A" "$VPUB"); contains "alarm pref off respected" "$OUT" '"count":0'
+req GET /api/admin/status; contains "status shows alarm" "$BODY" "\"missing_report\":\"$AD\""; contains "expired (410) subscription deleted" "$BODY" '"subscriptions":3'
+curl -s -o /dev/null "$CRON&time=$(node -e "console.log(Date.parse('${AD}T05:30:00Z'))")"; sleep 1
+OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/admin "$A_D" "$A_P" "$A_A" "$VPUB"); contains "alarm pushed once per date" "$OUT" '"count":1'
+req GET /api/admin/audit; contains "audit has alarm" "$BODY" '"action":"alarm"'
+req PUT "/api/ingest/reports/$AD" "${JSONH[@]}" "${MACHINE[@]}" -d "{\"date\":\"$AD\",\"threat_index\":9.9,\"events\":[{\"id\":\"$AD-e1\",\"score\":10,\"title_sv\":\"x\"}]}"; check "late report ingested" 200 "$STATUS"
+sleep 1
+req GET /api/me; contains "alarm cleared by the report" "$BODY" '"alarm":{"missing_report":null}'
+req GET /api/admin/audit; contains "audit has alarm_cleared" "$BODY" '"action":"alarm_cleared"'
+OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/reader "$R_D" "$R_P" "$R_A" "$VPUB"); contains "report for another day pushes nothing" "$OUT" '"count":0'
+
+echo "Version 3: report push"
+TODAY=$(node -e 'const p=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Stockholm",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()).map(x=>[x.type,x.value]));console.log(`${p.year}-${p.month}-${p.day}`)')
+req GET /api/reports
+PREV=$(printf '%s' "$BODY" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s).filter(x=>x.date<process.argv[1]&&x.threat_index!=null).sort((a,b)=>a.date<b.date?1:-1);console.log(r.length?r[0].threat_index:6)})' "$TODAY")
+req GET "/api/reports/$TODAY"; ORIG=""; [ "$STATUS" = 200 ] && ORIG="$BODY"
+NEWIDX=$(node -e "console.log(Math.round((${PREV}+0.6)*10)/10)")
+TB=$(node -e 'const [d,idx,orig]=process.argv.slice(1);const b=orig?JSON.parse(orig):{date:d,events:[]};b.threat_index=Number(idx);b.executive_sv={...(b.executive_sv||{}),top:"Testrapport för push"};b.events=(b.events||[]).map(e=>({...e,score:Math.min(e.score||0,8)}));b.events.push({id:d+"-e99",score:10,title_sv:"Testhändelse"});console.log(JSON.stringify(b))' "$TODAY" "$NEWIDX" "$ORIG")
+req PUT "/api/ingest/reports/$TODAY" "${JSONH[@]}" "${MACHINE[@]}" --data-binary "$TB"; check "today's report ingested" 200 "$STATUS"
+sleep 2
+OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/reader "$R_D" "$R_P" "$R_A" "$VPUB")
+contains "reader got the report push" "$OUT" '"count":1'; contains "title names the index move" "$OUT" 'Hotindex .*(+0,6)'
+contains "body counts the 9-10 event" "$OUT" '1 händelse med poäng 9–10'
+OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/admin "$A_D" "$A_P" "$A_A" "$VPUB"); contains "admin got it too" "$OUT" '"count":2'
+OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/noreport x "$N_P" "$N_A" "$VPUB"); contains "report pref off respected" "$OUT" '"count":0'
+req PUT "/api/ingest/reports/$TODAY" "${JSONH[@]}" "${MACHINE[@]}" --data-binary "$TB"; sleep 2
+OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/reader "$R_D" "$R_P" "$R_A" "$VPUB"); contains "re-upload does not notify again" "$OUT" '"count":1'
+req GET /api/admin/status; contains "last push recorded" "$BODY" '"last":{"at":"20'
+# Put today's report back as it was.
+if [ -n "$ORIG" ]; then req PUT "/api/ingest/reports/$TODAY" "${JSONH[@]}" "${MACHINE[@]}" --data-binary "$ORIG"; check "restore today's report" 200 "$STATUS"; fi
+kill $PUSH_PID 2>/dev/null; rm -f "$PUSH_LOG"
+
+echo "Web Push and clock (unit)"
+if node scripts/push_test.mjs >/dev/null; then PASS=$((PASS+1)); echo "  ok    push_test.mjs (RFC 8291 vector, VAPID)"; else FAIL=$((FAIL+1)); echo "  FAIL  push_test.mjs"; fi
+if node scripts/clock_test.mjs >/dev/null; then PASS=$((PASS+1)); echo "  ok    clock_test.mjs (Stockholm DST)"; else FAIL=$((FAIL+1)); echo "  FAIL  clock_test.mjs"; fi
 
 echo "JWT verification (unit)"
 if node scripts/auth_test.mjs; then PASS=$((PASS+1)); echo "  ok    auth_test.mjs"; else FAIL=$((FAIL+1)); echo "  FAIL  auth_test.mjs"; fi

@@ -5,6 +5,7 @@ import {
   store, onChange, isAdmin, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, markRead, isRead, refreshAll, adminGet, adminSend,
+  reportDevice, pushKey, pushSubscribe, pushUnsubscribe,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
 
@@ -242,6 +243,226 @@ function externalButton(url, info, label = 'Läs originalet') {
   return h('button', { class: 'btn', type: 'button', onclick: (ev) => { ev.preventDefault(); ev.stopPropagation(); openExternal(url, info); } }, label, extIcon());
 }
 
+
+// ---------------------------------------------------------------- device: home screen, notifications
+// On localhost only, ?sim=ios, ?sim=ios-standalone or ?sim=android fakes
+// the device so these flows can be tried from a desktop browser.
+const SIM = (() => {
+  if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return '';
+  try {
+    const m = /[?&]sim=([a-z-]+)/.exec(location.search);
+    if (m) sessionStorage.setItem('hm.sim', m[1] === 'off' ? '' : m[1]);
+    return sessionStorage.getItem('hm.sim') || '';
+  } catch { return ''; }
+})();
+const isIOS = () => (SIM ? SIM.startsWith('ios')
+  : /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+const isAndroid = () => (SIM ? SIM === 'android' : /android/i.test(navigator.userAgent));
+const isStandalone = () => (SIM ? SIM.endsWith('standalone')
+  : navigator.standalone === true || matchMedia('(display-mode: standalone)').matches);
+const platformOf = () => (isIOS() ? 'ios' : isAndroid() ? 'android' : 'desktop');
+const PLATFORM_SV = { ios: 'iPhone/iPad', android: 'Android', desktop: 'dator' };
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+
+let installPrompt = null;   // Chrome/Android: the deferred beforeinstallprompt event
+window.addEventListener('beforeinstallprompt', (ev) => {
+  ev.preventDefault();
+  installPrompt = ev;
+  if (currentRoute === '') rerender();
+});
+window.addEventListener('appinstalled', () => { installPrompt = null; if (currentRoute === '') rerender(); });
+
+const SNOOZE_KEY = 'hm.installSnooze';
+function installSnoozed() {
+  try { return Date.now() < Number(localStorage.getItem(SNOOZE_KEY) || 0); } catch { return false; }
+}
+function snoozeInstall() {
+  try { localStorage.setItem(SNOOZE_KEY, String(Date.now() + 7 * 86400000)); } catch { /* private mode */ }
+}
+// iOS never fires beforeinstallprompt; ignore one a simulated iOS page gets.
+const promptReady = () => !!installPrompt && !isIOS();
+const canOfferInstall = () => !isStandalone() && (isIOS() || isAndroid() || promptReady());
+
+function installCard() {
+  if (!canOfferInstall() || installSnoozed()) return null;
+  return h('section', { class: 'card card-pad install', 'aria-labelledby': 'install-title' },
+    h('div', { class: 'install-row' },
+      h('img', { class: 'install-icon', src: '/apple-touch-icon.png', alt: '', width: 48, height: 48 }),
+      h('div', null,
+        h('h2', { class: 'kicker amber', id: 'install-title' }, 'Lägg till på hemskärmen'),
+        h('p', { class: 'small' }, 'Öppna Hotmonitor som en app: i helskärm, snabbare, och med notiser vid allvarliga händelser.'))),
+    h('div', { class: 'btn-row' },
+      h('button', { class: 'btn primary', type: 'button', onclick: () => openInstall() }, promptReady() ? 'Installera' : 'Så gör du'),
+      h('button', { class: 'btn', type: 'button', onclick: () => { snoozeInstall(); rerender(); } }, 'Inte nu')));
+}
+
+function figIcon(paths, cls) { return icon(paths, cls, '0 0 24 24'); }
+const shareGlyph = (cls = 'fig-glyph') => figIcon(['M12 3v12', 'M8 7l4-4 4 4', 'M6 11H5v10h14V11h-1'], cls);
+const addGlyph = (cls = 'fig-glyph') => figIcon(['M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z', 'M12 8v8', 'M8 12h8'], cls);
+
+function iosSteps() {
+  const step = (n, title, detail, figure) => h('li', { class: 'istep' },
+    h('div', { class: 'istep-text' }, h('span', { class: 'istep-n', 'aria-hidden': 'true' }, String(n)),
+      h('div', null, h('b', null, title), detail ? h('div', { class: 'small muted' }, detail) : null)),
+    h('div', { class: 'fig', 'aria-hidden': 'true' }, figure));
+  const toolbar = h('div', { class: 'fig-toolbar' },
+    figIcon(['M15 5l-7 7 7 7'], 'fig-dim'), figIcon(['M9 5l7 7-7 7'], 'fig-dim'),
+    h('span', { class: 'fig-hit' }, shareGlyph()),
+    figIcon(['M6 4h12v17l-6-4-6 4z'], 'fig-dim'), figIcon(['M4 4h7v7H4z', 'M13 4h7v7h-7z', 'M4 13h7v7H4z', 'M13 13h7v7h-7z'], 'fig-dim'));
+  const menu = h('div', { class: 'fig-menu' },
+    h('div', { class: 'fig-mrow dim' }, h('span', null, 'Kopiera'), figIcon(['M8 8h11v12H8z', 'M5 16V4h11'], 'fig-glyph')),
+    h('div', { class: 'fig-mrow hit' }, h('span', null, 'Lägg till på hemskärmen'), addGlyph()),
+    h('div', { class: 'fig-mrow dim' }, h('span', null, 'Lägg till bokmärke'), figIcon(['M6 4h12v17l-6-4-6 4z'], 'fig-glyph')));
+  const header = h('div', { class: 'fig-header' },
+    h('span', { class: 'dim' }, 'Avbryt'), h('b', null, 'Lägg till på hemskärmen'), h('span', { class: 'fig-hit-text' }, 'Lägg till'));
+  const notSafari = /crios|fxios|edgios/i.test(navigator.userAgent);
+  return frag(
+    notSafari ? h('p', { class: 'notice' }, 'Öppna sidan i Safari först – det är där det fungerar säkrast.') : null,
+    h('ol', { class: 'isteps' },
+      step(1, 'Tryck på Dela-knappen', 'Längst ned i Safari (på iPad uppe till höger).', toolbar),
+      step(2, 'Välj ”Lägg till på hemskärmen”', 'Rulla ned i listan om du inte ser raden direkt.', menu),
+      step(3, 'Tryck på ”Lägg till”', 'Uppe till höger.', header)),
+    h('p', { class: 'small muted' }, 'Öppna sedan Hotmonitor från hemskärmen. Du behöver logga in en gång till där, med en ny engångskod.'));
+}
+
+async function openInstall() {
+  if (promptReady()) {
+    const ev = installPrompt;
+    installPrompt = null;
+    try { await ev.prompt(); await ev.userChoice; } catch { /* dismissed */ }
+    rerender();
+    return;
+  }
+  openSheet((close) => frag(
+    h('h2', { class: 'title-m' }, 'Lägg till på hemskärmen'),
+    isIOS() ? iosSteps()
+      : isAndroid()
+        ? h('ol', { class: 'bullets' },
+          h('li', null, 'Öppna menyn ⋮ uppe till höger i Chrome.'),
+          h('li', null, 'Välj ”Installera app” eller ”Lägg till på startskärmen”.'),
+          h('li', null, 'Bekräfta med ”Installera”.'))
+        : h('ol', { class: 'bullets' },
+          h('li', null, 'Chrome eller Edge: klicka på installationsikonen till höger i adressfältet.'),
+          h('li', null, 'Safari på Mac: menyn Arkiv → Lägg till i Dock.')),
+    h('div', { class: 'sheet-actions' },
+      h('button', { class: 'btn primary', type: 'button', autofocus: true, onclick: close }, 'Klart'))),
+  { label: 'Lägg till på hemskärmen' });
+}
+
+function b64uToBytes(s) {
+  const pad = '='.repeat((4 - (s.length % 4)) % 4);
+  const bin = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from(bin, (c) => c.charCodeAt(0));
+}
+
+async function currentSubscription() {
+  if (!pushSupported()) return null;
+  try { return await (await navigator.serviceWorker.ready).pushManager.getSubscription(); } catch { return null; }
+}
+
+// Called from the switch's change handler: the permission prompt must come
+// straight from the user's tap, before any await.
+async function enablePush() {
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') throw new Error(perm === 'denied' ? 'blocked' : 'dismissed');
+  const reg = await navigator.serviceWorker.ready;
+  const key = await pushKey();
+  if (!key) throw new Error('nokey');
+  const old = await reg.pushManager.getSubscription();
+  if (old) await old.unsubscribe().catch(() => {});
+  const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(key) });
+  await pushSubscribe(sub.toJSON());
+}
+
+async function disablePush() {
+  const sub = await currentSubscription();
+  if (!sub) return;
+  const endpoint = sub.endpoint;
+  await sub.unsubscribe().catch(() => {});
+  await pushUnsubscribe(endpoint).catch(() => {});
+}
+
+function openSettings() {
+  openSheet((close) => {
+    const status = h('p', { class: 'small muted', role: 'status', 'aria-live': 'polite' });
+    const iosNeedsInstall = isIOS() && !isStandalone();
+    let body;
+    if (!pushSupported() || iosNeedsInstall) {
+      body = iosNeedsInstall
+        ? frag(
+          h('p', null, 'På iPhone fungerar notiser bara när Hotmonitor är tillagd på hemskärmen och öppnad därifrån.'),
+          h('button', { class: 'btn primary', type: 'button', onclick: () => { close(); openInstall(); } }, 'Så lägger du till den'))
+        : h('p', null, 'Den här webbläsaren stöder inte notiser.');
+    } else {
+      const toggle = h('input', { type: 'checkbox', role: 'switch', id: 'push-toggle', class: 'switch', disabled: true });
+      toggle.addEventListener('change', () => {
+        const on = toggle.checked;
+        toggle.disabled = true;
+        status.textContent = on ? 'Slår på…' : 'Stänger av…';
+        (on ? enablePush() : disablePush()).then(() => {
+          status.textContent = on ? 'Notiser är på för den här enheten.' : 'Notiser är avstängda.';
+        }).catch((e) => {
+          toggle.checked = !on;
+          const m = String((e && e.message) || e);
+          status.textContent = m === 'blocked' ? 'Notiser är blockerade. Tillåt dem för Hotmonitor i enhetens inställningar.'
+            : m === 'dismissed' ? 'Du valde att inte tillåta notiser.'
+              : 'Det gick inte att ändra notiserna just nu. Försök igen.';
+        }).finally(() => { toggle.disabled = false; });
+      });
+      currentSubscription().then((sub) => {
+        toggle.checked = !!sub && Notification.permission === 'granted';
+        toggle.disabled = false;
+        if (Notification.permission === 'denied') status.textContent = 'Notiser är blockerade i enhetens inställningar.';
+      });
+      body = frag(
+        h('div', { class: 'switch-row' },
+          h('label', { for: 'push-toggle' }, h('b', null, 'Notiser vid allvarliga händelser')),
+          toggle),
+        h('p', { class: 'small' }, 'Du får en notis när hotindex ändras med 0,5 eller mer, eller när en ny händelse får 9–10 i trovärdighet.'),
+        isAdmin() ? h('p', { class: 'small muted' }, 'Som administratör får du också ett larm om morgonrapporten uteblir.') : null,
+        h('p', { class: 'small muted' }, 'Inställningen gäller den här enheten.'));
+    }
+    return frag(
+      h('h2', { class: 'title-m' }, 'Notiser'),
+      body,
+      status,
+      canOfferInstall() && !iosNeedsInstall ? h('div', { class: 'settings-row' },
+        h('span', { class: 'small' }, 'Hotmonitor finns inte på hemskärmen ännu.'),
+        h('button', { class: 'btn', type: 'button', onclick: () => { close(); openInstall(); } }, 'Lägg till på hemskärmen')) : null,
+      h('div', { class: 'sheet-actions' }, h('button', { class: 'btn', type: 'button', autofocus: true, onclick: close }, 'Stäng')));
+  }, { label: 'Notiser' });
+}
+
+function bellIcon() {
+  return icon(['M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z', 'M10 20.5a2 2 0 0 0 4 0'], '', '0 0 24 24');
+}
+
+// ---------------------------------------------------------------- track record, outcomes
+async function trackRecords() {
+  const index = await loadIndex();
+  if (!index.length) return {};
+  const r = await loadReport(index[0].date);
+  return (r && r.operator_track_record) || {};
+}
+function trackText(t) {
+  if (!t || !Number(t.evaluated)) return null;
+  const rate = t.rate != null ? Number(t.rate) : Number(t.agreed) / Number(t.evaluated);
+  return `${t.agreed} av ${plural(Number(t.evaluated), 'bedömning', 'bedömningar')} stämde med utfallet (${Math.round(rate * 100)} %)`;
+}
+const OUTCOME = {
+  CONFIRMED: ['Bekräftad senare', 'ok'],
+  CONTRADICTED: ['Motsagd senare', 'no'],
+  UNRESOLVED: ['Oklart', 'add'],
+};
+function laterOutcome(e, date, reports) {
+  const later = reports.filter((x) => x.date > date).sort((a, b) => (a.date < b.date ? -1 : 1));
+  for (const x of later) {
+    const hit = (Array.isArray(x.self_check_results) ? x.self_check_results : []).find((c) => c && c.event_id === e.id);
+    if (hit && OUTCOME[hit.outcome]) return { ...hit, checked: x.date };
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------- new / read
 // Only the last week counts as news: an account's first visit should not
 // flag the whole archive as unread.
@@ -392,8 +613,10 @@ async function viewReport(date, q) {
         h('h1', { class: 'title-xl' }, archived ? 'Rapport' : 'Hotläget')),
       h('div', { class: 'head-actions' },
         date ? null : h('a', { class: 'head-link', href: '#/arkiv' }, 'Tidigare dagar'),
+        date ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
         admin ? h('a', { class: 'icon-btn', href: '#/admin', 'aria-label': 'Status och administration', title: 'Status och administration' }, gearIcon()) : null)),
     archived ? null : newBox(latest, r),
+    archived ? null : installCard(),
     heroCard(r),
     top ? h('section', { class: 'section' },
       h('div', { class: 'kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
@@ -598,6 +821,7 @@ async function viewEvent(date, id) {
   const known = Array.isArray(e.known_sv) ? e.known_sv.filter(Boolean) : [];
   const unknown = Array.isArray(e.unknown_sv) ? e.unknown_sv.filter(Boolean) : [];
   const reportHref = isLatest ? '#/' : `#/rapport/${encodeURIComponent(date)}`;
+  const outcome = laterOutcome(e, date, reports);
 
   return frag(
     back,
@@ -610,7 +834,11 @@ async function viewEvent(date, id) {
         h('span', { class: scoreClass(e.score), style: 'width:auto;height:auto;padding:3px 8px;border-radius:8px;font-size:13px' }, `${fmtScore(e.score)}/10`),
         changed ? h('span', null, `Modellens poäng ${fmtScore(e.model_score)}`) : null,
         h('a', { href: reportHref }, dateLong(date)),
-        stateBadge(state))),
+        stateBadge(state)),
+      outcome ? h('p', { class: 'outcome' },
+        h('span', { class: `rel rel-${OUTCOME[outcome.outcome][1]}` }, OUTCOME[outcome.outcome][0]),
+        ' ', outcome.note || '',
+        h('span', { class: 'small muted' }, ` · självkontroll ${dateShort(outcome.checked)}`)) : null),
     e.summary_sv ? h('p', { class: 'body-serif' }, e.summary_sv) : null,
     detailP,
     toggle ? h('div', null, toggle) : null,
@@ -1288,9 +1516,13 @@ async function viewMine() {
     groups.get(r.report_date).push(r);
   }
 
+  const track = trackText((await trackRecords().catch(() => ({})))[store.me && store.me.email]);
   const head = frag(
     backLink('#/bedom', 'Bedöm'),
     h('header', null, h('div', { class: 'kicker' }, 'Operatörsbedömning'), h('h1', { class: 'title-xl' }, 'Mina bedömningar')),
+    h('div', { class: 'card card-pad track' },
+      h('p', { class: track ? 'track-main' : 'small' }, track ? `Din träffsäkerhet: ${track}` : 'Träffsäkerhet visas när utfall finns.'),
+      h('p', { class: 'small muted' }, 'Jämför dina bedömningar med vad självkontrollen senare kom fram till. Visas bara – påverkar inte vikten ännu.')),
     h('p', { class: 'hint' }, 'Svep höger för att höja och vänster för att sänka ett steg. Håll kvar och svep uppåt för att återkalla. Tryck på pilen för historiken.'));
   if (!rows.length) return frag(head, emptyState('Inga bedömningar ännu.', h('a', { class: 'btn primary', href: '#/bedom' }, 'Börja bedöma')));
 
@@ -1427,7 +1659,8 @@ async function adminMutate(method, path, payload, okText) {
 }
 
 async function adminUsers() {
-  const users = rowsOf(await adminGet('/api/admin/users'), 'users');
+  const [usersBody, tracks] = await Promise.all([adminGet('/api/admin/users'), trackRecords().catch(() => ({}))]);
+  const users = rowsOf(usersBody, 'users');
   const me = store.me && store.me.email;
   const isOwnerRow = (u) => u.is_owner === true || u.owner === true || (store.me && store.me.is_owner && u.email === me);
   const activeAdmins = users.filter((u) => u.active !== false && u.active !== 0 && u.role === 'admin');
@@ -1468,6 +1701,9 @@ async function adminUsers() {
         owner ? h('span', { class: 'pill pill-owner' }, 'Ägare') : null,
         active ? null : h('span', { class: 'pill pill-off' }, 'Borttagen')),
       h('p', { class: 'small muted' }, `Senast inne: ${ago(u.last_seen)}${n != null ? ` · ${plural(Number(n), 'bedömning', 'bedömningar')}` : ''}`),
+      h('p', { class: 'small muted' },
+        `Hemskärm: ${u.installed_at ? 'ja' : 'nej'}${u.platform ? ` · ${PLATFORM_SV[u.platform] || u.platform}` : ''}`,
+        u.role === 'admin' ? ` · Träffsäkerhet: ${trackText(tracks[u.email]) || '–'}` : ''),
       lockReason ? h('p', { class: 'small lock' }, lockReason) : null,
       h('div', { class: 'btn-row' },
         active
@@ -1566,7 +1802,13 @@ async function adminStatus() {
     h('div', { class: 'stat-label' }, 'Macens nyckel går ut'),
     h('div', { class: 'stat-value' }, exp ? exp.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' }) : '–'),
     daysLeft == null ? null : h('div', { class: 'small' }, daysLeft < 0 ? 'Har gått ut – Macen kan inte ladda upp' : daysLeft <= 30 ? `Om ${plural(daysLeft, 'dag', 'dagar')} – förnya nyckeln` : `Om ${daysLeft} dagar`)));
+  const alarm = s.alarm && s.alarm.missing_report;
   return frag(
+    alarm ? h('section', { class: 'alarm-card', role: 'alert' },
+      h('div', { class: 'kicker' }, 'Larm'),
+      h('p', { class: 'title-m' }, `Morgonrapporten för ${dateLong(alarm)} har inte kommit`),
+      h('p', { class: 'small' }, s.alarm.checked_at ? `Senast kontrollerad ${tsFmt(s.alarm.checked_at)}. ` : '',
+        'Kontrollera att Macen är på, står på laddaren och har nät, och titta i data/logs/daily_run.log.')) : null,
     h('section', { class: 'stat-grid' }, tiles),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Innehåll'),
@@ -1595,6 +1837,22 @@ async function adminAudit() {
 
 // ---------------------------------------------------------------- chrome
 function updateChrome() {
+  const alarmEl = document.getElementById('alarm');
+  const alarm = store.me && store.me.alarm;
+  const missing = alarm && alarm.missing_report;
+  // The server clears the alarm when the report arrives; don't wait for it.
+  const arrived = missing && store.index && store.index.length && store.index[0].date >= missing;
+  if (alarmEl) {
+    if (missing && !arrived) {
+      alarmEl.replaceChildren(
+        h('b', null, 'Dagens rapport har inte kommit än'),
+        alarm.checked_at ? ` (senast kontrollerad ${tsFmt(alarm.checked_at)})` : '',
+        isAdmin() ? frag(' · ', h('a', { href: '#/admin?s=status' }, 'Systemstatus')) : null);
+      alarmEl.hidden = false;
+    } else {
+      alarmEl.hidden = true;
+    }
+  }
   const pending = document.getElementById('pending');
   const n = store.outbox.length;
   pending.hidden = !n;
@@ -1688,6 +1946,7 @@ async function init() {
     return;
   }
   document.querySelector('[data-tab="bedom"]').hidden = !isAdmin();
+  reportDevice({ standalone: isStandalone(), platform: platformOf() });
   assessmentsReady = loadAssessments().catch((e) => { console.warn('assessments', e); });
   const side = Promise.all([
     loadUpdates().catch((e) => { console.warn('updates', e); }),
