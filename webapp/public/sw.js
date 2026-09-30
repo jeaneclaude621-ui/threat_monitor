@@ -1,13 +1,13 @@
 // Offline support: the app shell is cache-first, report data network-first
 // with the last good copy as fallback. Writes (POST) are never cached; the
 // app keeps its own outbox for those.
-const VERSION = 'hm-v3.1';
+const VERSION = 'hm-v3.2';
 const SHELL = `${VERSION}-shell`;
 const DATA = `${VERSION}-data`;
 const FONTS = `${VERSION}-fonts`;
 const SHELL_FILES = [
   '/', '/index.html', '/app.css', '/app.js', '/api.js', '/swipe.js',
-  '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png',
+  '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-maskable-512.png', '/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (event) => {

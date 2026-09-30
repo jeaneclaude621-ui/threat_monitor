@@ -11,6 +11,7 @@
     "migrate:remote": "wrangler d1 migrations apply hotmonitor --remote"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "wrangler": "4.144.0"
   }
 }
