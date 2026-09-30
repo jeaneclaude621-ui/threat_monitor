@@ -43,6 +43,15 @@ OUTLET_ALIASES = {
     "defence news": "Defense News", "defense news": "Defense News",
     "estonian world": "Estonian World", "err news": "ERR", "err": "ERR",
     "tvp world": "TVP World", "pbs newshour": "PBS NewsHour", "pbs": "PBS NewsHour",
+    # Named Swedish sources (methodology.named_sources)
+    "cornucopia": "Cornucopia?", "cornucopia?": "Cornucopia?", "cornucopia.se": "Cornucopia?",
+    "lars wilderäng": "Cornucopia?", "wilderäng": "Cornucopia?",
+    "svt nyheter": "SVT", "svt": "SVT", "sveriges television": "SVT",
+    "sveriges radio": "Sveriges Radio", "ekot": "Sveriges Radio", "sr ekot": "Sveriges Radio", "sr": "Sveriges Radio",
+    "dagens nyheter": "DN", "dn": "DN", "svenska dagbladet": "SvD", "svd": "SvD",
+    "tt nyhetsbyrån": "TT", "tt": "TT", "försvarsmakten": "Försvarsmakten", "swedish armed forces": "Försvarsmakten",
+    "foi": "FOI", "totalförsvarets forskningsinstitut": "FOI", "säpo": "Säkerhetspolisen",
+    "säkerhetspolisen": "Säkerhetspolisen", "swedish security service": "Säkerhetspolisen",
 }
 
 

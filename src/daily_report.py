@@ -182,12 +182,23 @@ def run_broad_sweep(state, hourly_entries):
     hourly_summary = "\n".join(f"- [{e['classification']}] {e['thread_label']}: {e['summary']}" for e in hourly_entries) or "(no hourly entries logged)"
     operator_desc = operator_weight.prompt_block()
     threads_desc = "\n".join(f"- {t['id']}: {t['label']}" for t in state["watchlist"])
+    named = m.get("named_sources", [])
+    named_desc = "\n".join(f"- {n['name']} (site:{n['domain']}, tier {n['tier']}, {n['lang']}): {n['use']}"
+                           for n in named) or "(none)"
 
     prompt = f"""Search mainstream media for the last 24 hours of reporting on
 Russia's hybrid activity, threats, and posture toward NATO/EU/Ukraine.
 
 Credibility tiers to use when scoring each item (1-10):
 {tiers_desc}
+
+Named sources - besides the general search, run targeted searches on
+each of these (e.g. "site:cornucopia.se Ukraina") and use what is new
+from the last 24h. Swedish-language items: read them in Swedish, write
+the English fields in English as usual, and name the outlet exactly as
+given here. Each keeps its listed tier; a tier 4 source adds analysis
+and context but never confirms a claim on its own:
+{named_desc}
 
 Additional accepted methodology refinements to apply:
 {accepted_notes}

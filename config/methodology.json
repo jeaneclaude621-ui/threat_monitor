@@ -141,5 +141,70 @@
     "9": "Brink. Sustained direct military exchange between Russia and a NATO member; Article 5 under active consideration.",
     "10": "Open Russia-NATO/EU war."
   },
-  "index_scoring_note": "Score the Russia-NATO/EU relationship, not the intensity of the war in Ukraine. Severe fighting inside Ukraine does not by itself raise this index above 5-6; what moves it is what happens to NATO/EU members and forces. The index must be able to fall: if the evidence for a previous level has weakened, say so and lower it."
+  "index_scoring_note": "Score the Russia-NATO/EU relationship, not the intensity of the war in Ukraine. Severe fighting inside Ukraine does not by itself raise this index above 5-6; what moves it is what happens to NATO/EU members and forces. The index must be able to fall: if the evidence for a previous level has weakened, say so and lower it.",
+  "named_sources": [
+    {
+      "name": "TT",
+      "domain": "tt.se",
+      "tier": 1,
+      "lang": "sv",
+      "use": "Swedish national news wire"
+    },
+    {
+      "name": "SVT",
+      "domain": "svt.se",
+      "tier": 2,
+      "lang": "sv",
+      "use": "Swedish public service TV news"
+    },
+    {
+      "name": "Sveriges Radio",
+      "domain": "sverigesradio.se",
+      "tier": 2,
+      "lang": "sv",
+      "use": "Swedish public service radio news (Ekot)"
+    },
+    {
+      "name": "DN",
+      "domain": "dn.se",
+      "tier": 2,
+      "lang": "sv",
+      "use": "Dagens Nyheter, Swedish daily"
+    },
+    {
+      "name": "SvD",
+      "domain": "svd.se",
+      "tier": 2,
+      "lang": "sv",
+      "use": "Svenska Dagbladet, Swedish daily"
+    },
+    {
+      "name": "Försvarsmakten",
+      "domain": "forsvarsmakten.se",
+      "tier": 2,
+      "lang": "sv",
+      "use": "Swedish Armed Forces - official statements"
+    },
+    {
+      "name": "FOI",
+      "domain": "foi.se",
+      "tier": 2,
+      "lang": "sv",
+      "use": "Swedish Defence Research Agency - analysis and reports"
+    },
+    {
+      "name": "Säkerhetspolisen",
+      "domain": "sakerhetspolisen.se",
+      "tier": 2,
+      "lang": "sv",
+      "use": "Swedish Security Service - official statements"
+    },
+    {
+      "name": "Cornucopia?",
+      "domain": "cornucopia.se",
+      "tier": 4,
+      "lang": "sv",
+      "use": "Lars Wilderäng's blog - Swedish single-author analysis of the war in Ukraine and Swedish/Nordic security; context and analysis only, never sole confirmation"
+    }
+  ]
 }
