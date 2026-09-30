@@ -217,6 +217,11 @@ def _create_with_retry(client, kwargs):
     import anthropic
     for delay in NETWORK_RETRY_DELAYS + [None]:
         try:
+            # The SDK refuses non-streaming calls whose max_tokens implies
+            # more than 10 minutes (~21k tokens); stream those instead.
+            if kwargs.get("max_tokens", 0) > 16000:
+                with client.messages.stream(**kwargs) as stream:
+                    return stream.get_final_message()
             return client.messages.create(**kwargs)
         except (anthropic.APIConnectionError, anthropic.APITimeoutError) as e:
             if delay is None:

@@ -101,6 +101,36 @@ def push_report(report_data: dict) -> bool:
         return False
 
 
+def push_updates(entries: list) -> bool:
+    """Hourly thread updates for the app's live feed, per CONTRACT.md v2."""
+    if not entries:
+        return True
+    if not _config():
+        return False
+    import hashlib
+    from datetime import timezone
+    rows = []
+    for e in entries:
+        # A naive datetime is local time; astimezone() reads it as such.
+        ts = e["when"].astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+        rows.append({
+            "id": hashlib.sha1(f"{e['thread_id']}|{ts}".encode()).hexdigest()[:16],
+            "ts": ts, "thread_id": e["thread_id"], "thread_label": e["thread_label"],
+            "classification": e["classification"],
+            "title_sv": e.get("title_sv") or e["thread_label"],
+            "summary_sv": e.get("summary_sv") or e.get("summary", ""),
+            "outlets": e.get("outlets", [])[:5],
+            "report_date": None,
+        })
+    try:
+        _request("PUT", "/api/ingest/updates", rows)
+        print(f"  Uploaded {len(rows)} live update(s) to web app")
+        return True
+    except Exception as e:
+        print(f"  ! Live update upload failed: {e}")
+        return False
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "pull"
     if cmd == "pull":

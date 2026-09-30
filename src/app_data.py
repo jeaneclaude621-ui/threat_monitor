@@ -51,7 +51,12 @@ def parse_sources(sources: str) -> list:
     return out
 
 
-def enrich_events(events: list, report_date: str, search_results: list = None) -> list:
+RELATIONS = {"bekräftar", "motsäger", "tillför"}
+DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def enrich_events(events: list, report_date: str, search_results: list = None,
+                  thread_ids: set = None) -> list:
     """Adds id, model_score, articles (with ids), and cleans topics and
     countries. `search_results` is the list of retrieved pages; article
     urls not among them are dropped. None means: no link check possible
@@ -63,6 +68,11 @@ def enrich_events(events: list, report_date: str, search_results: list = None) -
         ev["topics"] = [t for t in ev.get("topics") or [] if t in TOPICS]
         ev["countries"] = sorted({c.strip().upper() for c in ev.get("countries") or []
                                   if isinstance(c, str) and len(c.strip()) == 2})
+        for key in ("known_sv", "unknown_sv"):
+            if key in ev:
+                ev[key] = [x for x in ev.get(key) or [] if isinstance(x, str) and x.strip()]
+        if "thread_id" in ev and (thread_ids is None or ev["thread_id"] not in thread_ids):
+            ev["thread_id"] = None
 
         articles = ev.get("articles") or parse_sources(ev.get("sources", ""))
         clean = []
@@ -75,13 +85,20 @@ def enrich_events(events: list, report_date: str, search_results: list = None) -
             url = match["url"] if match else None
             title = a.get("title") or (match or {}).get("title")
             tier = a.get("tier")
-            clean.append({
+            item = {
                 "id": article_id(report_date, i, outlet, url),
                 "outlet": outlet,
                 "title": title if url else a.get("title"),
                 "url": url,
                 "tier": tier if isinstance(tier, int) and 1 <= tier <= 4 else None,
-            })
+            }
+            if a.get("summary_sv"):
+                item["summary_sv"] = a["summary_sv"]
+            if isinstance(a.get("published"), str) and DATE_RE.match(a["published"]):
+                item["published"] = a["published"]
+            if a.get("relation") in RELATIONS:
+                item["relation"] = a["relation"]
+            clean.append(item)
         # Same article twice (same link, or same outlet without a link) -> once.
         seen = set()
         ev["articles"] = [a for a in clean if not (a["id"] in seen or seen.add(a["id"]))]
@@ -95,11 +112,22 @@ SWEEP_EVENT_FIELDS = """Each event also carries, for the Swedish web app:
    - "topics": one or more of """ + ", ".join(TOPICS) + """;
    - "countries": ISO 3166-1 alpha-2 codes of the countries where it
      happened or that it directly concerns (e.g. "EE", "RO", "UA");
+   - "known_sv": 2-4 short Swedish sentences - what is established;
+   - "unknown_sv": 1-3 short Swedish sentences - what is still unclear
+     or unconfirmed;
+   - "thread_id": the id of the watchlist thread it belongs to (listed
+     below), or null;
    - "articles": the individual articles behind it, each
-     {"outlet": "...", "title": "...", "url": "...", "tier": 1-4}. Give
-     only urls you actually retrieved in this search - copy them exactly;
-     use null when you do not have the article's own url."""
+     {"outlet": "...", "title": "...", "url": "...", "tier": 1-4,
+      "published": "YYYY-MM-DD or null",
+      "summary_sv": "2-3 Swedish sentences: what this article says",
+      "relation": "bekräftar" | "motsäger" | "tillför" | null - how it
+      relates to the other articles on the event}. Give only urls you
+     actually retrieved in this search - copy them exactly; use null when
+     you do not have the article's own url."""
 
 SWEEP_EVENT_JSON = """{"title": "...", "detail": "...", "sources": "...", "score": 0,
      "title_sv": "...", "summary_sv": "...", "topics": ["..."], "countries": ["..."],
-     "articles": [{"outlet": "...", "title": "...", "url": "...", "tier": 1}]}"""
+     "known_sv": ["..."], "unknown_sv": ["..."], "thread_id": "...",
+     "articles": [{"outlet": "...", "title": "...", "url": "...", "tier": 1,
+                   "published": "...", "summary_sv": "...", "relation": "..."}]}"""

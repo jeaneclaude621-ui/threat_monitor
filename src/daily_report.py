@@ -174,6 +174,7 @@ def run_broad_sweep(state, hourly_entries):
     accepted_notes = "\n".join(f"- {c}" for c in state["accepted_changes"]) or "(none yet)"
     hourly_summary = "\n".join(f"- [{e['classification']}] {e['thread_label']}: {e['summary']}" for e in hourly_entries) or "(no hourly entries logged)"
     operator_desc = operator_weight.prompt_block()
+    threads_desc = "\n".join(f"- {t['id']}: {t['label']}" for t in state["watchlist"])
 
     prompt = f"""Search mainstream media for the last 24 hours of reporting on
 Russia's hybrid activity, threats, and posture toward NATO/EU/Ukraine.
@@ -203,6 +204,8 @@ Produce:
 1. Up to 6 of the most important events from the last 24h, each scored
    for credibility per the tiers above, with the corroborating outlets named.
    {SWEEP_EVENT_FIELDS}
+   Watchlist threads (for "thread_id"):
+{threads_desc}
 {index_instructions(m, history_desc, prior)}
 3. A one-sentence "top development" headline.
 4. Up to 4 "deception watch" items - recurring Kremlin narrative/denial
@@ -220,12 +223,14 @@ Respond as strict JSON:
   "key_signals": ["..."]
 }}"""
     # The escalation/de-escalation/delta fields pushed this past 5000, the
-    # 30-day forecast another 1500, and the app fields (Swedish text,
-    # topics, countries, article links) roughly 3000 more.
-    result = ask_claude_json(prompt, system=SYSTEM, max_tokens=16000)
+    # 30-day forecast another 1500, the app fields (Swedish text, topics,
+    # countries, article links) roughly 3000, and the per-article Swedish
+    # summaries with known/unknown lists about 4000 more.
+    result = ask_claude_json(prompt, system=SYSTEM, max_tokens=22000)
 
     enforce_bands(result)
-    enrich_events(result.get("events", []), date.today().isoformat(), common.LAST_SEARCH_RESULTS)
+    enrich_events(result.get("events", []), date.today().isoformat(), common.LAST_SEARCH_RESULTS,
+                  {t["id"] for t in state["watchlist"]})
     trace = operator_weight.apply_to_events(result.get("events", []))
     result["operator_influence"] = operator_weight.cap_index_effect(result, trace)
     idx = result.get("threat_index")

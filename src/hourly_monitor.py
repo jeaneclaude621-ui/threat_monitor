@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import load_state, save_state, ask_claude_json, append_hourly_entry
 from reply_checker import check_replies
+from app_sync import push_updates
 
 SYSTEM = """You are an OSINT monitoring analyst. You track a specific news
 thread and report ONLY what changed since the last check. Be precise and
@@ -41,6 +42,8 @@ Respond as strict JSON:
   "correcting_outlet": "outlet name if classification is CORRECTION, else null",
   "byline": "journalist name if attributable, else null",
   "summary": "1-2 sentence summary of what changed - 60 words maximum",
+  "title_sv": "what changed as a short Swedish headline, max ~10 words",
+  "summary_sv": "the summary in natural Swedish, max ~40 words",
   "new_snapshot": "updated 1-2 sentence status to replace the last known status with - 60 words maximum"
 }}
 
@@ -78,12 +81,14 @@ def run_once():
           f"({len(state['watchlist'])} threads)")
     check_replies(state)
 
+    app_updates = []
     for thread in state["watchlist"]:
         prompt = PROMPT_TEMPLATE.format(label=thread["label"], last_snapshot=thread["last_snapshot"])
         try:
             # Web search + a multi-outlet delta does not fit in ~800 tokens;
             # responses were being truncated before the JSON closed.
-            result = ask_claude_json(prompt, system=SYSTEM, max_tokens=2500)
+            # The Swedish title and summary for the web app add ~300 tokens.
+            result = ask_claude_json(prompt, system=SYSTEM, max_tokens=3000)
         except Exception as e:
             print(f"  ! {thread['id']}: failed ({e})")
             continue
@@ -101,6 +106,9 @@ def run_once():
             "summary": result.get("summary", ""),
         }
         append_hourly_entry(entry, when=now)
+        if classification != "NO_CHANGE":
+            app_updates.append({**entry, "title_sv": result.get("title_sv"),
+                                "summary_sv": result.get("summary_sv"), "when": now})
 
         if classification == "CORRECTION" and result.get("correcting_outlet"):
             update_outlet_score(state, result["correcting_outlet"], positive_transparency=True)
@@ -114,6 +122,8 @@ def run_once():
         thread["last_checked"] = now.isoformat(timespec="minutes")
 
     save_state(state)
+    # The web app's "Löpande i dag" feed.
+    push_updates(app_updates)
     print("Hourly monitor done.\n")
 
 
