@@ -16,17 +16,17 @@
     {
       "binding": "DB",
       "database_name": "hotmonitor",
-      "database_id": "REPLACE_AT_DEPLOY",
+      "database_id": "e01d5fd4-136e-4db8-81f8-c360ffab04cf",
       "migrations_dir": "migrations"
     }
   ],
   // Auth is fail-closed: until TEAM_DOMAIN and ACCESS_AUD are set, every
   // /api request is refused. DEV_AUTH_* bypasses live only in .dev.vars.
   "vars": {
-    "TEAM_DOMAIN": "",
-    "ACCESS_AUD": "",
+    "TEAM_DOMAIN": "crimson-frog-4f56.cloudflareaccess.com",
+    "ACCESS_AUD": "4927acc83722928ac8ca01ece8466a3e92da19bb282814c635ff27363320e3a6",
     "ADMINS": "admin.one@example.org,admin.two@example.org,the.owner@example.org",
     "READERS": "",
-    "MACHINE_CLIENT_ID": ""
+    "MACHINE_CLIENT_ID": "a31ef3f6c5b1989fb694ca7ad6ce0bbf.access"
   }
 }

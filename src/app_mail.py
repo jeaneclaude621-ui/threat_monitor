@@ -64,8 +64,7 @@ Allt sparas och kan justeras under "Mina bedömningar" (svep igen).
 Bedömningarna väger tungt men avgör aldrig ensamma, och varje poäng
 visar under "Varför denna poäng?" vilka bedömningar som påverkat den.
 
-Svara på det här mejlet med synpunkter eller önskemål - svaren läses
-och åtgärdas löpande under dagen.
+Svara gärna på det här mejlet med synpunkter och önskemål.
 """
     for to in TESTERS:
         send_plain_email(to, f"{SUBJECT_MARKER} - inbjudan till test", body)
