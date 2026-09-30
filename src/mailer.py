@@ -105,6 +105,13 @@ def build_html_digest(report_data: dict, has_audio: bool = False, executive: dic
     proposal = d.get("proposal") or {}
     trend_color = _trend_color(d.get("trend_label", ""))
     executive_html = build_executive_html(executive) if executive else ""
+    app_url = os.environ.get("HOTMONITOR_URL")
+    app_html = f"""<tr>
+      <td style="background:#ffffff;padding:14px 20px;text-align:center;border-bottom:1px solid #E3E7F1;">
+        <a href="{html.escape(app_url)}" style="display:inline-block;padding:12px 22px;border-radius:10px;background:#141B47;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">Öppna i Hotmonitor-appen</a>
+        <div style="color:#6B7591;font-size:12px;margin-top:6px;">Arkiv, sök, karta och operatörsbedömning</div>
+      </td>
+    </tr>""" if app_url else ""
     audio_note = " &middot; 4-minute spoken briefing in Swedish attached (.m4a)" if has_audio else ""
 
     forecast_cell = forecast_reading = ""
@@ -128,6 +135,7 @@ def build_html_digest(report_data: dict, has_audio: bool = False, executive: dic
         <div style="color:#8A93B5;font-size:13px;margin-top:4px;">{d.get('date','')} &middot; consolidated 05:00 CET</div>
       </td>
     </tr>
+    {app_html}
     {executive_html}
     <tr>
       <td style="background:#1E2761;padding:20px;">

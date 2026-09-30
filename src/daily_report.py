@@ -26,6 +26,10 @@ from mailer import send_daily_email
 from reply_checker import check_replies
 from podcast import build_podcast
 from executive_sv import build_executive_safe
+from app_data import enrich_events, SWEEP_EVENT_FIELDS, SWEEP_EVENT_JSON
+from app_sync import pull_assessments, push_report
+import common
+import operator_weight
 
 SYSTEM = """You are a senior OSINT analyst producing a daily intelligence
 synthesis on Russia's posture toward NATO/EU/Ukraine. You cross-reference
@@ -169,6 +173,7 @@ def run_broad_sweep(state, hourly_entries):
     prior = history[-1]["value"] if history else None
     accepted_notes = "\n".join(f"- {c}" for c in state["accepted_changes"]) or "(none yet)"
     hourly_summary = "\n".join(f"- [{e['classification']}] {e['thread_label']}: {e['summary']}" for e in hourly_entries) or "(no hourly entries logged)"
+    operator_desc = operator_weight.prompt_block()
 
     prompt = f"""Search mainstream media for the last 24 hours of reporting on
 Russia's hybrid activity, threats, and posture toward NATO/EU/Ukraine.
@@ -183,9 +188,21 @@ Today's hourly monitoring already logged these thread updates - factor
 them in, don't just repeat them:
 {hourly_summary}
 
+The intelligence operator's own assessments of earlier articles
+(+2 very credible ... -2 not credible; weight decays with age). Give them
+HIGH weight but they are NOT decisive: they inform how much you trust an
+outlet or a claim, they never on their own confirm or refute one. Score
+each event on the evidence as usual - the operator's effect on event
+scores is applied separately in code. For the general index, state in
+"operator_effect_on_index" how many points (signed) operator input moved
+it and why in "operator_effect_reason_sv" (Swedish, one sentence, naming
+the assessment ids in brackets); 0 if it did not.
+{operator_desc}
+
 Produce:
 1. Up to 6 of the most important events from the last 24h, each scored
    for credibility per the tiers above, with the corroborating outlets named.
+   {SWEEP_EVENT_FIELDS}
 {index_instructions(m, history_desc, prior)}
 3. A one-sentence "top development" headline.
 4. Up to 4 "deception watch" items - recurring Kremlin narrative/denial
@@ -194,17 +211,23 @@ Produce:
 
 Respond as strict JSON:
 {{
-  "events": [{{"title": "...", "detail": "...", "sources": "...", "score": 0}}],
+  "events": [{SWEEP_EVENT_JSON}],
 {INDEX_JSON_FIELDS}
+  "operator_effect_on_index": 0.0,
+  "operator_effect_reason_sv": "...",
   "top_development": "...",
   "deception_items": [{{"heading": "...", "body": "..."}}],
   "key_signals": ["..."]
 }}"""
-    # The escalation/de-escalation/delta fields pushed this past 5000, and
-    # the 30-day forecast with its drivers adds roughly another 1500.
-    result = ask_claude_json(prompt, system=SYSTEM, max_tokens=10000)
+    # The escalation/de-escalation/delta fields pushed this past 5000, the
+    # 30-day forecast another 1500, and the app fields (Swedish text,
+    # topics, countries, article links) roughly 3000 more.
+    result = ask_claude_json(prompt, system=SYSTEM, max_tokens=16000)
 
     enforce_bands(result)
+    enrich_events(result.get("events", []), date.today().isoformat(), common.LAST_SEARCH_RESULTS)
+    trace = operator_weight.apply_to_events(result.get("events", []))
+    result["operator_influence"] = operator_weight.cap_index_effect(result, trace)
     idx = result.get("threat_index")
     if prior is not None and idx is not None and abs(idx - prior) >= 1.5:
         print(f"  ! Threat index moved {prior} -> {idx} in one day - check the justification")
@@ -326,6 +349,8 @@ def run_daily_report():
     # Pick up any "accept"/"deny" reply to yesterday's email before we
     # decide whether to generate a fresh proposal below.
     check_replies(state)
+    # The operator's swipes from the web app, before they weigh in below.
+    pull_assessments()
 
     yesterday_report = load_yesterday_report()
     self_check = run_self_check(state, yesterday_report)
@@ -364,6 +389,7 @@ def run_daily_report():
         "tiers": [{"name": t["name"], "range": f"{t['range'][0]}-{t['range'][1]}", "examples": ", ".join(t["examples"])} for t in state["methodology"]["tiers"]],
         "top_authors_summary": top_authors_summary(state),
         "deception_items": sweep.get("deception_items", []),
+        "operator_influence": sweep.get("operator_influence"),
         "proposal": proposal,
         "prior_proposal_still_pending": was_already_pending,
     }
@@ -377,8 +403,13 @@ def run_daily_report():
     print(f"Report built: {pptx_path}")
 
     executive = build_executive_safe(report_data)
+    if executive:
+        report_data["executive_sv"] = executive
+        with open(OUTPUT_DIR / f"{today.isoformat()}_report_data.json", "w", encoding="utf-8") as f:
+            json.dump(report_data, f, indent=2, ensure_ascii=False)
     _, audio_path = build_podcast(report_data)
     send_daily_email(report_data, str(pptx_path), str(audio_path) if audio_path else None, executive)
+    push_report(report_data)
 
     archive_and_clear_log(today - timedelta(days=1))
     save_state(state)

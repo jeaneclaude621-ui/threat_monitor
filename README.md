@@ -136,6 +136,44 @@ python3 src/executive_sv.py              # today's report
 python3 src/executive_sv.py 2026-09-28   # a specific date
 ```
 
+## Web app and operator assessments
+
+`webapp/` is a private web app for iPhone (add it to the home screen):
+today's report, the archive, search and topics, a country map, and each
+event with its articles and links. It runs on Cloudflare - a Worker for
+the app and API, D1 for the data, and Cloudflare Access in front, so
+only the listed email addresses get in (one-time code by mail, no
+password). `webapp/CONTRACT.md` defines the data and API;
+`webapp/DEPLOY.md` the setup.
+
+Admins also make **operator assessments**: in the Bedöm tab each article
+is a card, swiped right (credible, far right very credible), left
+(doubtful / not credible) or up (skip). No text input. Assessments are
+append-only - a change is a new row that supersedes the old one - and
+can be adjusted under Mina bedömningar by swiping again.
+
+They weigh in with high but never decisive weight (`src/operator_weight.py`,
+caps enforced in code): a verdict halves in weight every 30 days, one on
+another article from the same outlet counts 35 %, an event's score moves
+at most +/-1 from the model's own score, and the index at most +/-0.3 and
+never out of its anchor band. Clear disagreement is flagged "Operatören
+avviker" instead of overriding. Every effect lists the assessment ids
+behind it, so the app can show why a score is what it is.
+
+The daily run pulls new assessments first (`data/operator_assessments.jsonl`
+is the local copy) and uploads the finished report last:
+
+```
+python3 src/app_sync.py pull
+python3 src/app_sync.py push 2026-09-30
+python3 src/app_sync.py push-all
+python3 src/backfill_app.py      # app fields for reports older than the app
+python3 src/app_mail.py check    # new mail replies about the app (read-only)
+```
+
+Article links in the app are only ones the web search actually
+retrieved; reports from before 1 Oct have no links.
+
 ## Threat indices
 
 Each report carries two indices, both scored against the anchor bands in

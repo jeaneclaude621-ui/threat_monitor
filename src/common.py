@@ -30,6 +30,12 @@ MODEL = "claude-sonnet-4-6"
 # report died on its first API call), so give the network ~15 minutes.
 NETWORK_RETRY_DELAYS = [30, 60, 120, 240, 300, 300]
 
+# Every page the last web-search call actually retrieved, as {url, title}.
+# The sweep asks the model for article links; only links found here are
+# kept, so a link in the app is one that was really fetched, never one the
+# model made up.
+LAST_SEARCH_RESULTS = []
+
 
 # --------------------------------------------------------------------------
 # State persistence
@@ -174,11 +180,34 @@ def ask_claude(prompt: str, system: str = None, max_tokens: int = 2000, use_sear
         response = _create_with_retry(client, kwargs)
         break
 
+    if use_search:
+        LAST_SEARCH_RESULTS[:] = _search_results(response)
+
     if response.stop_reason == "max_tokens":
         print(f"  ! Claude response hit max_tokens={max_tokens} - output is truncated")
 
     parts = [b.text for b in response.content if getattr(b, "type", "") == "text"]
     return "\n".join(parts).strip()
+
+
+def _search_results(response) -> list:
+    """URLs and titles from web_search result blocks and text citations."""
+    seen, out = set(), []
+
+    def add(url, title):
+        if url and url not in seen:
+            seen.add(url)
+            out.append({"url": url, "title": title or None})
+
+    for block in response.content:
+        kind = getattr(block, "type", "")
+        if kind == "web_search_tool_result" and isinstance(getattr(block, "content", None), list):
+            for r in block.content:
+                add(getattr(r, "url", None), getattr(r, "title", None))
+        elif kind == "text":
+            for c in getattr(block, "citations", None) or []:
+                add(getattr(c, "url", None), getattr(c, "title", None))
+    return out
 
 
 def _create_with_retry(client, kwargs):
