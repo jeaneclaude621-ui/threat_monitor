@@ -15,6 +15,51 @@ TOPICS = ["Drönare", "Sabotage", "IT-hot", "Skuggflotta", "Sanktioner",
 
 TIER_RE = re.compile(r"tier\s*([1-4])", re.IGNORECASE)
 
+# One name per outlet, so the operator's verdicts on "AP" and "Associated
+# Press" count as verdicts on the same outlet. Keys are lower-case variants.
+OUTLET_ALIASES = {
+    "associated press": "AP", "ap news": "AP", "the associated press": "AP",
+    "the guardian": "Guardian", "guardian": "Guardian",
+    "deutsche welle": "DW", "dw news": "DW",
+    "rfe/rl": "RFE/RL", "rferl": "RFE/RL", "radio free europe/radio liberty": "RFE/RL",
+    "radio free europe": "RFE/RL",
+    "euromaidanpress": "Euromaidan Press", "euromaidan press": "Euromaidan Press",
+    "mezha.net": "Mezha", "mezha": "Mezha",
+    "ua.news": "UA News", "ua news": "UA News",
+    "stars and stripes": "Stars & Stripes", "stars & stripes": "Stars & Stripes",
+    "fox news digital": "Fox News", "fox news": "Fox News",
+    "us news & world report": "US News", "us news": "US News", "u.s. news": "US News",
+    "militarnyi.com": "Militarnyi", "militarnyi": "Militarnyi",
+    "nato": "NATO", "nato.int": "NATO",
+    "reuters": "Reuters", "bbc": "BBC", "bbc news": "BBC", "afp": "AFP", "agence france-presse": "AFP",
+    "the washington post": "Washington Post", "washington post": "Washington Post",
+    "the new york times": "New York Times", "new york times": "New York Times", "nyt": "New York Times",
+    "the moscow times": "Moscow Times", "moscow times": "Moscow Times",
+    "the kyiv independent": "Kyiv Independent", "kyiv independent": "Kyiv Independent",
+    "the kyiv post": "Kyiv Post", "kyiv post": "Kyiv Post",
+    "ukrainska pravda": "Ukrainska Pravda", "ukraine pravda": "Ukrainska Pravda", "pravda.com.ua": "Ukrainska Pravda",
+    "politico europe": "Politico", "politico": "Politico",
+    "the war zone": "The War Zone", "twz": "The War Zone",
+    "defence news": "Defense News", "defense news": "Defense News",
+    "estonian world": "Estonian World", "err news": "ERR", "err": "ERR",
+    "tvp world": "TVP World", "pbs newshour": "PBS NewsHour", "pbs": "PBS NewsHour",
+}
+
+
+def canonical_outlet(name: str) -> str:
+    """The one display name for an outlet. Unknown names pass through
+    trimmed, so nothing is lost - only known variants are merged."""
+    name = re.sub(r"\s+", " ", (name or "").strip())
+    # "Meduza (relay of The Atlantic)": the aside is not part of the name.
+    name = re.sub(r"\s*\([^)]*\)\s*$", "", name) or name
+    key = name.lower()
+    if key in OUTLET_ALIASES:
+        return OUTLET_ALIASES[key]
+    # "Reuters / US News" and "NBC News / AP": the first-named publisher.
+    if " / " in name:
+        return canonical_outlet(name.split(" / ", 1)[0])
+    return name
+
 
 def article_id(report_date: str, event_index: int, outlet: str, url: str = None) -> str:
     key = url if url else f"{report_date}|{event_index}|{outlet}"
@@ -77,7 +122,7 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
         articles = ev.get("articles") or parse_sources(ev.get("sources", ""))
         clean = []
         for a in articles:
-            outlet = (a.get("outlet") or "").strip()
+            outlet = canonical_outlet(a.get("outlet") or "")
             if not outlet:
                 continue
             url = a.get("url")

@@ -21,6 +21,7 @@ import json
 from datetime import datetime, timezone
 
 from common import DATA_DIR
+from app_data import canonical_outlet
 
 ASSESSMENTS_PATH = DATA_DIR / "operator_assessments.jsonl"
 
@@ -69,7 +70,8 @@ def _decay(ts: str, now: datetime) -> float:
 
 
 def _norm_outlet(name: str) -> str:
-    return (name or "").strip().lower()
+    # Verdicts made before outlet names were merged still match.
+    return canonical_outlet(name).lower()
 
 
 def apply_to_events(events: list, rows: list = None, now: datetime = None) -> list:
@@ -154,3 +156,23 @@ def cap_index_effect(result: dict, trace: list) -> dict:
     note = result.get("operator_effect_reason_sv") or (
         "Operatörens bedömningar påverkade inte indexet i dag." if not allowed else "")
     return {"index_delta": round(allowed, 2), "note_sv": note, "trace": trace}
+
+
+def track_record(outcomes: dict, rows: list = None) -> dict:
+    """How often each operator's current verdicts matched what later
+    reporting showed: a positive verdict on an event later CONFIRMED, or
+    a negative one on an event later CONTRADICTED, counts as agreed.
+    UNRESOLVED events and events not yet re-checked are left out.
+    Shown in the app; not used as weight."""
+    stats = {}
+    for v in current_verdicts(load_rows() if rows is None else rows):
+        outcome = outcomes.get(v.get("event_id"))
+        if outcome not in ("CONFIRMED", "CONTRADICTED"):
+            continue
+        s = stats.setdefault(v.get("operator"), {"evaluated": 0, "agreed": 0})
+        s["evaluated"] += 1
+        if (v["value"] > 0) == (outcome == "CONFIRMED"):
+            s["agreed"] += 1
+    for s in stats.values():
+        s["rate"] = round(s["agreed"] / s["evaluated"], 2) if s["evaluated"] else None
+    return stats

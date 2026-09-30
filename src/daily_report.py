@@ -27,7 +27,7 @@ from reply_checker import check_replies
 from podcast import build_podcast
 from executive_sv import build_executive_safe
 from app_data import enrich_events, SWEEP_EVENT_FIELDS, SWEEP_EVENT_JSON
-from app_sync import pull_assessments, push_report
+from app_sync import pull_assessments, push_report, backup_app
 import common
 import operator_weight
 
@@ -46,7 +46,8 @@ def run_self_check(state, yesterday_report):
     if not yesterday_report:
         return {"summary": "No prior report to self-check (first run).", "log_entry": None}
 
-    claims = [{"title": e["title"], "detail": e["detail"], "score": e["score"]} for e in yesterday_report.get("events", [])]
+    claims = [{"id": e.get("id"), "title": e["title"], "detail": e["detail"], "score": e["score"]}
+              for e in yesterday_report.get("events", [])]
     prompt = f"""Yesterday's report scored these claims/events:
 {json.dumps(claims, indent=2)}
 
@@ -57,7 +58,7 @@ information either way).
 
 Respond as strict JSON:
 {{
-  "results": [{{"title": "...", "outcome": "CONFIRMED|CONTRADICTED|UNRESOLVED", "note": "short reason"}}],
+  "results": [{{"id": "the claim's id, copied", "title": "...", "outcome": "CONFIRMED|CONTRADICTED|UNRESOLVED", "note": "short reason"}}],
   "confirmed_count": 0,
   "contradicted_count": 0,
   "unresolved_count": 0,
@@ -84,7 +85,13 @@ the JSON object."""
     }
     state["self_eval_log"].append(log_entry)
     state["self_eval_log"] = state["self_eval_log"][-90:]
-    return {"summary": result.get("summary_sentence", "Self-check complete."), "log_entry": log_entry}
+    # Per-event outcomes, for the app and the operator's track record.
+    ids = {e.get("id") for e in yesterday_report.get("events", [])}
+    results = [{"event_id": r.get("id"), "outcome": r.get("outcome"), "note": r.get("note", "")}
+               for r in result.get("results", [])
+               if r.get("id") in ids and r.get("outcome") in ("CONFIRMED", "CONTRADICTED", "UNRESOLVED")]
+    return {"summary": result.get("summary_sentence", "Self-check complete."), "log_entry": log_entry,
+            "results": results}
 
 
 # --------------------------------------------------------------------------
@@ -324,6 +331,18 @@ Respond as strict JSON:
 # --------------------------------------------------------------------------
 # Main
 # --------------------------------------------------------------------------
+def load_outcomes() -> dict:
+    """event id -> self-check outcome, from every saved report."""
+    outcomes = {}
+    for f in sorted(OUTPUT_DIR.glob("*_report_data.json")):
+        try:
+            for r in json.load(open(f, encoding="utf-8")).get("self_check_results", []):
+                outcomes[r["event_id"]] = r["outcome"]
+        except (OSError, ValueError, KeyError):
+            continue
+    return outcomes
+
+
 def load_yesterday_report():
     path = OUTPUT_DIR / f"{(date.today() - timedelta(days=1)).isoformat()}_report_data.json"
     if path.exists():
@@ -386,6 +405,7 @@ def run_daily_report():
         "threat_reading_30d": sweep.get("threat_index_30d_justification", ""),
         "forecast_drivers": sweep.get("forecast_drivers", []),
         "self_check_summary": self_check["summary"],
+        "self_check_results": self_check.get("results", []),
         "top_development": sweep.get("top_development", ""),
         "events": sweep.get("events", []),
         "threat_index_history": state["threat_index_history"],
@@ -395,6 +415,8 @@ def run_daily_report():
         "top_authors_summary": top_authors_summary(state),
         "deception_items": sweep.get("deception_items", []),
         "operator_influence": sweep.get("operator_influence"),
+        "operator_track_record": operator_weight.track_record(
+            {**load_outcomes(), **{r["event_id"]: r["outcome"] for r in self_check.get("results", [])}}),
         "proposal": proposal,
         "prior_proposal_still_pending": was_already_pending,
     }
@@ -415,6 +437,7 @@ def run_daily_report():
     _, audio_path = build_podcast(report_data)
     send_daily_email(report_data, str(pptx_path), str(audio_path) if audio_path else None, executive)
     push_report(report_data)
+    backup_app()
 
     archive_and_clear_log(today - timedelta(days=1))
     save_state(state)

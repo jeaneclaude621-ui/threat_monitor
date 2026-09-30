@@ -101,6 +101,28 @@ def push_report(report_data: dict) -> bool:
         return False
 
 
+def backup_app(keep: int = 30) -> bool:
+    """The app's own data (users, audit and security logs, reads, live
+    updates) saved on the Mac daily - assessments are already pulled into
+    data/operator_assessments.jsonl. Keeps the newest `keep` files."""
+    if not _config():
+        return False
+    from datetime import date
+    backup_dir = ASSESSMENTS_PATH.parent / "backups"
+    try:
+        data = _request("GET", "/api/export/all")
+        backup_dir.mkdir(exist_ok=True)
+        path = backup_dir / f"app-{date.today().isoformat()}.json"
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+        for old in sorted(backup_dir.glob("app-*.json"))[:-keep]:
+            old.unlink()
+        print(f"  App backup: {path.name}")
+        return True
+    except Exception as e:
+        print(f"  ! App backup failed: {e}")
+        return False
+
+
 def push_updates(entries: list) -> bool:
     """Hourly thread updates for the app's live feed, per CONTRACT.md v2."""
     if not entries:
@@ -137,6 +159,8 @@ if __name__ == "__main__":
         pull_assessments()
     elif cmd == "push" and len(sys.argv) > 2:
         push_report(json.load(open(OUTPUT_DIR / f"{sys.argv[2]}_report_data.json", encoding="utf-8")))
+    elif cmd == "backup":
+        backup_app()
     elif cmd == "push-all":
         for f in sorted(OUTPUT_DIR.glob("*_report_data.json")):
             push_report(json.load(open(f, encoding="utf-8")))
