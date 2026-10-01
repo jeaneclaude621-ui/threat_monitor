@@ -167,6 +167,45 @@ def assign_threads():
 assign_threads()
 
 
+def tiny_png(rgb, size=16):
+    """A real 16x16 PNG: a colored square with a light inner block."""
+    import struct, zlib, base64
+    rows = b""
+    for y in range(size):
+        row = b"\x00"
+        for x in range(size):
+            inner = 4 <= x < 12 and 4 <= y < 12
+            row += bytes((255, 255, 255) if inner else rgb)
+        rows += row
+    def chunk(t, d):
+        return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xffffffff)
+    png = (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", size, size, 8, 2, 0, 0, 0))
+           + chunk(b"IDAT", zlib.compress(rows)) + chunk(b"IEND", b""))
+    return "data:image/png;base64," + base64.b64encode(png).decode()
+
+
+def add_favicons():
+    """Version 3.1: links on the two newest reports, favicons for most domains
+    (every third domain left out so the monogram fallback shows too)."""
+    from urllib.parse import urlsplit
+    colors = [(200, 40, 40), (20, 90, 180), (230, 140, 20), (40, 140, 80), (110, 60, 160)]
+    for date in sorted(REPORT_DATA)[-2:]:
+        r = REPORT_DATA[date]
+        for i, e in enumerate(r.get("events", [])):
+            for j, a in enumerate(e.get("articles", [])):
+                if not a.get("url") and (i + j) % 3 != 2:
+                    slug = re.sub(r"[^a-z0-9]+", "", (a.get("outlet") or "kalla").lower())[:20] or "kalla"
+                    a["url"] = f"https://www.{slug}.example/artikel/{sha16(date + str(a.get('outlet')))}"
+                    a["id"] = sha16(a["url"])
+    for date, r in REPORT_DATA.items():
+        domains = sorted({urlsplit(a["url"]).hostname.removeprefix("www.")
+                          for e in r.get("events", []) for a in e.get("articles", []) if a.get("url")})
+        r["favicons"] = {d: tiny_png(colors[k % len(colors)]) for k, d in enumerate(domains) if k % 3 != 2}
+
+
+add_favicons()
+
+
 def ago(**kw):
     return (datetime.now(timezone.utc) - timedelta(**kw)).isoformat(timespec="seconds").replace("+00:00", "Z")
 

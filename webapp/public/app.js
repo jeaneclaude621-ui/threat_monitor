@@ -501,11 +501,15 @@ async function computeBadges() {
       const n = r.events.filter((e) => eventState(r.date, e) === 'new').length;
       if (item.date === latest) idag += n; else arkiv += n;
     }
+    // Bedöm counts news items in the latest report with a linked source
+    // not yet assessed - the same unit the Bedöm deck shows.
     let bedom = 0;
     if (isAdmin()) {
       const cur = currentByArticle();
       const r = await loadReport(latest);
-      for (const e of r.events) for (const a of e.articles) { const c = cur.get(a.id); if (!c || c.value === 0) bedom += 1; }
+      for (const e of r.events) {
+        if (linkedArticles(e).some((a) => { const c = cur.get(a.id); return !c || c.value === 0; })) bedom += 1;
+      }
     }
     Object.assign(badgeCounts, { idag, arkiv, bedom });
     paintBadges();
@@ -783,7 +787,6 @@ function traceList(trace) {
 }
 
 // ---------------------------------------------------------------- Händelse
-const openArticles = new Set();
 const RELATION = { bekräftar: 'Bekräftar', motsäger: 'Motsäger', tillför: 'Tillför' };
 function relationChip(rel) { return RELATION[rel] ? h('span', { class: `rel rel-${rel === 'bekräftar' ? 'ok' : rel === 'motsäger' ? 'no' : 'add'}` }, RELATION[rel]) : null; }
 
@@ -852,7 +855,7 @@ async function viewEvent(date, id) {
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Källor och artiklar'),
       e.articles.length
-        ? h('div', { class: 'card list' }, e.articles.map((a) => articleRow({ article: a, event: e, date })))
+        ? h('div', { class: 'srcp-list' }, e.articles.map((a) => articleRow({ article: a, event: e, date }, r.favicons)))
         : h('p', { class: 'muted small' }, e.sources || 'Inga källor registrerade.')),
     threadSection(e, date, reports, threadUpdates),
     h('section', { class: 'section' },
@@ -946,31 +949,75 @@ function assessSheet(target) {
   }, { label: `Bedöm ${a.outlet || 'källan'}` });
 }
 
-// Tapping a source always reads; assessing is a separate button (and the
-// Bedöm tab), so nobody assesses by accident while scrolling.
-function articleRow(target) {
+// ---------------------------------------------------------------- source previews
+// One look for a source everywhere (event page and Bedöm): favicon or a
+// monogram, outlet, tier, domain, date, the article's own title and summary.
+// Tapping the preview always reads - through the leave-the-app warning.
+const FAVICON_RE = /^data:image\/(png|x-icon|vnd\.microsoft\.icon|gif|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
+function sourceFavicon(a, favicons) {
+  const host = a.url ? hostOf(a.url) : null;
+  const src = host && favicons ? favicons[host] : null;
+  if (typeof src === 'string' && src.length < 12000 && FAVICON_RE.test(src)) {
+    return h('img', { class: 'fav', src, alt: '', width: '20', height: '20', loading: 'lazy', decoding: 'async' });
+  }
+  const tier = Math.min(4, Math.max(1, Number(a.tier) || 4));
+  const letter = String(a.outlet || host || '?').trim().charAt(0).toUpperCase() || '?';
+  return h('span', { class: `fav mono tier-bg-${tier}`, 'aria-hidden': 'true' }, letter);
+}
+
+function sourcePreview(a, { date, favicons, footer } = {}) {
+  const host = a.url ? hostOf(a.url) : null;
+  const meta = [host, a.published ? dateShort(a.published) : null].filter(Boolean).join(' · ');
+  const inner = [
+    h('span', { class: 'srcp-head' },
+      sourceFavicon(a, favicons),
+      h('span', { class: 'srcp-outlet' }, a.outlet || host || 'Okänd källa'),
+      tierBadge(a.tier),
+      relationChip(a.relation)),
+    meta ? h('span', { class: 'srcp-meta' }, meta) : null,
+    a.title ? h('span', { class: 'srcp-title' }, a.title) : null,
+  ];
+  const main = host
+    ? h('button', {
+      class: 'srcp-main', type: 'button', 'aria-label': `Läs ${a.outlet || host} i original`,
+      onclick: (ev) => { ev.stopPropagation(); openExternal(a.url, { tier: a.tier, date, outlet: a.outlet }); },
+    }, ...inner, h('span', { class: 'srcp-open' }, 'Läs originalet', extIcon()))
+    : h('div', { class: 'srcp-main static' }, ...inner);
+  let summary = null;
+  if (a.summary_sv) {
+    const text = h('p', { class: 'srcp-sum' }, a.summary_sv);
+    const long = a.summary_sv.length > 150;
+    const more = long ? h('button', {
+      class: 'linkbtn srcp-more', type: 'button', 'aria-expanded': 'false',
+      onclick: (ev) => {
+        ev.stopPropagation();
+        const open = text.classList.toggle('open');
+        more.textContent = open ? 'Visa mindre' : 'Visa mer';
+        more.setAttribute('aria-expanded', String(open));
+      },
+    }, 'Visa mer') : null;
+    summary = h('div', { class: 'srcp-sumwrap' }, text, more);
+  }
+  return h('div', { class: 'srcp' }, main, summary, footer || null);
+}
+
+// Event page: the same preview, with my verdict and the per-source actions.
+// Only linked articles can be assessed - without the original there is
+// nothing to judge the credibility on.
+function articleRow(target, favicons) {
   const a = target.article;
   const cur = currentByArticle().get(a.id);
-  const open = openArticles.has(a.id);
-  const toggle = () => { if (openArticles.has(a.id)) openArticles.delete(a.id); else openArticles.add(a.id); rerender(); };
-  const sub = a.title || (a.summary_sv ? firstSentence(a.summary_sv, 90) : null);
-  return h('div', { class: 'art-wrap' },
-    h('button', { class: 'row rowbtn', type: 'button', 'aria-expanded': String(open), onclick: toggle },
-      h('span', { class: 'row-main' },
-        h('span', { class: 'row-title' }, a.outlet || 'Okänd källa'),
-        sub ? h('span', { class: 'row-sub' }, sub) : null),
-      relationChip(a.relation),
-      tierBadge(a.tier),
+  return sourcePreview(a, {
+    date: target.date,
+    favicons,
+    footer: h('div', { class: 'srcp-foot' },
       cur && cur.value !== 0 ? verdictPill(cur.value, cur.pending) : null,
-      chevDown()),
-    open ? h('div', { class: 'expand' },
-      a.summary_sv ? h('p', { class: 'body-sm' }, a.summary_sv) : h('p', { class: 'small muted' }, 'Ingen separat sammanfattning av artikeln – se händelsens sammanfattning ovan.'),
-      a.published || a.relation ? h('p', { class: 'small muted' }, [a.published ? `Publicerad ${dateShort(a.published)}` : null, a.relation ? `${RELATION[a.relation] || a.relation} övriga källor` : null].filter(Boolean).join(' · ')) : null,
-      h('div', { class: 'btn-row' },
-        externalButton(a.url, { tier: a.tier, date: target.date, outlet: a.outlet }),
-        a.outlet ? h('a', { class: 'btn', href: `#/kalla/${encodeURIComponent(a.outlet)}` }, 'Om källan') : null,
-        isAdmin() ? h('button', { class: 'btn', type: 'button', onclick: () => assessSheet(target) }, cur && cur.value !== 0 ? 'Ändra bedömning' : 'Bedöm') : null),
-      !a.url ? h('p', { class: 'small muted' }, 'Ingen länk sparad för den här artikeln.') : null) : null);
+      a.outlet ? h('a', { class: 'linkbtn', href: `#/kalla/${encodeURIComponent(a.outlet)}` }, 'Om källan') : null,
+      isAdmin() && a.url && hostOf(a.url)
+        ? h('button', { class: 'linkbtn', type: 'button', onclick: () => assessSheet(target) }, cur && cur.value !== 0 ? 'Ändra bedömning' : 'Bedöm')
+        : null,
+      !a.url ? h('span', { class: 'small muted' }, 'Ingen länk sparad – bedöms inte') : null),
+  });
 }
 
 // ---------------------------------------------------------------- Källa
@@ -1336,139 +1383,210 @@ async function viewMap(q) {
 }
 
 // ---------------------------------------------------------------- Bedöm
-const SKIP_KEY = 'hm.skipped';
-function loadSkipped() { try { return new Set(JSON.parse(sessionStorage.getItem(SKIP_KEY) || '[]')); } catch { return new Set(); } }
-function saveSkipped(set) { try { sessionStorage.setItem(SKIP_KEY, JSON.stringify([...set])); } catch { /* ignore */ } }
-const assessHistory = []; // this session's swipes, newest last, for "Ångra"
+// One card per news item (event) with at least one linked article. A swipe
+// is the verdict on the news; it is written as one row per linked article,
+// each source taking its own value when the operator set one with "Ändra".
+const SKIP_KEY = 'hm.skippedEvents';
+const SKIP_DAYS = 7;
+function loadSkipped() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SKIP_KEY) || '{}');
+    const cutoff = Date.now() - SKIP_DAYS * 86400000;
+    return new Map(Object.entries(raw).filter(([, t]) => typeof t === 'number' && t > cutoff));
+  } catch { return new Map(); }
+}
+function saveSkipped(map) { try { localStorage.setItem(SKIP_KEY, JSON.stringify(Object.fromEntries(map))); } catch { /* private mode */ } }
+const assessHistory = []; // this session's verdicts, newest last, for "Ångra"
+
+function linkedArticles(e) {
+  const seen = new Set();
+  return e.articles.filter((a) => a.id && a.url && hostOf(a.url) && !seen.has(a.id) && seen.add(a.id));
+}
 
 async function viewAssess(q) {
   if (!isAdmin()) return adminOnly();
   await assessmentsReady;
-  const reports = await loadAllReports();
+  const reports = [...await loadAllReports()].sort((a, b) => (a.date < b.date ? 1 : -1));
   const skipped = loadSkipped();
-  const cur = currentByArticle();
-  const seen = new Set();
-  const targets = [];
   const selected = parseFacets(q);
   const facetStart = reports.length ? addDays(reports[0].date, -(FACET_DAYS - 1)) : '';
   const facetBar = filterBar(topFacets(reports.filter((r) => r.date >= facetStart).flatMap((r) => r.events), selected), selected, setFacets);
+
+  const isDone = (t) => {
+    const cur = currentByArticle();
+    return t.linked.every((a) => { const c = cur.get(a.id); return c && c.value !== 0; });
+  };
+  const seenEvents = new Set();
+  let targets = [];
+  let unlinkedOnly = 0;
   for (const r of reports) {
-    for (const e of r.events) {
-      if (!matchesFacets(e, selected)) continue;
-      for (const a of e.articles) {
-        if (!a.id || seen.has(a.id)) continue;
-        seen.add(a.id);
-        const c = cur.get(a.id);
-        if ((c && c.value !== 0) || skipped.has(a.id)) continue;
-        targets.push({ article: a, event: e, date: r.date });
-      }
+    const events = [...r.events].sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+    for (const e of events) {
+      if (seenEvents.has(e.id) || !matchesFacets(e, selected)) continue;
+      seenEvents.add(e.id);
+      const linked = linkedArticles(e);
+      if (!linked.length) { unlinkedOnly += 1; continue; }
+      const t = { event: e, date: r.date, linked, unlinked: e.articles.filter((a) => !linked.includes(a)), favicons: r.favicons || {} };
+      if (skipped.has(e.id) || isDone(t)) continue;
+      targets.push(t);
     }
   }
 
-  const counter = h('span', { class: 'small muted' });
-  const stack = h('div', { class: 'stack' });
+  let overrides = new Map(); // article id -> own value, for the card on top
+  const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const counter = h('span', { class: 'small muted nowrap', 'aria-live': 'polite' });
+  const stack = h('div', { class: 'stack ev-stack' });
   const undoBtn = h('button', { class: 'btn', type: 'button', onclick: undoLast }, 'Ångra');
   const buttonsBox = h('div');
 
-  function updateChrome() {
-    counter.textContent = targets.length ? `${targets.length} kvar` : '';
-    undoBtn.hidden = !assessHistory.length;
-  }
-
-  function commit(value, card) {
+  function commit(value, cardEl) {
     const t = targets.shift();
     if (!t) return;
     if (value === 'skip') {
-      skipped.add(t.article.id);
+      skipped.set(t.event.id, Date.now());
       saveSkipped(skipped);
       assessHistory.push({ target: t, skip: true });
     } else {
-      const now = currentByArticle().get(t.article.id);
-      const row = assess(t, value, now || null);
-      assessHistory.push({ target: t, row });
+      const cur = currentByArticle();
+      const rows = [];
+      for (const a of t.linked) {
+        const v = overrides.has(a.id) ? overrides.get(a.id) : value;
+        const now = cur.get(a.id);
+        if (now && now.value === v) continue; // already my verdict
+        const at = { article: a, event: t.event, date: t.date };
+        rows.push({ row: assess(at, v, now || null), at });
+      }
+      assessHistory.push({ target: t, rows });
     }
+    overrides = new Map();
     vibrate();
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (card && !reduce) {
+    if (cardEl && !reduceMotion()) {
       const dx = value === 'skip' ? 0 : value > 0 ? 1 : -1;
-      card.style.transform = `translate(${dx * 520}px, ${value === 'skip' ? -700 : 40}px) rotate(${dx * 18}deg)`;
-      card.style.opacity = '0';
-      setTimeout(renderStack, 200);
+      cardEl.style.transform = `translate(${dx * 520}px, ${value === 'skip' ? -700 : 40}px) rotate(${dx * 18}deg)`;
+      cardEl.style.opacity = '0';
+      setTimeout(() => renderStack(true), 220);
     } else {
-      renderStack();
+      renderStack(true);
     }
   }
 
+  // Takes the whole news item back: unsent rows are dropped, sent ones get
+  // a withdrawal (value 0) superseding them, so the history stays intact.
   function undoLast() {
     const item = assessHistory.pop();
     if (!item) return;
     if (item.skip) {
-      skipped.delete(item.target.article.id);
+      skipped.delete(item.target.event.id);
       saveSkipped(skipped);
     } else {
-      const latest = store.assessments.find((x) => x.id === item.row.id)
-        || store.assessments.find((x) => x.client_id && x.client_id === item.row.client_id)
-        || item.row;
-      undo(latest, item.target);
+      for (const { row, at } of item.rows) {
+        const latest = store.assessments.find((x) => x.id === row.id)
+          || store.assessments.find((x) => x.client_id && x.client_id === row.client_id)
+          || row;
+        undo(latest, at);
+      }
     }
+    targets = targets.filter((x) => x.event.id !== item.target.event.id);
     targets.unshift(item.target);
-    renderStack();
+    overrides = new Map();
+    renderStack(true);
   }
 
-  function card(t, behind) {
+  function overrideControls(a) {
+    const wrap = h('div', { class: 'srcp-foot' });
+    let open = false;
+    const previous = currentByArticle().get(a.id);
+    const paint = () => {
+      const v = overrides.get(a.id);
+      wrap.replaceChildren(
+        v != null
+          ? h('span', { class: 'own' }, verdictPill(v), h('span', { class: 'small muted' }, ' egen bedömning'))
+          : h('span', { class: 'small muted' }, previous && previous.value !== 0 ? `Tidigare: ${VERDICT[previous.value]}` : 'Får kortets bedömning'),
+        h('button', {
+          class: 'linkbtn', type: 'button', 'aria-expanded': String(open),
+          onclick: (ev) => { ev.stopPropagation(); open = !open; paint(); },
+        }, open ? 'Stäng' : 'Ändra'));
+      if (open) {
+        wrap.append(h('div', { class: 'mini-actions', role: 'group', 'aria-label': `Egen bedömning av ${a.outlet || 'källan'}` },
+          ...STEPS.map((sv) => h('button', {
+            class: `a-${sv}`, type: 'button', 'aria-pressed': String(overrides.get(a.id) === sv),
+            onclick: (ev) => {
+              ev.stopPropagation();
+              if (overrides.get(a.id) === sv) overrides.delete(a.id); else overrides.set(a.id, sv);
+              open = false;
+              paint();
+            },
+          }, VERDICT[sv])),
+          overrides.has(a.id) ? h('button', {
+            class: 'a-skip', type: 'button',
+            onclick: (ev) => { ev.stopPropagation(); overrides.delete(a.id); open = false; paint(); },
+          }, 'Rensa') : null));
+      }
+    };
+    paint();
+    return wrap;
+  }
+
+  function card(t, behind, entering) {
     const e = t.event;
-    const a = t.article;
-    const label = h('div', { class: 'drag-label', 'aria-hidden': 'true' });
-    const el = h('article', { class: `swipe-card${behind ? ' behind' : ''}`, 'aria-label': `${a.outlet || 'Källa'}: ${e.title_sv || e.title}` },
-      label,
-      h('div', { class: 'sc-top' }, h('span', { class: 'sc-outlet' }, a.outlet || 'Okänd källa'), tierBadge(a.tier)),
+    const score = e.model_score != null ? e.model_score : e.score;
+    const head = h('header', { class: 'ev-head' },
+      h('span', { class: 'grip', 'aria-hidden': 'true' }),
       h('div', { class: 'kicker' }, [dateShort(t.date), ...e.topics].join(' · ')),
       h('h2', { class: 'sc-title' }, e.title_sv || e.title),
-      a.title ? h('p', { class: 'sc-article' }, a.title) : null,
-      h('p', { class: 'sc-summary' }, e.summary_sv || e.detail || ''),
-      h('div', { class: 'sc-foot' },
-        h('span', null, `Modellens poäng ${fmtScore(e.model_score != null ? e.model_score : e.score)}/10`),
-        a.url && hostOf(a.url) ? h('button', {
-          class: 'linkbtn', type: 'button',
-          onpointerdown: (ev) => ev.stopPropagation(),
-          onclick: (ev) => { ev.stopPropagation(); openExternal(a.url, { tier: a.tier, date: t.date, outlet: a.outlet }); },
-        }, 'Läs originalet') : null));
-    if (!behind) {
-      gesture(el, {
-        mode: 'free',
-        onDrag: (dx, dy) => {
-          el.classList.add('dragging');
-          el.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx / 18}deg)`;
-          const v = verdictFor(dx, dy, true);
-          label.textContent = v != null ? VERDICT[v] : '';
-          label.className = `drag-label${v != null ? ` show v-${v}` : ''}`;
-        },
-        onEnd: (dx, dy) => {
-          el.classList.remove('dragging');
-          const v = verdictFor(dx, dy, true);
-          if (v == null) { el.style.transform = ''; label.className = 'drag-label'; return; }
-          commit(v, el);
-        },
-      });
-    }
+      h('div', { class: 'ev-meta' }, `Modellens poäng ${fmtScore(score)}/10 · ${plural(t.linked.length, 'källa', 'källor')} med länk`));
+    if (behind) return h('article', { class: 'swipe-card ev-card behind', 'aria-hidden': 'true' }, head);
+
+    const label = h('div', { class: 'drag-label', 'aria-hidden': 'true' });
+    const body = h('div', { class: 'ev-body' },
+      e.summary_sv || e.detail ? h('p', { class: 'ev-summary' }, e.summary_sv || e.detail) : null,
+      h('h3', { class: 'kicker' }, 'Källor – tryck för att läsa originalet'),
+      h('div', { class: 'srcp-list' }, t.linked.map((a) => sourcePreview(a, { date: t.date, favicons: t.favicons, footer: overrideControls(a) }))),
+      t.unlinked.length ? h('div', { class: 'unlinked' },
+        h('h3', { class: 'kicker' }, 'Utan länk'),
+        h('p', { class: 'small muted' }, `${t.unlinked.map((a) => a.outlet).filter(Boolean).join(', ')} – bedöms inte.`)) : null,
+      h('a', { class: 'linkbtn', href: eventHref(t.date, e.id) }, 'Öppna hela händelsen'));
+    const el = h('article', { class: `swipe-card ev-card${entering && !reduceMotion() ? ' enter' : ''}`, 'aria-label': e.title_sv || e.title }, label, head, body);
+
+    const handlers = {
+      onDrag: (dx, dy) => {
+        el.classList.add('dragging');
+        el.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx / 18}deg)`;
+        const v = verdictFor(dx, dy, true);
+        label.textContent = v != null ? VERDICT[v] : '';
+        label.className = `drag-label${v != null ? ` show v-${v}` : ''}`;
+      },
+      onEnd: (dx, dy) => {
+        el.classList.remove('dragging');
+        const v = verdictFor(dx, dy, true);
+        if (v == null) { el.style.transform = ''; label.className = 'drag-label'; return; }
+        commit(v, el);
+      },
+    };
+    // The header takes every direction (up = skip); the sources list only
+    // horizontal drags, so scrolling it never skips the news by mistake.
+    gesture(head, { mode: 'free', ...handlers });
+    gesture(body, { mode: 'row', ...handlers });
     return el;
   }
 
-  function renderStack() {
-    updateChrome();
+  function renderStack(entering = false) {
+    counter.textContent = targets.length ? plural(targets.length, 'nyhet kvar', 'nyheter kvar') : '';
+    undoBtn.hidden = !assessHistory.length;
     if (!targets.length) {
       stack.replaceChildren(emptyState(selected.length ? `Allt inom ${selected.map(facetLabel).join(' + ')} är bedömt.` : 'Allt är bedömt.',
         h('a', { class: 'btn', href: '#/mina' }, 'Mina bedömningar'),
         skipped.size ? h('button', {
           class: 'btn', type: 'button',
           onclick: () => { skipped.clear(); saveSkipped(skipped); route(); },
-        }, `Visa ${plural(skipped.size, 'överhoppad', 'överhoppade')} igen`) : null));
+        }, `Visa ${plural(skipped.size, 'överhoppad', 'överhoppade')} igen`) : null,
+        unlinkedOnly ? h('p', { class: 'small muted' }, `${plural(unlinkedOnly, 'nyhet', 'nyheter')} saknar länk till källan och kan inte bedömas.`) : null));
       stack.style.height = 'auto';
       buttonsBox.replaceChildren();
       return;
     }
     stack.style.height = '';
-    stack.replaceChildren(...(targets[1] ? [card(targets[1], true)] : []), card(targets[0], false));
+    stack.replaceChildren(...(targets[1] ? [card(targets[1], true)] : []), card(targets[0], false, entering));
     buttonsBox.replaceChildren(verdictButtons((v) => commit(v, stack.lastChild),
       h('button', { class: 'a-skip', type: 'button', onclick: () => commit('skip', stack.lastChild) }, 'Hoppa över')));
   }
@@ -1480,7 +1598,7 @@ async function viewAssess(q) {
       h('a', { class: 'head-link', href: '#/mina' }, 'Mina bedömningar')),
     facetBar,
     h('div', { style: 'display:flex;justify-content:space-between;align-items:center;gap:8px' },
-      h('p', { class: 'hint' }, 'Höger: trovärdig, längre: mycket. Vänster: tveksam, längre: inte trovärdig. Upp: hoppa över.'),
+      h('p', { class: 'hint' }, 'Bedöm nyheten utifrån källorna. Svep höger: trovärdig (längre: mycket). Vänster: tveksam (längre: inte trovärdig). Uppåt i rubriken: hoppa över.'),
       counter),
     stack,
     buttonsBox,
