@@ -26,7 +26,7 @@ from mailer import send_daily_email
 from reply_checker import check_replies
 from podcast import build_podcast
 from executive_sv import build_executive_safe
-from app_data import enrich_events, SWEEP_EVENT_FIELDS, SWEEP_EVENT_JSON
+from app_data import enrich_events, add_favicons, SWEEP_EVENT_FIELDS, SWEEP_EVENT_JSON
 from app_sync import pull_assessments, push_report, backup_app
 import common
 import operator_weight
@@ -432,6 +432,7 @@ def run_daily_report():
         "prior_proposal_still_pending": was_already_pending,
     }
 
+    add_favicons(report_data)
     OUTPUT_DIR.mkdir(exist_ok=True)
     with open(OUTPUT_DIR / f"{today.isoformat()}_report_data.json", "w", encoding="utf-8") as f:
         json.dump(report_data, f, indent=2, ensure_ascii=False)

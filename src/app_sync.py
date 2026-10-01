@@ -123,6 +123,17 @@ def backup_app(keep: int = 30) -> bool:
         return False
 
 
+def short_label(label: str, limit: int = 120) -> str:
+    """Watchlist labels have grown into paragraph-long descriptions; the
+    app's live feed needs a name. First clause, else cut at a word."""
+    import re
+    label = " ".join((label or "").split())
+    head = re.split(r" [-\u2013\u2014] |[.:;(]", label, maxsplit=1)[0].strip()
+    if 0 < len(head) <= limit:
+        return head
+    return label[:limit].rsplit(" ", 1)[0] + "\u2026" if len(label) > limit else label
+
+
 def push_updates(entries: list) -> bool:
     """Hourly thread updates for the app's live feed, per CONTRACT.md v2."""
     if not entries:
@@ -137,7 +148,7 @@ def push_updates(entries: list) -> bool:
         ts = e["when"].astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
         rows.append({
             "id": hashlib.sha1(f"{e['thread_id']}|{ts}".encode()).hexdigest()[:16],
-            "ts": ts, "thread_id": e["thread_id"], "thread_label": e["thread_label"],
+            "ts": ts, "thread_id": e["thread_id"], "thread_label": short_label(e["thread_label"]),
             "classification": e["classification"],
             "title_sv": e.get("title_sv") or e["thread_label"],
             "summary_sv": e.get("summary_sv") or e.get("summary", ""),

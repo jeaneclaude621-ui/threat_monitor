@@ -431,7 +431,7 @@ async function ingestUpdates(request, env) {
     if (typeof u.id !== 'string' || !ITEM_ID_RE.test(u.id)) throw new HttpError(400, 'update id must be 1-128 of letters, digits, _ . : -');
     if (typeof u.ts !== 'string' || !TS_RE.test(u.ts)) throw new HttpError(400, `update ${u.id}: ts must be ISO 8601`);
     const fields = {
-      thread_id: str(u.thread_id, 200), thread_label: str(u.thread_label, 500),
+      thread_id: str(u.thread_id, 200), thread_label: str(u.thread_label, 1000),
       classification: str(u.classification, 64), title_sv: str(u.title_sv, 1000),
       summary_sv: str(u.summary_sv, 5000), report_date: str(u.report_date, 10),
     };

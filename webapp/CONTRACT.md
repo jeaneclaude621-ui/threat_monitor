@@ -237,3 +237,26 @@ secret `VAPID_PRIVATE_KEY` (JWK or base64url raw), subject `mailto:<OWNER>`.
 `GET /api/export/all` (machine): `{ users, audit_log, security_log, reads,
 updates, push_subscription_count, exported_at }` - no push keys. The Mac
 saves it daily to `data/backups/app-<date>.json` (keeps 30).
+
+---
+
+# Version 3.1 (1 Oct 2026) - Bedöm per news item
+
+- Report JSON gains `favicons`: `{ "<domain>": "data:image/png;base64,..." }` for
+  every article domain in the report (domain = url host without `www.`), max
+  ~6 KB each, fetched on the Mac. Missing domain -> show a monogram tile.
+- Bedöm shows ONE card per event that has >= 1 article with a url. The card:
+  event title_sv, summary_sv, topics/countries, the model's score, and a list
+  of source previews (favicon or monogram, outlet, tier badge, domain,
+  published date, article title, summary_sv, relation chip), each opening the
+  original through the external-link warning sheet. Articles without url are
+  listed under "Utan länk" but are not assessed.
+- One swipe = the event verdict, written as one assessment row per linked
+  article (same value; supersedes each article's current row when re-assessing).
+  Tapping a source row before swiping lets the user give that source its own
+  value (5 small verdict buttons); unset sources take the swipe value.
+- An event leaves the deck when every linked article has a current verdict by
+  me (including queued outbox rows) or when skipped (skips kept in localStorage
+  for 7 days, try/catch). After a swipe the card animates out and the next
+  event animates in. Deck order: newest report first, then by score.
+- `thread_label` in updates is a short label (<= 120 chars) from the Mac.

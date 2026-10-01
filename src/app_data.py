@@ -185,3 +185,44 @@ SWEEP_EVENT_JSON = """{"title": "...", "detail": "...", "sources": "...", "score
      "known_sv": ["..."], "unknown_sv": ["..."], "thread_id": "...",
      "articles": [{"outlet": "...", "title": "...", "url": "...", "tier": 1,
                    "published": "...", "summary_sv": "...", "relation": "..."}]}"""
+
+
+FAVICON_DIR = None  # set lazily to data/favicons
+FAVICON_MAX_BYTES = 6000
+
+
+def _domain(url: str) -> str:
+    try:
+        return urlsplit(url).netloc.lower().removeprefix("www.")
+    except ValueError:
+        return ""
+
+
+def add_favicons(report: dict) -> dict:
+    """`favicons` {domain: data URI} for every linked article, so the app
+    can show who published what without loading anything from the
+    outlets themselves (the app's CSP allows data: images only). Fetched
+    once per domain and cached in data/favicons/. Never raises."""
+    import base64
+    import urllib.request
+    from common import DATA_DIR
+    cache = DATA_DIR / "favicons"
+    cache.mkdir(exist_ok=True)
+    domains = {_domain(a["url"]) for e in report.get("events", []) for a in e.get("articles", []) if a.get("url")}
+    icons = {}
+    for d in sorted(x for x in domains if x):
+        path = cache / f"{d}.png"
+        if not path.exists():
+            try:
+                req = urllib.request.Request(f"https://www.google.com/s2/favicons?domain={d}&sz=64",
+                                             headers={"User-Agent": "hotmonitor-mac/1"})
+                with urllib.request.urlopen(req, timeout=15) as r:
+                    data = r.read(FAVICON_MAX_BYTES + 1)
+                path.write_bytes(data if r.headers.get_content_type() == "image/png" else b"")
+            except Exception:
+                path.write_bytes(b"")          # remember the miss; the app shows a monogram
+        data = path.read_bytes()
+        if data and len(data) <= FAVICON_MAX_BYTES:
+            icons[d] = "data:image/png;base64," + base64.b64encode(data).decode("ascii")
+    report["favicons"] = icons
+    return report
