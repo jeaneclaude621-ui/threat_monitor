@@ -260,3 +260,25 @@ saves it daily to `data/backups/app-<date>.json` (keeps 30).
   for 7 days, try/catch). After a swipe the card animates out and the next
   event animates in. Deck order: newest report first, then by score.
 - `thread_label` in updates is a short label (<= 120 chars) from the Mac.
+
+---
+
+# Version 3.2 (1 Oct 2026) - notices, broadcast push, auto-update
+
+- D1 `notices(id TEXT PK, ts, author, title, body, url NULL, active INTEGER, expires_at)`.
+- `GET /api/notices` (user): active, not expired, newest first.
+- `POST /api/admin/notices` (admin, Origin-checked) `{ title (1-80), body (1-500),
+  url? ("#/..." or "/..." same-origin path), push: bool, expires_days (1-30, default 7) }`
+  -> stores, audit row `notice`; when `push`, Web Push to every subscribed active
+  user (skipped where `prefs.notice === false`) with `{ title, body, url: url || "/#/" }`.
+  Returns `{ notice, pushed, failed }`.
+- `DELETE /api/admin/notices/:id` (admin) -> active = 0, audit row `notice_removed`.
+- App: active notices as dismissible cards at the top of Idag (dismissed ids in
+  localStorage). Admin sub-tab "Meddelanden": compose, push toggle, expiry,
+  device count with notifications on, active list with "Ta bort".
+- Auto-update: when a new service worker takes control the page reloads once
+  (sessionStorage guard); `registration.update()` on start and when the app
+  becomes visible (max once per 10 min). A deploy is picked up on first open.
+- Idag shows "Få notiser vid allvarliga händelser" when running standalone,
+  notifications are supported, permission is not denied and there is no
+  subscription; "Inte nu" hides it 14 days.

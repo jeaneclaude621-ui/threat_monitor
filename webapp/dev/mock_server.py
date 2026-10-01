@@ -38,6 +38,7 @@ ALARM = os.environ.get("MOCK_ALARM") == "1"         # today's report is missing
 # the subscription; nothing is ever sent with it.
 VAPID_PUBLIC = "BGtaPHvxosJ2B0_wo51rsv8waq1od-6bZIzGaQcW8sHo9QnG6akuEoh9ii-jHgb1036i5H2AWoqfZQVs9G1KOXo"
 PUSH_SUBS = {}
+NOTICES = []   # in-memory notices (Version 3.2)
 
 TOPIC_RULES = {
     "Drönare": r"drone|drönar|uav|shahed|geran",
@@ -330,6 +331,9 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(200, {"publicKey": VAPID_PUBLIC})
         if path == "/api/updates":
             return self._json(200, sorted(UPDATES, key=lambda u: u["ts"], reverse=True))
+        if path == "/api/notices":
+            live = [n for n in NOTICES if n["active"] and n["expires_at"] > now()]
+            return self._json(200, sorted(live, key=lambda n: n["ts"], reverse=True))
         if path == "/api/reads":
             return self._json(200, {"item_ids": sorted(READS.get(EMAIL, set())), "last_visit": LAST_VISIT})
         if path == "/api/admin/users":
@@ -359,7 +363,8 @@ class Handler(SimpleHTTPRequestHandler):
                 "service_token_expires": TOKEN_EXPIRES,
                 "alarm": {"missing_report": MISSING_DATE if ALARM else None,
                           "checked_at": ago(minutes=12) if ALARM else None},
-                "push_subscriptions": len(PUSH_SUBS)})
+                "push_subscriptions": len(PUSH_SUBS),
+                "push": {"subscriptions": len(PUSH_SUBS), "last": None}})
         if path == "/api/reports":
             rows = [{"date": d, "threat_index": r.get("threat_index"), "threat_index_30d": r.get("threat_index_30d"),
                      "top_sv": (r.get("executive_sv") or {}).get("top") or r.get("top_development")}
@@ -412,6 +417,14 @@ class Handler(SimpleHTTPRequestHandler):
         err = self._gate(path, "DELETE")
         if err is not None:
             return err
+        mn = re.fullmatch(r"/api/admin/notices/([0-9a-f-]{36})", path)
+        if mn:
+            n = next((x for x in NOTICES if x["id"] == mn.group(1)), None)
+            if not n:
+                return self._json(404, {"error": "no such notice"})
+            n["active"] = False
+            AUDIT.append({"id": str(uuid.uuid4()), "ts": now(), "actor": EMAIL, "action": "notice_removed", "target": n["id"], "detail": ""})
+            return self._json(200, {"ok": True})
         m = re.fullmatch(r"/api/admin/users/(.+)", path)
         if not m:
             return self._json(404, {"error": "not found"})
@@ -458,6 +471,22 @@ class Handler(SimpleHTTPRequestHandler):
                 log_security("bad_request", path, "POST", "item_ids eller all_before krävs")
                 return self._json(400, {"error": "item_ids or all_before required"})
             return self._json(200, {"ok": True, "count": len(mine)})
+        if path == "/api/admin/notices":
+            body = self._body() or {}
+            title, text = str(body.get("title") or "").strip(), str(body.get("body") or "").strip()
+            url = body.get("url")
+            days = body.get("expires_days", 7)
+            if not (0 < len(title) <= 80) or not (0 < len(text) <= 500) or (url and not re.fullmatch(r"(#/|/(?!/))[\w\-./?#&=%~+]*", str(url))) \
+                    or not isinstance(days, int) or not (1 <= days <= 30):
+                log_security("bad_request", path, "POST", "ogiltigt meddelande")
+                return self._json(400, {"error": "invalid notice"})
+            from datetime import datetime, timedelta, timezone
+            n = {"id": str(uuid.uuid4()), "ts": now(), "author": EMAIL, "title": title, "body": text, "url": url or None,
+                 "active": True, "expires_at": (datetime.now(timezone.utc) + timedelta(days=days)).isoformat().replace("+00:00", "Z")}
+            NOTICES.append(n)
+            AUDIT.append({"id": str(uuid.uuid4()), "ts": now(), "actor": EMAIL, "action": "notice", "target": n["id"], "detail": json.dumps({"title": title})})
+            pushed = len(PUSH_SUBS) if body.get("push") else 0
+            return self._json(201, {"notice": n, "pushed": pushed, "failed": 0})
         if path == "/api/admin/users":
             body = self._body() or {}
             email = str(body.get("email", "")).strip().lower()

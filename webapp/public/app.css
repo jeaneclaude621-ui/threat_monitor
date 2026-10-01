@@ -475,7 +475,9 @@ dialog.sheet::backdrop { background: rgba(15, 21, 38, 0.5); }
 .sheet-actions .btn { min-height: 48px; }
 .btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 @media (min-width: 600px) { dialog.sheet { margin: auto; border-radius: 20px; } }
-.seg-tight button { font-size: 12px; padding: 0 2px; }
+.seg-tight { grid-auto-columns: auto; overflow-x: auto; scrollbar-width: none; }
+.seg-tight::-webkit-scrollbar { display: none; }
+.seg-tight button { font-size: 12px; padding: 0 6px; white-space: nowrap; }
 
 /* ---- version 3: alarm, home screen, notifications, track record ---- */
 .alarm {
@@ -603,3 +605,11 @@ button.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 
 .mini-actions [aria-pressed="true"] { outline: 3px solid var(--link); outline-offset: 1px; }
 .unlinked .kicker { margin-bottom: 2px; }
 .nowrap { white-space: nowrap; }
+
+/* Version 3.2: notices, push nudge, admin message form */
+.notice-card { border-left: 4px solid var(--amber, #C8741A); }
+.notice-card .title-m { margin: 4px 0 6px; }
+.nudge .btn-row { margin-top: 10px; }
+.form textarea { font: inherit; font-size: 16px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, #D6D0C4); background: var(--card, #fff); color: inherit; resize: vertical; min-height: 96px; }
+.check-row { display: flex; gap: 10px; align-items: flex-start; margin: 10px 0 4px; font-size: 15px; }
+.check-row input { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }

@@ -276,6 +276,36 @@ OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/reader "$R_D" "$R_P" "$R_
 req GET /api/admin/status; contains "last push recorded" "$BODY" '"last":{"at":"20'
 # Put today's report back as it was.
 if [ -n "$ORIG" ]; then req PUT "/api/ingest/reports/$TODAY" "${JSONH[@]}" "${MACHINE[@]}" --data-binary "$ORIG"; check "restore today's report" 200 "$STATUS"; fi
+echo "Version 3.2: notices"
+NTITLE="Ny version av appen"
+req POST /api/admin/notices "${JSONH[@]}" "${READER[@]}" -d "{\"title\":\"$NTITLE\",\"body\":\"x\"}"; check "reader cannot post a notice" 403 "$STATUS"
+req POST /api/admin/notices -H 'Content-Type: application/json' -d "{\"title\":\"$NTITLE\",\"body\":\"x\"}"; check "notice needs Origin" 403 "$STATUS"
+req POST /api/admin/notices "${JSONH[@]}" -d '{"title":"","body":"x"}'; check "empty title refused" 400 "$STATUS"
+req POST /api/admin/notices "${JSONH[@]}" -d "{\"title\":\"$(printf 'a%.0s' $(seq 1 81))\",\"body\":\"x\"}"; check "81-char title refused" 400 "$STATUS"
+req POST /api/admin/notices "${JSONH[@]}" -d "{\"title\":\"t\",\"body\":\"$(printf 'b%.0s' $(seq 1 501))\"}"; check "501-char body refused" 400 "$STATUS"
+req POST /api/admin/notices "${JSONH[@]}" -d '{"title":"t","body":"x","url":"https://evil.example/"}'; check "external url refused" 400 "$STATUS"
+req POST /api/admin/notices "${JSONH[@]}" -d '{"title":"t","body":"x","url":"//evil.example/"}'; check "protocol-relative url refused" 400 "$STATUS"
+req POST /api/admin/notices "${JSONH[@]}" -d '{"title":"t","body":"x","expires_days":0}'; check "expires_days 0 refused" 400 "$STATUS"
+req POST /api/admin/notices "${JSONH[@]}" -d '{"title":"t","body":"x","push":"yes"}'; check "non-boolean push refused" 400 "$STATUS"
+req POST /api/admin/notices "${JSONH[@]}" "${MACHINE[@]}" -d '{"title":"t","body":"x"}'; check "machine cannot post a notice" 403 "$STATUS"
+BEFORE=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/reader "$R_D" "$R_P" "$R_A" "$VPUB" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).count))')
+req POST /api/admin/notices "${JSONH[@]}" -d "{\"title\":\"$NTITLE\",\"body\":\"Öppna appen en gång så laddas den nya versionen.\",\"url\":\"#/bedom\",\"push\":true,\"expires_days\":3}"
+check "admin posts a pushed notice" 201 "$STATUS" "$BODY"; contains "notice pushed to devices" "$BODY" '"pushed":[1-9]'
+NID=$(printf '%s' "$BODY" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).notice.id))')
+sleep 1
+OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/reader "$R_D" "$R_P" "$R_A" "$VPUB")
+contains "reader got the notice push" "$OUT" "\"count\":$((BEFORE+1))"; contains "notice push title" "$OUT" "\"title\":\"$NTITLE\""; contains "notice push links in-app" "$OUT" '"url":"/#/bedom"'
+req GET /api/notices "${READER[@]}"; check "reader lists notices" 200 "$STATUS"; contains "notice listed" "$BODY" "$NTITLE"
+req POST /api/admin/notices "${JSONH[@]}" -d '{"title":"Tyst meddelande","body":"utan notis"}'; check "notice without push" 201 "$STATUS"; contains "no push sent" "$BODY" '"pushed":0'
+OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/reader "$R_D" "$R_P" "$R_A" "$VPUB"); contains "silent notice pushed nothing" "$OUT" "\"count\":$((BEFORE+1))"
+req GET /api/admin/audit; contains "audit has notice" "$BODY" '"action":"notice"'
+req DELETE "/api/admin/notices/$NID" "${JSONH[@]}" "${READER[@]}"; check "reader cannot remove a notice" 403 "$STATUS"
+req DELETE "/api/admin/notices/00000000-0000-4000-8000-000000000000" "${JSONH[@]}"; check "unknown notice 404" 404 "$STATUS"
+req DELETE "/api/admin/notices/$NID" "${JSONH[@]}"; check "admin removes the notice" 200 "$STATUS"
+req GET /api/notices; if printf '%s' "$BODY" | grep -q "$NID"; then FAIL=$((FAIL+1)); echo "  FAIL  removed notice still listed"; else PASS=$((PASS+1)); echo "  ok    removed notice no longer listed"; fi
+req GET /api/admin/audit; contains "audit has notice_removed" "$BODY" '"action":"notice_removed"'
+req GET /api/admin/security?days=1; contains "notice validation logged" "$BODY" 'title must be 1-80'
+
 kill $PUSH_PID 2>/dev/null; rm -f "$PUSH_LOG"
 
 echo "Web Push and clock (unit)"

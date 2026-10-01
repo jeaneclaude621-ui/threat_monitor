@@ -4,7 +4,7 @@
 import {
   store, onChange, isAdmin, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
-  loadUpdates, loadReads, markRead, isRead, refreshAll, adminGet, adminSend,
+  loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
   reportDevice, pushKey, pushSubscribe, pushUnsubscribe,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
@@ -400,6 +400,7 @@ function openSettings() {
         toggle.disabled = true;
         status.textContent = on ? 'Slår på…' : 'Stänger av…';
         (on ? enablePush() : disablePush()).then(() => {
+          pushState = on ? 'on' : 'off';
           status.textContent = on ? 'Notiser är på för den här enheten.' : 'Notiser är avstängda.';
         }).catch((e) => {
           toggle.checked = !on;
@@ -431,6 +432,69 @@ function openSettings() {
         h('button', { class: 'btn', type: 'button', onclick: () => { close(); openInstall(); } }, 'Lägg till på hemskärmen')) : null,
       h('div', { class: 'sheet-actions' }, h('button', { class: 'btn', type: 'button', autofocus: true, onclick: close }, 'Stäng')));
   }, { label: 'Notiser' });
+}
+
+// ---------------------------------------------------------------- notices, push nudge
+const DISMISS_KEY = 'hm.dismissedNotices';
+function dismissedNotices() {
+  try { return new Set(JSON.parse(localStorage.getItem(DISMISS_KEY) || '[]')); } catch { return new Set(); }
+}
+function dismissNotice(id) {
+  const ids = dismissedNotices(); ids.add(id);
+  try { localStorage.setItem(DISMISS_KEY, JSON.stringify([...ids].slice(-100))); } catch { /* private mode */ }
+}
+
+function noticeCards() {
+  const hidden = dismissedNotices();
+  const shown = store.notices.filter((n) => n && n.id && !hidden.has(n.id));
+  if (!shown.length) return null;
+  return frag(...shown.map((n) => h('section', { class: 'card card-pad notice-card', 'aria-label': `Meddelande: ${n.title}` },
+    h('div', { class: 'kicker amber' }, 'Meddelande'),
+    h('h2', { class: 'title-m' }, n.title),
+    h('p', { class: 'small' }, n.body),
+    h('div', { class: 'btn-row' },
+      n.url ? h('a', { class: 'btn primary', href: n.url.startsWith('#') ? n.url : n.url }, 'Öppna') : null,
+      h('button', { class: 'btn', type: 'button', onclick: () => { dismissNotice(n.id); rerender(); } }, 'Stäng')))));
+}
+
+// Whether this device has a push subscription: 'unknown' until checked.
+let pushState = 'unknown';
+async function refreshPushState() {
+  if (!pushSupported()) { pushState = 'unsupported'; return; }
+  const sub = await currentSubscription();
+  const next = sub && Notification.permission === 'granted' ? 'on' : 'off';
+  if (next !== pushState) { pushState = next; if (currentRoute === '') rerender(); }
+}
+const NUDGE_KEY = 'hm.pushNudgeSnooze';
+function nudgeSnoozed() {
+  try { return Date.now() < Number(localStorage.getItem(NUDGE_KEY) || 0); } catch { return false; }
+}
+let nudgeMsg = '';
+function pushNudge() {
+  if (!isStandalone() || !pushSupported() || pushState !== 'off' || nudgeSnoozed()) return null;
+  if (Notification.permission === 'denied') return null;
+  const msg = h('p', { class: 'small muted', role: 'status', 'aria-live': 'polite' }, nudgeMsg);
+  const btn = h('button', {
+    class: 'btn primary', type: 'button',
+    // The permission prompt must come straight from this tap: enablePush
+    // asks for permission before awaiting anything else.
+    onclick: () => {
+      btn.disabled = true; msg.textContent = 'Slår på…';
+      enablePush().then(() => { pushState = 'on'; nudgeMsg = ''; rerender(); })
+        .catch((e) => {
+          const m = String((e && e.message) || e);
+          nudgeMsg = m === 'blocked' ? 'Notiser är blockerade. Tillåt dem för Hotmonitor i enhetens inställningar.'
+            : m === 'dismissed' ? 'Du valde att inte tillåta notiser.' : 'Det gick inte att slå på notiser just nu.';
+          msg.textContent = nudgeMsg; btn.disabled = false;
+        });
+    },
+  }, 'Slå på notiser');
+  return h('section', { class: 'card card-pad nudge', 'aria-labelledby': 'nudge-title' },
+    h('h2', { class: 'kicker amber', id: 'nudge-title' }, 'Få notiser vid allvarliga händelser'),
+    h('p', { class: 'small' }, 'En notis när hotindex rör sig mycket, när en ny händelse får 9–10 och när administratörerna skickar ett meddelande.'),
+    h('div', { class: 'btn-row' }, btn,
+      h('button', { class: 'btn', type: 'button', onclick: () => { try { localStorage.setItem(NUDGE_KEY, String(Date.now() + 14 * 86400000)); } catch { /* private mode */ } rerender(); } }, 'Inte nu')),
+    msg);
 }
 
 function bellIcon() {
@@ -619,8 +683,10 @@ async function viewReport(date, q) {
         date ? null : h('a', { class: 'head-link', href: '#/arkiv' }, 'Tidigare dagar'),
         date ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
         admin ? h('a', { class: 'icon-btn', href: '#/admin', 'aria-label': 'Status och administration', title: 'Status och administration' }, gearIcon()) : null)),
+    archived ? null : noticeCards(),
     archived ? null : newBox(latest, r),
     archived ? null : installCard(),
+    archived ? null : pushNudge(),
     heroCard(r),
     top ? h('section', { class: 'section' },
       h('div', { class: 'kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
@@ -1708,7 +1774,7 @@ function mineRow(row, event, article) {
 }
 
 // ---------------------------------------------------------------- Admin
-const ADMIN_TABS = [['users', 'Användare'], ['security', 'Säkerhet'], ['status', 'Status'], ['audit', 'Ändringslogg']];
+const ADMIN_TABS = [['users', 'Användare'], ['notices', 'Meddelanden'], ['security', 'Säkerhet'], ['status', 'Status'], ['audit', 'Logg']];
 const REASONS = [
   ['not_allowed', 'Ej behörig', 'Verifierad e-post som inte finns bland användarna'],
   ['invalid_jwt', 'Ogiltig inloggning', 'Förfalskad, utgången eller trasig inloggningsbiljett'],
@@ -1722,6 +1788,7 @@ const ACTION_SV = {
   add_user: 'Lade till', user_add: 'Lade till', add: 'Lade till', reactivate: 'Återaktiverade', user_reactivate: 'Återaktiverade',
   role_change: 'Ändrade roll', set_role: 'Ändrade roll', user_role: 'Ändrade roll', change_role: 'Ändrade roll',
   deactivate: 'Tog bort', user_deactivate: 'Tog bort', remove_user: 'Tog bort', delete_user: 'Tog bort',
+  notice: 'Skickade meddelande', notice_removed: 'Tog bort meddelande', alarm: 'Larm', alarm_cleared: 'Larm upphävt', seed: 'Startvärden',
 };
 const ROLE_SV = { admin: 'Administratör', reader: 'Läsare' };
 const adminMsg = { text: '', error: false };
@@ -1744,6 +1811,7 @@ async function viewAdmin(q) {
   let body;
   try {
     body = tab === 'users' ? await adminUsers()
+      : tab === 'notices' ? await adminNotices()
       : tab === 'security' ? await adminSecurity()
         : tab === 'status' ? await adminStatus()
           : await adminAudit();
@@ -1851,6 +1919,75 @@ async function adminUsers() {
       h('h2', { class: 'kicker' }, `Användare · ${users.filter((u) => u.active !== false && u.active !== 0).length} aktiva`),
       h('div', { class: 'ulist' }, users.map(card))),
     addForm);
+}
+
+async function adminNotices() {
+  const [statusBody, notices] = await Promise.all([adminGet('/api/admin/status').catch(() => ({})), loadNotices()]);
+  const devices = statusBody && statusBody.push && Number(statusBody.push.subscriptions);
+  const title = h('input', { id: 'nt-title', type: 'text', required: true, maxlength: 80, autocomplete: 'off', placeholder: 'T.ex. Ny version av appen' });
+  const body = h('textarea', { id: 'nt-body', required: true, maxlength: 500, rows: 4, placeholder: 'Vad vill du säga?' });
+  const link = h('select', { id: 'nt-link' },
+    h('option', { value: '' }, 'Ingen länk'), h('option', { value: '#/' }, 'Idag'), h('option', { value: '#/bedom' }, 'Bedöm'));
+  const push = h('input', { id: 'nt-push', type: 'checkbox', checked: true });
+  const expiry = h('select', { id: 'nt-exp' },
+    ...[[1, '1 dag'], [3, '3 dagar'], [7, '7 dagar'], [14, '14 dagar']].map(([v, l]) => h('option', { value: String(v), selected: v === 7 }, l)));
+  const sendBtn = h('button', { class: 'btn primary', type: 'submit' }, 'Skicka meddelande');
+  const form = h('form', {
+    class: 'card card-pad form',
+    onsubmit: async (ev) => {
+      ev.preventDefault();
+      const t = title.value.trim(); const b = body.value.trim();
+      if (!t || !b) { adminMsg.text = 'Skriv både rubrik och text.'; adminMsg.error = true; route({ keepScroll: true }); return; }
+      sendBtn.disabled = true;
+      try {
+        const res = await adminSend('POST', '/api/admin/notices', {
+          title: t, body: b, url: link.value || null, push: push.checked, expires_days: Number(expiry.value),
+        });
+        const n = Number(res && res.pushed) || 0;
+        adminMsg.text = push.checked
+          ? `Meddelandet är publicerat. Skickat som notis till ${plural(n, 'enhet', 'enheter')}${res && res.failed ? ` (${res.failed} misslyckades)` : ''}.`
+          : 'Meddelandet är publicerat i appen (ingen notis).';
+        adminMsg.error = false;
+      } catch (e) {
+        if (e instanceof AuthError) throw e;
+        adminMsg.text = e instanceof OfflineError ? 'Ingen anslutning – meddelandet skickades inte.' : `Meddelandet skickades inte: ${e.message}`;
+        adminMsg.error = true;
+      }
+      route({ keepScroll: true });
+    },
+  },
+  h('h2', { class: 'kicker' }, 'Nytt meddelande'),
+  h('label', { class: 'search-label', for: 'nt-title' }, 'Rubrik'), title,
+  h('label', { class: 'search-label', for: 'nt-body' }, 'Text'), body,
+  h('label', { class: 'search-label', for: 'nt-link' }, 'Länk i appen'), link,
+  h('label', { class: 'search-label', for: 'nt-exp' }, 'Visas i'), expiry,
+  h('div', { class: 'check-row' }, push, h('label', { for: 'nt-push' }, 'Skicka även som notis till alla som slagit på notiser')),
+  h('p', { class: 'small muted' }, Number.isFinite(devices)
+    ? `${plural(devices, 'enhet', 'enheter')} har notiser påslagna just nu.`
+    : 'Antalet enheter med notiser kunde inte hämtas.'),
+  sendBtn);
+
+  const row = (n) => h('div', { class: 'ucard' },
+    h('div', { class: 'ucard-top' }, h('b', null, n.title)),
+    h('p', { class: 'small' }, n.body),
+    h('p', { class: 'small muted' }, `${n.author || ''} · ${whenFmt(n.ts)} · visas till ${whenFmt(n.expires_at)}`),
+    h('div', { class: 'btn-row' },
+      h('button', {
+        class: 'btn danger', type: 'button',
+        onclick: () => openSheet((close) => frag(
+          h('h2', { class: 'title-m' }, `Ta bort "${n.title}"?`),
+          h('p', { class: 'small' }, 'Meddelandet försvinner från appen. Notiser som redan skickats går inte att ta tillbaka.'),
+          h('div', { class: 'sheet-actions' },
+            h('button', { class: 'btn', type: 'button', autofocus: true, onclick: close }, 'Avbryt'),
+            h('button', { class: 'btn danger', type: 'button', onclick: () => { close(); adminMutate('DELETE', `/api/admin/notices/${encodeURIComponent(n.id)}`, null, 'Meddelandet är borttaget.').then(() => loadNotices().catch(() => {})); } }, 'Ta bort'))),
+        { label: 'Ta bort meddelandet' }),
+      }, 'Ta bort')));
+
+  return frag(
+    form,
+    h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, `Aktiva meddelanden · ${notices.length}`),
+      notices.length ? h('div', { class: 'ulist' }, notices.map(row)) : h('p', { class: 'small muted' }, 'Inga aktiva meddelanden.')));
 }
 
 async function adminSecurity() {
@@ -2055,8 +2192,35 @@ function installPullToRefresh() {
   }, { passive: true });
 }
 
+// A new deploy installs a new service worker, which takes control at once
+// (skipWaiting + clients.claim); reload then, once, so the page runs the
+// new code instead of the old code it started with.
+const RELOAD_FLAG = 'hm.swReloaded';
+let lastSwCheck = 0;
+function setupAutoUpdate() {
+  if (!('serviceWorker' in navigator)) return;
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      try {
+        if (sessionStorage.getItem(RELOAD_FLAG)) return;
+        sessionStorage.setItem(RELOAD_FLAG, '1');
+      } catch { return; }
+      location.reload();
+    }, { once: true });
+  }
+  // A clean start of this page may reload again on a later deploy.
+  setTimeout(() => { try { sessionStorage.removeItem(RELOAD_FLAG); } catch { /* ignore */ } }, 30000);
+  checkForUpdate();
+}
+function checkForUpdate() {
+  if (!('serviceWorker' in navigator) || Date.now() - lastSwCheck < 10 * 60000) return;
+  lastSwCheck = Date.now();
+  navigator.serviceWorker.getRegistration().then((reg) => reg && reg.update()).catch(() => {});
+}
+
 async function init() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  setupAutoUpdate();
   try {
     await loadMe();
   } catch (e) {
@@ -2068,13 +2232,17 @@ async function init() {
   assessmentsReady = loadAssessments().catch((e) => { console.warn('assessments', e); });
   const side = Promise.all([
     loadUpdates().catch((e) => { console.warn('updates', e); }),
+    loadNotices().catch((e) => { console.warn('notices', e); }),
     loadReads().catch((e) => { console.warn('reads', e); }),
   ]);
+  refreshPushState().catch(() => {});
   window.addEventListener('hashchange', () => route());
   window.addEventListener('offline', updateChrome);
   window.addEventListener('online', () => { loadMe().catch(() => {}).finally(updateChrome); });
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && Date.now() - lastRefresh > 60000) doRefresh({ quiet: true });
+    if (document.visibilityState !== 'visible') return;
+    checkForUpdate();
+    if (Date.now() - lastRefresh > 60000) doRefresh({ quiet: true });
   });
   installPullToRefresh();
   updateChrome();

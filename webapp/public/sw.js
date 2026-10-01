@@ -1,7 +1,7 @@
 // Offline support: the app shell is cache-first, report data network-first
 // with the last good copy as fallback. Writes (POST) are never cached; the
 // app keeps its own outbox for those.
-const VERSION = 'hm-v3.3';
+const VERSION = 'hm-v3.4';
 const SHELL = `${VERSION}-shell`;
 const DATA = `${VERSION}-data`;
 const FONTS = `${VERSION}-fonts`;

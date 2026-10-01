@@ -185,6 +185,15 @@ async function route(req) {
     return createAssessment(request, env, who);
   }
 
+  if (path === '/api/notices') {
+    allow(method, 'GET');
+    requireUser(who);
+    const { results } = await env.DB.prepare(
+      'SELECT id, ts, author, title, body, url, expires_at FROM notices WHERE active = 1 AND expires_at > ? ORDER BY ts DESC'
+    ).bind(new Date().toISOString()).all();
+    return json(results);
+  }
+
   if (path === '/api/updates') {
     allow(method, 'GET');
     requireUser(who);
@@ -276,6 +285,17 @@ async function routeAdmin(req, path, method) {
   if (path === '/api/admin/status') {
     allow(method, 'GET');
     return status(env);
+  }
+
+  if (path === '/api/admin/notices') {
+    allow(method, 'POST');
+    return createNotice(request, env, who);
+  }
+
+  const n = path.match(/^\/api\/admin\/notices\/([0-9a-f-]{36})$/);
+  if (n) {
+    allow(method, 'DELETE');
+    return removeNotice(env, who, n[1]);
   }
 
   throw new HttpError(404, 'not found');
@@ -885,6 +905,61 @@ async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal') {
   return summary;
 }
 
+// ---------------------------------------------------------------------------
+// Notices (Version 3.2)
+// ---------------------------------------------------------------------------
+const NOTICE_URL_RE = /^(#\/|\/(?!\/))[A-Za-z0-9\-._~%\/?#&=+]*$/;
+
+async function createNotice(request, env, who) {
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'body must be an object');
+  const text = (v, max, name) => {
+    if (typeof v !== 'string' || !v.trim() || v.trim().length > max) {
+      throw new HttpError(400, `${name} must be 1-${max} characters`);
+    }
+    return v.trim();
+  };
+  const title = text(body.title, 80, 'title');
+  const msg = text(body.body, 500, 'body');
+  let url = null;
+  if (body.url !== undefined && body.url !== null && body.url !== '') {
+    if (typeof body.url !== 'string' || body.url.length > 200 || !NOTICE_URL_RE.test(body.url)) {
+      throw new HttpError(400, 'url must be a same-origin path starting with #/ or /');
+    }
+    url = body.url;
+  }
+  if (body.push !== undefined && typeof body.push !== 'boolean') throw new HttpError(400, 'push must be a boolean');
+  const days = body.expires_days === undefined ? 7 : body.expires_days;
+  if (!Number.isInteger(days) || days < 1 || days > 30) throw new HttpError(400, 'expires_days must be 1-30');
+
+  const now = Date.now();
+  const notice = {
+    id: crypto.randomUUID(), ts: new Date(now).toISOString(), author: who.email,
+    title, body: msg, url, expires_at: new Date(now + days * 86400000).toISOString(),
+  };
+  await env.DB.prepare(
+    'INSERT INTO notices (id, ts, author, title, body, url, active, expires_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?)'
+  ).bind(notice.id, notice.ts, notice.author, title, msg, url, notice.expires_at).run();
+  await audit(env, who.email, 'notice', notice.id, { title, push: !!body.push, expires_days: days });
+
+  let pushed = 0, failed = 0;
+  if (body.push) {
+    const target = url ? (url.startsWith('#') ? `/${url}` : url) : '/#/';
+    const r = await pushTo(env, { adminsOnly: false, pref: 'notice' }, { title, body: msg, url: target });
+    pushed = r.sent || 0;
+    failed = r.failed || 0;
+  }
+  return json({ notice, pushed, failed }, 201);
+}
+
+async function removeNotice(env, who, id) {
+  const row = await env.DB.prepare('SELECT id, active FROM notices WHERE id = ?').bind(id).first();
+  if (!row) throw new HttpError(404, 'no such notice');
+  await env.DB.prepare('UPDATE notices SET active = 0 WHERE id = ?').bind(id).run();
+  await audit(env, who.email, 'notice_removed', id, null);
+  return json({ ok: true });
+}
+
 /** Everything the Mac keeps as a daily backup - no push keys. */
 async function exportAll(env) {
   const all = async (sql) => (await env.DB.prepare(sql).all()).results;
@@ -899,6 +974,7 @@ async function exportAll(env) {
     security_log: await all('SELECT * FROM security_log ORDER BY id'),
     reads: await all('SELECT * FROM reads ORDER BY email, ts'),
     updates,
+    notices: await all('SELECT * FROM notices ORDER BY ts'),
     push_subscription_count: subs.n,
     exported_at: new Date().toISOString(),
   });

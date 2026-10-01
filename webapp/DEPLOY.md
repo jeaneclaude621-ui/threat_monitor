@@ -257,3 +257,18 @@ Local testing: `.dev.vars` holds a separate local VAPID pair and
 together with the DEV_AUTH bypass). Run `npx wrangler dev --port 8787
 --test-scheduled` and `scripts/smoke_test.sh`; the cron is triggered via
 `/cdn-cgi/handler/scheduled?cron=...&time=<ms>`.
+
+## Version 3.2 - notices, broadcast push, auto-update
+
+From `webapp/`, logged in with `wrangler login` (unset any CLOUDFLARE_API_TOKEN):
+
+```sh
+env -u CLOUDFLARE_API_TOKEN npx wrangler d1 migrations apply hotmonitor --remote   # 0004_notices.sql
+env -u CLOUDFLARE_API_TOKEN npx wrangler deploy
+```
+
+No new secrets or vars. Open apps pick the new version up on their next
+open: the new service worker takes control and the page reloads once.
+Apps still on hm-v3.3 or older reload by themselves only from this
+version on; they get it the first time they are opened after the deploy
+(that open may show the old version once).

@@ -62,6 +62,7 @@ export const store = {
   outbox: lsGet(OUTBOX_KEY, []),
   stale: false,          // true when showing cached data because the server was unreachable
   updates: [],           // live feed rows, newest first
+  notices: [],           // active announcements from admins, newest first
   reads: new Set(lsGet(READ_CACHE_KEY, [])), // item ids I have read (events and updates)
   lastVisit: null,       // my previous visit, from the server
   readsOutbox: lsGet(READS_KEY, []),
@@ -306,6 +307,13 @@ export async function loadUpdates() {
   return store.updates;
 }
 
+export async function loadNotices() {
+  const rows = await getJSON('/api/notices', { cache: 'no-store' });
+  store.notices = Array.isArray(rows) ? rows : [];
+  emit();
+  return store.notices;
+}
+
 export async function loadReads() {
   const body = await getJSON('/api/reads', { cache: 'no-store' });
   const ids = Array.isArray(body && body.item_ids) ? body.item_ids : [];
@@ -372,6 +380,7 @@ export async function refreshAll() {
     // /api/me also carries the missing-report alarm, so refresh it too.
     loadMe().catch((e) => { if (e instanceof AuthError) throw e; }),
     loadUpdates().catch((e) => { if (e instanceof AuthError) throw e; }),
+    loadNotices().catch((e) => { if (e instanceof AuthError) throw e; }),
     loadReads().catch((e) => { if (e instanceof AuthError) throw e; }),
     loadAssessments().catch((e) => { if (e instanceof AuthError) throw e; }),
   ]);
