@@ -84,6 +84,7 @@ consolidated PowerPoint status report every morning at 05:00.
    cp schedule/launchd/*.plist ~/Library/LaunchAgents/
    launchctl bootstrap gui/$UID ~/Library/LaunchAgents/se.threatmonitor.daily.plist
    launchctl bootstrap gui/$UID ~/Library/LaunchAgents/se.threatmonitor.hourly.plist
+   launchctl bootstrap gui/$UID ~/Library/LaunchAgents/se.threatmonitor.invites.plist   # app invitation emails, every 2 min
    ```
 
    cron silently skips any run scheduled while the Mac is asleep and

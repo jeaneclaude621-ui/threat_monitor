@@ -2,8 +2,17 @@
 Mail about the web app itself - separate from the daily report mail.
 
     python3 src/app_mail.py invite           # mail the testers link + login steps
+    python3 src/app_mail.py send-invites     # mail invites queued in the web app
     python3 src/app_mail.py check            # print new replies (read-only)
     python3 src/app_mail.py check --all      # include ones already shown
+
+`send-invites` runs every two minutes from launchd
+(se.threatmonitor.invites): adding a person on the app's admin page
+queues an invite in the Worker, which cannot send mail itself. This
+fetches the queue as the Mac's service token, mails each person the link
+and login steps over SMTP, and reports sent/failed back. Ids already
+mailed are kept in data/app_invites_sent.json, so a lost report never
+mails anyone twice.
 
 `check` is how instructions sent by mail reach whoever maintains the
 app: it prints new replies whose subject contains SUBJECT_MARKER from a
@@ -23,20 +32,24 @@ import email
 import imaplib
 import json
 import re
+import os
 import sys
+from datetime import datetime, timezone
+from email.message import EmailMessage
 from email.header import decode_header, make_header
 from email.utils import parseaddr
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import DATA_DIR
-from mailer import send_plain_email
+from mailer import _smtp_send, send_plain_email
 from reply_checker import QUOTE_START_RE, _imap_config
 
 SUBJECT_MARKER = "Hotmonitor-appen"
 TESTERS = ["admin.one@example.org", "admin.two@example.org"]
 TRUSTED = set(TESTERS) | {"the.owner@example.org"}
 SEEN_PATH = DATA_DIR / "app_mail_seen.json"
+INVITES_SENT_PATH = DATA_DIR / "app_invites_sent.json"
 
 
 def invite(url: str) -> None:
@@ -68,6 +81,100 @@ Svara gärna på det här mejlet med synpunkter och önskemål.
 """
     for to in TESTERS:
         send_plain_email(to, f"{SUBJECT_MARKER} - inbjudan till test", body)
+
+
+def invite_text(url: str, role: str) -> str:
+    if role == "admin":
+        what = ("Du är administratör: du kan läsa allt, göra operatörsbedömningar\n"
+                "(fliken Bedöm, svep på artiklarna) och hantera användare.")
+    else:
+        what = ("Du kan läsa dagens rapport, arkivet, ämnen och kartan, och få\n"
+                "notiser när något allvarligt händer.")
+    return f"""Hej!
+
+Du har fått tillgång till Hotmonitor, den dagliga bedömningen av ryska
+hybridhot mot Nato, EU och Ukraina.
+
+{what}
+
+Länk: {url}
+
+Så loggar du in (första gången, sedan håller inloggningen i 30 dagar):
+1. Öppna länken, gärna i Safari på iPhone.
+2. Skriv in din e-postadress (den här, som mejlet kom till).
+3. Du får en sexsiffrig kod från Cloudflare Access - skriv in den.
+Det finns inget lösenord. Hittar du inte koden, titta i skräpposten.
+
+Lägg appen på hemskärmen så beter den sig som en app:
+Dela-knappen -> "Lägg till på hemskärmen". Där kan du också slå på notiser.
+
+Frågor? Svara på det här mejlet.
+"""
+
+
+def _send_invite(to: str, url: str, role: str, reply_to: str) -> None:
+    """Raises on failure, so the reason can be shown on the admin page."""
+    host, port = os.environ.get("SMTP_HOST"), os.environ.get("SMTP_PORT")
+    user, password = os.environ.get("SMTP_USERNAME"), os.environ.get("SMTP_PASSWORD")
+    mail_from = os.environ.get("MAIL_FROM")
+    if not all([host, port, user, password, mail_from]):
+        raise RuntimeError("SMTP är inte konfigurerat på Macen")
+    msg = EmailMessage()
+    msg["Subject"] = f"Inbjudan till {SUBJECT_MARKER}"
+    msg["From"] = mail_from
+    msg["To"] = to
+    if reply_to and "@" in reply_to:
+        msg["Reply-To"] = reply_to
+    # RFC 3834: sent by a program, not a reply to anything.
+    msg["Auto-Submitted"] = "auto-generated"
+    msg.set_content(invite_text(url, role))
+    _smtp_send(host, port, user, password, msg)
+
+
+def send_invites() -> int:
+    """Mails the invites queued in the web app. Returns how many were sent.
+    Never raises: the next run (two minutes later) simply tries again."""
+    from app_sync import _config, _request
+    cfg = _config()
+    if not cfg:
+        print("  Invites skipped - HOTMONITOR_URL / CF_ACCESS_CLIENT_* not set")
+        return 0
+    url = cfg[0] + "/"
+    try:
+        pending = _request("GET", "/api/export/invites", retries=False)
+    except Exception as e:
+        print(f"  ! Could not fetch invites: {e}")
+        return 0
+    try:
+        mailed = json.loads(INVITES_SENT_PATH.read_text())
+    except (OSError, ValueError):
+        mailed = {}
+    sent = 0
+    for inv in pending:
+        iid, to = inv.get("id"), inv.get("email")
+        if not iid or not to:
+            continue
+        if iid not in mailed:
+            try:
+                _send_invite(to, url, inv.get("role") or "reader", inv.get("requested_by") or "")
+            except Exception as e:
+                reason = str(e) or type(e).__name__
+                print(f"  ! Invite to {to} failed: {reason}")
+                try:
+                    _request("PUT", f"/api/ingest/invites/{iid}", {"status": "failed", "error": reason[:300]}, retries=False)
+                except Exception as e2:
+                    print(f"  ! Could not report the failure: {e2}")
+                continue
+            mailed[iid] = datetime.now(timezone.utc).isoformat()
+            INVITES_SENT_PATH.write_text(json.dumps(mailed, indent=1))
+            sent += 1
+            print(f"  Invite sent to {to}")
+        try:
+            _request("PUT", f"/api/ingest/invites/{iid}", {"status": "sent"}, retries=False)
+        except Exception as e:
+            # Reported again on the next run; the local record stops a second mail.
+            print(f"  ! Could not report invite {iid} as sent: {e}")
+    return sent
 
 
 def _load_seen() -> set:
@@ -140,6 +247,8 @@ if __name__ == "__main__":
         if not url:
             sys.exit("HOTMONITOR_URL is not set")
         invite(url)
+    elif cmd == "send-invites":
+        send_invites()
     elif cmd == "check":
         replies = check(show_all="--all" in sys.argv)
         if not replies:

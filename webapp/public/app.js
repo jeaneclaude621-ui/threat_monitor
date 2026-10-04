@@ -1789,6 +1789,7 @@ const ACTION_SV = {
   role_change: 'Ändrade roll', set_role: 'Ändrade roll', user_role: 'Ändrade roll', change_role: 'Ändrade roll',
   deactivate: 'Tog bort', user_deactivate: 'Tog bort', remove_user: 'Tog bort', delete_user: 'Tog bort',
   notice: 'Skickade meddelande', notice_removed: 'Tog bort meddelande', alarm: 'Larm', alarm_cleared: 'Larm upphävt', seed: 'Startvärden',
+  invite: 'Bjöd in', refresh: 'Uppdaterade alla appar',
 };
 const ROLE_SV = { admin: 'Administratör', reader: 'Läsare' };
 const adminMsg = { text: '', error: false };
@@ -1855,20 +1856,23 @@ async function adminUsers() {
 
   const email = h('input', { id: 'nu-email', type: 'email', required: true, autocomplete: 'off', autocapitalize: 'none', spellcheck: 'false', placeholder: 'namn@exempel.se', inputmode: 'email' });
   const role = h('select', { id: 'nu-role' }, h('option', { value: 'reader' }, 'Läsare – kan inte bedöma'), h('option', { value: 'admin' }, 'Administratör'));
+  const invite = h('input', { id: 'nu-invite', type: 'checkbox', checked: true });
   const addForm = h('form', {
     class: 'card card-pad form',
     onsubmit: (ev) => {
       ev.preventDefault();
       const v = email.value.trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { adminMsg.text = 'Skriv en giltig e-postadress.'; adminMsg.error = true; route({ keepScroll: true }); return; }
-      adminMutate('POST', '/api/admin/users', { email: v, role: role.value }, `${v} har lagts till som ${ROLE_SV[role.value].toLowerCase()}.`);
+      adminMutate('POST', '/api/admin/users', { email: v, role: role.value, invite: invite.checked },
+        `${v} har lagts till som ${ROLE_SV[role.value].toLowerCase()}.${invite.checked ? ' En inbjudan med länk och inloggning mejlas inom några minuter.' : ''}`);
     },
   },
   h('h2', { class: 'kicker' }, 'Lägg till användare'),
   h('label', { class: 'search-label', for: 'nu-email' }, 'E-postadress'), email,
   h('label', { class: 'search-label', for: 'nu-role' }, 'Roll'), role,
+  h('div', { class: 'check-row' }, invite, h('label', { for: 'nu-invite' }, 'Mejla en inbjudan med länk och hur man loggar in')),
   h('button', { class: 'btn primary', type: 'submit' }, 'Lägg till'),
-  h('p', { class: 'small muted' }, 'Personen loggar in med en engångskod till adressen. Inget lösenord.'));
+  h('p', { class: 'small muted' }, 'Personen loggar in med en engångskod till adressen. Inget lösenord. Inbjudan skickas från Macen, så den måste vara igång.'));
 
   const card = (u) => {
     const active = u.active !== false && u.active !== 0;
@@ -1890,10 +1894,15 @@ async function adminUsers() {
       h('p', { class: 'small muted' },
         `Hemskärm: ${u.installed_at ? 'ja' : 'nej'}${u.platform ? ` · ${PLATFORM_SV[u.platform] || u.platform}` : ''}`,
         u.role === 'admin' ? ` · Träffsäkerhet: ${trackText(tracks[u.email]) || '–'}` : ''),
+      active ? inviteLine(u) : null,
       lockReason ? h('p', { class: 'small lock' }, lockReason) : null,
       h('div', { class: 'btn-row' },
         active
           ? frag(
+            u.last_seen ? null : h('button', {
+              class: 'btn', type: 'button', disabled: u.invite_status === 'pending',
+              onclick: () => adminMutate('POST', `${target}/invite`, {}, `En inbjudan till ${u.email} mejlas inom några minuter.`),
+            }, u.invite_status ? 'Skicka inbjudan igen' : 'Skicka inbjudan'),
             h('button', {
               class: 'btn', type: 'button', disabled: !!lockReason,
               onclick: () => {
@@ -1919,6 +1928,17 @@ async function adminUsers() {
       h('h2', { class: 'kicker' }, `Användare · ${users.filter((u) => u.active !== false && u.active !== 0).length} aktiva`),
       h('div', { class: 'ulist' }, users.map(card))),
     addForm);
+}
+
+function inviteLine(u) {
+  const st = u.invite_status;
+  if (!st || st === 'cancelled') {
+    return u.last_seen ? null : h('p', { class: 'small muted invite-line' }, 'Ingen inbjudan skickad från appen.');
+  }
+  const text = st === 'sent' ? `Inbjudan mejlad ${whenFmt(u.invite_sent_at)}`
+    : st === 'pending' ? `Inbjudan väntar på att Macen skickar den (begärd ${ago(u.invite_requested_at)})${u.invite_error ? ` · senaste försöket misslyckades: ${u.invite_error}` : ''}`
+      : `Inbjudan kunde inte skickas: ${u.invite_error || 'okänt fel'}`;
+  return h('p', { class: `small muted invite-line${st === 'failed' ? ' warn' : ''}` }, text);
 }
 
 async function adminNotices() {
@@ -1983,7 +2003,35 @@ async function adminNotices() {
         { label: 'Ta bort meddelandet' }),
       }, 'Ta bort')));
 
+  const last = statusBody && statusBody.refresh;
+  const rMsg = h('input', { id: 'rf-msg', type: 'text', maxlength: 200, autocomplete: 'off', placeholder: 'T.ex. Rättad poäng i dagens rapport' });
+  const rBtn = h('button', { class: 'btn primary', type: 'submit' }, 'Uppdatera alla appar');
+  const refreshForm = h('form', {
+    class: 'card card-pad form',
+    onsubmit: async (ev) => {
+      ev.preventDefault();
+      rBtn.disabled = true;
+      try {
+        const res = await adminSend('POST', '/api/admin/refresh', { message: rMsg.value.trim() || null });
+        const n = Number(res && res.pushed) || 0;
+        adminMsg.text = `Uppdateringen är skickad. Notis till ${plural(n, 'enhet', 'enheter')}${res && res.failed ? ` (${res.failed} misslyckades)` : ''}; öppna appar laddar om, övriga nästa gång de öppnas.`;
+        adminMsg.error = false;
+      } catch (e) {
+        if (e instanceof AuthError) throw e;
+        adminMsg.text = e instanceof OfflineError ? 'Ingen anslutning – uppdateringen skickades inte.' : `Uppdateringen skickades inte: ${e.message}`;
+        adminMsg.error = true;
+      }
+      route({ keepScroll: true });
+    },
+  },
+  h('h2', { class: 'kicker' }, 'Uppdatera alla appar'),
+  h('p', { class: 'small' }, 'Skickar en notis och får alla öppna appar att ladda om, med ny version om en finns och färska data. Överst i appen står sedan "Appen har uppdaterats".'),
+  h('label', { class: 'search-label', for: 'rf-msg' }, 'Vad har ändrats? (valfritt)'), rMsg,
+  last && last.at ? h('p', { class: 'small muted' }, `Senast: ${whenFmt(last.at)} av ${last.by || '–'}${last.message ? ` – ${last.message}` : ''}`) : null,
+  rBtn);
+
   return frag(
+    refreshForm,
     form,
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, `Aktiva meddelanden · ${notices.length}`),
@@ -2057,6 +2105,13 @@ async function adminStatus() {
     h('div', { class: 'stat-label' }, 'Macens nyckel går ut'),
     h('div', { class: 'stat-value' }, exp ? exp.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' }) : '–'),
     daysLeft == null ? null : h('div', { class: 'small' }, daysLeft < 0 ? 'Har gått ut – Macen kan inte ladda upp' : daysLeft <= 30 ? `Om ${plural(daysLeft, 'dag', 'dagar')} – förnya nyckeln` : `Om ${daysLeft} dagar`)));
+  const inv = s.invites || {};
+  if (inv.pending) {
+    const stuck = !inv.last_pull_at || Date.now() - new Date(inv.last_pull_at).getTime() > 30 * 60000;
+    tiles.push(h('div', { class: `stat ${stuck ? 'warn' : ''}` }, h('div', { class: 'stat-label' }, 'Inbjudningar som väntar'),
+      h('div', { class: 'stat-value' }, String(inv.pending)),
+      h('div', { class: 'small' }, `Macen hämtade senast ${inv.last_pull_at ? ago(inv.last_pull_at) : 'aldrig'}`)));
+  }
   const alarm = s.alarm && s.alarm.missing_report;
   return frag(
     alarm ? h('section', { class: 'alarm-card', role: 'alert' },
@@ -2218,9 +2273,90 @@ function checkForUpdate() {
   navigator.serviceWorker.getRegistration().then((reg) => reg && reg.update()).catch(() => {});
 }
 
+// An admin's "Uppdatera alla" (/api/admin/refresh) is in /api/me as
+// `refresh` and arrives as a push. A page started before it reloads once
+// - new code if deployed, fresh data either way - and then says so.
+const REFRESH_SEEN_KEY = 'hm.refreshSeen';
+const REFRESH_NOTE_KEY = 'hm.refreshNote';
+const REFRESH_NOTE_DAYS = 3;
+const pageStartedAt = Date.now();
+let reloading = false;
+let handledRefresh = null;   // in memory too, in case storage is unavailable
+function checkRefresh() {
+  const r = store.me && store.me.refresh;
+  if (!r || !r.id || !r.at || reloading || handledRefresh === r.id) return;
+  let seen;
+  try { seen = localStorage.getItem(REFRESH_SEEN_KEY); } catch { seen = undefined; }
+  if (seen === r.id) { handledRefresh = r.id; return; }
+  // Not mid-swipe or with a sheet open; the next change tries again.
+  if (isDragging() || document.querySelector('dialog[open]')) return;
+  handledRefresh = r.id;
+  const at = Date.parse(r.at);
+  // Without storage a reload could repeat forever: just fetch new data.
+  let stored = false;
+  try { localStorage.setItem(REFRESH_SEEN_KEY, r.id); stored = localStorage.getItem(REFRESH_SEEN_KEY) === r.id; } catch { /* private mode */ }
+  // First start on this device: it is already up to date, nothing to announce.
+  if (seen === null && at < pageStartedAt) return;
+  // Two minutes of slack for a phone clock that runs ahead of the server.
+  if (stored && at > pageStartedAt - 120000) {
+    try { sessionStorage.setItem(REFRESH_NOTE_KEY, JSON.stringify(r)); } catch { /* the note is optional */ }
+    hardReload();
+    return;
+  }
+  if (!stored && at > pageStartedAt - 120000) doRefresh({ quiet: true });
+  if (Date.now() - at < REFRESH_NOTE_DAYS * 86400000) showRefreshNote(r);
+}
+async function hardReload() {
+  reloading = true;
+  // Our own reload below; the controllerchange handler must not add a second.
+  try { sessionStorage.setItem(RELOAD_FLAG, '1'); } catch { /* ignore */ }
+  try {
+    const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null;
+    if (reg) {
+      await reg.update().catch(() => {});
+      const w = reg.installing || reg.waiting;
+      // A new deploy: wait for its worker so the reload runs the new code.
+      if (w) {
+        await new Promise((resolve) => {
+          const t = setTimeout(resolve, 8000);
+          w.addEventListener('statechange', () => {
+            if (w.state === 'activated' || w.state === 'redundant') { clearTimeout(t); resolve(); }
+          });
+        });
+      }
+    }
+  } catch { /* reload anyway */ }
+  location.reload();
+}
+function showRefreshNote(r) {
+  const el = document.getElementById('updated');
+  if (!el) return;
+  const when = new Date(r.at);
+  const time = Number.isNaN(when.getTime()) ? '' : ` ${tsFmt(r.at)}`;
+  el.replaceChildren(
+    h('span', null, h('b', null, 'Appen har uppdaterats'), time, r.message ? ` · ${r.message}` : ''),
+    h('button', { type: 'button', onclick: () => { el.hidden = true; } }, 'Stäng'));
+  el.hidden = false;
+}
+function setupRefresh() {
+  let note = null;
+  try {
+    note = JSON.parse(sessionStorage.getItem(REFRESH_NOTE_KEY) || 'null');
+    sessionStorage.removeItem(REFRESH_NOTE_KEY);
+  } catch { note = null; }
+  if (note && note.at) showRefreshNote(note);
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (ev) => {
+      if (ev.data && ev.data.type === 'hm-refresh') loadMe().catch(() => {});
+    });
+  }
+  onChange(checkRefresh);
+}
+
 async function init() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
   setupAutoUpdate();
+  setupRefresh();
   try {
     await loadMe();
   } catch (e) {
@@ -2243,6 +2379,8 @@ async function init() {
     if (document.visibilityState !== 'visible') return;
     checkForUpdate();
     if (Date.now() - lastRefresh > 60000) doRefresh({ quiet: true });
+    // Cheap, and catches an admin's "Uppdatera alla" whose push came while away.
+    else loadMe().catch(() => {});
   });
   installPullToRefresh();
   updateChrome();

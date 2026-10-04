@@ -613,3 +613,17 @@ button.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 
 .form textarea { font: inherit; font-size: 16px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, #D6D0C4); background: var(--card, #fff); color: inherit; resize: vertical; min-height: 96px; }
 .check-row { display: flex; gap: 10px; align-items: flex-start; margin: 10px 0 4px; font-size: 15px; }
 .check-row input { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
+
+/* ---------------------------------------------------------------- v3.3: "Appen har uppdaterats" */
+.updated {
+  display: flex; gap: 10px; align-items: center; justify-content: center;
+  padding: calc(env(safe-area-inset-top) + 8px) 16px 8px;
+  background: var(--pos-bg); color: var(--pos-fg); font-size: 13px; text-align: center;
+}
+.updated[hidden] { display: none; }
+.topbars > :not([hidden]) ~ .updated { padding-top: 8px; }
+.updated button {
+  border: 0; background: transparent; color: inherit; font: inherit; font-weight: 600;
+  padding: 4px 6px; cursor: pointer; text-decoration: underline;
+}
+.invite-line.warn { color: var(--neg-fg); }

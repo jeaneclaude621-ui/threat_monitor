@@ -282,3 +282,49 @@ saves it daily to `data/backups/app-<date>.json` (keeps 30).
 - Idag shows "Få notiser vid allvarliga händelser" when running standalone,
   notifications are supported, permission is not denied and there is no
   subscription; "Inte nu" hides it 14 days.
+
+---
+
+# Version 3.3 (4 Oct 2026) - invitation emails, "Uppdatera alla appar"
+
+Invitations. The Worker cannot send mail, so it queues and the Mac sends.
+- D1 `invites(id TEXT PK, email, role, requested_at, requested_by, status
+  'pending'|'sent'|'failed'|'cancelled', sent_at, error, attempts)`.
+- `POST /api/admin/users` takes `invite: bool`. A new user is invited unless
+  `invite === false`; an existing one (reactivation, role change) only when
+  `invite === true`. Audit row `invite`. One open invite per person: queueing
+  cancels an older pending one; removing a user cancels theirs.
+- `POST /api/admin/users/:email/invite` (admin) -> queues a new invite (409 if
+  the user is removed). Returns the user row.
+- User rows gain `invite_status`, `invite_requested_at`, `invite_sent_at`,
+  `invite_error` (latest invite).
+- `GET /api/export/invites` (machine): pending invites for active users,
+  `{ id, email, role, requested_at, requested_by, attempts }`, oldest first,
+  max 50; records `meta.last_invite_pull_at`.
+- `PUT /api/ingest/invites/:id` (machine) `{ status: 'sent' | 'failed', error? }`.
+  A failure stays pending (retried next run) until 3 attempts, then `failed`.
+- Mac: `src/app_mail.py send-invites` every 2 min (launchd
+  `se.threatmonitor.invites`). Mail: link, login steps, role; Reply-To the
+  admin who invited; ids mailed kept in `data/app_invites_sent.json` so a lost
+  report never mails twice.
+- `/api/admin/status` gains `invites: { pending, last_pull_at }`; the app shows
+  a tile while any are pending (warn when the Mac has not pulled for 30 min).
+
+"Uppdatera alla appar".
+- `POST /api/admin/refresh` (admin, Origin-checked) `{ message? (<= 200) }` ->
+  `meta.app_refresh = { id, at, by, message }`, audit row `refresh`, Web Push
+  to all (respecting `prefs.notice === false`) with `{ title: "Hotmonitor har
+  uppdaterats", body, url: "/#/", tag: "hm-refresh", kind: "refresh",
+  refresh_id }`. 429 within 30 s of the previous one. Returns `{ refresh,
+  pushed, failed }`.
+- `GET /api/me` and `/api/admin/status` gain `refresh` (null if never sent).
+- Service worker (hm-v3.5): a `kind: "refresh"` push also runs
+  `registration.update()` and posts `{ type: "hm-refresh" }` to open windows;
+  tapping the notification posts it to the focused window.
+- App: when `me.refresh.id` is new to this device (localStorage
+  `hm.refreshSeen`) and newer than the page's start (2 min slack), it waits for
+  a new service worker if one is installing (max 8 s) and reloads once, then
+  shows "Appen har uppdaterats <time> · <message>" at the top until closed. A
+  page started after the refresh only shows the line (if under 3 days old);
+  a device's first start shows nothing. `hm-refresh` messages and becoming
+  visible re-check `/api/me`.

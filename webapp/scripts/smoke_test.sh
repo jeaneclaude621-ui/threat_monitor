@@ -306,6 +306,50 @@ req GET /api/notices; if printf '%s' "$BODY" | grep -q "$NID"; then FAIL=$((FAIL
 req GET /api/admin/audit; contains "audit has notice_removed" "$BODY" '"action":"notice_removed"'
 req GET /api/admin/security?days=1; contains "notice validation logged" "$BODY" 'title must be 1-80'
 
+echo "Version 3.3: invites"
+INV="invitee-$RANDOM$RANDOM@example.com"
+req POST /api/admin/users "${JSONH[@]}" -d "{\"email\":\"$INV\",\"role\":\"reader\"}"; check "add queues an invite" 201 "$STATUS"; contains "invite pending" "$BODY" '"invite_status":"pending"'
+req GET /api/export/invites;               check "user cannot read the invite queue" 403 "$STATUS"
+req GET /api/export/invites "${MACHINE[@]}"; check "machine reads the queue" 200 "$STATUS"; contains "queue has the invitee" "$BODY" "$INV"; contains "queue carries the role" "$BODY" '"role":"reader"'
+IID=$(printf '%s' "$BODY" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s).find(x=>x.email===process.argv[1]);console.log(r?r.id:"")})' "$INV")
+req PUT "/api/ingest/invites/$IID" "${JSONH[@]}" -d '{"status":"sent"}'; check "user cannot report an invite" 403 "$STATUS"
+req PUT "/api/ingest/invites/$IID" "${JSONH[@]}" "${MACHINE[@]}" -d '{"status":"maybe"}'; check "bad invite status" 400 "$STATUS"
+req PUT "/api/ingest/invites/not-an-id" "${JSONH[@]}" "${MACHINE[@]}" -d '{"status":"sent"}'; check "bad invite id" 400 "$STATUS"
+req PUT "/api/ingest/invites/00000000-0000-4000-8000-000000000000" "${JSONH[@]}" "${MACHINE[@]}" -d '{"status":"sent"}'; check "unknown invite" 404 "$STATUS"
+req PUT "/api/ingest/invites/$IID" "${JSONH[@]}" "${MACHINE[@]}" -d '{"status":"failed","error":"SMTP nere"}'; check "failure reported" 200 "$STATUS"; contains "one failure is retried" "$BODY" '"status":"pending"'
+req PUT "/api/ingest/invites/$IID" "${JSONH[@]}" "${MACHINE[@]}" -d '{"status":"sent"}'; check "sent reported" 200 "$STATUS"; contains "invite sent" "$BODY" '"status":"sent"'
+req GET /api/export/invites "${MACHINE[@]}"; if printf '%s' "$BODY" | grep -q "$INV"; then FAIL=$((FAIL+1)); echo "  FAIL  sent invite still queued"; else PASS=$((PASS+1)); echo "  ok    sent invite leaves the queue"; fi
+req GET /api/admin/users; contains "user list shows the sent invite" "$BODY" "\"email\":\"$INV\"[^}]*\"invite_status\":\"sent\""
+req POST "/api/admin/users/$INV/invite" "${JSONH[@]}" "${READER[@]}" -d '{}'; check "reader cannot resend" 403 "$STATUS"
+req POST "/api/admin/users/$INV/invite" "${JSONH[@]}" -d '{}'; check "admin resends" 201 "$STATUS"; contains "resend pending" "$BODY" '"invite_status":"pending"'
+req POST "/api/admin/users/$INV/invite" "${JSONH[@]}" -d '{}'; check "resend again" 201 "$STATUS"
+req GET /api/export/invites "${MACHINE[@]}"; N=$(printf '%s' "$BODY" | grep -o "$INV" | wc -l | tr -d ' '); check "one open invite per person" 1 "$N"
+req DELETE "/api/admin/users/$INV" -H "Origin: $BASE"; check "remove the invitee" 200 "$STATUS"
+req GET /api/export/invites "${MACHINE[@]}"; if printf '%s' "$BODY" | grep -q "$INV"; then FAIL=$((FAIL+1)); echo "  FAIL  removed user's invite still queued"; else PASS=$((PASS+1)); echo "  ok    removing a user cancels the invite"; fi
+req POST "/api/admin/users/$INV/invite" "${JSONH[@]}" -d '{}'; check "no invite for a removed user" 409 "$STATUS"
+req POST /api/admin/users "${JSONH[@]}" -d "{\"email\":\"$INV\",\"role\":\"reader\"}"; check "reactivate" 200 "$STATUS"
+req GET /api/export/invites "${MACHINE[@]}"; if printf '%s' "$BODY" | grep -q "$INV"; then FAIL=$((FAIL+1)); echo "  FAIL  reactivation mailed without asking"; else PASS=$((PASS+1)); echo "  ok    reactivation sends no invite unasked"; fi
+NOINV="quiet-$RANDOM$RANDOM@example.com"
+req POST /api/admin/users "${JSONH[@]}" -d "{\"email\":\"$NOINV\",\"role\":\"reader\",\"invite\":false}"; check "add without invite" 201 "$STATUS"
+req GET /api/export/invites "${MACHINE[@]}"; if printf '%s' "$BODY" | grep -q "$NOINV"; then FAIL=$((FAIL+1)); echo "  FAIL  invite:false still queued"; else PASS=$((PASS+1)); echo "  ok    invite:false queues nothing"; fi
+req POST /api/admin/users "${JSONH[@]}" -d "{\"email\":\"x$NOINV\",\"role\":\"reader\",\"invite\":\"yes\"}"; check "non-boolean invite refused" 400 "$STATUS"
+req GET /api/admin/status; contains "status shows the invite queue" "$BODY" '"invites":{"pending":'
+req GET /api/admin/audit; contains "audit has invite" "$BODY" '"action":"invite"'
+req DELETE "/api/admin/users/$INV" -H "Origin: $BASE"; req DELETE "/api/admin/users/$NOINV" -H "Origin: $BASE"
+
+echo "Version 3.3: update everyone"
+req POST /api/admin/refresh "${JSONH[@]}" "${READER[@]}" -d '{}'; check "reader cannot refresh everyone" 403 "$STATUS"
+req POST /api/admin/refresh -H 'Content-Type: application/json' -d '{}'; check "refresh needs Origin" 403 "$STATUS"
+req POST /api/admin/refresh "${JSONH[@]}" -d "{\"message\":\"$(printf 'm%.0s' $(seq 1 201))\"}"; check "201-char message refused" 400 "$STATUS"
+BEFORE=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/reader "$R_D" "$R_P" "$R_A" "$VPUB" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).count))')
+req POST /api/admin/refresh "${JSONH[@]}" -d '{"message":"Rättad poäng i dagens rapport"}'; check "admin refreshes everyone" 201 "$STATUS" "$BODY"; contains "refresh pushed" "$BODY" '"pushed":[1-9]'
+sleep 1
+req GET /api/me "${READER[@]}"; contains "readers see the refresh in /api/me" "$BODY" '"refresh":{"id":"'; contains "with the message" "$BODY" 'Rättad poäng'
+OUT=$(node scripts/push_helper.mjs last "$PUSH_LOG" /p/reader "$R_D" "$R_P" "$R_A" "$VPUB")
+contains "reader got the refresh push" "$OUT" "\"count\":$((BEFORE+1))"; contains "push says updated" "$OUT" 'Hotmonitor har uppdaterats'; contains "push is kind refresh" "$OUT" '"kind":"refresh"'
+req POST /api/admin/refresh "${JSONH[@]}" -d '{}'; check "second refresh within 30 s refused" 429 "$STATUS"
+req GET /api/admin/audit; contains "audit has refresh" "$BODY" '"action":"refresh"'
+
 kill $PUSH_PID 2>/dev/null; rm -f "$PUSH_LOG"
 
 echo "Web Push and clock (unit)"

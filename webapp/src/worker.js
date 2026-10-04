@@ -14,6 +14,8 @@
  *
  * Also (Version 3): Web Push on notable reports, and a cron that raises
  * an alarm when the morning report has not arrived by 06:30 Stockholm time.
+ * Version 3.3: invitation emails (queued here, sent by the Mac) and an
+ * admin "update everyone" push that makes open apps reload.
  */
 
 import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
@@ -39,6 +41,9 @@ const ALARM_AFTER_MINUTES = 6 * 60 + 30;   // 06:30 Stockholm time
 const MAX_SUBSCRIPTIONS_PER_USER = 10;
 const INDEX_PUSH_DELTA = 0.5;
 const HIGH_SCORE = 9;
+const INVITE_MAX_ATTEMPTS = 3;
+const REFRESH_MIN_GAP_MS = 30 * 1000;
+const INVITE_ID_RE = /^[0-9a-f-]{36}$/;
 
 // Reasons written to security_log (CONTRACT.md, Version 2).
 const R = {
@@ -123,7 +128,10 @@ async function route(req) {
   if (path === '/api/me') {
     allow(method, 'GET');
     requireUser(who);
-    return json({ email: who.email, role: who.role, is_owner: who.is_owner, alarm: await getAlarm(env) });
+    return json({
+      email: who.email, role: who.role, is_owner: who.is_owner,
+      alarm: await getAlarm(env), refresh: await getRefresh(env),
+    });
   }
 
   if (path === '/api/me/device') {
@@ -226,6 +234,19 @@ async function route(req) {
     return ingestUpdates(request, env);
   }
 
+  if (path === '/api/export/invites') {
+    allow(method, 'GET');
+    requireMachine(who);
+    return pendingInvites(env);
+  }
+
+  m = path.match(/^\/api\/ingest\/invites\/([^/]+)$/);
+  if (m) {
+    allow(method, 'PUT');
+    requireMachine(who);
+    return reportInvite(request, env, m[1]);
+  }
+
   if (path === '/api/export/all') {
     allow(method, 'GET');
     requireMachine(who);
@@ -255,7 +276,7 @@ async function routeAdmin(req, path, method) {
     return addUser(request, env, who);
   }
 
-  const m = path.match(/^\/api\/admin\/users\/([^/]+)$/);
+  const m = path.match(/^\/api\/admin\/users\/([^/]+?)(\/invite)?$/);
   if (m) {
     let target;
     try {
@@ -264,6 +285,10 @@ async function routeAdmin(req, path, method) {
       throw new HttpError(400, 'bad email in path');
     }
     if (!EMAIL_RE.test(target)) throw new HttpError(400, 'bad email in path');
+    if (m[2]) {
+      allow(method, 'POST');
+      return resendInvite(env, who, target);
+    }
     if (method === 'PATCH') return patchUser(request, env, who, target);
     allow(method, 'DELETE');
     return changeUser(env, who, target, { active: false });
@@ -290,6 +315,11 @@ async function routeAdmin(req, path, method) {
   if (path === '/api/admin/notices') {
     allow(method, 'POST');
     return createNotice(request, env, who);
+  }
+
+  if (path === '/api/admin/refresh') {
+    allow(method, 'POST');
+    return refreshEveryone(request, env, who);
   }
 
   const n = path.match(/^\/api\/admin\/notices\/([0-9a-f-]{36})$/);
@@ -544,8 +574,12 @@ async function listUsers(env) {
     `SELECT u.email, u.role, u.active, u.created_at, u.created_by, u.last_seen,
             u.installed_at, u.platform,
             (SELECT COUNT(*) FROM assessments a WHERE a.operator = u.email) AS assessments,
-            (SELECT COUNT(*) FROM push_subscriptions p WHERE p.email = u.email) AS push_devices
-     FROM users u ORDER BY u.active DESC, u.role, u.email`
+            (SELECT COUNT(*) FROM push_subscriptions p WHERE p.email = u.email) AS push_devices,
+            i.status AS invite_status, i.requested_at AS invite_requested_at,
+            i.sent_at AS invite_sent_at, i.error AS invite_error
+     FROM users u
+     LEFT JOIN invites i ON i.id = (SELECT id FROM invites WHERE email = u.email ORDER BY requested_at DESC LIMIT 1)
+     ORDER BY u.active DESC, u.role, u.email`
   ).all();
   const owner = ownerEmail(env);
   for (const r of results) {
@@ -565,10 +599,13 @@ async function addUser(request, env, actor) {
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
   if (!EMAIL_RE.test(email)) throw new HttpError(400, 'email is not a valid address');
   if (body.role !== 'admin' && body.role !== 'reader') throw new HttpError(400, "role must be 'admin' or 'reader'");
+  if (body.invite !== undefined && typeof body.invite !== 'boolean') throw new HttpError(400, 'invite must be true or false');
 
   const existing = await env.DB.prepare('SELECT role, active FROM users WHERE email = ?').bind(email).first();
   const now = new Date().toISOString();
   if (existing) {
+    // Someone already in the list gets mail only when asked for explicitly.
+    if (body.invite === true) await queueInvite(env, actor, email, body.role);
     if (existing.active && existing.role === body.role) return json(await userRow(env, email), 200);
     return changeUser(env, actor, email, { role: body.role, active: true });
   }
@@ -576,7 +613,67 @@ async function addUser(request, env, actor) {
     'INSERT INTO users (email, role, active, created_at, created_by) VALUES (?, ?, 1, ?, ?)'
   ).bind(email, body.role, now, actor.email).run();
   await audit(env, actor.email, 'add', email, { role: body.role });
+  if (body.invite !== false) await queueInvite(env, actor, email, body.role);
   return json(await userRow(env, email), 201);
+}
+
+// ---------------------------------------------------------------------------
+// Invitations (Version 3.3): queued here, mailed by the Mac
+// ---------------------------------------------------------------------------
+/** One open invite per person: an older pending one is replaced. */
+async function queueInvite(env, actor, email, role) {
+  const now = new Date().toISOString();
+  await env.DB.prepare("UPDATE invites SET status = 'cancelled' WHERE email = ? AND status = 'pending'").bind(email).run();
+  const id = crypto.randomUUID();
+  await env.DB.prepare(
+    "INSERT INTO invites (id, email, role, requested_at, requested_by, status) VALUES (?, ?, ?, ?, ?, 'pending')"
+  ).bind(id, email, role, now, actor.email).run();
+  await audit(env, actor.email, 'invite', email, { role });
+  return id;
+}
+
+async function resendInvite(env, actor, email) {
+  const row = await env.DB.prepare('SELECT role, active FROM users WHERE email = ?').bind(email).first();
+  if (!row) throw new HttpError(404, 'no such user');
+  if (!row.active) throw new HttpError(409, 'reactivate the user before inviting them');
+  const role = email === ownerEmail(env) ? 'admin' : row.role;
+  await queueInvite(env, actor, email, role);
+  return json(await userRow(env, email), 201);
+}
+
+/** For the Mac: invites still to send, for people who are still active. */
+async function pendingInvites(env) {
+  const { results } = await env.DB.prepare(
+    `SELECT i.id, i.email, u.role, i.requested_at, i.requested_by, i.attempts
+     FROM invites i JOIN users u ON u.email = i.email
+     WHERE i.status = 'pending' AND u.active = 1
+     ORDER BY i.requested_at LIMIT 50`
+  ).all();
+  await setMeta(env, 'last_invite_pull_at', new Date().toISOString());
+  return json(results);
+}
+
+async function reportInvite(request, env, id) {
+  if (!INVITE_ID_RE.test(id)) throw new HttpError(400, 'bad invite id');
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'body must be a JSON object');
+  if (body.status !== 'sent' && body.status !== 'failed') throw new HttpError(400, "status must be 'sent' or 'failed'");
+  const row = await env.DB.prepare('SELECT status, attempts, email FROM invites WHERE id = ?').bind(id).first();
+  if (!row) throw new HttpError(404, 'no such invite');
+  const now = new Date().toISOString();
+  if (body.status === 'sent') {
+    await env.DB.prepare("UPDATE invites SET status = 'sent', sent_at = ?, error = NULL, attempts = attempts + 1 WHERE id = ?")
+      .bind(now, id).run();
+  } else {
+    const error = typeof body.error === 'string' ? body.error.slice(0, 300) : 'unknown error';
+    const attempts = row.attempts + 1;
+    // A temporary SMTP fault is retried on the next pull; after a few tries it stays failed.
+    const status = attempts >= INVITE_MAX_ATTEMPTS ? 'failed' : 'pending';
+    await env.DB.prepare('UPDATE invites SET status = ?, error = ?, attempts = ? WHERE id = ? AND status = ?')
+      .bind(status, error, attempts, id, 'pending').run();
+  }
+  const r = await env.DB.prepare('SELECT id, email, status, sent_at, error, attempts FROM invites WHERE id = ?').bind(id).first();
+  return json(r);
 }
 
 async function patchUser(request, env, actor, target) {
@@ -625,6 +722,9 @@ async function changeUser(env, actor, target, change) {
 
   await env.DB.prepare('UPDATE users SET role = ?, active = ? WHERE email = ?')
     .bind(role, active ? 1 : 0, target).run();
+  if (!active) {
+    await env.DB.prepare("UPDATE invites SET status = 'cancelled' WHERE email = ? AND status = 'pending'").bind(target).run();
+  }
   const action = !active ? 'deactivate' : (!row.active ? 'reactivate' : 'role');
   await audit(env, actor.email, action, target,
     { from: { role: row.role, active: !!row.active }, to: { role, active } });
@@ -633,7 +733,12 @@ async function changeUser(env, actor, target, change) {
 
 async function userRow(env, email) {
   const r = await env.DB.prepare(
-    'SELECT email, role, active, created_at, created_by, last_seen FROM users WHERE email = ?'
+    `SELECT u.email, u.role, u.active, u.created_at, u.created_by, u.last_seen,
+            i.status AS invite_status, i.requested_at AS invite_requested_at,
+            i.sent_at AS invite_sent_at, i.error AS invite_error
+     FROM users u
+     LEFT JOIN invites i ON i.id = (SELECT id FROM invites WHERE email = u.email ORDER BY requested_at DESC LIMIT 1)
+     WHERE u.email = ?`
   ).bind(email).first();
   if (r) {
     r.active = !!r.active;
@@ -675,8 +780,12 @@ async function status(env) {
   const pull = await env.DB.prepare("SELECT value FROM meta WHERE key = 'last_machine_pull_at'").first();
   const subs = await env.DB.prepare('SELECT COUNT(*) AS n FROM push_subscriptions').first();
   const lastPush = await env.DB.prepare("SELECT value FROM meta WHERE key = 'last_push'").first();
+  const invites = await env.DB.prepare("SELECT COUNT(*) AS n FROM invites WHERE status = 'pending'").first();
+  const invitePull = await env.DB.prepare("SELECT value FROM meta WHERE key = 'last_invite_pull_at'").first();
   return json({
     alarm: await getAlarm(env),
+    refresh: await getRefresh(env),
+    invites: { pending: invites.n, last_pull_at: invitePull ? invitePull.value : null },
     push: { subscriptions: subs.n, last: lastPush ? JSON.parse(lastPush.value) : null },
     last_report_date: reports.last_date || null,
     last_report_uploaded_at: reports.last_uploaded || null,
@@ -960,6 +1069,48 @@ async function removeNotice(env, who, id) {
   return json({ ok: true });
 }
 
+// ---------------------------------------------------------------------------
+// "Update everyone" (Version 3.3): open apps reload code and data
+// ---------------------------------------------------------------------------
+async function getRefresh(env) {
+  const row = await env.DB.prepare("SELECT value FROM meta WHERE key = 'app_refresh'").first();
+  if (!row) return null;
+  try { return JSON.parse(row.value); } catch { return null; }
+}
+
+/**
+ * Records a refresh in meta (so /api/me tells every app, push or not) and
+ * pushes it. The app reloads when it sees a refresh newer than its own
+ * start, then shows the message as "Appen har uppdaterats".
+ */
+async function refreshEveryone(request, env, who) {
+  const body = await readJson(request);
+  if (body !== null && (typeof body !== 'object' || Array.isArray(body))) throw new HttpError(400, 'body must be an object');
+  let message = null;
+  if (body && body.message !== undefined && body.message !== null && body.message !== '') {
+    if (typeof body.message !== 'string' || body.message.trim().length > 200) {
+      throw new HttpError(400, 'message must be at most 200 characters');
+    }
+    message = body.message.trim() || null;
+  }
+  const prev = await getRefresh(env);
+  if (prev && Date.now() - Date.parse(prev.at) < REFRESH_MIN_GAP_MS) {
+    throw new HttpError(429, 'an update was just sent; wait half a minute');
+  }
+  const refresh = { id: crypto.randomUUID(), at: new Date().toISOString(), by: who.email, message };
+  await setMeta(env, 'app_refresh', JSON.stringify(refresh));
+  await audit(env, who.email, 'refresh', null, { message });
+  const r = await pushTo(env, { adminsOnly: false, pref: 'notice' }, {
+    title: 'Hotmonitor har uppdaterats',
+    body: message || 'Ny version och nya uppgifter. Tryck för att öppna.',
+    url: '/#/',
+    tag: 'hm-refresh',
+    kind: 'refresh',
+    refresh_id: refresh.id,
+  });
+  return json({ refresh, pushed: r.sent || 0, failed: r.failed || 0 }, 201);
+}
+
 /** Everything the Mac keeps as a daily backup - no push keys. */
 async function exportAll(env) {
   const all = async (sql) => (await env.DB.prepare(sql).all()).results;
@@ -975,6 +1126,7 @@ async function exportAll(env) {
     reads: await all('SELECT * FROM reads ORDER BY email, ts'),
     updates,
     notices: await all('SELECT * FROM notices ORDER BY ts'),
+    invites: await all('SELECT * FROM invites ORDER BY requested_at'),
     push_subscription_count: subs.n,
     exported_at: new Date().toISOString(),
   });

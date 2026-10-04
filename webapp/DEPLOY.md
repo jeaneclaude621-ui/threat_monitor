@@ -272,3 +272,24 @@ open: the new service worker takes control and the page reloads once.
 Apps still on hm-v3.3 or older reload by themselves only from this
 version on; they get it the first time they are opened after the deploy
 (that open may show the old version once).
+
+## Version 3.3 - invitation emails, "Uppdatera alla appar"
+
+From `webapp/` (unset any CLOUDFLARE_API_TOKEN):
+
+```sh
+env -u CLOUDFLARE_API_TOKEN npx wrangler d1 migrations apply hotmonitor --remote   # 0005_invites.sql
+env -u CLOUDFLARE_API_TOKEN npx wrangler deploy
+```
+
+On the Mac, the job that mails the invites (uses the SMTP settings and
+the service token already in `~/.zshrc`):
+
+```sh
+cp ../schedule/launchd/se.threatmonitor.invites.plist ~/Library/LaunchAgents/
+launchctl bootstrap gui/$UID ~/Library/LaunchAgents/se.threatmonitor.invites.plist
+tail -f ../data/logs/invites.log
+```
+
+No new secrets or vars. People already in the list get no mail; use
+"Skicka inbjudan" on their card if they need one.

@@ -1,7 +1,7 @@
 // Offline support: the app shell is cache-first, report data network-first
 // with the last good copy as fallback. Writes (POST) are never cached; the
 // app keeps its own outbox for those.
-const VERSION = 'hm-v3.4';
+const VERSION = 'hm-v3.5';
 const SHELL = `${VERSION}-shell`;
 const DATA = `${VERSION}-data`;
 const FONTS = `${VERSION}-fonts`;
@@ -83,6 +83,8 @@ self.addEventListener('fetch', (event) => {
 
 // Notifications for serious events and for a missing morning report. The
 // payload is {title, body, url}; the url must stay inside the app.
+// kind "refresh" (an admin's "update everyone") also fetches a new service
+// worker if one is deployed and tells open windows to reload.
 function safeUrl(url) {
   try {
     const u = new URL(url || '/', self.location.origin);
@@ -94,14 +96,24 @@ self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch { data = { body: event.data ? event.data.text() : '' }; }
   const title = String(data.title || 'Hotmonitor').slice(0, 120);
-  event.waitUntil(self.registration.showNotification(title, {
-    body: String(data.body || '').slice(0, 300),
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    tag: data.tag ? String(data.tag) : undefined,
-    data: { url: safeUrl(data.url) },
-  }));
+  const refresh = data.kind === 'refresh';
+  event.waitUntil(Promise.all([
+    self.registration.showNotification(title, {
+      body: String(data.body || '').slice(0, 300),
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: data.tag ? String(data.tag) : undefined,
+      data: { url: safeUrl(data.url), refresh },
+    }),
+    refresh ? announceRefresh() : null,
+  ]));
 });
+
+async function announceRefresh() {
+  try { await self.registration.update(); } catch { /* offline: the app checks again when opened */ }
+  const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  for (const w of wins) w.postMessage({ type: 'hm-refresh' });
+}
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
@@ -111,6 +123,10 @@ self.addEventListener('notificationclick', (event) => {
     for (const w of wins) {
       if (new URL(w.url).origin === self.location.origin) {
         await w.focus();
+        if (event.notification.data && event.notification.data.refresh) {
+          w.postMessage({ type: 'hm-refresh' });
+          return;
+        }
         if ('navigate' in w) { try { await w.navigate(url); } catch { /* cross-state navigation refused */ } }
         return;
       }
