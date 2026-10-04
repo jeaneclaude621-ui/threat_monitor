@@ -2014,6 +2014,8 @@ async function adminNotices() {
       try {
         const res = await adminSend('POST', '/api/admin/refresh', { message: rMsg.value.trim() || null });
         const n = Number(res && res.pushed) || 0;
+        // This page sent it and is current: show the line instead of reloading.
+        if (res && res.refresh) markRefreshSent(res.refresh);
         adminMsg.text = `Uppdateringen är skickad. Notis till ${plural(n, 'enhet', 'enheter')}${res && res.failed ? ` (${res.failed} misslyckades)` : ''}; öppna appar laddar om, övriga nästa gång de öppnas.`;
         adminMsg.error = false;
       } catch (e) {
@@ -2327,6 +2329,12 @@ async function hardReload() {
     }
   } catch { /* reload anyway */ }
   location.reload();
+}
+function markRefreshSent(r) {
+  handledRefresh = r.id;
+  try { localStorage.setItem(REFRESH_SEEN_KEY, r.id); } catch { /* in-memory guard is enough here */ }
+  if (store.me) store.me.refresh = r;
+  showRefreshNote(r);
 }
 function showRefreshNote(r) {
   const el = document.getElementById('updated');

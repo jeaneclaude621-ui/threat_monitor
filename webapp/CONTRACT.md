@@ -318,7 +318,7 @@ Invitations. The Worker cannot send mail, so it queues and the Mac sends.
   refresh_id }`. 429 within 30 s of the previous one. Returns `{ refresh,
   pushed, failed }`.
 - `GET /api/me` and `/api/admin/status` gain `refresh` (null if never sent).
-- Service worker (hm-v3.5): a `kind: "refresh"` push also runs
+- Service worker (hm-v3.5, hm-v3.6): a `kind: "refresh"` push also runs
   `registration.update()` and posts `{ type: "hm-refresh" }` to open windows;
   tapping the notification posts it to the focused window.
 - App: when `me.refresh.id` is new to this device (localStorage
@@ -326,5 +326,6 @@ Invitations. The Worker cannot send mail, so it queues and the Mac sends.
   a new service worker if one is installing (max 8 s) and reloads once, then
   shows "Appen har uppdaterats <time> · <message>" at the top until closed. A
   page started after the refresh only shows the line (if under 3 days old);
-  a device's first start shows nothing. `hm-refresh` messages and becoming
+  a device's first start shows nothing. The admin page that sent it shows
+  the line at once without reloading. `hm-refresh` messages and becoming
   visible re-check `/api/me`.
