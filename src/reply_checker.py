@@ -34,6 +34,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import load_state, resolve_proposal
 from mailer import recipients, send_plain_email
 
+IMAP_TIMEOUT = 60  # seconds per socket operation
+
 SUBJECT_MARKER = "Hybrid Threat Monitor"
 DECISION_RE = re.compile(r"\b(accept(?:ed)?|den(?:y|ied))\b", re.IGNORECASE)
 # Lines at/after which a mail client's quoted original usually starts.
@@ -127,7 +129,9 @@ def check_replies(state, dry_run: bool = False) -> int:
     trusted = _trusted_senders()
     resolved = 0
     try:
-        with imaplib.IMAP4_SSL(host, port) as imap:
+        # A timeout, so a connection that died while the Mac slept fails
+        # (and the run goes on) instead of hanging the morning report.
+        with imaplib.IMAP4_SSL(host, port, timeout=IMAP_TIMEOUT) as imap:
             imap.login(user, password)
             imap.select("INBOX")
             status, data = imap.search(None, "UNSEEN", "SUBJECT", f'"{SUBJECT_MARKER}"')

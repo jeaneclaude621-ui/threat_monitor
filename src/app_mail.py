@@ -43,7 +43,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import DATA_DIR
 from mailer import _smtp_send, send_plain_email
-from reply_checker import QUOTE_START_RE, _imap_config
+from reply_checker import IMAP_TIMEOUT, QUOTE_START_RE, _imap_config
 
 SUBJECT_MARKER = "Hotmonitor-appen"
 TESTERS = ["admin.one@example.org", "admin.two@example.org"]
@@ -212,7 +212,7 @@ def check(show_all: bool = False) -> list:
     host, port, user, password = _imap_config()
     seen = set() if show_all else _load_seen()
     found = []
-    imap = imaplib.IMAP4_SSL(host, port)
+    imap = imaplib.IMAP4_SSL(host, port, timeout=IMAP_TIMEOUT)
     try:
         imap.login(user, password)
         imap.select("INBOX", readonly=True)
