@@ -215,6 +215,7 @@ def _create_with_retry(client, kwargs):
     errors. The SDK's own retries (a few seconds apart) cover API hiccups
     but not a Mac whose network is still coming up after sleep."""
     import anthropic
+    import httpx
     for delay in NETWORK_RETRY_DELAYS + [None]:
         try:
             # The SDK refuses non-streaming calls whose max_tokens implies
@@ -223,7 +224,9 @@ def _create_with_retry(client, kwargs):
                 with client.messages.stream(**kwargs) as stream:
                     return stream.get_final_message()
             return client.messages.create(**kwargs)
-        except (anthropic.APIConnectionError, anthropic.APITimeoutError) as e:
+        # A stream that stalls mid-response raises httpx's own errors
+        # (e.g. ReadTimeout), not the SDK's wrapped ones.
+        except (anthropic.APIConnectionError, anthropic.APITimeoutError, httpx.TransportError) as e:
             if delay is None:
                 raise
             print(f"  ! Claude API unreachable ({e}); retrying in {delay}s")
