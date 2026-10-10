@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "last_updated": "2026-09-22",
+  "version": 3,
+  "last_updated": "2026-10-09",
   "scale_definition": "1 = peace. 5 = active gray-zone/hybrid conflict. 10 = open Russia-NATO/EU war. Use index_anchors for the level in between - each band names the observable condition that must be met.",
   "credibility_scale": "1 = unverified/single unreliable source. 10 = confirmed by 10+ independent outlets.",
   "tiers": [
@@ -142,6 +142,7 @@
     "10": "Open Russia-NATO/EU war."
   },
   "index_scoring_note": "Score the Russia-NATO/EU relationship, not the intensity of the war in Ukraine. Severe fighting inside Ukraine does not by itself raise this index above 5-6; what moves it is what happens to NATO/EU members and forces. The index must be able to fall: if the evidence for a previous level has weakened, say so and lower it.",
+  "index_placement_rule": "Placement within the band is not free. LOW (band -0.5 to -0.2): the band's condition is only just met - one of its listed conditions, or conditions that are weakening or ageing. MID (band -0.1 to +0.1): the band's condition is clearly met - several of its listed conditions, or one firmly and recently. HIGH (band +0.2 to +0.5): the band is met AND at least one condition of the next band up is partially present. Name the band conditions you rely on and, for HIGH, the next-band condition; without a named next-band condition the index is at most band +0.1.",
   "named_sources": [
     {
       "name": "TT",

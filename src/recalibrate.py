@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import load_state, save_state, ask_claude_json, OUTPUT_DIR, DATA_DIR
-from daily_report import SYSTEM, index_instructions, INDEX_JSON_FIELDS, enforce_bands
+from daily_report import SYSTEM, index_instructions, INDEX_JSON_FIELDS, enforce_bands, apply_index_rules
 
 RESULTS_PATH = DATA_DIR / "recalibration.json"
 EVIDENCE_KEYS = ("top_development", "events", "key_signals", "deception_items")
@@ -47,12 +47,13 @@ use ONLY this evidence, and nothing you may know about events after
 </evidence>
 
 Produce:
-{index_instructions(methodology, "(withheld - score this day on its own evidence)", "withheld")}
+{index_instructions(methodology)}
 Respond as strict JSON with exactly these fields:
 {{
 {INDEX_JSON_FIELDS.rstrip(',')}
 }}"""
-    return enforce_bands(ask_claude_json(prompt, system=SYSTEM, max_tokens=4000, use_search=False))
+    result = enforce_bands(ask_claude_json(prompt, system=SYSTEM, max_tokens=4000, use_search=False))
+    return apply_index_rules(result, report.get("events") or [])
 
 
 def main(dry_run, from_file=None):
@@ -75,6 +76,7 @@ def main(dry_run, from_file=None):
             "justification": r.get("threat_index_justification", ""),
             "justification_30d": r.get("threat_index_30d_justification", ""),
             "forecast_drivers": r.get("forecast_drivers", []),
+            "index_checks": r.get("index_checks", []),
         }
         results.append(entry)
         print(f"{entry['date']}  was {entry['original_value']:>4}  ->  general {entry['value']:>4}   30-day {entry['value_30d']:>4}")
@@ -90,7 +92,8 @@ def main(dry_run, from_file=None):
     state = load_state()
     by_date = {h["date"]: h for h in state["threat_index_history"]}
     for e in results:
-        by_date[e["date"]] = {"date": e["date"], "value": e["value"], "value_30d": e["value_30d"], "recalibrated": True}
+        by_date[e["date"]] = {"date": e["date"], "value": e["value"], "value_30d": e["value_30d"],
+                             "band": e["band"], "band_30d": e["band_30d"], "recalibrated": True}
     state["threat_index_history"] = [by_date[d] for d in sorted(by_date)][-180:]
     save_state(state)
     print(f"Saved {len(results)} recalibrated days to state and {RESULTS_PATH.name}")

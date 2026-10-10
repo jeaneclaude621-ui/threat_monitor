@@ -105,6 +105,7 @@ def parse_sources(sources: str) -> list:
     return out
 
 
+DIRECTIONS = ("escalating", "de-escalating", "neutral")
 RELATIONS = {"bekräftar", "motsäger", "tillför"}
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -125,6 +126,8 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
         for key in ("known_sv", "unknown_sv"):
             if key in ev:
                 ev[key] = [x for x in ev.get(key) or [] if isinstance(x, str) and x.strip()]
+        if ev.get("direction") not in DIRECTIONS:
+            ev["direction"] = "neutral"
         if "thread_id" in ev and (thread_ids is None or ev["thread_id"] not in thread_ids):
             ev["thread_id"] = None
 
@@ -171,6 +174,8 @@ SWEEP_EVENT_FIELDS = """Each event also carries, for the Swedish web app:
      or unconfirmed;
    - "thread_id": the id of the watchlist thread it belongs to (listed
      below), or null;
+   - "direction": "escalating" | "de-escalating" | "neutral" - which
+     way the event, if true, pushes the general index;
    - "articles": the individual articles behind it, each
      {"outlet": "...", "title": "...", "url": "...", "tier": 1-4,
       "published": "YYYY-MM-DD or null",
@@ -182,7 +187,7 @@ SWEEP_EVENT_FIELDS = """Each event also carries, for the Swedish web app:
 
 SWEEP_EVENT_JSON = """{"title": "...", "detail": "...", "sources": "...", "score": 0,
      "title_sv": "...", "summary_sv": "...", "topics": ["..."], "countries": ["..."],
-     "known_sv": ["..."], "unknown_sv": ["..."], "thread_id": "...",
+     "known_sv": ["..."], "unknown_sv": ["..."], "thread_id": "...", "direction": "...",
      "articles": [{"outlet": "...", "title": "...", "url": "...", "tier": 1,
                    "published": "...", "summary_sv": "...", "relation": "..."}]}"""
 

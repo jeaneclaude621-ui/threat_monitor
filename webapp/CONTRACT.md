@@ -22,18 +22,22 @@ The existing `reports/<date>_report_data.json`, plus:
   "events": [{
     "id": "2026-09-30-e1",            // <date>-e<1-based index>
     "title": "...", "detail": "...", "sources": "...",
-    "score": 9,                        // final score, operator adjustment applied
+    "score": 9.3,                      // final score, operator adjustment applied (one decimal)
     "model_score": 9,                  // the model's own score before it
     "title_sv": "...", "summary_sv": "...",
     "topics": ["Sabotage"],            // from TOPICS below
     "countries": ["EE"],               // ISO 3166-1 alpha-2
+    "direction": "escalating",         // escalating | de-escalating | neutral: which way
+                                       // the event pushes the general index
     "articles": [{ "id": "a1b2c3d4e5f60718", "outlet": "Reuters",
                    "title": "..." , "url": "https://..." , "tier": 1 }],  // url/title may be null
     "operator": { "delta": 0.0, "divergent": false,
                   "trace": [{ "assessment_id": "...", "article_id": "...", "outlet": "...",
                               "value": 1, "date": "2026-09-29", "weight": 0.8, "effect": 0.4 }] }
   }],
-  "operator_influence": { "index_delta": 0.0, "note_sv": "...",
+  "operator_influence": { "index_delta": 0.0,   // applied to threat_index, after the band limit
+                          "computed_delta": 0.0, // before the band limit
+                          "note_sv": "...",
                           "trace": [/* same shape as events[].operator.trace */] }
 }
 ```

@@ -98,7 +98,7 @@ the JSON object."""
 # Threat indices: shared by the daily sweep and src/recalibrate.py, so a
 # recalibrated history is scored by exactly the rules used going forward.
 # --------------------------------------------------------------------------
-def index_instructions(m, history_desc, prior):
+def index_instructions(m):
     anchors_desc = "\n".join(f"- {k}: {v}" for k, v in sorted(m.get("index_anchors", {}).items(), key=lambda kv: int(kv[0])))
     return f"""2. Two NATO/EU-Russia threat indices (1-10), both scored against these
    anchors - each band names the observable condition that must be met:
@@ -106,8 +106,11 @@ def index_instructions(m, history_desc, prior):
 
    {m.get("index_scoring_note", "")}
 
-   Recent index values (general / 30-day): {history_desc}
-   Yesterday's general value: {prior}
+   {m.get("index_placement_rule", "")}
+
+   You are not shown earlier index values: score today on today's
+   evidence and on conditions that still hold, not on where the index
+   stood. The trend is computed afterwards in code.
 
    GENERAL INDEX - where the relationship stands today. Before choosing
    it, do this explicitly:
@@ -116,19 +119,24 @@ def index_instructions(m, history_desc, prior):
       talks held, restraint shown, a threatened action not taken, a
       feared attribution not confirmed. If you find nothing, say so,
       but look for it with the same effort as for escalation;
-   c) choose the anchor band today's evidence actually meets, BEFORE
-      you look at yesterday's number. A band's condition must be met,
-      not merely approached: if band 8 requires fatalities on NATO/EU
-      territory and there were none, the band is not 8, however severe
-      the fighting inside Ukraine was.
-   d) give "threat_index" as that band plus or minus at most 0.5, to
-      place today within the band. A value further from the band than
-      that will be rejected. The index is derived from the band; it is
-      not a separate judgment anchored on yesterday.
-   The index may go down as well as up. Do not carry yesterday's value
-   forward out of caution: an unchanged value must be defended by
-   today's evidence just as a changed one must. Prior values are given
-   for trend context only and carry no evidential weight.
+   c) choose the anchor band the evidence actually meets. A band's
+      condition must be met, not merely approached: if band 8 requires
+      fatalities on NATO/EU territory and there were none, the band is
+      not 8, however severe the fighting inside Ukraine was. Give what
+      the band rests on: "band_evidence" - the numbers (1-based position
+      in your events list) of today's events that meet its condition -
+      and "band_standing_conditions" - conditions established earlier
+      that still hold, each with the date it was established. In code,
+      an event scored below {MIN_BAND_SCORE} for credibility does not count;
+      a band with nothing left to rest on is lowered by one.
+   d) place the index within the band by the placement rule above:
+      "band_conditions_met" names the band's conditions you rely on, and
+      "next_band_partial" the next band's conditions that are partially
+      present (empty if none). "threat_index" is the band plus or minus
+      at most 0.5; above band +{PLACEMENT_CAP} it needs a named next-band
+      condition, or it is capped in code.
+   The index may go down as well as up. An unchanged level must be
+   defended by today's evidence just as a changed one must.
 
    30-DAY INDEX - a forecast: the anchor band you expect to best
    describe the relationship over the next 30 days. Base it on dated,
@@ -139,21 +147,29 @@ def index_instructions(m, history_desc, prior):
    flashpoint is approaching) or below it (pressure is expected to ease).
    Equal is fine when the drivers balance out, but argue it from them -
    do not default to today's value. Give "index_band_30d" and
-   "threat_index_30d" as that band plus or minus at most 0.5, same rule
-   as above.
+   "threat_index_30d" by the same placement rule, with
+   "next_band_partial_30d" for the next band's conditions you expect to
+   be partially present in the window.
 """
 
 
 INDEX_JSON_FIELDS = """  "threat_index": 0.0,
   "threat_index_justification": "...",
   "index_band": 0,
+  "band_evidence": [1],
+  "band_standing_conditions": [{"condition": "...", "established": "YYYY-MM-DD"}],
+  "band_conditions_met": ["..."],
+  "next_band_partial": ["..."],
   "escalation_factors": ["..."],
   "deescalation_factors": ["..."],
-  "index_delta_reason": "why it moved from yesterday's value, or why it did not",
   "threat_index_30d": 0.0,
   "index_band_30d": 0,
+  "next_band_partial_30d": ["..."],
   "threat_index_30d_justification": "...",
   "forecast_drivers": [{"when": "date or window", "driver": "...", "direction": "up|down"}],"""
+
+MIN_BAND_SCORE = 7      # credibility an event needs to hold up a band
+PLACEMENT_CAP = 0.1     # highest placement above the band without a next-band condition
 
 
 def enforce_bands(result):
@@ -169,15 +185,116 @@ def enforce_bands(result):
     return result
 
 
+def apply_index_rules(result, events):
+    """The checks on the model's index that code can make, after
+    enforce_bands and once `events` carry their final scores:
+    - the general band must rest on something: today's events at
+      MIN_BAND_SCORE or above, or a standing condition. If it rests on
+      nothing, it drops one band, keeping its placement;
+    - neither index sits above band +PLACEMENT_CAP without a named
+      next-band condition.
+    Sets result["index_range"], the range the general index may still
+    move in (operator input), and result["index_checks"], what was done."""
+    checks = []
+    band, idx = result.get("index_band"), result.get("threat_index")
+    if band and idx is not None:
+        cited = [n for n in result.get("band_evidence") or [] if isinstance(n, int) and 1 <= n <= len(events)]
+        holding = [n for n in cited if (events[n - 1].get("score") or 0) >= MIN_BAND_SCORE]
+        standing = [c for c in result.get("band_standing_conditions") or [] if c]
+        if not holding and not standing and band > 1:
+            weak = ", ".join(f"e{n} ({events[n - 1].get('score')})" for n in cited) or "inga"
+            result["index_band"], result["threat_index"] = band - 1, round(idx - 1, 1)
+            checks.append(f"Band {band} sänkt till {band - 1}: inget i underlaget höll trovärdighet "
+                          f"{MIN_BAND_SCORE} eller mer (anförda händelser: {weak}) och inga bestående villkor angavs.")
+            print(f"  ! Band {band} rests on nothing credible (cited: {weak}) - lowered to {band - 1}")
+    for idx_key, band_key, partial_key, label in (
+            ("threat_index", "index_band", "next_band_partial", "Index"),
+            ("threat_index_30d", "index_band_30d", "next_band_partial_30d", "30-dagarsindex")):
+        idx, band = result.get(idx_key), result.get(band_key)
+        if band and idx is not None and idx > band + PLACEMENT_CAP and not result.get(partial_key):
+            result[idx_key] = round(band + PLACEMENT_CAP, 1)
+            checks.append(f"{label} {idx} sänkt till {result[idx_key]}: högt i band {band} kräver ett "
+                          f"delvis uppfyllt villkor från band {band + 1}, och inget angavs.")
+            print(f"  ! {idx_key} {idx} high in band {band} with no next-band condition - capped to {result[idx_key]}")
+    band = result.get("index_band")
+    if band:
+        hi = band + 0.5 if result.get("next_band_partial") else band + PLACEMENT_CAP
+        result["index_range"] = (band - 0.5, hi)
+    result["index_checks"] = checks
+    return result
+
+
+EDGE_STREAK = 3
+
+
+def warn_band_edge(history):
+    """An index pinned to the top or bottom of its band day after day
+    says nothing with its placement inside the band - the model is
+    pushing against the limit. Flag it once that has lasted EDGE_STREAK
+    days. Entries without a band (before bands were saved) end the run."""
+    for key, band_key, label in (("value", "band", "General index"),
+                                 ("value_30d", "band_30d", "30-day index")):
+        side, streak = None, 0
+        for h in reversed(history):
+            v, b = h.get(key), h.get(band_key)
+            if v is None or not b or abs(abs(v - b) - 0.5) > 0.01 or side not in (None, v > b):
+                break
+            side, streak = v > b, streak + 1
+        if streak >= EDGE_STREAK:
+            where = "top" if side else "bottom"
+            print(f"  ! {label} at the {where} of band {history[-1][band_key]} for {streak} days running"
+                  f" - its placement within the band carries no information; check the justification")
+
+
+FORECAST_DAYS = 30
+FORECAST_MIN_DAYS = 20   # general-index values needed in a window to judge it
+
+
+def evaluate_forecasts(history):
+    """Each 30-day forecast against the mean general index over the 30
+    days that followed it, once that window has fully passed. None until
+    one has. `bias` is forecast minus outcome: positive means the
+    forecast ran high."""
+    by_day = {date.fromisoformat(h["date"]): h for h in history if h.get("value") is not None}
+    if not by_day:
+        return None
+    last = max(by_day)
+    rows = []
+    for day, h in sorted(by_day.items()):
+        end = day + timedelta(days=FORECAST_DAYS)
+        if h.get("value_30d") is None or end > last:
+            continue
+        window = [x["value"] for d, x in by_day.items() if day < d <= end]
+        if len(window) < FORECAST_MIN_DAYS:
+            continue
+        actual = sum(window) / len(window)
+        rows.append({"date": h["date"], "forecast": h["value_30d"], "actual_mean": round(actual, 2),
+                     "error": round(h["value_30d"] - actual, 2)})
+    if not rows:
+        return None
+    return {"evaluated": len(rows),
+            "bias": round(sum(r["error"] for r in rows) / len(rows), 2),
+            "mae": round(sum(abs(r["error"]) for r in rows) / len(rows), 2),
+            "recent": rows[-10:]}
+
+
 # --------------------------------------------------------------------------
 # 2. Broad sweep: fresh event log + both threat indices for today
 # --------------------------------------------------------------------------
-def run_broad_sweep(state, hourly_entries):
+def run_broad_sweep(state, hourly_entries, contradicted=(), forecast_accuracy=None):
     tiers_desc = "\n".join(f"- {t['name']} ({t['range'][0]}-{t['range'][1]}): {', '.join(t['examples'])}" for t in state["methodology"]["tiers"])
     m = state["methodology"]
-    history = [h for h in state["threat_index_history"] if h["date"] != date.today().isoformat()][-7:]
-    history_desc = ", ".join(f"{h['date']} = {h['value']} / {h.get('value_30d', '-')}" for h in history) or "(no history yet)"
+    # Earlier values stay out of the prompt (the model anchored on them);
+    # yesterday's is kept here only for the jump warning below.
+    history = [h for h in state["threat_index_history"] if h["date"] != date.today().isoformat()]
     prior = history[-1]["value"] if history else None
+    contradicted_desc = "\n".join(f"- {c['title']}: {c['note']}" for c in contradicted) or "(none)"
+    forecast_desc = ""
+    if forecast_accuracy:
+        forecast_desc = (f"\n   Track record of the 30-day forecast: over {forecast_accuracy['evaluated']} "
+                         f"forecasts whose window has passed, the forecast was on average "
+                         f"{forecast_accuracy['bias']:+.2f} from the general index that followed "
+                         f"(mean absolute error {forecast_accuracy['mae']:.2f}). Correct for that bias.\n")
     accepted_notes = "\n".join(f"- {c}" for c in state["accepted_changes"]) or "(none yet)"
     hourly_summary = "\n".join(f"- [{e['classification']}] {e['thread_label']}: {e['summary']}" for e in hourly_entries) or "(no hourly entries logged)"
     operator_desc = operator_weight.prompt_block()
@@ -211,12 +328,15 @@ The intelligence operator's own assessments of earlier articles
 (+2 very credible ... -2 not credible; weight decays with age). Give them
 HIGH weight but they are NOT decisive: they inform how much you trust an
 outlet or a claim, they never on their own confirm or refute one. Score
-each event on the evidence as usual - the operator's effect on event
-scores is applied separately in code. For the general index, state in
-"operator_effect_on_index" how many points (signed) operator input moved
-it and why in "operator_effect_reason_sv" (Swedish, one sentence, naming
-the assessment ids in brackets); 0 if it did not.
+each event and both indices on the evidence as usual - the operator's
+effect on event scores and on the general index is applied separately in
+code, from each event's "direction".
 {operator_desc}
+
+Yesterday's events that today's self-check found CONTRADICTED by later
+reporting. They do not count toward any band, and a standing condition
+that rested on them no longer holds:
+{contradicted_desc}
 
 Produce:
 1. Up to 6 of the most important events from the last 24h, each scored
@@ -224,7 +344,7 @@ Produce:
    {SWEEP_EVENT_FIELDS}
    Watchlist threads (for "thread_id"):
 {threads_desc}
-{index_instructions(m, history_desc, prior)}
+{index_instructions(m)}{forecast_desc}
 3. A one-sentence "top development" headline.
 4. Up to 4 "deception watch" items - recurring Kremlin narrative/denial
    patterns observed in the last 24h (not scored, tracked separately).
@@ -234,8 +354,6 @@ Respond as strict JSON:
 {{
   "events": [{SWEEP_EVENT_JSON}],
 {INDEX_JSON_FIELDS}
-  "operator_effect_on_index": 0.0,
-  "operator_effect_reason_sv": "...",
   "top_development": "...",
   "deception_items": [{{"heading": "...", "body": "..."}}],
   "key_signals": ["..."]
@@ -250,7 +368,8 @@ Respond as strict JSON:
     enrich_events(result.get("events", []), date.today().isoformat(), common.LAST_SEARCH_RESULTS,
                   {t["id"] for t in state["watchlist"]})
     trace = operator_weight.apply_to_events(result.get("events", []))
-    result["operator_influence"] = operator_weight.cap_index_effect(result, trace)
+    apply_index_rules(result, result.get("events", []))
+    result["operator_influence"] = operator_weight.apply_to_index(result, trace)
     idx = result.get("threat_index")
     if prior is not None and idx is not None and abs(idx - prior) >= 1.5:
         print(f"  ! Threat index moved {prior} -> {idx} in one day - check the justification")
@@ -314,13 +433,14 @@ Keep the total at exactly {size} threads. Respond as strict JSON:
 # --------------------------------------------------------------------------
 # 5. Proposal generation (only if none pending)
 # --------------------------------------------------------------------------
-def generate_proposal(state):
+def generate_proposal(state, forecast_accuracy=None):
     if state.get("pending_proposal"):
         return state["pending_proposal"], True  # still pending from before
 
     prompt = f"""Review this monitoring system's recent track record:
 
 Self-evaluation log (last 10 entries): {json.dumps(state['self_eval_log'][-10:], indent=2)}
+30-day forecast vs. the general index that followed: {json.dumps(forecast_accuracy, indent=2) if forecast_accuracy else "(no forecast window has passed yet)"}
 Outlet transparency scores: {json.dumps(state['outlet_scores'], indent=2)}
 Author scores: {json.dumps(state['author_scores'], indent=2)}
 Current methodology notes already accepted: {json.dumps(state['accepted_changes'], indent=2)}
@@ -391,7 +511,14 @@ def run_daily_report():
     self_check = run_self_check(state, yesterday_report)
 
     hourly_entries = load_hourly_log(today) + load_hourly_log(today - timedelta(days=1))
-    sweep = run_broad_sweep(state, hourly_entries)
+    # Yesterday's events the self-check found contradicted, so today's
+    # band cannot rest on them.
+    by_id = {e.get("id"): e for e in (yesterday_report or {}).get("events", [])}
+    contradicted = [{"title": by_id[r["event_id"]]["title"], "note": r["note"]}
+                    for r in self_check.get("results", [])
+                    if r["outcome"] == "CONTRADICTED" and r["event_id"] in by_id]
+    forecast_accuracy = evaluate_forecasts(state["threat_index_history"])
+    sweep = run_broad_sweep(state, hourly_entries, contradicted, forecast_accuracy)
     narrative_rows = build_narrative_stability(state, hourly_entries)
     refresh_watchlist(state, sweep)
 
@@ -402,17 +529,24 @@ def run_daily_report():
     # entry instead of adding a duplicate date to the trend chart.
     state["threat_index_history"] = [h for h in state["threat_index_history"] if h["date"] != today.isoformat()]
     state["threat_index_history"].append({"date": today.isoformat(), "value": sweep["threat_index"],
-                                          "value_30d": sweep.get("threat_index_30d")})
+                                          "value_30d": sweep.get("threat_index_30d"),
+                                          "band": sweep.get("index_band"),
+                                          "band_30d": sweep.get("index_band_30d")})
     state["threat_index_history"] = state["threat_index_history"][-180:]
+    warn_band_edge(state["threat_index_history"])
 
-    proposal, was_already_pending = generate_proposal(state)
+    proposal, was_already_pending = generate_proposal(state, forecast_accuracy)
 
     report_data = {
         "date": today.isoformat(),
         "threat_index": sweep["threat_index"],
         "trend_label": trend_label,
         "threat_reading": sweep.get("threat_index_justification", ""),
+        "index_band": sweep.get("index_band"),
+        "index_checks": sweep.get("index_checks", []),
         "threat_index_30d": sweep.get("threat_index_30d"),
+        "index_band_30d": sweep.get("index_band_30d"),
+        "forecast_accuracy": forecast_accuracy,
         "threat_reading_30d": sweep.get("threat_index_30d_justification", ""),
         "forecast_drivers": sweep.get("forecast_drivers", []),
         "self_check_summary": self_check["summary"],

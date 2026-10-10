@@ -11,9 +11,12 @@ Caps are enforced here in code, never left to the model:
 - a verdict's weight halves every 30 days;
 - a verdict on the same article counts in full; a verdict on the same
   outlet (another article) counts at 35 %;
-- an event's score moves at most +/-1 from the model's own score;
-- the index moves at most +/-0.3 for operator reasons, and never out of
-  its anchor band.
+- a verdict counts once per event, even when the event has several
+  articles from its outlet;
+- an event's score moves at most +/-1 from the model's own score, kept
+  to one decimal so that small effects (an outlet verdict, a +1) show;
+- the index moves at most +/-0.3 for operator reasons, computed here
+  from the events' signals, and never out of its anchor band.
 Every effect is recorded in a trace with the assessment ids behind it,
 so the app can show why a score is what it is.
 """
@@ -89,11 +92,16 @@ def apply_to_events(events: list, rows: list = None, now: datetime = None) -> li
     for ev in events:
         model = ev.get("model_score", ev.get("score"))
         trace, total, n = [], 0.0, 0
+        # Verdicts on the event's own articles first, so the same verdict
+        # is not counted again as an outlet verdict on a sibling article.
+        seen = {v["id"] for art in ev.get("articles", []) for v in by_article.get(art["id"], [])}
         for art in ev.get("articles", []):
             direct = by_article.get(art["id"], [])
             used = [(v, 1.0) for v in direct]
             if not direct:
-                used = [(v, OUTLET_WEIGHT) for v in by_outlet.get(_norm_outlet(art["outlet"]), [])]
+                outlet = [v for v in by_outlet.get(_norm_outlet(art["outlet"]), []) if v["id"] not in seen]
+                seen.update(v["id"] for v in outlet)
+                used = [(v, OUTLET_WEIGHT) for v in outlet]
             if not used:
                 continue
             n += 1
@@ -116,7 +124,8 @@ def apply_to_events(events: list, rows: list = None, now: datetime = None) -> li
         divergent = isinstance(model, (int, float)) and (
             (model >= 7 and signal <= -DIVERGENCE) or (model <= 4 and signal >= DIVERGENCE))
         if isinstance(model, (int, float)):
-            ev["score"] = int(max(1, min(10, round(model + delta))))
+            score = round(max(1.0, min(10.0, model + delta)), 1)
+            ev["score"] = int(score) if score.is_integer() else score   # 9, not 9.0, in deck and mail
         ev["operator"] = {"delta": round(delta, 2), "signal": round(signal, 2),
                           "divergent": bool(divergent), "trace": trace}
         all_trace.extend(trace)
@@ -138,24 +147,48 @@ def prompt_block(rows: list = None, now: datetime = None, limit: int = 40) -> st
     return "\n".join(lines)
 
 
-def cap_index_effect(result: dict, trace: list) -> dict:
-    """The model reports how far operator input moved the general index
-    (operator_effect_on_index). Hold that to +/-MAX_INDEX_DELTA and to
-    the anchor band, and return the report's operator_influence block."""
-    try:
-        claimed = float(result.get("operator_effect_on_index") or 0)
-    except (TypeError, ValueError):
-        claimed = 0.0
-    allowed = max(-MAX_INDEX_DELTA, min(MAX_INDEX_DELTA, claimed))
-    if allowed != claimed and result.get("threat_index") is not None:
-        result["threat_index"] = round(result["threat_index"] - (claimed - allowed), 1)
-        print(f"  ! Operator effect on index {claimed:+.2f} capped to {allowed:+.2f}")
-    band = result.get("index_band")
-    if band and result.get("threat_index") is not None:
-        result["threat_index"] = round(max(band - 0.5, min(band + 0.5, result["threat_index"])), 1)
-    note = result.get("operator_effect_reason_sv") or (
-        "Operatörens bedömningar påverkade inte indexet i dag." if not allowed else "")
-    return {"index_delta": round(allowed, 2), "note_sv": note, "trace": trace}
+def _fmt(x: float) -> str:
+    return f"{x:+.2f}".replace(".", ",")
+
+
+def apply_to_index(result: dict, trace: list) -> dict:
+    """Moves the general index for operator input, computed here from the
+    events' operator signals - the model scores the index on the evidence
+    alone. An event the operator finds credible pushes the index its way
+    (up for an escalating event, down for a de-escalating one); one the
+    operator doubts pushes the other way. The mean over the directional
+    events the operator assessed, times MAX_INDEX_DELTA, is the effect;
+    the anchor band, and the placement rules within it, still hold.
+    Returns the report's operator_influence block. Run after
+    apply_to_events."""
+    sign = {"escalating": 1, "de-escalating": -1}
+    used = [(ev, sign[ev.get("direction")] * ev["operator"]["signal"])
+            for ev in result.get("events", [])
+            if ev.get("direction") in sign and (ev.get("operator") or {}).get("trace")]
+    computed = MAX_INDEX_DELTA * sum(c for _, c in used) / len(used) if used else 0.0
+    applied = 0.0
+    idx, band = result.get("threat_index"), result.get("index_band")
+    # The placement rules (daily_report.apply_index_rules) may have
+    # narrowed the band's range; operator input stays inside it too.
+    lo, hi = result.get("index_range") or ((band - 0.5, band + 0.5) if band else (1, 10))
+    if idx is not None and computed:
+        moved = max(lo, min(hi, idx + computed))
+        result["threat_index"] = round(moved, 1)
+        applied = round(result["threat_index"] - idx, 1)
+    if not used:
+        note = "Operatörens bedömningar berörde ingen eskalerande eller deeskalerande händelse i dag."
+    else:
+        parts = ", ".join(f"{ev['id'].rsplit('-', 1)[-1]} {_fmt(c)}" for ev, c in used)
+        note = f"Beräknat från operatörens bedömningar av {len(used)} händelser ({parts}): {_fmt(computed)} på index"
+        if round(computed, 1) != applied:
+            note += f", begränsat av ankarbandet och reglerna för placering i bandet till {_fmt(applied)}."
+        elif not applied:
+            note += ", för lite för att flytta index (en decimal)."
+        else:
+            note += "."
+    if computed:
+        print(f"  Operator effect on index: computed {computed:+.2f}, applied {applied:+.1f}")
+    return {"index_delta": applied, "computed_delta": round(computed, 2), "note_sv": note, "trace": trace}
 
 
 def track_record(outcomes: dict, rows: list = None) -> dict:
