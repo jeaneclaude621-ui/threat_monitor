@@ -185,6 +185,10 @@ def enforce_bands(result):
     return result
 
 
+def _sv(x):
+    return str(x).replace(".", ",")
+
+
 def apply_index_rules(result, events):
     """The checks on the model's index that code can make, after
     enforce_bands and once `events` carry their final scores:
@@ -213,7 +217,7 @@ def apply_index_rules(result, events):
         idx, band = result.get(idx_key), result.get(band_key)
         if band and idx is not None and idx > band + PLACEMENT_CAP and not result.get(partial_key):
             result[idx_key] = round(band + PLACEMENT_CAP, 1)
-            checks.append(f"{label} {idx} sänkt till {result[idx_key]}: högt i band {band} kräver ett "
+            checks.append(f"{label} {_sv(idx)} sänkt till {_sv(result[idx_key])}: högt i band {band} kräver ett "
                           f"delvis uppfyllt villkor från band {band + 1}, och inget angavs.")
             print(f"  ! {idx_key} {idx} high in band {band} with no next-band condition - capped to {result[idx_key]}")
     band = result.get("index_band")

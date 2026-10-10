@@ -794,11 +794,11 @@ function heroCard(r) {
       h('div', null,
         h('div', { class: 'hero-label' }, 'I DAG'),
         h('div', { class: 'hero-value' }, fmt1(r.threat_index), h('small', null, ' /10')),
-        h('div', { class: 'hero-sub' }, TREND[r.trend_label] || r.trend_label || '')),
+        h('div', { class: 'hero-sub' }, [r.index_band ? `Band ${r.index_band}` : null, TREND[r.trend_label] || r.trend_label].filter(Boolean).join(' · '))),
       hasF ? h('div', null,
         h('div', { class: 'hero-label amber' }, '30 DAGAR'),
         h('div', { class: 'hero-value amber' }, fmt1(r.threat_index_30d), h('small', null, ' /10')),
-        h('div', { class: 'hero-sub' }, 'Prognos')) : null),
+        h('div', { class: 'hero-sub' }, [r.index_band_30d ? `Band ${r.index_band_30d}` : null, 'Prognos'].filter(Boolean).join(' · '))) : null),
     h('div', { class: 'scale', role: 'img', 'aria-label': `Skala 0 till 10: i dag ${fmt1(r.threat_index)}${hasF ? `, prognos ${fmt1(r.threat_index_30d)}` : ''}` },
       h('div', { class: 'scale-fill', style: `width:${pct(r.threat_index)}` }),
       hasF ? h('div', { class: 'scale-tick', style: `left:${pct(r.threat_index_30d)}` }) : null),
@@ -810,6 +810,41 @@ function heroCard(r) {
         Array.isArray(oi.trace) && oi.trace.length
           ? h('details', null, h('summary', null, 'Visa spår'), traceList(oi.trace))
           : null)
+      : null,
+    checksNote(r),
+    forecastNote(r));
+}
+
+// What the code changed in the model's index (index_checks). Reports
+// from before the rules (no index_band) show nothing.
+function checksNote(r) {
+  const checks = Array.isArray(r.index_checks) ? r.index_checks : [];
+  if (!checks.length && r.index_band == null) return null;
+  return h('div', { class: 'hero-note' },
+    h('strong', null, 'Kodens kontroller: '),
+    checks.length
+      ? h('ul', { class: 'hero-list' }, checks.map((c) => h('li', null, c)))
+      : 'Inga ingrepp. Modellens index följde reglerna för band och placering.');
+}
+
+// The 30-day forecast scored against the general index that followed.
+function forecastNote(r) {
+  if (r.threat_index_30d == null || r.index_band == null) return null;
+  const fa = r.forecast_accuracy;
+  if (!fa) {
+    return h('div', { class: 'hero-note' },
+      h('strong', null, 'Prognosens träffsäkerhet: '),
+      'Utvärderas när de första prognosernas 30 dagar har passerat.');
+  }
+  const lean = fa.bias > 0.05 ? 'högt' : fa.bias < -0.05 ? 'lågt' : null;
+  return h('div', { class: 'hero-note' },
+    h('strong', null, 'Prognosens träffsäkerhet: '),
+    `I snitt ${fmt1(fa.mae)} fel över ${fa.evaluated} ${fa.evaluated === 1 ? 'prognos' : 'prognoser'}`,
+    lean ? `, med en tendens att ligga ${lean} (${signed(fa.bias)}).` : '.',
+    Array.isArray(fa.recent) && fa.recent.length
+      ? h('details', null, h('summary', null, 'Visa senaste'),
+        h('ul', { class: 'hero-list' }, fa.recent.slice().reverse().map((x) => h('li', null,
+          `${dateShort(x.date)}: prognos ${fmt1(x.forecast)}, utfall ${fmt1(x.actual_mean)} (${signed(x.error)})`))))
       : null);
 }
 

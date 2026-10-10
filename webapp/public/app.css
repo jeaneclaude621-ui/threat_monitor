@@ -125,6 +125,7 @@ p { margin: 0; }
 .scale-tick { position: absolute; top: -4px; width: 3px; height: 16px; border-radius: 2px; background: var(--hero-amber); }
 .hero-note { font-size: 13px; color: var(--hero-soft); border-top: 1px solid var(--hero-line); padding-top: 12px; }
 .hero-note strong { color: var(--hero-amber); }
+.hero-list { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
 .hero details summary { cursor: pointer; color: var(--hero-muted); min-height: 32px; }
 
 /* Cards and lists */
