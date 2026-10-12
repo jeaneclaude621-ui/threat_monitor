@@ -104,6 +104,25 @@ consolidated PowerPoint status report every morning at 05:00.
    fails there with `Operation not permitted` before it reads a single
    file. `~/threat_monitor` works without any privacy exemption.
 
+   **Which machine runs the jobs.** The daily and hourly plists start
+   `schedule/run_job.py`, not the scripts directly. It keeps the run
+   state (`data/` and the text files in `reports/` that later runs read
+   back) in a separate git repo, `.state.git`, and pulls it before each
+   run and pushes it after. `data/runner` says which machine runs the
+   jobs, `mac` or `cloud`. A job that starts on the other machine exits
+   without doing anything. To move the runs, edit that line, then
+   commit and push it:
+
+   ```
+   echo cloud > data/runner      # or: echo mac > data/runner
+   git --git-dir=.state.git --work-tree=. commit -m "runner: cloud" data/runner
+   git --git-dir=.state.git --work-tree=. push origin HEAD:main
+   ```
+
+   If the state can't be pulled, the job doesn't run. Running on stale
+   state could fork it or send a report twice. The invitation job is
+   not routed this way and always runs on the Mac.
+
 ## Spoken Swedish briefing (podcast mode)
 
 Each daily report is also rendered as a ~4 minute spoken briefing in

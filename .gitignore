@@ -8,3 +8,5 @@ reports/
 .DS_Store
 __pycache__/
 *.pyc
+# Run-state repo (schedule/run_job.py) - its own history, kept apart from the code
+.state.git/
