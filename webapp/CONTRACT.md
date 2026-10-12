@@ -333,3 +333,35 @@ Invitations. The Worker cannot send mail, so it queues and the Mac sends.
   a device's first start shows nothing. The admin page that sent it shows
   the line at once without reloading. `hm-refresh` messages and becoming
   visible re-check `/api/me`.
+
+# Version 3.4 (12 Oct 2026) - scheduled runs on the status page
+
+The daily report and the hourly monitor now run on GitHub Actions or the
+Mac (`schedule/run_job.py`, which picks the machine from `data/runner`).
+Each run reports itself so admins can see that the jobs keep running.
+- D1 `runs(id TEXT PK, job 'daily'|'hourly', host 'mac'|'cloud', started_at,
+  finished_at, status 'running'|'ok'|'failed', exit_code, warnings JSON
+  array, log_url)`. Rows older than 90 days are deleted on each ingest.
+- `PUT /api/ingest/runs/:id` (machine; id = 32 hex) `{ job, host,
+  started_at, status, finished_at?, exit_code?, warnings? (<= 50 strings of
+  <= 500, the job's "!" lines), log_url? (a github.com Actions run URL) }`.
+  Sent with `status: 'running'` at the start and again at the end, same id.
+  Test runs are not reported.
+- `/api/admin/status` gains `runs: { runner, jobs, mac, recent }`.
+  `jobs[]` = `{ job, label, due: ['HH:MM'], light, text, last }` with
+  `light` green | yellow | red. Stockholm due hours live in `RUN_JOBS`
+  (daily 05, hourly 01 and 16):
+  - red: the last run failed, has run over twice its expected time, or the
+    due run has not started 45 min after its time;
+  - yellow: finished with warnings, or no run reported yet;
+  - green: finished without warnings, or running normally. Before the 45
+    minutes are up, a job keeps the light of its previous run.
+  `mac` = the Mac's invitation job, from `meta.last_invite_pull_at`: green
+  when heard from in the last 10 min, red when it is silent and an
+  invitation waits, otherwise yellow. `recent` = the last 30 runs.
+- App: Status is the first and default admin tab. On top, the worst light
+  ("Allt snurrar" / "Något att hålla koll på" / "Något har gått fel") and
+  where the jobs run, then one row per job and the Mac, then the last 15
+  runs with their warnings and a link to the GitHub Actions log.
+- The missing-report alarm's push and card no longer tell the reader to
+  check the Mac.

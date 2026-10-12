@@ -88,6 +88,19 @@ def pull_assessments() -> int:
         return 0
 
 
+def push_run(run: dict) -> bool:
+    """Reports a scheduled run's start or end (schedule/run_job.py) for the
+    app's status page. One try, no retries: a run must not wait on this."""
+    if not _config():
+        return False
+    try:
+        _request("PUT", f"/api/ingest/runs/{run['id']}", run, retries=False)
+        return True
+    except Exception as e:
+        print(f"  ! Run status upload failed: {e}")
+        return False
+
+
 def push_report(report_data: dict) -> bool:
     if not _config():
         print("  App upload skipped - HOTMONITOR_URL / CF_ACCESS_CLIENT_* not set")

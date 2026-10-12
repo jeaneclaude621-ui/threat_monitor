@@ -352,6 +352,19 @@ req GET /api/admin/audit; contains "audit has refresh" "$BODY" '"action":"refres
 
 kill $PUSH_PID 2>/dev/null; rm -f "$PUSH_LOG"
 
+echo "Version 3.4: scheduled runs"
+RID=$(printf 'run%029d' $$ | tr -c '0-9a-f\n' 'a' | cut -c1-32)
+RSTART=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+req PUT "/api/ingest/runs/$RID" "${JSONH[@]}" -d "{\"job\":\"hourly\",\"host\":\"cloud\",\"started_at\":\"$RSTART\",\"status\":\"running\"}"; check "user cannot report a run" 403 "$STATUS"
+req PUT "/api/ingest/runs/not-hex" "${JSONH[@]}" "${MACHINE[@]}" -d '{}'; check "bad run id" 400 "$STATUS"
+req PUT "/api/ingest/runs/$RID" "${JSONH[@]}" "${MACHINE[@]}" -d "{\"job\":\"weekly\",\"host\":\"cloud\",\"started_at\":\"$RSTART\",\"status\":\"running\"}"; check "unknown job" 400 "$STATUS"
+req PUT "/api/ingest/runs/$RID" "${JSONH[@]}" "${MACHINE[@]}" -d "{\"job\":\"hourly\",\"host\":\"cloud\",\"started_at\":\"$RSTART\",\"status\":\"ok\",\"log_url\":\"https://example.com/x\"}"; check "foreign log_url" 400 "$STATUS"
+req PUT "/api/ingest/runs/$RID" "${JSONH[@]}" "${MACHINE[@]}" -d "{\"job\":\"hourly\",\"host\":\"cloud\",\"started_at\":\"$RSTART\",\"status\":\"running\"}"; check "run started" 200 "$STATUS"
+req GET /api/admin/status; contains "status lists the run" "$BODY" "$RID"; contains "running run is green" "$BODY" 'Kör nu'
+req PUT "/api/ingest/runs/$RID" "${JSONH[@]}" "${MACHINE[@]}" -d "{\"job\":\"hourly\",\"host\":\"cloud\",\"started_at\":\"$RSTART\",\"finished_at\":\"$RSTART\",\"status\":\"failed\",\"exit_code\":2,\"warnings\":[\"! boom\"]}"; check "run finished" 200 "$STATUS"
+req GET /api/admin/status; contains "failed run is red" "$BODY" 'Misslyckades (kod 2)'
+req GET /api/admin/status "${READER[@]}"; check "reader cannot see status" 403 "$STATUS"
+
 echo "Web Push and clock (unit)"
 if node scripts/push_test.mjs >/dev/null; then PASS=$((PASS+1)); echo "  ok    push_test.mjs (RFC 8291 vector, VAPID)"; else FAIL=$((FAIL+1)); echo "  FAIL  push_test.mjs"; fi
 if node scripts/clock_test.mjs >/dev/null; then PASS=$((PASS+1)); echo "  ok    clock_test.mjs (Stockholm DST)"; else FAIL=$((FAIL+1)); echo "  FAIL  clock_test.mjs"; fi

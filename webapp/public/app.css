@@ -493,6 +493,24 @@ dialog.sheet::backdrop { background: rgba(15, 21, 38, 0.5); }
 .alarm-card .kicker { color: #FFE3DC; }
 @media (prefers-color-scheme: dark) { .alarm-card { background: #F4A28C; color: #1A0A06; } .alarm-card .kicker { color: #3A120A; } }
 
+/* Scheduled runs on the status page (Version 3.4) */
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; margin-top: 4px; }
+.dot-green { background: #2E7D4F; }
+.dot-yellow { background: #D9A21B; }
+.dot-red { background: #C0392B; }
+.run-hero { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); }
+.run-hero .dot { width: 22px; height: 22px; margin-top: 0; }
+.run-hero.run-yellow { background: var(--amber-soft); border-color: var(--amber-mid); }
+.run-hero.run-red { border-color: #C0392B; }
+.run-state { color: var(--ink-2); font-size: 13px; }
+.run-warn { font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+@media (prefers-color-scheme: dark) {
+  .dot-green { background: #5FC48A; }
+  .dot-yellow { background: #F0C24B; }
+  .dot-red { background: #F4826E; }
+  .run-hero.run-red { border-color: #F4826E; }
+}
+
 button.icon-btn { border: none; background: none; padding: 0; cursor: pointer; font: inherit; }
 button.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 .sheet-actions > :only-child { grid-column: 1 / -1; }

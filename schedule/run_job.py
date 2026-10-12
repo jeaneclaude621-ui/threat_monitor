@@ -39,6 +39,10 @@ other firing finds it done and skips. launchd starts on time and passes no
 runner, keeps nothing and only checks that the push would be accepted.
 The workflow pairs it with mail to the sender only, no app upload and a
 reply check that leaves the mail unread.
+
+Every real run is reported to the app (PUT /api/ingest/runs/<id>) when it
+starts and when it ends, with the job's "!" warning lines, for the status
+page's green/yellow/red lights.
 """
 import argparse
 import fcntl
@@ -47,6 +51,7 @@ import os
 import subprocess
 import sys
 import time
+import uuid
 from contextlib import contextmanager
 from datetime import datetime, time as clock
 from pathlib import Path
@@ -55,6 +60,8 @@ ROOT = Path(__file__).resolve().parent.parent
 STATE_GIT = ROOT / ".state.git"
 RUNNER_PATH = ROOT / "data" / "runner"
 LAST_RUN_PATH = ROOT / "data" / "last_run.json"
+
+sys.path.insert(0, str(ROOT / "src"))
 BRANCH = "main"
 TIMEZONE = "Europe/Stockholm"
 
@@ -173,6 +180,29 @@ def due_reason(job: str, hours: list, now: datetime):
     return None
 
 
+def run_and_watch(script: list) -> tuple:
+    """Runs the job with its output passed straight through, and returns
+    (exit code, the job's warning lines - those starting with "!")."""
+    proc = subprocess.Popen([sys.executable, *script], cwd=ROOT, text=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            env=dict(os.environ, PYTHONUNBUFFERED="1"))
+    warnings = []
+    for line in proc.stdout:
+        sys.stdout.write(line)
+        sys.stdout.flush()
+        if line.lstrip().startswith("!") and len(warnings) < 50:
+            warnings.append(line.strip()[:500])
+    return proc.wait(), warnings
+
+
+def report_run(run: dict):
+    try:
+        from app_sync import push_run
+        push_run(run)
+    except Exception as e:  # the status page must never stop a run
+        log(f"! Run status upload failed: {e}")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", required=True, choices=["mac", "cloud"])
@@ -207,9 +237,20 @@ def main() -> int:
     else:
         log(f"TEST run of {args.job} - nothing is saved")
 
-    code = subprocess.run([sys.executable, *JOBS[args.job]], cwd=ROOT).returncode
+    run = {"id": uuid.uuid4().hex, "job": args.job, "host": args.host,
+           "started_at": now.astimezone().isoformat(timespec="seconds"), "status": "running"}
+    gh = [os.environ.get(k) for k in ("GITHUB_SERVER_URL", "GITHUB_REPOSITORY", "GITHUB_RUN_ID")]
+    if all(gh):
+        run["log_url"] = "{}/{}/actions/runs/{}".format(*gh)
+    if not args.test:
+        report_run(run)
+
+    code, warnings = run_and_watch(JOBS[args.job])
     if code != 0:
         log(f"! {args.job} exited with code {code}")
+    if not args.test:
+        report_run(dict(run, status="ok" if code == 0 else "failed", exit_code=code, warnings=warnings,
+                        finished_at=datetime.now().astimezone().isoformat(timespec="seconds")))
 
     if args.test:
         if has_remote():

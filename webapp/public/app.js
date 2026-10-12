@@ -1809,7 +1809,7 @@ function mineRow(row, event, article) {
 }
 
 // ---------------------------------------------------------------- Admin
-const ADMIN_TABS = [['users', 'Användare'], ['notices', 'Meddelanden'], ['security', 'Säkerhet'], ['status', 'Status'], ['audit', 'Logg']];
+const ADMIN_TABS = [['status', 'Status'], ['users', 'Användare'], ['notices', 'Meddelanden'], ['security', 'Säkerhet'], ['audit', 'Logg']];
 const REASONS = [
   ['not_allowed', 'Ej behörig', 'Verifierad e-post som inte finns bland användarna'],
   ['invalid_jwt', 'Ogiltig inloggning', 'Förfalskad, utgången eller trasig inloggningsbiljett'],
@@ -1843,7 +1843,7 @@ const ago = (ts) => {
 
 async function viewAdmin(q) {
   if (!isAdmin()) return adminOnly();
-  const tab = ADMIN_TABS.some(([k]) => k === q.get('s')) ? q.get('s') : 'users';
+  const tab = ADMIN_TABS.some(([k]) => k === q.get('s')) ? q.get('s') : 'status';
   let body;
   try {
     body = tab === 'users' ? await adminUsers()
@@ -2110,6 +2110,53 @@ async function adminSecurity() {
           r.detail ? h('span', { class: 'row-sub' }, r.detail) : null)))) : h('p', { class: 'muted small' }, 'Inga registrerade händelser de senaste 7 dygnen.')));
 }
 
+// The scheduled runs (Version 3.4): one light per job and for the Mac, the
+// worst of them on top. The Worker decides the lights; see runHealth there.
+const LIGHT_SV = { green: 'Grönt', yellow: 'Gult', red: 'Rött' };
+const HOST_SV = { cloud: 'GitHub Actions', mac: 'Macen' };
+const RUNS_HEADLINE = { green: 'Allt snurrar', yellow: 'Något att hålla koll på', red: 'Något har gått fel' };
+
+const lightDot = (light) => h('span', { class: `dot dot-${light}`, role: 'img', 'aria-label': LIGHT_SV[light] || light });
+const runMinutes = (r) => (r.finished_at
+  ? `${Math.max(1, Math.round((Date.parse(r.finished_at) - Date.parse(r.started_at)) / 60000))} min` : 'pågår');
+const runLight = (r) => (r.status === 'failed' ? 'red' : r.status === 'ok' && r.warnings.length ? 'yellow' : 'green');
+const logLink = (r) => (r.log_url ? frag(' · ', h('a', { href: r.log_url, target: '_blank', rel: 'noopener' }, 'Logg')) : null);
+
+function runsSection(runs) {
+  if (!runs) return null;
+  const lights = [...runs.jobs.map((j) => j.light), runs.mac.light];
+  const worst = lights.includes('red') ? 'red' : lights.includes('yellow') ? 'yellow' : 'green';
+  const labels = Object.fromEntries(runs.jobs.map((j) => [j.job, j.label]));
+  return frag(
+    h('section', { class: `run-hero run-${worst}` }, lightDot(worst),
+      h('div', null,
+        h('div', { class: 'title-m' }, RUNS_HEADLINE[worst]),
+        h('div', { class: 'small' }, runs.runner ? `Jobben körs i ${HOST_SV[runs.runner] || runs.runner}` : 'Inga körningar rapporterade än'))),
+    h('div', { class: 'card list' },
+      runs.jobs.map((j) => h('div', { class: 'row srow' }, lightDot(j.light),
+        h('div', { class: 'row-main' },
+          h('span', { class: 'row-title' }, j.label, h('span', { class: 'muted' }, ` · kl. ${j.due.join(' och ')}`)),
+          h('span', { class: 'row-sub run-state' }, j.text),
+          j.last ? h('span', { class: 'row-sub' },
+            `Senast ${tsFmt(j.last.started_at)} · ${HOST_SV[j.last.host] || j.last.host} · ${runMinutes(j.last)}`, logLink(j.last)) : null))),
+      h('div', { class: 'row srow' }, lightDot(runs.mac.light),
+        h('div', { class: 'row-main' },
+          h('span', { class: 'row-title' }, 'Macen', h('span', { class: 'muted' }, ' · inbjudningsmejl')),
+          h('span', { class: 'row-sub run-state' }, runs.mac.text),
+          runs.mac.last_seen_at ? h('span', { class: 'row-sub' }, `Hördes senast ${ago(runs.mac.last_seen_at)}`) : null))),
+    runs.recent.length ? h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, 'Senaste körningar'),
+      h('div', { class: 'card list' }, runs.recent.slice(0, 15).map((r) => h('div', { class: 'row srow' }, lightDot(runLight(r)),
+        h('div', { class: 'row-main' },
+          h('span', { class: 'row-title' }, `${labels[r.job] || r.job} · ${tsFmt(r.started_at)}`),
+          h('span', { class: 'row-sub' },
+            [HOST_SV[r.host] || r.host, runMinutes(r),
+              r.status === 'failed' ? `misslyckades, kod ${r.exit_code ?? '?'}` : null,
+              r.warnings.length ? plural(r.warnings.length, 'varning', 'varningar') : null].filter(Boolean).join(' · '),
+            logLink(r)),
+          r.warnings.slice(0, 3).map((w) => h('span', { class: 'row-sub run-warn' }, w.replace(/^!\s*/, '')))))))) : null);
+}
+
 async function adminStatus() {
   const s = await adminGet('/api/admin/status');
   const c = (s && s.counts) || {};
@@ -2133,15 +2180,15 @@ async function adminStatus() {
     h('div', { class: 'stat-value' }, s.last_report_date ? dateShort(s.last_report_date) : '–'), reportState ? h('div', { class: 'small' }, reportState) : null));
   tiles.push(statTile('Senaste uppdatering', s.last_update_at ? ago(s.last_update_at) : '–'));
   const pullOld = s.last_machine_pull_at && Date.now() - new Date(s.last_machine_pull_at).getTime() > 36 * 3600000;
-  tiles.push(h('div', { class: `stat ${pullOld ? 'warn' : ''}` }, h('div', { class: 'stat-label' }, 'Macen hämtade senast'),
+  tiles.push(h('div', { class: `stat ${pullOld ? 'warn' : ''}` }, h('div', { class: 'stat-label' }, 'Bedömningar hämtades senast'),
     h('div', { class: 'stat-value' }, s.last_machine_pull_at ? ago(s.last_machine_pull_at) : 'aldrig'),
     pullOld ? h('div', { class: 'small' }, 'Mer än ett och ett halvt dygn sedan') : null));
   const exp = s.service_token_expires ? new Date(s.service_token_expires) : null;
   const daysLeft = exp ? Math.floor((exp.getTime() - Date.now()) / 86400000) : null;
   tiles.push(h('div', { class: `stat ${daysLeft == null ? '' : daysLeft < 0 ? 'danger' : daysLeft <= 30 ? 'warn' : ''}` },
-    h('div', { class: 'stat-label' }, 'Macens nyckel går ut'),
+    h('div', { class: 'stat-label' }, 'Maskinnyckeln går ut'),
     h('div', { class: 'stat-value' }, exp ? exp.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' }) : '–'),
-    daysLeft == null ? null : h('div', { class: 'small' }, daysLeft < 0 ? 'Har gått ut – Macen kan inte ladda upp' : daysLeft <= 30 ? `Om ${plural(daysLeft, 'dag', 'dagar')} – förnya nyckeln` : `Om ${daysLeft} dagar`)));
+    daysLeft == null ? null : h('div', { class: 'small' }, daysLeft < 0 ? 'Har gått ut – körningarna kan inte ladda upp' : daysLeft <= 30 ? `Om ${plural(daysLeft, 'dag', 'dagar')} – förnya nyckeln` : `Om ${daysLeft} dagar`)));
   const inv = s.invites || {};
   if (inv.pending) {
     const stuck = !inv.last_pull_at || Date.now() - new Date(inv.last_pull_at).getTime() > 30 * 60000;
@@ -2155,7 +2202,9 @@ async function adminStatus() {
       h('div', { class: 'kicker' }, 'Larm'),
       h('p', { class: 'title-m' }, `Morgonrapporten för ${dateLong(alarm)} har inte kommit`),
       h('p', { class: 'small' }, s.alarm.checked_at ? `Senast kontrollerad ${tsFmt(s.alarm.checked_at)}. ` : '',
-        'Kontrollera att Macen är på, står på laddaren och har nät, och titta i data/logs/daily_run.log.')) : null,
+        'Se Morgonrapport under Körningar nedan, och dess logg i GitHub Actions.')) : null,
+    runsSection(s.runs),
+    h('h2', { class: 'kicker' }, 'Appen'),
     h('section', { class: 'stat-grid' }, tiles),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Innehåll'),

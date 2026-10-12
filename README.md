@@ -132,6 +132,11 @@ consolidated PowerPoint status report every morning at 05:00.
    app, replies stay unread, and no state is saved. The deck of each
    run can be downloaded from the run's page for 30 days.
 
+   Every real run reports its start, end and warning lines to the web
+   app. The admin Status tab shows a green, yellow or red light per job
+   and for the Mac, plus the latest runs with links to their logs
+   (`webapp/CONTRACT.md`, Version 3.4).
+
 ## Svensk Super Executive
 
 The top of each morning email carries a one-screen Swedish summary:

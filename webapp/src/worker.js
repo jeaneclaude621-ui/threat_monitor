@@ -16,6 +16,8 @@
  * an alarm when the morning report has not arrived by 06:30 Stockholm time.
  * Version 3.3: invitation emails (queued here, sent by the Mac) and an
  * admin "update everyone" push that makes open apps reload.
+ * Version 3.4: the scheduled runs report in (from the Mac or GitHub
+ * Actions), and the admin status page shows whether they keep running.
  */
 
 import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
@@ -44,6 +46,18 @@ const HIGH_SCORE = 9;
 const INVITE_MAX_ATTEMPTS = 3;
 const REFRESH_MIN_GAP_MS = 30 * 1000;
 const INVITE_ID_RE = /^[0-9a-f-]{36}$/;
+
+// Scheduled runs (Version 3.4), in Stockholm hours. Mirrors the schedule in
+// .github/workflows/scheduled-jobs.yml and schedule/launchd/*.plist.
+const RUN_JOBS = {
+  daily: { label: 'Morgonrapport', hours: [5], maxMinutes: 45 },
+  hourly: { label: 'Trådbevakning', hours: [1, 16], maxMinutes: 20 },
+};
+const RUN_START_GRACE_MIN = 45;   // GitHub's cron can start this late
+const RUN_ID_RE = /^[0-9a-f]{32}$/;
+const RUN_LOG_URL_RE = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/actions\/runs\/\d+$/;
+const RUNS_KEEP_DAYS = 90;
+const MAC_QUIET_MIN = 10;          // the Mac's invitation job polls every 2 min
 
 // Reasons written to security_log (CONTRACT.md, Version 2).
 const R = {
@@ -245,6 +259,13 @@ async function route(req) {
     allow(method, 'PUT');
     requireMachine(who);
     return reportInvite(request, env, m[1]);
+  }
+
+  m = path.match(/^\/api\/ingest\/runs\/([^/]+)$/);
+  if (m) {
+    allow(method, 'PUT');
+    requireMachine(who);
+    return ingestRun(request, env, m[1]);
   }
 
   if (path === '/api/export/all') {
@@ -793,7 +814,116 @@ async function status(env) {
     last_machine_pull_at: pull ? pull.value : null,
     counts: { reports: reports.n, events: reports.events, assessments: assessments.n, users: users.n },
     service_token_expires: env.SERVICE_TOKEN_EXPIRES || null,
+    runs: await runsStatus(env, Date.now(), invites.n, invitePull ? invitePull.value : null),
   });
+}
+
+// ---------------------------------------------------------------------------
+// Scheduled runs (Version 3.4)
+// ---------------------------------------------------------------------------
+async function ingestRun(request, env, id) {
+  if (!RUN_ID_RE.test(id)) throw new HttpError(400, 'run id must be 32 hex characters');
+  const b = await readJson(request);
+  if (!b || typeof b !== 'object' || Array.isArray(b)) throw new HttpError(400, 'body must be a JSON object');
+  if (!Object.hasOwn(RUN_JOBS, b.job)) throw new HttpError(400, `job must be one of ${Object.keys(RUN_JOBS).join(', ')}`);
+  if (b.host !== 'mac' && b.host !== 'cloud') throw new HttpError(400, "host must be 'mac' or 'cloud'");
+  if (!['running', 'ok', 'failed'].includes(b.status)) throw new HttpError(400, "status must be 'running', 'ok' or 'failed'");
+  if (typeof b.started_at !== 'string' || !TS_RE.test(b.started_at)) throw new HttpError(400, 'started_at must be ISO 8601');
+  if (b.finished_at != null && (typeof b.finished_at !== 'string' || !TS_RE.test(b.finished_at))) {
+    throw new HttpError(400, 'finished_at must be ISO 8601');
+  }
+  if (b.exit_code != null && !Number.isInteger(b.exit_code)) throw new HttpError(400, 'exit_code must be an integer');
+  const warnings = b.warnings ?? [];
+  if (!Array.isArray(warnings) || warnings.length > 50 || warnings.some((w) => typeof w !== 'string' || w.length > 500)) {
+    throw new HttpError(400, 'warnings must be at most 50 strings of at most 500 characters');
+  }
+  if (b.log_url != null && (typeof b.log_url !== 'string' || !RUN_LOG_URL_RE.test(b.log_url))) {
+    throw new HttpError(400, 'log_url must be a GitHub Actions run URL');
+  }
+  await env.DB.batch([
+    env.DB.prepare(
+      `INSERT INTO runs (id, job, host, started_at, finished_at, status, exit_code, warnings, log_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         finished_at = excluded.finished_at, status = excluded.status,
+         exit_code = excluded.exit_code, warnings = excluded.warnings, log_url = excluded.log_url`
+    ).bind(id, b.job, b.host, new Date(b.started_at).toISOString(),
+           b.finished_at ? new Date(b.finished_at).toISOString() : null,
+           b.status, b.exit_code ?? null, JSON.stringify(warnings), b.log_url ?? null),
+    env.DB.prepare('DELETE FROM runs WHERE started_at < ?')
+      .bind(new Date(Date.now() - RUNS_KEEP_DAYS * 86400000).toISOString()),
+  ]);
+  return json({ ok: true });
+}
+
+/** The latest due time of a job at or before `nowMs`, from its Stockholm hours. */
+function lastDueMs(hours, nowMs) {
+  const { minutes } = stockholmClock(nowMs);
+  const today = hours.filter((h) => h * 60 <= minutes);
+  const back = today.length ? minutes - Math.max(...today) * 60 : minutes + 24 * 60 - Math.max(...hours) * 60;
+  return nowMs - (nowMs % 60000) - back * 60000;
+}
+
+const stockholmHHMM = (ms) => new Date(ms).toLocaleTimeString('sv-SE', {
+  timeZone: 'Europe/Stockholm', hour: '2-digit', minute: '2-digit',
+});
+
+/**
+ * Green, yellow or red per job: red when the last run failed, hangs, or the
+ * due run has not started RUN_START_GRACE_MIN after its time; yellow when
+ * it finished with warnings; otherwise green. Before the grace runs out a
+ * job keeps the light of its previous run.
+ */
+function runHealth(spec, last, nowMs) {
+  if (!last) return { light: 'yellow', text: 'Ingen körning rapporterad än' };
+  const due = lastDueMs(spec.hours, nowMs);
+  if (last.status === 'running') {
+    const mins = Math.round((nowMs - Date.parse(last.started_at)) / 60000);
+    return mins > spec.maxMinutes * 2
+      ? { light: 'red', text: `Har kört i ${mins} min – har den hängt sig?` }
+      : { light: 'green', text: `Kör nu, startade ${stockholmHHMM(Date.parse(last.started_at))}` };
+  }
+  // Ten minutes' slack: launchd starts on the dot, a manual run a bit early.
+  const ranSinceDue = Date.parse(last.started_at) >= due - 10 * 60000;
+  if (!ranSinceDue) {
+    if ((nowMs - due) / 60000 > RUN_START_GRACE_MIN) {
+      return { light: 'red', text: `Körningen ${stockholmHHMM(due)} har inte startat` };
+    }
+    const prev = runHealth(spec, last, Date.parse(last.started_at) + 60000);
+    return { light: prev.light, text: `Väntar på körningen ${stockholmHHMM(due)}` };
+  }
+  const warnings = JSON.parse(last.warnings || '[]');
+  if (last.status === 'failed') return { light: 'red', text: `Misslyckades (kod ${last.exit_code ?? '?'})` };
+  if (warnings.length) return { light: 'yellow', text: `Klar med ${warnings.length === 1 ? '1 varning' : `${warnings.length} varningar`}` };
+  return { light: 'green', text: 'Klar utan fel' };
+}
+
+async function runsStatus(env, nowMs, pendingInvites, invitePullAt) {
+  const { results } = await env.DB.prepare('SELECT * FROM runs ORDER BY started_at DESC LIMIT 30').all();
+  const recent = results.map((r) => ({ ...r, warnings: JSON.parse(r.warnings || '[]') }));
+  const jobs = Object.entries(RUN_JOBS).map(([job, spec]) => {
+    const last = results.find((r) => r.job === job) || null;
+    return {
+      job, label: spec.label,
+      due: spec.hours.map((h) => `${String(h).padStart(2, '0')}:00`),
+      ...runHealth(spec, last, nowMs),
+      last: last ? recent.find((r) => r.id === last.id) : null,
+    };
+  });
+  // The Mac only matters for invitations now; it is red only when one waits.
+  const quietMin = invitePullAt ? Math.round((nowMs - Date.parse(invitePullAt)) / 60000) : null;
+  const macUp = quietMin != null && quietMin <= MAC_QUIET_MIN;
+  const mac = macUp
+    ? { light: 'green', text: 'Igång – skickar inbjudningar' }
+    : pendingInvites && (quietMin == null || quietMin > 30)
+      ? { light: 'red', text: `Svarar inte – ${pendingInvites === 1 ? '1 inbjudan väntar' : `${pendingInvites} inbjudningar väntar`}` }
+      : { light: 'yellow', text: 'Svarar inte – behövs bara för inbjudningar' };
+  return {
+    runner: recent.length ? recent[0].host : null,
+    jobs,
+    mac: { ...mac, last_seen_at: invitePullAt },
+    recent,
+  };
 }
 
 async function audit(env, actor, action, target, detail) {
@@ -837,7 +967,7 @@ async function checkMissingReport(env, nowMs) {
   await audit(env, 'system', 'alarm', null, { missing_report: date });
   await pushTo(env, { adminsOnly: true, pref: 'alarm' }, {
     title: 'Dagens rapport har inte kommit',
-    body: `Ingen morgonrapport för ${date} kl. 06:30. Kontrollera Macen.`,
+    body: `Ingen morgonrapport för ${date} kl. 06:30. Se Systemstatus.`,
     url: '/#/admin',
   }, 'high');
   return { checked: true, date, missing: true, raised: true };
