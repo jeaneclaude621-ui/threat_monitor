@@ -11,7 +11,7 @@ markup.
     python3 src/executive_sv.py                # today's report
     python3 src/executive_sv.py 2026-09-28     # a specific date
 
-Best-effort like the podcast: if it fails, the email goes out without it.
+Best-effort: if it fails, the email goes out without it.
 """
 import json
 import sys

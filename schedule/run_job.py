@@ -3,11 +3,12 @@ Runs one scheduled job on whichever machine is the current runner, and
 keeps the run state in step between the Mac and GitHub Actions.
 
 The run state - data/ plus the text files in reports/ that later runs read
-back (report_data.json, executive_sv.json, briefing txt) - lives in its own
-git repo, .state.git, whose work tree is this project folder. The code repo
-ignores those paths and the state repo tracks only them, so neither sees
-the other's files and no code path changes. The .pptx and .m4a files
-are left out: they are mailed and uploaded, and nothing reads them back.
+back (report_data.json, executive_sv.json) - lives in its own git repo,
+.state.git, whose work tree is this project folder. The code repo ignores
+those paths and the state repo tracks only them, so neither sees the
+other's files and no code path changes. The .pptx decks (and the .m4a
+files of the old spoken briefing) are left out: they are mailed and
+uploaded, and nothing reads them back.
 
 data/runner names the machine that runs the jobs ("mac" or "cloud"). A job
 started anywhere else exits without doing anything, so moving the runs is

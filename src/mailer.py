@@ -81,7 +81,7 @@ def build_executive_html(brief: dict) -> str:
     </tr>"""
 
 
-def build_html_digest(report_data: dict, has_audio: bool = False, executive: dict = None) -> str:
+def build_html_digest(report_data: dict, executive: dict = None) -> str:
     """Single-column, inline-CSS HTML email - deliberately simple
     markup (tables + inline styles) since that's what survives Apple
     Mail's rendering on iPhone, unlike a linked stylesheet."""
@@ -112,7 +112,6 @@ def build_html_digest(report_data: dict, has_audio: bool = False, executive: dic
         <div style="color:#6B7591;font-size:12px;margin-top:6px;">Arkiv, sök, karta och operatörsbedömning</div>
       </td>
     </tr>""" if app_url else ""
-    audio_note = " &middot; 4-minute spoken briefing in Swedish attached (.m4a)" if has_audio else ""
 
     forecast_cell = forecast_reading = ""
     if d.get("threat_index_30d") is not None:
@@ -183,7 +182,7 @@ def build_html_digest(report_data: dict, has_audio: bool = False, executive: dic
     </tr>
     <tr>
       <td style="padding:14px 20px;text-align:center;">
-        <div style="color:#9AA3BC;font-size:11px;">Full deck attached (PowerPoint){audio_note} &middot; Automated OSINT synthesis, not for operational decision-making</div>
+        <div style="color:#9AA3BC;font-size:11px;">Full deck attached (PowerPoint) &middot; Automated OSINT synthesis, not for operational decision-making</div>
       </td>
     </tr>
   </table>
@@ -191,7 +190,7 @@ def build_html_digest(report_data: dict, has_audio: bool = False, executive: dic
 </html>"""
 
 
-def send_daily_email(report_data: dict, pptx_path: str, audio_path: str = None, executive: dict = None) -> bool:
+def send_daily_email(report_data: dict, pptx_path: str, executive: dict = None) -> bool:
     """Returns True if sent, False if skipped or failed. Never raises -
     a mail problem should never take down the rest of the daily run."""
     host = os.environ.get("SMTP_HOST")
@@ -217,7 +216,7 @@ def send_daily_email(report_data: dict, pptx_path: str, audio_path: str = None, 
     msg["From"] = mail_from
     msg["To"] = mail_to
     msg.set_content("This report needs an HTML-capable mail client to view the digest. The full deck is attached as a PowerPoint file.")
-    msg.add_alternative(build_html_digest(report_data, has_audio=bool(audio_path), executive=executive), subtype="html")
+    msg.add_alternative(build_html_digest(report_data, executive=executive), subtype="html")
 
     pptx_file = Path(pptx_path)
     if pptx_file.exists():
@@ -226,15 +225,6 @@ def send_daily_email(report_data: dict, pptx_path: str, audio_path: str = None, 
             maintype="application",
             subtype="vnd.openxmlformats-officedocument.presentationml.presentation",
             filename=pptx_file.name,
-        )
-
-    if audio_path and Path(audio_path).exists():
-        audio_file = Path(audio_path)
-        msg.add_attachment(
-            audio_file.read_bytes(),
-            maintype="audio",
-            subtype="mp4",          # .m4a - plays inline in Apple Mail
-            filename=audio_file.name,
         )
 
     for delay in NETWORK_RETRY_DELAYS + [None]:

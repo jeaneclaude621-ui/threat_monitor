@@ -24,7 +24,6 @@ from common import (
 from pptx_builder import build_deck
 from mailer import send_daily_email
 from reply_checker import check_replies
-from podcast import build_podcast
 from executive_sv import build_executive_safe
 from app_data import enrich_events, add_favicons, SWEEP_EVENT_FIELDS, SWEEP_EVENT_JSON
 from app_sync import pull_assessments, push_report, backup_app
@@ -584,8 +583,7 @@ def run_daily_report():
         report_data["executive_sv"] = executive
         with open(OUTPUT_DIR / f"{today.isoformat()}_report_data.json", "w", encoding="utf-8") as f:
             json.dump(report_data, f, indent=2, ensure_ascii=False)
-    _, audio_path = build_podcast(report_data)
-    send_daily_email(report_data, str(pptx_path), str(audio_path) if audio_path else None, executive)
+    send_daily_email(report_data, str(pptx_path), executive)
     push_report(report_data)
     backup_app()
 

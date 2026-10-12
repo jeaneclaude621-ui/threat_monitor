@@ -91,13 +91,11 @@ jobs:
           JOB="${ARGS##* }"
           python schedule/run_job.py --host cloud $ARGS 2>&1 | tee -a "data/logs/${JOB}_run_cloud.log"
 
-      - name: Keep the report files
+      - name: Keep the report deck
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: reports-${{ github.run_id }}
-          path: |
-            reports/*.pptx
-            reports/*.m4a
+          path: reports/*.pptx
           if-no-files-found: ignore
           retention-days: 30

@@ -129,38 +129,16 @@ consolidated PowerPoint status report every morning at 05:00.
    access to the state repo. To test it without side effects, start
    it from the Actions tab (Run workflow, with "Test run" ticked). The
    report then goes only to `MAIL_FROM`, nothing is uploaded to the
-   app, replies stay unread, and no state is saved. The cloud has no
-   macOS `say`, so its reports go out without the spoken briefing. The
-   deck and audio files of each run can be downloaded from the run's
-   page for 30 days.
-
-## Spoken Swedish briefing (podcast mode)
-
-Each daily report is also rendered as a ~4 minute spoken briefing in
-Swedish and attached to the email as an `.m4a`, which plays inline in
-Apple Mail on an iPhone. It covers results only - no sources, no
-outlet names, no scores read aloud.
-
-The script is written by Claude from the finished report data and saved
-next to the deck as `<date>_briefing_sv.txt`; the audio is rendered
-locally by macOS `say` with the Swedish voice Alva and converted with
-`afconvert`, so it needs no extra service or API key. On a machine
-without those tools the script is still produced and the report goes
-out as before - the briefing is best-effort and never blocks the run.
-
-```
-python3 src/podcast.py                 # today's report
-python3 src/podcast.py 2026-09-21      # a specific date
-python3 src/podcast.py --script-only   # script, no audio
-```
+   app, replies stay unread, and no state is saved. The deck of each
+   run can be downloaded from the run's page for 30 days.
 
 ## Svensk Super Executive
 
 The top of each morning email carries a one-screen Swedish summary:
 both indices, the top development, then every heading of the deck with
 one short sentence per topic. Claude writes it from the finished report
-data as structured JSON, saved as `<date>_executive_sv.json`. Like the
-podcast it is best-effort: if it fails, the email goes out without it.
+data as structured JSON, saved as `<date>_executive_sv.json`. It is
+best-effort: if it fails, the email goes out without it.
 
 ```
 python3 src/executive_sv.py              # today's report
