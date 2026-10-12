@@ -123,6 +123,17 @@ consolidated PowerPoint status report every morning at 05:00.
    state could fork it or send a report twice. The invitation job is
    not routed this way and always runs on the Mac.
 
+   The `cloud` side is `.github/workflows/scheduled-jobs.yml`. It needs
+   the same ten variables as `~/.zshrc`, stored as repository secrets,
+   plus `STATE_DEPLOY_KEY`: the private half of a deploy key with write
+   access to the state repo. To test it without side effects, start
+   it from the Actions tab (Run workflow, with "Test run" ticked). The
+   report then goes only to `MAIL_FROM`, nothing is uploaded to the
+   app, replies stay unread, and no state is saved. The cloud has no
+   macOS `say`, so its reports go out without the spoken briefing. The
+   deck and audio files of each run can be downloaded from the run's
+   page for 30 days.
+
 ## Spoken Swedish briefing (podcast mode)
 
 Each daily report is also rendered as a ~4 minute spoken briefing in

@@ -5,8 +5,8 @@ keeps the run state in step between the Mac and GitHub Actions.
 The run state - data/ plus the text files in reports/ that later runs read
 back (report_data.json, executive_sv.json, briefing txt) - lives in its own
 git repo, .state.git, whose work tree is this project folder. The code repo
-ignores those paths and the state repo ignores everything else, so neither
-sees the other's files and no code path changes. The .pptx and .m4a files
+ignores those paths and the state repo tracks only them, so neither sees
+the other's files and no code path changes. The .pptx and .m4a files
 are left out: they are mailed and uploaded, and nothing reads them back.
 
 data/runner names the machine that runs the jobs ("mac" or "cloud"). A job
@@ -26,20 +26,34 @@ Each machine writes its own log files (launchd: data/logs/*_run.log;
 Actions: *_run_cloud.log). A pull then never rewrites a log the other
 machine changed, which would conflict with this machine's unsaved lines or
 cut off a log launchd holds open.
+
+GitHub's schedule is in UTC and can start late, so Actions fires each job
+at both UTC hours that can be its Stockholm hour, and passes --at with the
+Stockholm hours the job is due. The run goes ahead only once a due hour
+has come and no run has been started since it (data/last_run.json); the
+other firing finds it done and skips. launchd starts on time and passes no
+--at, but its runs are recorded too, so after a move nothing runs twice.
+
+--test runs the job without touching the shared state: it ignores the
+runner, keeps nothing and only checks that the push would be accepted.
+The workflow pairs it with mail to the sender only, no app upload and a
+reply check that leaves the mail unread.
 """
 import argparse
 import fcntl
+import json
 import os
 import subprocess
 import sys
 import time
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, time as clock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 STATE_GIT = ROOT / ".state.git"
 RUNNER_PATH = ROOT / "data" / "runner"
+LAST_RUN_PATH = ROOT / "data" / "last_run.json"
 BRANCH = "main"
 TIMEZONE = "Europe/Stockholm"
 
@@ -131,9 +145,39 @@ def current_runner() -> str:
         return "mac"
 
 
+def load_last_run() -> dict:
+    try:
+        return json.loads(LAST_RUN_PATH.read_text())
+    except (FileNotFoundError, ValueError):
+        return {}
+
+
+def record_start(job: str, host: str, now: datetime):
+    """Written when a job starts, whatever its outcome: a job that fails
+    after mailing the report must not be run again by the next firing."""
+    runs = load_last_run()
+    runs[job] = {"started": now.isoformat(timespec="seconds"), "host": host}
+    LAST_RUN_PATH.write_text(json.dumps(runs, indent=2, sort_keys=True) + "\n")
+
+
+def due_reason(job: str, hours: list, now: datetime):
+    """None if the job is due now, else why it is not."""
+    passed = [datetime.combine(now.date(), clock(h)) for h in hours if h <= now.hour]
+    if not passed:
+        return f"not due before {min(hours):02d}:00"
+    slot = max(passed)
+    last = load_last_run().get(job, {}).get("started")
+    if last and datetime.fromisoformat(last) >= slot:
+        return f"the {slot:%H:%M} run already started at {last[11:16]}"
+    return None
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", required=True, choices=["mac", "cloud"])
+    ap.add_argument("--at", help="Stockholm hours the job is due, e.g. 1,16")
+    ap.add_argument("--test", action="store_true",
+                    help="ignore the runner and keep no state")
     ap.add_argument("job", choices=sorted(JOBS))
     args = ap.parse_args()
     os.environ["TZ"] = TIMEZONE
@@ -143,17 +187,38 @@ def main() -> int:
     with state_lock():
         if not pull():
             return 1
-    runner = current_runner()
-    if runner != args.host:
-        log(f"{args.job} skipped - the jobs run on '{runner}', this is '{args.host}'")
-        return 0
+    now = datetime.now()
+    if not args.test:
+        runner = current_runner()
+        if runner != args.host:
+            log(f"{args.job} skipped - the jobs run on '{runner}', this is '{args.host}'")
+            return 0
+        if args.at:
+            reason = due_reason(args.job, [int(h) for h in args.at.split(",")], now)
+            if reason:
+                log(f"{args.job} skipped - {reason}")
+                return 0
+        record_start(args.job, args.host, now)
+        # Saved before the job runs, so a run that is killed outright
+        # still counts as started.
+        with state_lock():
+            commit_and_push(f"{args.job} on {args.host} {now:%Y-%m-%d %H:%M} started")
+    else:
+        log(f"TEST run of {args.job} - nothing is saved")
 
     code = subprocess.run([sys.executable, *JOBS[args.job]], cwd=ROOT).returncode
     if code != 0:
         log(f"! {args.job} exited with code {code}")
 
+    if args.test:
+        if has_remote():
+            r = git("push", "--dry-run", "origin", f"HEAD:{BRANCH}", check=False)
+            log("Push access to the state repo: "
+                + ("OK" if r.returncode == 0 else f"FAILED - {r.stderr.strip()[:300]}"))
+        return code
+
     with state_lock():
-        commit_and_push(f"{args.job} on {args.host} {datetime.now():%Y-%m-%d %H:%M}"
+        commit_and_push(f"{args.job} on {args.host} {now:%Y-%m-%d %H:%M}"
                         + ("" if code == 0 else f" (exit {code})"))
     return code
 

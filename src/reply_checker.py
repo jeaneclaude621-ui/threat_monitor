@@ -120,7 +120,10 @@ def parse_decision(body: str):
 
 def check_replies(state, dry_run: bool = False) -> int:
     """Returns the number of proposals resolved. Marks handled replies
-    as read (unless dry_run) so they are not processed twice."""
+    as read (unless dry_run) so they are not processed twice.
+    REPLY_CHECK_DRY_RUN=1 forces dry_run - set by a test run, whose state
+    is thrown away, so it must not use up anyone's reply."""
+    dry_run = dry_run or os.environ.get("REPLY_CHECK_DRY_RUN") == "1"
     host, port, user, password = _imap_config()
     if not user or not password:
         print("  ! Reply check skipped - SMTP/IMAP credentials not set")
