@@ -11,6 +11,12 @@ consolidated PowerPoint status report every morning at 05:00.
   against their last known status. Logs whether each is unchanged, has
   a new development, was formally corrected by an outlet, or shows a
   narrative shift without a formal correction.
+  Before the checks, an RSS prefilter (`src/feed_prefilter.py`, feeds in
+  `config/feeds.json`) matches each thread against the articles published
+  since its last check. It runs in shadow mode: every thread is still
+  checked, and `data/logs/prefilter_shadow.jsonl` records which ones it
+  would have skipped. `python3 src/feed_prefilter.py --report` shows
+  whether it would have missed any change Claude found.
 - **Every day at 05:00**: self-checks yesterday's scored claims against
   what actually happened since; runs a broad research sweep for new
   developments; recomputes the two 1\u201310 threat indices (see "Threat

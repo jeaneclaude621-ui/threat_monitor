@@ -2157,6 +2157,34 @@ function runsSection(runs) {
           r.warnings.slice(0, 3).map((w) => h('span', { class: 'row-sub run-warn' }, w.replace(/^!\s*/, '')))))))) : null);
 }
 
+// What has changed, newest first. Added to by hand with each change worth
+// telling the admins about.
+const RELEASE_NOTES = [
+  ['2026-10-15', 'RSS-förfilter i skuggläge', [
+    'Timkollen hämtar nu först 21 RSS-flöden (bl.a. SVT, Ekot, DN, SvD, BBC, DW, Guardian, Kyiv Independent och Moscow Times) och ser vilka trådar som har nya artiklar sedan förra kollen.',
+    'Skuggläge: alla trådar kollas fortfarande av Claude som förut. Förfiltret antecknar bara vilka anrop det skulle ha hoppat över, så att det kan prövas innan det får spara pengar.',
+    'Ett flöde som slutar svara tre körningar i rad ger en varning under Körningar.',
+  ]],
+  ['2026-10-12', 'Körningarna i molnet', [
+    'Morgonrapporten och timkollen körs i GitHub Actions i stället för på Macen.',
+    'Körningarna visas här med grönt, gult och rött ljus.',
+    'Den upplästa svenska sammanfattningen är borttagen.',
+  ]],
+  ['2026-10-10', 'Indexkontroller och prognosens träffsäkerhet', [
+    'Rapporterna visar kontrollerna av hotindexet och hur väl 30-dagarsprognosen har stämt.',
+    'Operatörens bedömningar påverkar indexet enligt fasta regler i koden.',
+  ]],
+];
+
+function releaseNotesSection() {
+  return h('section', { class: 'section' },
+    h('h2', { class: 'kicker' }, 'Versionshistorik'),
+    h('div', { class: 'card list' }, RELEASE_NOTES.map(([date, title, points]) => h('div', { class: 'row srow' },
+      h('div', { class: 'row-main' },
+        h('span', { class: 'row-title' }, title, h('span', { class: 'muted' }, ` · ${dateShort(date)}`)),
+        points.map((p) => h('span', { class: 'row-sub' }, p)))))));
+}
+
 async function adminStatus() {
   const s = await adminGet('/api/admin/status');
   const c = (s && s.counts) || {};
@@ -2212,7 +2240,8 @@ async function adminStatus() {
         statTile('Rapporter', String(c.reports ?? '–')),
         statTile('Händelser', String(c.events ?? '–')),
         statTile('Bedömningar', String(c.assessments ?? '–')),
-        statTile('Användare', String(c.users ?? '–')))));
+        statTile('Användare', String(c.users ?? '–')))),
+    releaseNotesSection());
 }
 
 async function adminAudit() {

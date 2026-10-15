@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import load_state, save_state, ask_claude_json, append_hourly_entry
 from reply_checker import check_replies
 from app_sync import push_updates
+import feed_prefilter
 
 SYSTEM = """You are an OSINT monitoring analyst. You track a specific news
 thread and report ONLY what changed since the last check. Be precise and
@@ -80,6 +81,11 @@ def run_once():
     print(f"[{now.isoformat(timespec='minutes')}] Hourly monitor starting "
           f"({len(state['watchlist'])} threads)")
     check_replies(state)
+    # Shadow mode: records which threads the RSS prefilter would skip, but
+    # every thread is still checked below. Run before the loop, which moves
+    # each thread's last_checked.
+    prefilter = feed_prefilter.check(state["watchlist"], now)
+    outcomes = {}
 
     app_updates = []
     for thread in state["watchlist"]:
@@ -94,6 +100,7 @@ def run_once():
             continue
 
         classification = result.get("classification", "NO_CHANGE")
+        outcomes[thread["id"]] = classification
         print(f"  - {thread['id']}: {classification}")
 
         entry = {
@@ -122,6 +129,7 @@ def run_once():
         thread["last_checked"] = now.isoformat(timespec="minutes")
 
     save_state(state)
+    feed_prefilter.record_shadow(prefilter, outcomes, now)
     # The web app's "Löpande i dag" feed.
     push_updates(app_updates)
     print("Hourly monitor done.\n")

@@ -1,0 +1,26 @@
+{
+  "note": "RSS feeds for the hourly monitor's prefilter (src/feed_prefilter.py). Every URL was fetched and parsed on 2026-10-15. Tier follows config/methodology.json where the outlet is named there; tier_note marks the ones it does not name. Reuters, AP, TT, NATO, Forsvarsmakten, Sakerhetspolisen, FOI and the Government Offices have no working public feed and are left to the web search.",
+  "feeds": [
+    {"name": "SVT Nyheter", "url": "https://www.svt.se/nyheter/rss.xml", "tier": 2, "lang": "sv"},
+    {"name": "SVT Utrikes", "url": "https://www.svt.se/nyheter/utrikes/rss.xml", "tier": 2, "lang": "sv"},
+    {"name": "Sveriges Radio Ekot", "url": "https://api.sr.se/api/rss/program/83", "tier": 2, "lang": "sv"},
+    {"name": "DN", "url": "https://www.dn.se/rss/", "tier": 2, "lang": "sv"},
+    {"name": "SvD", "url": "https://www.svd.se/feed/articles.rss", "tier": 2, "lang": "sv"},
+    {"name": "Cornucopia?", "url": "https://cornucopia.cornubot.se/feeds/posts/default?alt=rss", "tier": 4, "lang": "sv"},
+    {"name": "BBC Europe", "url": "https://feeds.bbci.co.uk/news/world/europe/rss.xml", "tier": 1, "lang": "en"},
+    {"name": "BBC World", "url": "https://feeds.bbci.co.uk/news/world/rss.xml", "tier": 1, "lang": "en"},
+    {"name": "DW World", "url": "https://rss.dw.com/rdf/rss-en-world", "tier": 2, "lang": "en"},
+    {"name": "DW EU", "url": "https://rss.dw.com/rdf/rss-en-eu", "tier": 2, "lang": "en"},
+    {"name": "Euronews", "url": "https://www.euronews.com/rss?level=theme&name=news", "tier": 2, "lang": "en"},
+    {"name": "Al Jazeera", "url": "https://www.aljazeera.com/xml/rss/all.xml", "tier": 2, "lang": "en"},
+    {"name": "PBS NewsHour World", "url": "https://www.pbs.org/newshour/feeds/rss/world", "tier": 2, "lang": "en"},
+    {"name": "France 24 Europe", "url": "https://www.france24.com/en/europe/rss", "tier": 2, "lang": "en", "tier_note": "not named in methodology.json"},
+    {"name": "Guardian Russia", "url": "https://www.theguardian.com/world/russia/rss", "tier": 2, "lang": "en", "tier_note": "not named in methodology.json"},
+    {"name": "Guardian Ukraine", "url": "https://www.theguardian.com/world/ukraine/rss", "tier": 2, "lang": "en", "tier_note": "not named in methodology.json"},
+    {"name": "RFE/RL", "url": "https://www.rferl.org/api/epiqq", "tier": 3, "lang": "en", "tier_note": "not named in methodology.json; US-government funded"},
+    {"name": "Council of the EU press releases", "url": "https://www.consilium.europa.eu/en/rss/pressreleases.ashx", "tier": 2, "lang": "en"},
+    {"name": "Kyiv Independent", "url": "https://kyivindependent.com/news-archive/rss/", "tier": 3, "lang": "en"},
+    {"name": "Kyiv Post", "url": "https://www.kyivpost.com/feed", "tier": 3, "lang": "en"},
+    {"name": "Moscow Times", "url": "https://www.themoscowtimes.com/rss/news", "tier": 3, "lang": "en"}
+  ]
+}
