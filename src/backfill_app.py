@@ -49,7 +49,7 @@ def backfill(path: Path, force: bool = False) -> bool:
     slim = [{"title": e.get("title"), "detail": e.get("detail"), "sources": e.get("sources")} for e in events]
     result = ask_model_json(PROMPT.format(events=json.dumps(slim, ensure_ascii=False, indent=1),
                                            topics=", ".join(TOPICS)),
-                             system=SYSTEM, max_tokens=4000, use_search=False)
+                             system=SYSTEM, max_tokens=4000)
     extra = result.get("events", [])
     if len(extra) != len(events):
         print(f"  ! {path.name}: got {len(extra)} events back for {len(events)}, skipped")

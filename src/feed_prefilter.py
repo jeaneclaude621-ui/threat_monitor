@@ -174,8 +174,9 @@ def update_feed_status(feeds: list, failures: dict, now: datetime):
             rec["failures_in_a_row"] += 1
             rec["last_error"] = failures[feed["name"]]
             if rec["failures_in_a_row"] == DEAD_AFTER_FAILURES:
+                where = "the app's Källor tab" if feed.get("added_in_app") else "config/feeds.json"
                 print(f"  ! RSS feed {feed['name']} has failed {DEAD_AFTER_FAILURES} runs in a row "
-                      f"({rec['last_error']}) - check its URL in config/feeds.json")
+                      f"({rec['last_error']}) - check its URL in {where}")
         else:
             rec["failures_in_a_row"] = 0
             rec["last_ok"] = now.isoformat(timespec="minutes")
@@ -265,23 +266,24 @@ def assess_thread(thread: dict, articles: list) -> dict:
             "keywords": len(keywords), "matches": len(hits), "near": near, "articles": hits[:3]}
 
 
-def check(watchlist: list, now: datetime = None, record_status: bool = True) -> dict:
-    """thread id -> what the prefilter would decide for it. Never raises:
-    a prefilter failure must not stop the hourly run."""
+def check(watchlist: list, now: datetime = None, record_status: bool = True, feeds: list = None):
+    """(thread id -> what the prefilter would decide for it, the fetched
+    articles). `feeds` defaults to config/feeds.json. Never raises: a
+    prefilter failure must not stop the hourly run."""
     now = now or datetime.now()
     try:
-        feeds = load_feeds()
+        feeds = feeds if feeds is not None else load_feeds()
         articles, failures = fetch_all(feeds)
         if record_status:
             update_feed_status(feeds, failures, now)
         print(f"  RSS prefilter (shadow mode): {len(articles)} articles from "
               f"{len(feeds) - len(failures)}/{len(feeds)} feeds")
         if len(failures) == len(feeds):
-            return {}
-        return {t["id"]: assess_thread(t, articles) for t in watchlist}
+            return {}, []
+        return {t["id"]: assess_thread(t, articles) for t in watchlist}, articles
     except Exception as e:
         print(f"  RSS prefilter failed, ignored ({type(e).__name__}: {e})")
-        return {}
+        return {}, []
 
 
 def record_shadow(decisions: dict, outcomes: dict, now: datetime):
@@ -333,7 +335,7 @@ def main():
         report()
         return
     # A look from the command line leaves the feed status to the scheduled runs.
-    for tid, d in check(load_state()["watchlist"], record_status=False).items():
+    for tid, d in check(load_state()["watchlist"], record_status=False)[0].items():
         print(f"{tid}: {'call' if d['would_call'] else 'skip'} ({d['reason']}, {d['keywords']} keywords)")
         for a in d["articles"]:
             print(f"    {a['source']}: {a['title']}  [{', '.join(a['keywords'])}]")

@@ -14,6 +14,7 @@ from common import load_state, save_state, ask_model_json, append_hourly_entry
 from reply_checker import check_replies
 from app_sync import push_updates
 import feed_prefilter
+import news_sources
 
 SYSTEM = """You are an OSINT monitoring analyst. You track a specific news
 thread and report ONLY what changed since the last check. Be precise and
@@ -26,8 +27,14 @@ PROMPT_TEMPLATE = """Thread being tracked: {label}
 
 Last known status: {last_snapshot}
 
-Search for the latest reporting on this thread (last few hours).
-Compare it to the last known status above and classify the change:
+The latest reporting found on this thread since it was last checked
+({since}), newest first. Base your answer ONLY on these articles - you
+cannot search, and your own knowledge may be outdated. Many will be
+unrelated or repeat what is already known; ignore those.
+
+{articles}
+
+Compare that reporting to the last known status above and classify the change:
 
 - "NEW_DEVELOPMENT": something materially new happened
 - "NO_CHANGE": no meaningful update since last check
@@ -48,8 +55,8 @@ Respond as strict JSON:
   "new_snapshot": "updated 1-2 sentence status to replace the last known status with - 60 words maximum"
 }}
 
-Output the JSON object and nothing else: no preamble, no notes on your
-searches, no commentary after it. Respect the length limits above - this
+Output the JSON object and nothing else: no preamble, no commentary
+after it. Respect the length limits above - this
 is a scannable hourly delta, not a full report."""
 
 
@@ -81,19 +88,25 @@ def run_once():
     print(f"[{now.isoformat(timespec='minutes')}] Hourly monitor starting "
           f"({len(state['watchlist'])} threads)")
     check_replies(state)
+    app = news_sources.app_sources()
+    app_articles = [s for s in app if s.get("kind") == "article"]
     # Shadow mode: records which threads the RSS prefilter would skip, but
     # every thread is still checked below. Run before the loop, which moves
-    # each thread's last_checked.
-    prefilter = feed_prefilter.check(state["watchlist"], now)
+    # each thread's last_checked. Its articles feed the threads' reading.
+    prefilter, feed_articles = feed_prefilter.check(state["watchlist"], now,
+                                                    feeds=news_sources.all_feeds(app))
     outcomes = {}
 
     app_updates = []
     for thread in state["watchlist"]:
-        prompt = PROMPT_TEMPLATE.format(label=thread["label"], last_snapshot=thread["last_snapshot"])
         try:
-            # Web search + a multi-outlet delta does not fit in ~800 tokens;
-            # responses were being truncated before the JSON closed.
-            # The Swedish title and summary for the web app add ~300 tokens.
+            pool = news_sources.for_thread(thread, feed_articles, app_articles)
+            prompt = PROMPT_TEMPLATE.format(label=thread["label"], last_snapshot=thread["last_snapshot"],
+                                            since=thread.get("last_checked") or "never",
+                                            articles=pool.prompt_block(60))
+            # A multi-outlet delta does not fit in ~800 tokens; responses
+            # were being truncated before the JSON closed. The Swedish
+            # title and summary for the web app add ~300 tokens.
             result = ask_model_json(prompt, system=SYSTEM, max_tokens=3000)
         except Exception as e:
             print(f"  ! {thread['id']}: failed ({e})")

@@ -268,6 +268,15 @@ async function route(req) {
     return ingestRun(request, env, m[1]);
   }
 
+  if (path === '/api/export/sources') {
+    allow(method, 'GET');
+    requireMachine(who);
+    const { results } = await env.DB.prepare(
+      'SELECT id, kind, url, title, added_at FROM sources WHERE active = 1 ORDER BY added_at'
+    ).all();
+    return json(results);
+  }
+
   if (path === '/api/export/all') {
     allow(method, 'GET');
     requireMachine(who);
@@ -336,6 +345,18 @@ async function routeAdmin(req, path, method) {
   if (path === '/api/admin/notices') {
     allow(method, 'POST');
     return createNotice(request, env, who);
+  }
+
+  if (path === '/api/admin/sources') {
+    if (method === 'GET') return listSources(env);
+    allow(method, 'POST');
+    return addSource(request, env, who);
+  }
+
+  const src = path.match(/^\/api\/admin\/sources\/([0-9a-f-]{36})$/);
+  if (src) {
+    allow(method, 'DELETE');
+    return removeSource(env, who, src[1]);
   }
 
   if (path === '/api/admin/refresh') {
@@ -1200,6 +1221,143 @@ async function removeNotice(env, who, id) {
 }
 
 // ---------------------------------------------------------------------------
+// Sources added in the app (Version 3.5)
+// ---------------------------------------------------------------------------
+const SOURCE_KINDS = ['auto', 'rss', 'article'];
+const SOURCE_FETCH_MS = 8000;
+const SOURCE_PEEK_BYTES = 200000;
+
+async function listSources(env) {
+  const { results } = await env.DB.prepare(
+    'SELECT id, kind, url, title, added_by, added_at FROM sources WHERE active = 1 ORDER BY added_at DESC'
+  ).all();
+  return json(results);
+}
+
+/** The start of a page, for telling a feed from an article. Never throws. */
+async function peekUrl(url) {
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Hotmonitor)', Accept: 'application/rss+xml, application/atom+xml, application/xml, text/html;q=0.9, */*;q=0.8' },
+      redirect: 'follow', signal: AbortSignal.timeout(SOURCE_FETCH_MS),
+    });
+    if (!res.ok) return { error: `svarade ${res.status}` };
+    const reader = res.body.getReader();
+    let text = '';
+    const dec = new TextDecoder();
+    while (text.length < SOURCE_PEEK_BYTES) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      text += dec.decode(value, { stream: true });
+    }
+    reader.cancel().catch(() => {});
+    return { finalUrl: res.url || url, type: res.headers.get('content-type') || '', text };
+  } catch (e) {
+    return { error: e && e.name === 'TimeoutError' ? 'svarade inte i tid' : 'gick inte att nå' };
+  }
+}
+
+const decodeEntities = (s) => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+  .replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+
+function looksLikeFeed(peek) {
+  return /(rss|atom)\+xml|\/xml|text\/xml/i.test(peek.type) && /<(rss|feed|rdf:RDF)[\s>]/i.test(peek.text)
+    || /^\s*(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*<(rss|feed|rdf:RDF)[\s>]/i.test(peek.text);
+}
+
+function pageTitle(text) {
+  const og = text.match(/<meta[^>]+property=["']og:title["'][^>]*content=["']([^"']+)["']/i)
+    || text.match(/<meta[^>]+content=["']([^"']+)["'][^>]*property=["']og:title["']/i);
+  const t = og || text.match(/<title[^>]*>([^<]{1,300})<\/title>/i);
+  return t ? decodeEntities(t[1]).slice(0, 200) : null;
+}
+
+/** "russian-diesel-bound-for-new-york" from an article's address, as words. */
+function slugTitle(url) {
+  const seg = url.pathname.split('/').filter(Boolean)
+    .map((x) => { try { return decodeURIComponent(x); } catch { return x; } })
+    .map((x) => x.replace(/\.[a-z]{2,5}$/i, ''))
+    .filter((x) => /[a-z].*[-_].*[a-z]/i.test(x)).pop();
+  if (!seg) return null;
+  const words = seg.replace(/[-_]+/g, ' ').trim();
+  return (words.charAt(0).toUpperCase() + words.slice(1)).slice(0, 200);
+}
+
+/** The feed a site's front page announces (<link rel="alternate" type="application/rss+xml">). */
+function announcedFeed(text, base) {
+  for (const tag of text.match(/<link\b[^>]*>/gi) || []) {
+    if (/rel=["']?alternate/i.test(tag) && /type=["']application\/(rss|atom)\+xml/i.test(tag)) {
+      const href = tag.match(/href=["']([^"']+)["']/i);
+      if (href) { try { return new URL(decodeEntities(href[1]), base).href; } catch { /* ignore */ } }
+    }
+  }
+  return null;
+}
+
+async function addSource(request, env, who) {
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'body must be an object');
+  const kind = body.kind === undefined ? 'auto' : body.kind;
+  if (!SOURCE_KINDS.includes(kind)) throw new HttpError(400, `kind must be one of ${SOURCE_KINDS.join(', ')}`);
+  let url;
+  try {
+    url = new URL(String(body.url || '').trim());
+  } catch {
+    throw new HttpError(400, 'Det där ser inte ut som en webbadress.');
+  }
+  if (!['http:', 'https:'].includes(url.protocol) || url.href.length > 1000) {
+    throw new HttpError(400, 'Adressen måste börja med http:// eller https://.');
+  }
+
+  const peek = await peekUrl(url.href);
+  // Many news sites turn away fetches that are not a browser. An article
+  // is still worth keeping: the jobs try again, and its address names it.
+  if (peek.error && kind === 'rss') throw new HttpError(422, `Sidan ${peek.error} – kontrollera adressen.`);
+  if (peek.error) peek.text = '';
+  let finalKind = kind;
+  let finalUrl = url.href;
+  let title = null;
+  if (kind !== 'article' && looksLikeFeed(peek)) {
+    finalKind = 'rss';
+    const t = peek.text.match(/<title[^>]*>([\s\S]{1,300}?)<\/title>/i);
+    title = t ? decodeEntities(t[1]).slice(0, 200) : url.hostname;
+  } else if (kind === 'rss') {
+    // A site's front page instead of its feed: use the feed it announces.
+    const feed = announcedFeed(peek.text, peek.finalUrl);
+    if (!feed) throw new HttpError(422, 'Hittade inget RSS-flöde på den adressen.');
+    const fp = await peekUrl(feed);
+    if (fp.error || !looksLikeFeed(fp)) throw new HttpError(422, 'Sidans RSS-flöde gick inte att läsa.');
+    finalUrl = feed;
+    const t = fp.text.match(/<title[^>]*>([\s\S]{1,300}?)<\/title>/i);
+    title = t ? decodeEntities(t[1]).slice(0, 200) : url.hostname;
+  } else {
+    finalKind = 'article';
+    title = pageTitle(peek.text) || slugTitle(url) || url.hostname;
+  }
+  if (typeof body.title === 'string' && body.title.trim()) title = body.title.trim().slice(0, 200);
+
+  const dup = await env.DB.prepare('SELECT id FROM sources WHERE active = 1 AND url = ?').bind(finalUrl).first();
+  if (dup) throw new HttpError(409, 'Den källan finns redan.');
+  const row = {
+    id: crypto.randomUUID(), kind: finalKind, url: finalUrl, title,
+    added_by: who.email, added_at: new Date().toISOString(),
+  };
+  await env.DB.prepare(
+    'INSERT INTO sources (id, kind, url, title, added_by, added_at, active) VALUES (?, ?, ?, ?, ?, ?, 1)'
+  ).bind(row.id, row.kind, row.url, row.title, row.added_by, row.added_at).run();
+  await audit(env, who.email, 'source', row.id, { kind: row.kind, url: row.url });
+  return json({ source: row }, 201);
+}
+
+async function removeSource(env, who, id) {
+  const row = await env.DB.prepare('SELECT id FROM sources WHERE id = ? AND active = 1').bind(id).first();
+  if (!row) throw new HttpError(404, 'no such source');
+  await env.DB.prepare('UPDATE sources SET active = 0 WHERE id = ?').bind(id).run();
+  await audit(env, who.email, 'source_removed', id, null);
+  return json({ ok: true });
+}
+
+// ---------------------------------------------------------------------------
 // "Update everyone" (Version 3.3): open apps reload code and data
 // ---------------------------------------------------------------------------
 async function getRefresh(env) {
@@ -1549,4 +1707,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport };
+export const _test = { verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };

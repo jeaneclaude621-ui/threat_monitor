@@ -52,7 +52,7 @@ Respond as strict JSON with exactly these fields:
 {{
 {INDEX_JSON_FIELDS.rstrip(',')}
 }}"""
-    result = enforce_bands(ask_model_json(prompt, system=SYSTEM, max_tokens=4000, use_search=False))
+    result = enforce_bands(ask_model_json(prompt, system=SYSTEM, max_tokens=4000))
     return apply_index_rules(result, report.get("events") or [])
 
 

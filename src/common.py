@@ -2,15 +2,12 @@
 Shared utilities for the Russia-NATO/EU Hybrid Threat Monitor.
 
 Handles: persistent JSON state, daily hourly-log files, and the wrapper
-around the Gemini API (grounded with Google Search) that every module
-uses to do its research.
+around the Gemini API that every module uses for its analysis.
 """
 import json
 import os
 import re
 import time
-import urllib.error
-import urllib.request
 from datetime import datetime, date
 from pathlib import Path
 
@@ -25,7 +22,7 @@ DATA_DIR.mkdir(exist_ok=True)
 LOG_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-# A model on the Gemini API's free tier, Google Search grounding included.
+# A model on the Gemini API's free tier.
 MODEL = os.environ.get("GEMINI_MODEL") or "gemini-3.8-flash"
 THINKING_BUDGET = 2048
 
@@ -33,10 +30,10 @@ THINKING_BUDGET = 2048
 # minutes in all.
 NETWORK_RETRY_DELAYS = [30, 60, 120, 240, 300, 300]
 
-# Every page the last search-grounded call actually retrieved, as {url, title}.
-# The sweep asks the model for article links; only links found here are
-# kept, so a link in the app is one that was really fetched, never one the
-# model made up.
+# The articles last handed to the model, as {ref, url, title, outlet}
+# (news_sources.Pool.prompt_block). The model cites articles by ref; only
+# those found here get a link, so a link in the app is one that was really
+# fetched, never one the model made up.
 LAST_SEARCH_RESULTS = []
 
 
@@ -158,9 +155,10 @@ def get_client():
     return genai.Client(api_key=api_key)
 
 
-def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, use_search: bool = True) -> str:
-    """Send a prompt to Gemini, optionally grounded with Google Search, and
-    return the text of the response."""
+def ask_model(prompt: str, system: str = None, max_tokens: int = 2000) -> str:
+    """Send a prompt to Gemini and return the text of the response. The
+    model does not search (the free tier has no search grounding): the
+    articles it should read go in the prompt (news_sources.py)."""
     from google.genai import types
     config = types.GenerateContentConfig(
         system_instruction=system,
@@ -168,53 +166,15 @@ def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, use_searc
         # them their own budget on top of the answer's.
         max_output_tokens=max_tokens + THINKING_BUDGET,
         thinking_config=types.ThinkingConfig(thinking_budget=THINKING_BUDGET),
-        tools=[types.Tool(google_search=types.GoogleSearch())] if use_search else None,
     )
     response = _generate_with_retry(get_client(), prompt, config)
 
     candidate = (response.candidates or [None])[0]
-    if use_search:
-        LAST_SEARCH_RESULTS[:] = _search_results(candidate)
-
     finish = getattr(candidate, "finish_reason", None)
     if finish is not None and getattr(finish, "name", str(finish)) == "MAX_TOKENS":
         print(f"  ! Gemini response hit max_tokens={max_tokens} - output is truncated")
 
     return (response.text or "").strip()
-
-
-def _search_results(candidate) -> list:
-    """URLs and titles of the pages Google Search grounding retrieved.
-    Gemini hands out redirect links (vertexaisearch.cloud.google.com), so
-    each is followed once to the article's real URL."""
-    meta = getattr(candidate, "grounding_metadata", None)
-    seen, out = set(), []
-    for chunk in getattr(meta, "grounding_chunks", None) or []:
-        web = getattr(chunk, "web", None)
-        url = _resolve_redirect(getattr(web, "uri", None))
-        if url and url not in seen:
-            seen.add(url)
-            out.append({"url": url, "title": getattr(web, "title", None) or None})
-    return out
-
-
-class _NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, *args, **kwargs):
-        return None
-
-
-def _resolve_redirect(url: str) -> str:
-    if not url or "grounding-api-redirect" not in url:
-        return url
-    opener = urllib.request.build_opener(_NoRedirect)
-    try:
-        opener.open(urllib.request.Request(url, method="HEAD"), timeout=15)
-    except urllib.error.HTTPError as e:
-        if e.code in (301, 302, 303, 307, 308) and e.headers.get("Location"):
-            return e.headers["Location"]
-    except Exception:
-        pass
-    return None
 
 
 def _generate_with_retry(client, prompt, config):
@@ -238,13 +198,12 @@ def _generate_with_retry(client, prompt, config):
             time.sleep(delay)
 
 
-def ask_model_json(prompt: str, system: str = None, max_tokens: int = 2000, use_search: bool = True) -> dict:
-    """ask_model + extract_json, with one recovery attempt. When web
-    search is on, the model sometimes spends the whole token budget on
-    searches and narrative analysis and gets cut off before the JSON.
-    Rather than discard that work, hand the partial response back (no
-    search this time) and ask for just the JSON object."""
-    raw = ask_model(prompt, system=system, max_tokens=max_tokens, use_search=use_search)
+def ask_model_json(prompt: str, system: str = None, max_tokens: int = 2000) -> dict:
+    """ask_model + extract_json, with one recovery attempt. The model
+    sometimes spends the whole token budget on narrative analysis and
+    gets cut off before the JSON. Rather than discard that work, hand the
+    partial response back and ask for just the JSON object."""
+    raw = ask_model(prompt, system=system, max_tokens=max_tokens)
     try:
         return extract_json(raw)
     except ValueError as first_err:
@@ -257,9 +216,8 @@ Your previous answer was cut off or was not valid JSON. Here it is:
 {raw}
 </previous_answer>
 
-Using ONLY the information in that previous answer (do not search again),
-respond with the strict JSON object requested above and nothing else."""
-        raw2 = ask_model(recovery_prompt, system=system, max_tokens=max_tokens, use_search=False)
+Using ONLY the information in that previous answer, respond with the strict JSON object requested above and nothing else."""
+        raw2 = ask_model(recovery_prompt, system=system, max_tokens=max_tokens)
         return extract_json(raw2)
 
 

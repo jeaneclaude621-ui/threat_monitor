@@ -366,3 +366,26 @@ Each run reports itself so admins can see that the jobs keep running.
   runs with their warnings and a link to the GitHub Actions log.
 - The missing-report alarm's push and card no longer tell the reader to
   check the Mac.
+
+# Version 3.5 (24 Oct 2026) - sources added in the app
+The model (Gemini's free tier) no longer searches; the jobs gather the
+articles it reads (`src/news_sources.py`). Admins can add to what is read.
+- D1 `sources(id TEXT PK uuid, kind 'rss'|'article', url, title, added_by,
+  added_at, active 0|1)`.
+- `GET /api/admin/sources` (admin): active sources, newest first.
+- `POST /api/admin/sources` (admin) `{ url, kind?: 'auto'|'rss'|'article',
+  title? }`. The Worker fetches the URL (8 s): with `auto`, an RSS/Atom
+  document becomes `rss`, anything else `article` titled by its og:title
+  or <title>; with `rss`, an HTML page is replaced by the feed it announces
+  in `<link rel="alternate">`. 400 bad URL, 409 already active, 422 the
+  page could not be fetched or has no feed. 201 `{ source }`. Audited as
+  `source`.
+- `DELETE /api/admin/sources/:id` (admin): sets `active = 0`. Audited as
+  `source_removed`.
+- `GET /api/export/sources` (machine): active `{ id, kind, url, title,
+  added_at }`. Feeds join config/feeds.json in every run; articles are read
+  by the hourly checks after they were added and by the daily report for
+  three days.
+- App: admin tab "Källor" between Status and Användare - a link field with
+  "Klistra in", a type choice, and the lists of added feeds and articles,
+  each removable.

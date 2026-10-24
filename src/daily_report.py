@@ -28,6 +28,8 @@ from executive_sv import build_executive_safe
 from app_data import enrich_events, add_favicons, SWEEP_EVENT_FIELDS, SWEEP_EVENT_JSON
 from app_sync import pull_assessments, push_report, backup_app
 import common
+import feed_prefilter
+import news_sources
 import operator_weight
 
 SYSTEM = """You are a senior OSINT analyst producing a daily intelligence
@@ -41,16 +43,25 @@ only under disinformation tracking. Respond with STRICT JSON only."""
 # --------------------------------------------------------------------------
 # 1. Self-check: did yesterday's assessments hold up?
 # --------------------------------------------------------------------------
-def run_self_check(state, yesterday_report):
+def run_self_check(state, yesterday_report, pool):
     if not yesterday_report:
         return {"summary": "No prior report to self-check (first run).", "log_entry": None}
 
     claims = [{"id": e.get("id"), "title": e["title"], "detail": e["detail"], "score": e["score"]}
               for e in yesterday_report.get("events", [])]
+    # The day's articles plus a two-day Google News search per claim.
+    articles = news_sources.Pool().add(pool.items)
+    for c in claims:
+        articles.add(news_sources.google_news(" ".join(c["title"].split()[:8]), days=2))
     prompt = f"""Yesterday's report scored these claims/events:
 {json.dumps(claims, indent=2)}
 
-For each, search for what has been reported SINCE, and classify:
+Reporting from the last two days, newest first. Base your judgment ONLY
+on these articles - you cannot search, and your own knowledge may be
+outdated:
+{articles.prompt_block(200)}
+
+For each claim, compare it with what has been reported SINCE, and classify:
 CONFIRMED (subsequent reporting supports it), CONTRADICTED (subsequent
 reporting undermines or reverses it), or UNRESOLVED (not enough new
 information either way).
@@ -69,8 +80,8 @@ Do NOT write any analysis, commentary or per-claim reasoning before the
 JSON - put short reasons in each "note" field. Your entire reply must be
 the JSON object."""
     try:
-        # Six claims x web search + reasoning + JSON does not fit in ~2k
-        # tokens; the response was getting truncated before the JSON.
+        # Six claims x reasoning + JSON does not fit in ~2k tokens; the
+        # response was getting truncated before the JSON.
         result = ask_model_json(prompt, system=SYSTEM, max_tokens=6000)
     except Exception as e:
         return {"summary": f"Self-check failed to run ({e}).", "log_entry": None}
@@ -284,7 +295,7 @@ def evaluate_forecasts(history):
 # --------------------------------------------------------------------------
 # 2. Broad sweep: fresh event log + both threat indices for today
 # --------------------------------------------------------------------------
-def run_broad_sweep(state, hourly_entries, contradicted=(), forecast_accuracy=None):
+def run_broad_sweep(state, hourly_entries, pool, contradicted=(), forecast_accuracy=None):
     tiers_desc = "\n".join(f"- {t['name']} ({t['range'][0]}-{t['range'][1]}): {', '.join(t['examples'])}" for t in state["methodology"]["tiers"])
     m = state["methodology"]
     # Earlier values stay out of the prompt (the model anchored on them);
@@ -306,18 +317,25 @@ def run_broad_sweep(state, hourly_entries, contradicted=(), forecast_accuracy=No
     named_desc = "\n".join(f"- {n['name']} (site:{n['domain']}, tier {n['tier']}, {n['lang']}): {n['use']}"
                            for n in named) or "(none)"
 
-    prompt = f"""Search mainstream media for the last 24 hours of reporting on
-Russia's hybrid activity, threats, and posture toward NATO/EU/Ukraine.
+    prompt = f"""Below is the last 24 hours of reporting gathered from news feeds,
+Google News and GDELT, newest first, each with a ref ([A1], [A2] ...).
+From it, assess Russia's hybrid activity, threats, and posture toward
+NATO/EU/Ukraine. Base everything ONLY on these articles - you cannot
+search, and your own knowledge may be outdated. Many items are
+irrelevant, duplicates or low-quality outlets; weigh them by the tiers.
+
+<articles>
+{pool.prompt_block(220)}
+</articles>
 
 Credibility tiers to use when scoring each item (1-10):
 {tiers_desc}
 
-Named sources - besides the general search, run targeted searches on
-each of these (e.g. "site:cornucopia.se Ukraina") and use what is new
-from the last 24h. Swedish-language items: read them in Swedish, write
-the English fields in English as usual, and name the outlet exactly as
-given here. Each keeps its listed tier; a tier 4 source adds analysis
-and context but never confirms a claim on its own:
+Named sources - their newest items are in the list. Swedish-language
+items: read them in Swedish, write the English fields in English as
+usual, and name the outlet exactly as given here. Each keeps its listed
+tier; a tier 4 source adds analysis and context but never confirms a
+claim on its own:
 {named_desc}
 
 Additional accepted methodology refinements to apply:
@@ -417,16 +435,21 @@ Today's top events:
 
 Decide if any current thread is now stale/resolved and should be dropped,
 and whether any new thread from today's events deserves to be added.
-Keep the total at exactly {size} threads. Respond as strict JSON:
-{{"watchlist": [{{"id": "short-kebab-id", "label": "..."}}]}}"""
+Keep the total at exactly {size} threads. For every thread, kept or new,
+give 1-3 short Google News search queries (2-5 words each, the names and
+terms an article on it would contain; quotes for exact phrases, OR
+allowed) - they are how tomorrow's articles on it are found.
+Respond as strict JSON:
+{{"watchlist": [{{"id": "short-kebab-id", "label": "...", "queries": ["..."]}}]}}"""
     try:
         # Six ids plus labels describing today's events does not fit in 800.
-        result = ask_model_json(prompt, system=SYSTEM, max_tokens=2000, use_search=False)
+        result = ask_model_json(prompt, system=SYSTEM, max_tokens=2000)
         new_list = result.get("watchlist", [])
         if len(new_list) == size:
             existing_by_id = {t["id"]: t for t in state["watchlist"]}
             state["watchlist"] = [
-                existing_by_id.get(t["id"], {"id": t["id"], "label": t["label"], "last_snapshot": "New thread, no prior snapshot.", "last_checked": None})
+                dict(existing_by_id.get(t["id"], {"id": t["id"], "label": t["label"], "last_snapshot": "New thread, no prior snapshot.", "last_checked": None}),
+                     queries=[q for q in t.get("queries") or [] if isinstance(q, str)][:3])
                 for t in new_list
             ]
     except Exception as e:
@@ -455,7 +478,7 @@ propose vague things like "be more careful" - propose a concrete rule.
 
 Respond as strict JSON:
 {{"title": "...", "rationale": "...", "change_detail": "..."}}"""
-    proposal = ask_model_json(prompt, system=SYSTEM, max_tokens=1500, use_search=False)
+    proposal = ask_model_json(prompt, system=SYSTEM, max_tokens=1500)
     proposal["date_proposed"] = date.today().isoformat()
     proposal["status"] = "pending"
     state["pending_proposal"] = proposal
@@ -510,8 +533,14 @@ def run_daily_report():
     # The operator's swipes from the web app, before they weigh in below.
     pull_assessments()
 
+    # What the model reads: it cannot search (news_sources.py).
+    app = news_sources.app_sources()
+    feed_articles, _ = feed_prefilter.fetch_all(news_sources.all_feeds(app))
+    pool = news_sources.for_daily(state, feed_articles, [s for s in app if s.get("kind") == "article"])
+    print(f"  Articles gathered: {len(pool.items)} ({len(feed_articles)} feed items before filtering)")
+
     yesterday_report = load_yesterday_report()
-    self_check = run_self_check(state, yesterday_report)
+    self_check = run_self_check(state, yesterday_report, pool)
 
     hourly_entries = load_hourly_log(today) + load_hourly_log(today - timedelta(days=1))
     # Yesterday's events the self-check found contradicted, so today's
@@ -521,7 +550,7 @@ def run_daily_report():
                     for r in self_check.get("results", [])
                     if r["outcome"] == "CONTRADICTED" and r["event_id"] in by_id]
     forecast_accuracy = evaluate_forecasts(state["threat_index_history"])
-    sweep = run_broad_sweep(state, hourly_entries, contradicted, forecast_accuracy)
+    sweep = run_broad_sweep(state, hourly_entries, pool, contradicted, forecast_accuracy)
     narrative_rows = build_narrative_stability(state, hourly_entries)
     refresh_watchlist(state, sweep)
 

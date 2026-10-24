@@ -70,7 +70,7 @@ def build_executive(report_data: dict) -> dict:
     slim["threat_index_history"] = slim.get("threat_index_history", [])[-10:]
     prompt = PROMPT.format(payload=json.dumps(slim, ensure_ascii=False, indent=1),
                            headings=", ".join(HEADINGS))
-    brief = ask_model_json(prompt, system=SYSTEM, max_tokens=4000, use_search=False)
+    brief = ask_model_json(prompt, system=SYSTEM, max_tokens=4000)
     if not isinstance(brief, dict) or not brief.get("sections"):
         raise ValueError("no sections in response")
     return brief

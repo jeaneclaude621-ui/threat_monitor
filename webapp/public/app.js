@@ -1809,7 +1809,7 @@ function mineRow(row, event, article) {
 }
 
 // ---------------------------------------------------------------- Admin
-const ADMIN_TABS = [['status', 'Status'], ['users', 'Användare'], ['notices', 'Meddelanden'], ['security', 'Säkerhet'], ['audit', 'Logg']];
+const ADMIN_TABS = [['status', 'Status'], ['sources', 'Källor'], ['users', 'Användare'], ['notices', 'Meddelanden'], ['security', 'Säkerhet'], ['audit', 'Logg']];
 const REASONS = [
   ['not_allowed', 'Ej behörig', 'Verifierad e-post som inte finns bland användarna'],
   ['invalid_jwt', 'Ogiltig inloggning', 'Förfalskad, utgången eller trasig inloggningsbiljett'],
@@ -1824,7 +1824,7 @@ const ACTION_SV = {
   role_change: 'Ändrade roll', set_role: 'Ändrade roll', user_role: 'Ändrade roll', change_role: 'Ändrade roll',
   deactivate: 'Tog bort', user_deactivate: 'Tog bort', remove_user: 'Tog bort', delete_user: 'Tog bort',
   notice: 'Skickade meddelande', notice_removed: 'Tog bort meddelande', alarm: 'Larm', alarm_cleared: 'Larm upphävt', seed: 'Startvärden',
-  invite: 'Bjöd in', refresh: 'Uppdaterade alla appar',
+  invite: 'Bjöd in', refresh: 'Uppdaterade alla appar', source: 'La till källa', source_removed: 'Tog bort källa',
 };
 const ROLE_SV = { admin: 'Administratör', reader: 'Läsare' };
 const adminMsg = { text: '', error: false };
@@ -1847,6 +1847,7 @@ async function viewAdmin(q) {
   let body;
   try {
     body = tab === 'users' ? await adminUsers()
+      : tab === 'sources' ? await adminSources()
       : tab === 'notices' ? await adminNotices()
       : tab === 'security' ? await adminSecurity()
         : tab === 'status' ? await adminStatus()
@@ -1974,6 +1975,82 @@ function inviteLine(u) {
     : st === 'pending' ? `Inbjudan väntar på att Macen skickar den (begärd ${ago(u.invite_requested_at)})${u.invite_error ? ` · senaste försöket misslyckades: ${u.invite_error}` : ''}`
       : `Inbjudan kunde inte skickas: ${u.invite_error || 'okänt fel'}`;
   return h('p', { class: `small muted invite-line${st === 'failed' ? ' warn' : ''}` }, text);
+}
+
+const SOURCE_KIND_SV = { rss: 'RSS-flöde', article: 'Artikel' };
+
+async function adminSources() {
+  const sources = rowsOf(await adminGet('/api/admin/sources'), 'sources');
+  const url = h('input', {
+    id: 'src-url', type: 'url', required: true, inputmode: 'url', autocomplete: 'off', autocapitalize: 'off',
+    spellcheck: 'false', placeholder: 'https://…',
+  });
+  const kind = h('select', { id: 'src-kind' },
+    h('option', { value: 'auto' }, 'Avgör automatiskt'), h('option', { value: 'article' }, 'Enskild artikel'),
+    h('option', { value: 'rss' }, 'RSS-flöde (även en sajts startsida)'));
+  const addBtn = h('button', { class: 'btn primary', type: 'submit' }, 'Lägg till');
+  const pasteBtn = navigator.clipboard && navigator.clipboard.readText ? h('button', {
+    class: 'btn', type: 'button',
+    onclick: async () => {
+      try { url.value = (await navigator.clipboard.readText()).trim(); } catch { url.focus(); }
+    },
+  }, 'Klistra in') : null;
+  const form = h('form', {
+    class: 'card card-pad form',
+    onsubmit: async (ev) => {
+      ev.preventDefault();
+      const u = url.value.trim();
+      if (!u) { url.focus(); return; }
+      addBtn.disabled = true; addBtn.textContent = 'Kontrollerar…';
+      try {
+        const res = await adminSend('POST', '/api/admin/sources', { url: u, kind: kind.value });
+        const src = res && res.source;
+        adminMsg.text = src
+          ? `${SOURCE_KIND_SV[src.kind] || 'Källa'} tillagd: ${src.title || src.url}. ${src.kind === 'rss'
+            ? 'Flödet läses från nästa körning.' : 'Artikeln läses av nästa körningar (i tre dygn).'}`
+          : 'Källan är tillagd.';
+        adminMsg.error = false;
+      } catch (e) {
+        if (e instanceof AuthError) throw e;
+        adminMsg.text = e instanceof OfflineError ? 'Ingen anslutning – källan lades inte till.' : `Källan lades inte till: ${e.message}`;
+        adminMsg.error = true;
+      }
+      route({ keepScroll: true });
+    },
+  },
+  h('h2', { class: 'kicker' }, 'Lägg till källa'),
+  h('p', { class: 'small' }, 'Klistra in en länk till en artikel eller ett RSS-flöde. Appen känner själv igen vilket det är; en sajts startsida blir dess RSS-flöde om du väljer det.'),
+  h('label', { class: 'search-label', for: 'src-url' }, 'Länk'), url,
+  h('label', { class: 'search-label', for: 'src-kind' }, 'Typ'), kind,
+  h('div', { class: 'btn-row' }, pasteBtn, addBtn));
+
+  const row = (x) => h('div', { class: 'ucard' },
+    h('div', { class: 'ucard-top' }, h('b', null, x.title || hostOf(x.url) || x.url)),
+    h('p', { class: 'small muted' }, `${SOURCE_KIND_SV[x.kind] || x.kind} · ${hostOf(x.url) || ''} · ${x.added_by || ''} · ${whenFmt(x.added_at)}`),
+    h('div', { class: 'btn-row' },
+      h('button', {
+        class: 'btn danger', type: 'button',
+        onclick: () => openSheet((close) => frag(
+          h('h2', { class: 'title-m' }, `Ta bort "${x.title || hostOf(x.url)}"?`),
+          h('p', { class: 'small' }, 'Källan läses inte längre av körningarna. Rapporter som redan använt den påverkas inte.'),
+          h('div', { class: 'sheet-actions' },
+            h('button', { class: 'btn', type: 'button', autofocus: true, onclick: close }, 'Avbryt'),
+            h('button', { class: 'btn danger', type: 'button', onclick: () => { close(); adminMutate('DELETE', `/api/admin/sources/${encodeURIComponent(x.id)}`, null, 'Källan är borttagen.'); } }, 'Ta bort'))),
+        { label: 'Ta bort källan' }),
+      }, 'Ta bort')));
+
+  const feeds = sources.filter((x) => x.kind === 'rss');
+  const articles = sources.filter((x) => x.kind === 'article');
+  return frag(
+    form,
+    h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, `Tillagda RSS-flöden · ${feeds.length}`),
+      feeds.length ? h('div', { class: 'ulist' }, feeds.map(row))
+        : h('p', { class: 'small muted' }, 'Inga ännu. De 21 grundflödena (SVT, DN, BBC m.fl.) läses alltid.')),
+    h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, `Tillagda artiklar · ${articles.length}`),
+      articles.length ? h('div', { class: 'ulist' }, articles.map(row))
+        : h('p', { class: 'small muted' }, 'Inga ännu.')));
 }
 
 async function adminNotices() {

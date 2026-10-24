@@ -3,8 +3,8 @@ Shapes the report's events for the web app - ids, articles with links,
 topics and countries - per webapp/CONTRACT.md.
 
 The model supplies the Swedish text, topics, countries and article list;
-this module assigns the ids and keeps only article links that the
-web search really retrieved (common.LAST_SEARCH_RESULTS).
+this module assigns the ids and links only articles the model cited by
+the ref of an article it was really given (common.LAST_SEARCH_RESULTS).
 """
 import hashlib
 import re
@@ -113,10 +113,13 @@ DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 def enrich_events(events: list, report_date: str, search_results: list = None,
                   thread_ids: set = None) -> list:
     """Adds id, model_score, articles (with ids), and cleans topics and
-    countries. `search_results` is the list of retrieved pages; article
-    urls not among them are dropped. None means: no link check possible
-    (backfill), so every url is dropped."""
+    countries. `search_results` is the list of articles the model was
+    given; an article gets a link only when its "ref" (or, in reports from
+    before refs, its url) is among them. None means: no link check
+    possible (backfill), so every url is dropped."""
+    from news_sources import decode_google_link
     known = {_norm_url(r["url"]): r for r in (search_results or []) if r.get("url")}
+    by_ref = {r["ref"]: r for r in (search_results or []) if r.get("ref") and r.get("url")}
     for i, ev in enumerate(events, start=1):
         ev["id"] = f"{report_date}-e{i}"
         ev.setdefault("model_score", ev.get("score"))
@@ -134,12 +137,14 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
         articles = ev.get("articles") or parse_sources(ev.get("sources", ""))
         clean = []
         for a in articles:
-            outlet = canonical_outlet(a.get("outlet") or "")
+            ref = str(a.get("ref") or "").strip("[] ")
+            match = by_ref.get(ref)
+            if not match and a.get("url"):
+                match = known.get(_norm_url(a["url"]))
+            outlet = canonical_outlet(a.get("outlet") or (match or {}).get("outlet") or "")
             if not outlet:
                 continue
-            url = a.get("url")
-            match = known.get(_norm_url(url)) if url else None
-            url = match["url"] if match else None
+            url = decode_google_link(match["url"]) if match else None
             title = a.get("title") or (match or {}).get("title")
             tier = a.get("tier")
             item = {
@@ -177,18 +182,18 @@ SWEEP_EVENT_FIELDS = """Each event also carries, for the Swedish web app:
    - "direction": "escalating" | "de-escalating" | "neutral" - which
      way the event, if true, pushes the general index;
    - "articles": the individual articles behind it, each
-     {"outlet": "...", "title": "...", "url": "...", "tier": 1-4,
+     {"ref": "A12", "outlet": "...", "title": "...", "tier": 1-4,
       "published": "YYYY-MM-DD or null",
       "summary_sv": "2-3 Swedish sentences: what this article says",
       "relation": "bekräftar" | "motsäger" | "tillför" | null - how it
-      relates to the other articles on the event}. Give only urls you
-     actually retrieved in this search - copy them exactly; use null when
-     you do not have the article's own url."""
+      relates to the other articles on the event}. "ref" is the article's
+     ref in the list above, copied exactly (e.g. "A12"); cite only
+     articles from that list."""
 
 SWEEP_EVENT_JSON = """{"title": "...", "detail": "...", "sources": "...", "score": 0,
      "title_sv": "...", "summary_sv": "...", "topics": ["..."], "countries": ["..."],
      "known_sv": ["..."], "unknown_sv": ["..."], "thread_id": "...", "direction": "...",
-     "articles": [{"outlet": "...", "title": "...", "url": "...", "tier": 1,
+     "articles": [{"ref": "A1", "outlet": "...", "title": "...", "tier": 1,
                    "published": "...", "summary_sv": "...", "relation": "..."}]}"""
 
 
