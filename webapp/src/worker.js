@@ -57,7 +57,7 @@ const RUN_START_GRACE_MIN = 45;   // GitHub's cron can start this late
 const RUN_ID_RE = /^[0-9a-f]{32}$/;
 const RUN_LOG_URL_RE = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/actions\/runs\/\d+$/;
 const RUNS_KEEP_DAYS = 90;
-const MAC_QUIET_MIN = 10;          // the Mac's invitation job polls every 2 min
+const MAC_QUIET_MIN = 75;          // the invitation job (GitHub Actions) polls hourly
 
 // Reasons written to security_log (CONTRACT.md, Version 2).
 const R = {
@@ -910,14 +910,14 @@ async function runsStatus(env, nowMs, pendingInvites, invitePullAt) {
       last: last ? recent.find((r) => r.id === last.id) : null,
     };
   });
-  // The Mac only matters for invitations now; it is red only when one waits.
+  // The invitation job (still `mac` in the API); red only when an invite waits.
   const quietMin = invitePullAt ? Math.round((nowMs - Date.parse(invitePullAt)) / 60000) : null;
   const macUp = quietMin != null && quietMin <= MAC_QUIET_MIN;
   const mac = macUp
     ? { light: 'green', text: 'Igång – skickar inbjudningar' }
-    : pendingInvites && (quietMin == null || quietMin > 30)
+    : pendingInvites && (quietMin == null || quietMin > 2 * MAC_QUIET_MIN)
       ? { light: 'red', text: `Svarar inte – ${pendingInvites === 1 ? '1 inbjudan väntar' : `${pendingInvites} inbjudningar väntar`}` }
-      : { light: 'yellow', text: 'Svarar inte – behövs bara för inbjudningar' };
+      : { light: 'yellow', text: 'Inte hörd på över en timme' };
   return {
     runner: recent.length ? recent[0].host : null,
     jobs,

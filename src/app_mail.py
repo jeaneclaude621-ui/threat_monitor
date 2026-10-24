@@ -6,10 +6,10 @@ Mail about the web app itself - separate from the daily report mail.
     python3 src/app_mail.py check            # print new replies (read-only)
     python3 src/app_mail.py check --all      # include ones already shown
 
-`send-invites` runs every two minutes from launchd
-(se.threatmonitor.invites): adding a person on the app's admin page
-queues an invite in the Worker, which cannot send mail itself. This
-fetches the queue as the Mac's service token, mails each person the link
+`send-invites` runs hourly on GitHub Actions (.github/workflows/invites.yml):
+adding a person on the app's admin page queues an invite in the Worker,
+which cannot send mail itself. This fetches the queue with the service
+token, mails each person the link
 and login steps over SMTP, and reports sent/failed back. Ids already
 mailed are kept in data/app_invites_sent.json, so a lost report never
 mails anyone twice.

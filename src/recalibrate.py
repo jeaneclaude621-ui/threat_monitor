@@ -27,7 +27,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import load_state, save_state, ask_claude_json, OUTPUT_DIR, DATA_DIR
+from common import load_state, save_state, ask_model_json, OUTPUT_DIR, DATA_DIR
 from daily_report import SYSTEM, index_instructions, INDEX_JSON_FIELDS, enforce_bands, apply_index_rules
 
 RESULTS_PATH = DATA_DIR / "recalibration.json"
@@ -52,7 +52,7 @@ Respond as strict JSON with exactly these fields:
 {{
 {INDEX_JSON_FIELDS.rstrip(',')}
 }}"""
-    result = enforce_bands(ask_claude_json(prompt, system=SYSTEM, max_tokens=4000, use_search=False))
+    result = enforce_bands(ask_model_json(prompt, system=SYSTEM, max_tokens=4000, use_search=False))
     return apply_index_rules(result, report.get("events") or [])
 
 

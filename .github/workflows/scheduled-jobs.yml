@@ -1,6 +1,5 @@
-# The daily report and the hourly monitor, run here instead of on the Mac
-# while data/runner in the state repo says "cloud". With "mac" every
-# scheduled run exits at once (schedule/run_job.py explains the switch).
+# The daily report and the hourly monitor. schedule/run_job.py pulls the
+# run state before each job and pushes it after.
 #
 # GitHub's cron is UTC, so each job fires at both UTC hours that can be its
 # Stockholm hour (summer and winter time); run_job.py --at lets the first
@@ -36,7 +35,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9"   # same as the Mac's Command Line Tools python
+          python-version: "3.12"
 
       - name: Install dependencies
         run: python -m pip install --quiet -r requirements.txt
@@ -44,24 +43,12 @@ jobs:
       - name: Fetch the run state
         env:
           STATE_DEPLOY_KEY: ${{ secrets.STATE_DEPLOY_KEY }}
-        run: |
-          mkdir -p ~/.ssh
-          printf '%s\n' "$STATE_DEPLOY_KEY" > ~/.ssh/state_key
-          chmod 600 ~/.ssh/state_key
-          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
-          git config --global core.sshCommand "ssh -i ~/.ssh/state_key -o IdentitiesOnly=yes"
-          git config --global user.name "threat-monitor (GitHub Actions)"
-          git config --global user.email "actions@users.noreply.github.com"
-          G="git --git-dir=.state.git --work-tree=."
-          git init --quiet --bare --initial-branch=main .state.git
-          $G config core.bare false
-          $G remote add origin git@github.com:jeaneclaude621-ui/threat_monitor-data.git
-          $G fetch --quiet origin main
-          $G reset --quiet --hard origin/main
+        run: bash schedule/fetch_state.sh
 
       - name: Run
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
@@ -89,7 +76,7 @@ jobs:
             ARGS="$DISPATCH_JOB"
           fi
           JOB="${ARGS##* }"
-          python schedule/run_job.py --host cloud $ARGS 2>&1 | tee -a "data/logs/${JOB}_run_cloud.log"
+          python schedule/run_job.py $ARGS 2>&1 | tee -a "data/logs/${JOB}_run_cloud.log"
 
       - name: Keep the report deck
         if: always()

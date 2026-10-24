@@ -2,13 +2,15 @@
 Shared utilities for the Russia-NATO/EU Hybrid Threat Monitor.
 
 Handles: persistent JSON state, daily hourly-log files, and the wrapper
-around the Anthropic API (with the web_search tool turned on) that every
-module uses to do its research.
+around the Gemini API (grounded with Google Search) that every module
+uses to do its research.
 """
 import json
 import os
 import re
 import time
+import urllib.error
+import urllib.request
 from datetime import datetime, date
 from pathlib import Path
 
@@ -23,14 +25,15 @@ DATA_DIR.mkdir(exist_ok=True)
 LOG_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-MODEL = "claude-sonnet-4-6"
+# A model on the Gemini API's free tier, Google Search grounding included.
+MODEL = os.environ.get("GEMINI_MODEL") or "gemini-2.5-flash"
+THINKING_BUDGET = 2048
 
-# Waits between attempts when the network is down. launchd can start a job
-# during a brief maintenance wake before Wi-Fi/DNS is back (27 Sep: the
-# report died on its first API call), so give the network ~15 minutes.
+# Waits between attempts when the API is unreachable or overloaded, ~15
+# minutes in all.
 NETWORK_RETRY_DELAYS = [30, 60, 120, 240, 300, 300]
 
-# Every page the last web-search call actually retrieved, as {url, title}.
+# Every page the last search-grounded call actually retrieved, as {url, title}.
 # The sweep asks the model for article links; only links found here are
 # kept, so a link in the app is one that was really fetched, never one the
 # model made up.
@@ -142,104 +145,102 @@ def archive_and_clear_log(d: date):
 
 
 # --------------------------------------------------------------------------
-# Claude API wrapper
+# Gemini API wrapper
 # --------------------------------------------------------------------------
 def get_client():
-    import anthropic
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    from google import genai
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError(
-            "ANTHROPIC_API_KEY is not set. Set it as an environment variable "
+            "GEMINI_API_KEY is not set. Set it as an environment variable "
             "before running (see README.md)."
         )
-    return anthropic.Anthropic(api_key=api_key)
+    return genai.Client(api_key=api_key)
 
 
-def ask_claude(prompt: str, system: str = None, max_tokens: int = 2000, use_search: bool = True) -> str:
-    """Send a prompt to Claude, optionally with web_search enabled, and
-    return the concatenated text of the response."""
-    client = get_client()
-    kwargs = {
-        "model": MODEL,
-        "max_tokens": max_tokens,
-        "messages": [{"role": "user", "content": prompt}],
-    }
-    if system:
-        kwargs["system"] = system
+def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, use_search: bool = True) -> str:
+    """Send a prompt to Gemini, optionally grounded with Google Search, and
+    return the text of the response."""
+    from google.genai import types
+    config = types.GenerateContentConfig(
+        system_instruction=system,
+        # Gemini's thinking tokens count against the output limit, so give
+        # them their own budget on top of the answer's.
+        max_output_tokens=max_tokens + THINKING_BUDGET,
+        thinking_config=types.ThinkingConfig(thinking_budget=THINKING_BUDGET),
+        tools=[types.Tool(google_search=types.GoogleSearch())] if use_search else None,
+    )
+    response = _generate_with_retry(get_client(), prompt, config)
+
+    candidate = (response.candidates or [None])[0]
     if use_search:
-        kwargs["tools"] = [{"type": "web_search_20250305", "name": "web_search"}]
+        LAST_SEARCH_RESULTS[:] = _search_results(candidate)
 
-    # Web search can involve multiple tool round-trips; the SDK's
-    # .messages.create already returns the final assistant turn for
-    # single-turn tool use, but if the model stops on a tool call we loop.
-    response = _create_with_retry(client, kwargs)
-    while response.stop_reason == "tool_use":
-        # The API executes web_search server-side for this tool type, so a
-        # plain create() call already resolves it in practice; this loop is
-        # a safety net for future multi-turn tool behavior.
-        response = _create_with_retry(client, kwargs)
-        break
+    finish = getattr(candidate, "finish_reason", None)
+    if finish is not None and getattr(finish, "name", str(finish)) == "MAX_TOKENS":
+        print(f"  ! Gemini response hit max_tokens={max_tokens} - output is truncated")
 
-    if use_search:
-        LAST_SEARCH_RESULTS[:] = _search_results(response)
-
-    if response.stop_reason == "max_tokens":
-        print(f"  ! Claude response hit max_tokens={max_tokens} - output is truncated")
-
-    parts = [b.text for b in response.content if getattr(b, "type", "") == "text"]
-    return "\n".join(parts).strip()
+    return (response.text or "").strip()
 
 
-def _search_results(response) -> list:
-    """URLs and titles from web_search result blocks and text citations."""
+def _search_results(candidate) -> list:
+    """URLs and titles of the pages Google Search grounding retrieved.
+    Gemini hands out redirect links (vertexaisearch.cloud.google.com), so
+    each is followed once to the article's real URL."""
+    meta = getattr(candidate, "grounding_metadata", None)
     seen, out = set(), []
-
-    def add(url, title):
+    for chunk in getattr(meta, "grounding_chunks", None) or []:
+        web = getattr(chunk, "web", None)
+        url = _resolve_redirect(getattr(web, "uri", None))
         if url and url not in seen:
             seen.add(url)
-            out.append({"url": url, "title": title or None})
-
-    for block in response.content:
-        kind = getattr(block, "type", "")
-        if kind == "web_search_tool_result" and isinstance(getattr(block, "content", None), list):
-            for r in block.content:
-                add(getattr(r, "url", None), getattr(r, "title", None))
-        elif kind == "text":
-            for c in getattr(block, "citations", None) or []:
-                add(getattr(c, "url", None), getattr(c, "title", None))
+            out.append({"url": url, "title": getattr(web, "title", None) or None})
     return out
 
 
-def _create_with_retry(client, kwargs):
-    """client.messages.create, retried with long waits on connection
-    errors. The SDK's own retries (a few seconds apart) cover API hiccups
-    but not a Mac whose network is still coming up after sleep."""
-    import anthropic
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+def _resolve_redirect(url: str) -> str:
+    if not url or "grounding-api-redirect" not in url:
+        return url
+    opener = urllib.request.build_opener(_NoRedirect)
+    try:
+        opener.open(urllib.request.Request(url, method="HEAD"), timeout=15)
+    except urllib.error.HTTPError as e:
+        if e.code in (301, 302, 303, 307, 308) and e.headers.get("Location"):
+            return e.headers["Location"]
+    except Exception:
+        pass
+    return None
+
+
+def _generate_with_retry(client, prompt, config):
+    """client.models.generate_content, retried with long waits when the
+    network is down or the API is overloaded (429/5xx). The free tier's
+    per-minute limit also answers 429, so a wait usually clears it."""
+    from google.genai import errors
     import httpx
     for delay in NETWORK_RETRY_DELAYS + [None]:
         try:
-            # The SDK refuses non-streaming calls whose max_tokens implies
-            # more than 10 minutes (~21k tokens); stream those instead.
-            if kwargs.get("max_tokens", 0) > 16000:
-                with client.messages.stream(**kwargs) as stream:
-                    return stream.get_final_message()
-            return client.messages.create(**kwargs)
-        # A stream that stalls mid-response raises httpx's own errors
-        # (e.g. ReadTimeout), not the SDK's wrapped ones.
-        except (anthropic.APIConnectionError, anthropic.APITimeoutError, httpx.TransportError) as e:
-            if delay is None:
+            return client.models.generate_content(model=MODEL, contents=prompt, config=config)
+        except (errors.ServerError, errors.ClientError, httpx.TransportError) as e:
+            code = getattr(e, "code", None)
+            if delay is None or (isinstance(e, errors.ClientError) and code != 429):
                 raise
-            print(f"  ! Claude API unreachable ({e}); retrying in {delay}s")
+            print(f"  ! Gemini API unavailable ({e}); retrying in {delay}s")
             time.sleep(delay)
 
 
-def ask_claude_json(prompt: str, system: str = None, max_tokens: int = 2000, use_search: bool = True) -> dict:
-    """ask_claude + extract_json, with one recovery attempt. When web
+def ask_model_json(prompt: str, system: str = None, max_tokens: int = 2000, use_search: bool = True) -> dict:
+    """ask_model + extract_json, with one recovery attempt. When web
     search is on, the model sometimes spends the whole token budget on
     searches and narrative analysis and gets cut off before the JSON.
     Rather than discard that work, hand the partial response back (no
     search this time) and ask for just the JSON object."""
-    raw = ask_claude(prompt, system=system, max_tokens=max_tokens, use_search=use_search)
+    raw = ask_model(prompt, system=system, max_tokens=max_tokens, use_search=use_search)
     try:
         return extract_json(raw)
     except ValueError as first_err:
@@ -254,12 +255,12 @@ Your previous answer was cut off or was not valid JSON. Here it is:
 
 Using ONLY the information in that previous answer (do not search again),
 respond with the strict JSON object requested above and nothing else."""
-        raw2 = ask_claude(recovery_prompt, system=system, max_tokens=max_tokens, use_search=False)
+        raw2 = ask_model(recovery_prompt, system=system, max_tokens=max_tokens, use_search=False)
         return extract_json(raw2)
 
 
 def extract_json(text: str) -> dict:
-    """Claude is asked to respond in strict JSON, but may wrap it in
+    """The model is asked to respond in strict JSON, but may wrap it in
     prose, code fences, or trailing commentary. This finds the first
     '{' or '[' and matches it to its REAL closing bracket by depth-
     counting (string-aware), rather than a greedy regex that grabs

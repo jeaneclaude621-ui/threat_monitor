@@ -356,9 +356,10 @@ Each run reports itself so admins can see that the jobs keep running.
   - yellow: finished with warnings, or no run reported yet;
   - green: finished without warnings, or running normally. Before the 45
     minutes are up, a job keeps the light of its previous run.
-  `mac` = the Mac's invitation job, from `meta.last_invite_pull_at`: green
-  when heard from in the last 10 min, red when it is silent and an
-  invitation waits, otherwise yellow. `recent` = the last 30 runs.
+  `mac` = the invitation job (hourly on GitHub Actions since 2026-10-24;
+  the key keeps its old name), from `meta.last_invite_pull_at`: green
+  when heard from in the last 75 min, red when it has been silent over
+  150 min and an invitation waits, otherwise yellow. `recent` = the last 30 runs.
 - App: Status is the first and default admin tab. On top, the worst light
   ("Allt snurrar" / "Något att hålla koll på" / "Något har gått fel") and
   where the jobs run, then one row per job and the Mac, then the last 15

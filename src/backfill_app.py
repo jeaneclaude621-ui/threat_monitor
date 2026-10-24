@@ -2,7 +2,7 @@
 Brings reports written before the web app up to webapp/CONTRACT.md:
 event ids, Swedish title and summary, topics, countries, and articles
 from the sources line (no links - those were never recorded). Also folds
-in <date>_executive_sv.json where it exists. One Claude call per report,
+in <date>_executive_sv.json where it exists. One Gemini call per report,
 no web search.
 
     python3 src/backfill_app.py            # every report missing the fields
@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import ask_claude_json, OUTPUT_DIR
+from common import ask_model_json, OUTPUT_DIR
 from app_data import TOPICS, enrich_events
 
 SYSTEM = "Du är en svensk underrättelseanalytiker. Du svarar med enbart giltig JSON."
@@ -47,7 +47,7 @@ def backfill(path: Path, force: bool = False) -> bool:
     if not events or (not force and all(e.get("title_sv") for e in events)):
         return False
     slim = [{"title": e.get("title"), "detail": e.get("detail"), "sources": e.get("sources")} for e in events]
-    result = ask_claude_json(PROMPT.format(events=json.dumps(slim, ensure_ascii=False, indent=1),
+    result = ask_model_json(PROMPT.format(events=json.dumps(slim, ensure_ascii=False, indent=1),
                                            topics=", ".join(TOPICS)),
                              system=SYSTEM, max_tokens=4000, use_search=False)
     extra = result.get("events", [])

@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (
-    load_state, save_state, ask_claude_json,
+    load_state, save_state, ask_model_json,
     load_hourly_log, archive_and_clear_log, resolve_proposal, OUTPUT_DIR,
 )
 from pptx_builder import build_deck
@@ -71,7 +71,7 @@ the JSON object."""
     try:
         # Six claims x web search + reasoning + JSON does not fit in ~2k
         # tokens; the response was getting truncated before the JSON.
-        result = ask_claude_json(prompt, system=SYSTEM, max_tokens=6000)
+        result = ask_model_json(prompt, system=SYSTEM, max_tokens=6000)
     except Exception as e:
         return {"summary": f"Self-check failed to run ({e}).", "log_entry": None}
 
@@ -365,7 +365,7 @@ Respond as strict JSON:
     # 30-day forecast another 1500, the app fields (Swedish text, topics,
     # countries, article links) roughly 3000, and the per-article Swedish
     # summaries with known/unknown lists about 4000 more.
-    result = ask_claude_json(prompt, system=SYSTEM, max_tokens=22000)
+    result = ask_model_json(prompt, system=SYSTEM, max_tokens=22000)
 
     enforce_bands(result)
     enrich_events(result.get("events", []), date.today().isoformat(), common.LAST_SEARCH_RESULTS,
@@ -421,7 +421,7 @@ Keep the total at exactly {size} threads. Respond as strict JSON:
 {{"watchlist": [{{"id": "short-kebab-id", "label": "..."}}]}}"""
     try:
         # Six ids plus labels describing today's events does not fit in 800.
-        result = ask_claude_json(prompt, system=SYSTEM, max_tokens=2000, use_search=False)
+        result = ask_model_json(prompt, system=SYSTEM, max_tokens=2000, use_search=False)
         new_list = result.get("watchlist", [])
         if len(new_list) == size:
             existing_by_id = {t["id"]: t for t in state["watchlist"]}
@@ -455,7 +455,7 @@ propose vague things like "be more careful" - propose a concrete rule.
 
 Respond as strict JSON:
 {{"title": "...", "rationale": "...", "change_detail": "..."}}"""
-    proposal = ask_claude_json(prompt, system=SYSTEM, max_tokens=1500, use_search=False)
+    proposal = ask_model_json(prompt, system=SYSTEM, max_tokens=1500, use_search=False)
     proposal["date_proposed"] = date.today().isoformat()
     proposal["status"] = "pending"
     state["pending_proposal"] = proposal

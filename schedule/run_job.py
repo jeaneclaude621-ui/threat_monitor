@@ -1,6 +1,6 @@
 """
-Runs one scheduled job on whichever machine is the current runner, and
-keeps the run state in step between the Mac and GitHub Actions.
+Runs one scheduled job on GitHub Actions between pulling and pushing
+the run state.
 
 The run state - data/ plus the text files in reports/ that later runs read
 back (report_data.json, executive_sv.json) - lives in its own git repo,
@@ -10,33 +10,26 @@ other's files and no code path changes. The .pptx decks (and the .m4a
 files of the old spoken briefing) are left out: they are mailed and
 uploaded, and nothing reads them back.
 
-data/runner names the machine that runs the jobs ("mac" or "cloud"). A job
-started anywhere else exits without doing anything, so moving the runs is
-editing that one line and pushing it - and both machines can never send
-the same report twice.
+    python3 schedule/run_job.py --at 5 daily
+    python3 schedule/run_job.py invites
 
-    python3 schedule/run_job.py --host mac daily
-    python3 schedule/run_job.py --host cloud hourly
-
-Each run: pull the state, check the runner, run the job with Stockholm
-time, then commit and push what changed. With no remote configured the
-state is only committed locally. If the pull fails the job does not run:
-running on stale state could fork it or send a report twice.
-
-Each machine writes its own log files (launchd: data/logs/*_run.log;
-Actions: *_run_cloud.log). A pull then never rewrites a log the other
-machine changed, which would conflict with this machine's unsaved lines or
-cut off a log launchd holds open.
+Each run: pull the state, run the job with Stockholm time, then commit and
+push what changed. With no remote configured the state is only committed
+locally. If the pull fails the job does not run: running on stale state
+could fork it or send a report twice.
 
 GitHub's schedule is in UTC and can start late, so Actions fires each job
 at both UTC hours that can be its Stockholm hour, and passes --at with the
 Stockholm hours the job is due. The run goes ahead only once a due hour
 has come and no run has been started since it (data/last_run.json); the
-other firing finds it done and skips. launchd starts on time and passes no
---at, but its runs are recorded too, so after a move nothing runs twice.
+other firing finds it done and skips.
 
---test runs the job without touching the shared state: it ignores the
-runner, keeps nothing and only checks that the push would be accepted.
+"invites" (mail the app invitations queued in the Worker) runs hourly and
+quietly: it is not recorded in last_run.json or on the status page, and
+it commits only when someone was mailed.
+
+--test runs the job without touching the shared state: it keeps nothing
+and only checks that the push would be accepted.
 The workflow pairs it with mail to the sender only, no app upload and a
 reply check that leaves the mail unread.
 
@@ -58,7 +51,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 STATE_GIT = ROOT / ".state.git"
-RUNNER_PATH = ROOT / "data" / "runner"
 LAST_RUN_PATH = ROOT / "data" / "last_run.json"
 
 sys.path.insert(0, str(ROOT / "src"))
@@ -68,7 +60,10 @@ TIMEZONE = "Europe/Stockholm"
 JOBS = {
     "daily": ["src/daily_report.py"],
     "hourly": ["src/hourly_monitor.py"],
+    "invites": ["src/app_mail.py", "send-invites"],
 }
+QUIET_JOBS = {"invites"}
+HOST = "cloud"
 
 # What the state repo tracks, as git pathspecs. Named at every add rather
 # than kept in an exclude file: the code repo's .gitignore sits in the same
@@ -139,18 +134,11 @@ def commit_and_push(message: str):
     for _ in range(3):
         if git("push", "--quiet", "origin", f"HEAD:{BRANCH}", check=False).returncode == 0:
             return
-        # The other machine pushed meanwhile (the runner line, or an
-        # overlapping run): replay this commit on top and try again.
+        # An overlapping run pushed meanwhile: replay this commit on top
+        # and try again.
         git("pull", "--quiet", "--rebase", "--autostash", "origin", BRANCH, check=False)
     log("! Could not push the state to GitHub - it is committed locally "
         "and goes up with the next run")
-
-
-def current_runner() -> str:
-    try:
-        return RUNNER_PATH.read_text().strip() or "mac"
-    except FileNotFoundError:
-        return "mac"
 
 
 def load_last_run() -> dict:
@@ -205,10 +193,9 @@ def report_run(run: dict):
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--host", required=True, choices=["mac", "cloud"])
     ap.add_argument("--at", help="Stockholm hours the job is due, e.g. 1,16")
     ap.add_argument("--test", action="store_true",
-                    help="ignore the runner and keep no state")
+                    help="keep no state")
     ap.add_argument("job", choices=sorted(JOBS))
     args = ap.parse_args()
     os.environ["TZ"] = TIMEZONE
@@ -219,25 +206,27 @@ def main() -> int:
         if not pull():
             return 1
     now = datetime.now()
+    if args.job in QUIET_JOBS:
+        code, _ = run_and_watch(JOBS[args.job])
+        if not args.test:
+            with state_lock():
+                commit_and_push(f"{args.job} {now:%Y-%m-%d %H:%M}")
+        return code
     if not args.test:
-        runner = current_runner()
-        if runner != args.host:
-            log(f"{args.job} skipped - the jobs run on '{runner}', this is '{args.host}'")
-            return 0
         if args.at:
             reason = due_reason(args.job, [int(h) for h in args.at.split(",")], now)
             if reason:
                 log(f"{args.job} skipped - {reason}")
                 return 0
-        record_start(args.job, args.host, now)
+        record_start(args.job, HOST, now)
         # Saved before the job runs, so a run that is killed outright
         # still counts as started.
         with state_lock():
-            commit_and_push(f"{args.job} on {args.host} {now:%Y-%m-%d %H:%M} started")
+            commit_and_push(f"{args.job} on {HOST} {now:%Y-%m-%d %H:%M} started")
     else:
         log(f"TEST run of {args.job} - nothing is saved")
 
-    run = {"id": uuid.uuid4().hex, "job": args.job, "host": args.host,
+    run = {"id": uuid.uuid4().hex, "job": args.job, "host": HOST,
            "started_at": now.astimezone().isoformat(timespec="seconds"), "status": "running"}
     gh = [os.environ.get(k) for k in ("GITHUB_SERVER_URL", "GITHUB_REPOSITORY", "GITHUB_RUN_ID")]
     if all(gh):
@@ -260,7 +249,7 @@ def main() -> int:
         return code
 
     with state_lock():
-        commit_and_push(f"{args.job} on {args.host} {now:%Y-%m-%d %H:%M}"
+        commit_and_push(f"{args.job} on {HOST} {now:%Y-%m-%d %H:%M}"
                         + ("" if code == 0 else f" (exit {code})"))
     return code
 

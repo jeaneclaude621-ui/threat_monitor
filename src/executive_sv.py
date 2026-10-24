@@ -3,7 +3,7 @@
 report - every heading and topic from the deck, one short sentence
 each - shown at the top of the morning email.
 
-Claude returns it as structured JSON (headings -> label/sentence rows)
+Gemini returns it as structured JSON (headings -> label/sentence rows)
 rather than prose, so mailer.py can lay it out as plain inline-styled
 HTML that reads well on an iPhone, and nothing in it is interpreted as
 markup.
@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import ask_claude_json, OUTPUT_DIR
+from common import ask_model_json, OUTPUT_DIR
 
 SYSTEM = """Du är en svensk underrättelseanalytiker som skriver en
 superkort ledningsbrief. Du svarar med enbart giltig JSON."""
@@ -70,7 +70,7 @@ def build_executive(report_data: dict) -> dict:
     slim["threat_index_history"] = slim.get("threat_index_history", [])[-10:]
     prompt = PROMPT.format(payload=json.dumps(slim, ensure_ascii=False, indent=1),
                            headings=", ".join(HEADINGS))
-    brief = ask_claude_json(prompt, system=SYSTEM, max_tokens=4000, use_search=False)
+    brief = ask_model_json(prompt, system=SYSTEM, max_tokens=4000, use_search=False)
     if not isinstance(brief, dict) or not brief.get("sections"):
         raise ValueError("no sections in response")
     return brief

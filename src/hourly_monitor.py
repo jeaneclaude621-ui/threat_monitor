@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import load_state, save_state, ask_claude_json, append_hourly_entry
+from common import load_state, save_state, ask_model_json, append_hourly_entry
 from reply_checker import check_replies
 from app_sync import push_updates
 import feed_prefilter
@@ -94,7 +94,7 @@ def run_once():
             # Web search + a multi-outlet delta does not fit in ~800 tokens;
             # responses were being truncated before the JSON closed.
             # The Swedish title and summary for the web app add ~300 tokens.
-            result = ask_claude_json(prompt, system=SYSTEM, max_tokens=3000)
+            result = ask_model_json(prompt, system=SYSTEM, max_tokens=3000)
         except Exception as e:
             print(f"  ! {thread['id']}: failed ({e})")
             continue

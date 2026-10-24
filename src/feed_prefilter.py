@@ -4,11 +4,11 @@ RSS prefilter for the hourly monitor - in shadow mode.
 Before the hourly checks, the feeds in config/feeds.json are fetched and
 each watchlist thread is matched against the articles published since the
 thread was last checked. A thread with no matching article is one the
-prefilter would skip, sparing its Claude call.
+prefilter would skip, sparing its Gemini call.
 
 Shadow mode: nothing is skipped yet. Every thread is still checked by
-Claude as before; the prefilter only records what it would have decided,
-next to what Claude then found, in data/logs/prefilter_shadow.jsonl. Once
+Gemini as before; the prefilter only records what it would have decided,
+next to what Gemini then found, in data/logs/prefilter_shadow.jsonl. Once
 that record shows the prefilter does not miss real changes, it can be
 allowed to skip calls.
 
@@ -285,13 +285,13 @@ def check(watchlist: list, now: datetime = None, record_status: bool = True) -> 
 
 
 def record_shadow(decisions: dict, outcomes: dict, now: datetime):
-    """One line per thread: the prefilter's decision and Claude's classification."""
+    """One line per thread: the prefilter's decision and Gemini's classification."""
     if not decisions:
         return
     skipped = [tid for tid, d in decisions.items() if not d["would_call"]]
     missed = [tid for tid in skipped if outcomes.get(tid) not in (None, "NO_CHANGE")]
     print(f"  RSS prefilter (shadow mode): would have skipped {len(skipped)}/{len(decisions)} threads"
-          + (f"; Claude found a change in {len(missed)} of them ({', '.join(missed)})" if missed else ""))
+          + (f"; Gemini found a change in {len(missed)} of them ({', '.join(missed)})" if missed else ""))
     try:
         with open(SHADOW_LOG, "a", encoding="utf-8") as f:
             for tid, d in decisions.items():
@@ -320,7 +320,7 @@ def report():
     changed = [r for r in rows if r["classification"] != "NO_CHANGE"]
     print(f"{runs} runs, {len(rows)} thread checks since {rows[0]['ts'] if rows else '-'}")
     print(f"Would have skipped:   {len(skip)} calls ({100 * len(skip) / max(len(rows), 1):.0f} %)")
-    print(f"Changes Claude found: {len(changed)}, of which the prefilter would have missed {len(missed)}")
+    print(f"Changes Gemini found: {len(changed)}, of which the prefilter would have missed {len(missed)}")
     for r in missed:
         print(f"  missed {r['ts']} {r['thread_id']}: {r['classification']}")
 

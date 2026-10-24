@@ -16,7 +16,7 @@ consolidated PowerPoint status report every morning at 05:00.
   since its last check. It runs in shadow mode: every thread is still
   checked, and `data/logs/prefilter_shadow.jsonl` records which ones it
   would have skipped. `python3 src/feed_prefilter.py --report` shows
-  whether it would have missed any change Claude found.
+  whether it would have missed any change Gemini found.
 - **Every day at 05:00**: self-checks yesterday's scored claims against
   what actually happened since; runs a broad research sweep for new
   developments; recomputes the two 1\u201310 threat indices (see "Threat
@@ -32,122 +32,57 @@ consolidated PowerPoint status report every morning at 05:00.
 
 ## Setup
 
-1. **Get an Anthropic API key** at https://console.anthropic.com \u2014
-   this is separate from a claude.ai login and runs on metered billing
-   (pay-per-use, not your Claude subscription).
+Everything runs on GitHub Actions; no computer of your own needs to be
+on. `.github/workflows/scheduled-jobs.yml` runs the daily report (05:00
+Stockholm) and the hourly monitor (01:00 and 16:00), and
+`.github/workflows/invites.yml` mails queued app invitations once an
+hour. Both fit in the free Actions minutes of a private repo.
 
-2. **Install Python 3.9+** if you don't have it — and if you're not sure
-   what you have, or already know you don't, the easiest path is:
-   ```
-   bash setup/check_environment.sh
-   ```
-   This only checks and reports — it changes nothing. It tells you
-   exactly what's missing (Xcode Command Line Tools, Homebrew, Python,
-   pip, the project's Python packages, your API key). Then:
-   ```
-   bash setup/install_missing.sh
-   ```
-   installs only what that check found missing, skips what's already
-   there, and is safe to re-run. If it stops partway (e.g. after
-   installing Xcode Command Line Tools, which needs a one-time GUI
-   click-through), just run both commands again once it tells you to.
+1. **Get a Gemini API key** at https://aistudio.google.com ("Get API
+   key"). The free tier covers this app's few calls a day, Google
+   Search grounding included. On the free tier Google may use the
+   prompts to improve its products; they are public news only.
 
-3. **Install dependencies** (skip this if `install_missing.sh` already
-   did it for you):
-   ```
-   python3 -m pip install -r requirements.txt
-   ```
-   (On Mac/Linux, Python's pip is invoked via `python3 -m pip`, not a
-   bare `pip` command, unless you've separately aliased it.)
+2. **Store the secrets** in the repo (Settings, Secrets and variables,
+   Actions, or `gh secret set NAME`):
+   `GEMINI_API_KEY`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`,
+   `SMTP_PASSWORD`, `MAIL_FROM`, `MAIL_TO`, `HOTMONITOR_URL`,
+   `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET`, and
+   `STATE_DEPLOY_KEY`: the private half of a deploy key with write
+   access to the state repo. An optional `GEMINI_MODEL` variable
+   overrides the model (default `gemini-2.5-flash`).
 
-4. **Set your API key** as an environment variable:
-   - macOS/Linux: `export ANTHROPIC_API_KEY=sk-ant-...`
-   - Windows (PowerShell): `$env:ANTHROPIC_API_KEY="sk-ant-..."`
+3. **Test run:** start "Scheduled jobs" from the Actions tab (Run
+   workflow, with "Test run" ticked). The report then goes only to
+   `MAIL_FROM`, nothing is uploaded to the app, replies stay unread,
+   and no state is saved. The deck of each run can be downloaded from
+   the run's page for 30 days.
 
-   For scheduled/unattended runs, this needs to be set permanently
-   (system environment variable on Windows; directly in the crontab
-   on macOS/Linux) \u2014 see the scripts in `schedule/`.
+**Run state.** `schedule/run_job.py` keeps the run state (`data/` and
+the text files in `reports/` that later runs read back) in a separate
+repo, `threat_monitor-data`, checked out as `.state.git` with this
+project folder as its work tree. Each run pulls it first and pushes it
+after. If the state can't be pulled, the job doesn't run: running on
+stale state could fork it or send a report twice.
 
-5. **Do one manual run first** to seed the data folder and check
-   everything works before scheduling anything:
-   ```
-   python3 src/hourly_monitor.py
-   python3 src/daily_report.py
-   ```
-   Open the resulting file in `reports/` to check it looks right.
+Every real run reports its start, end and warning lines to the web
+app. The admin Status tab shows a green, yellow or red light per job,
+plus the latest runs with links to their logs (`webapp/CONTRACT.md`,
+Version 3.4).
 
-6. **Set up the schedule:**
-   - Windows: open PowerShell as Administrator in this folder, run
-     `schedule/setup_windows.ps1`
-   - macOS/Linux: run `bash schedule/setup_macos_linux.sh`
+To run a job by hand on any machine with Python 3.9+, the env vars
+above and `pip install -r requirements.txt`:
 
-   Both register an hourly run and a 05:00 daily run without touching
-   any other scheduled tasks/cron entries you already have.
-
-   **On macOS, prefer launchd over cron** (`schedule/launchd/*.plist`):
-
-   ```
-   cp schedule/launchd/*.plist ~/Library/LaunchAgents/
-   launchctl bootstrap gui/$UID ~/Library/LaunchAgents/se.threatmonitor.daily.plist
-   launchctl bootstrap gui/$UID ~/Library/LaunchAgents/se.threatmonitor.hourly.plist
-   launchctl bootstrap gui/$UID ~/Library/LaunchAgents/se.threatmonitor.invites.plist   # app invitation emails, every 2 min
-   ```
-
-   cron silently skips any run scheduled while the Mac is asleep and
-   never replays it - two daily reports were lost that way. launchd
-   runs a missed job as soon as the machine wakes. The plists source
-   `~/.zshrc`, so credentials stay in one place rather than being
-   copied into them. To have the report arrive on time rather than at
-   wake, also schedule a wake:
-
-   ```
-   sudo pmset repeat wakeorpoweron MTWRFSU 04:55:00
-   ```
-
-   **Keep the project outside `~/Documents`, `~/Desktop` and
-   `~/Downloads`.** macOS guards those folders, and a launchd agent
-   (running as zsh/python, not as an app you can grant access to)
-   fails there with `Operation not permitted` before it reads a single
-   file. `~/threat_monitor` works without any privacy exemption.
-
-   **Which machine runs the jobs.** The daily and hourly plists start
-   `schedule/run_job.py`, not the scripts directly. It keeps the run
-   state (`data/` and the text files in `reports/` that later runs read
-   back) in a separate git repo, `.state.git`, and pulls it before each
-   run and pushes it after. `data/runner` says which machine runs the
-   jobs, `mac` or `cloud`. A job that starts on the other machine exits
-   without doing anything. To move the runs, edit that line, then
-   commit and push it:
-
-   ```
-   echo cloud > data/runner      # or: echo mac > data/runner
-   git --git-dir=.state.git --work-tree=. commit -m "runner: cloud" data/runner
-   git --git-dir=.state.git --work-tree=. push origin HEAD:main
-   ```
-
-   If the state can't be pulled, the job doesn't run. Running on stale
-   state could fork it or send a report twice. The invitation job is
-   not routed this way and always runs on the Mac.
-
-   The `cloud` side is `.github/workflows/scheduled-jobs.yml`. It needs
-   the same ten variables as `~/.zshrc`, stored as repository secrets,
-   plus `STATE_DEPLOY_KEY`: the private half of a deploy key with write
-   access to the state repo. To test it without side effects, start
-   it from the Actions tab (Run workflow, with "Test run" ticked). The
-   report then goes only to `MAIL_FROM`, nothing is uploaded to the
-   app, replies stay unread, and no state is saved. The deck of each
-   run can be downloaded from the run's page for 30 days.
-
-   Every real run reports its start, end and warning lines to the web
-   app. The admin Status tab shows a green, yellow or red light per job
-   and for the Mac, plus the latest runs with links to their logs
-   (`webapp/CONTRACT.md`, Version 3.4).
+```
+python3 src/hourly_monitor.py
+python3 src/daily_report.py
+```
 
 ## Svensk Super Executive
 
 The top of each morning email carries a one-screen Swedish summary:
 both indices, the top development, then every heading of the deck with
-one short sentence per topic. Claude writes it from the finished report
+one short sentence per topic. Gemini writes it from the finished report
 data as structured JSON, saved as `<date>_executive_sv.json`. It is
 best-effort: if it fails, the email goes out without it.
 
@@ -254,9 +189,7 @@ needed) plus the full deck attached as a PowerPoint file. If SMTP
 isn't configured, this step is skipped with a log line - it never
 blocks or breaks the rest of the report.
 
-Set these environment variables the same way you set
-`ANTHROPIC_API_KEY` (permanently, so the scheduled/cron runs see
-them too):
+Set these as repository secrets, like `GEMINI_API_KEY`:
 
 ```
 SMTP_HOST=smtp.gmail.com
@@ -290,19 +223,16 @@ plain JSON.
 
 ## Cost note
 
-Each hourly run makes one Claude API call per watchlist thread (6 by
-default) with web search enabled; the daily run makes a few larger
-calls. This is ongoing, metered API usage on your own key \u2014 check
-https://console.anthropic.com for current pricing and keep an eye on
-usage for the first few days to see what a day/week actually costs
-before leaving it running long-term.
+Each hourly run makes one Gemini call per watchlist thread (6 by
+default) with Google Search grounding; the daily run makes a few larger
+calls. All of it fits the Gemini API's free tier, whose daily limits
+Google can change: if calls start failing with 429, check the limits at
+https://ai.google.dev/gemini-api/docs/rate-limits.
 
 ## Files
 
 ```
 threat_monitor/
-  setup/check_environment.sh   diagnoses what's missing on your Mac (no changes)
-  setup/install_missing.sh     installs only what the check found missing
   config/methodology.json      starting source-tier & watchlist config
   src/common.py                state persistence, logging, API wrapper
   src/hourly_monitor.py        hourly thread-check
@@ -310,8 +240,8 @@ threat_monitor/
   src/recalibrate.py           rescores the threat-index history against current rules
   src/pptx_builder.py          PowerPoint generation (python-pptx)
   src/mailer.py                daily HTML digest email + PPTX attachment
-  schedule/setup_windows.ps1   Windows Task Scheduler setup
-  schedule/setup_macos_linux.sh cron setup for macOS/Linux
+  schedule/run_job.py          runs one job between pulling and pushing the run state
+  .github/workflows/           the schedule (GitHub Actions)
   data/state.json              persistent state (created on first run)
   data/logs/                   hourly logs (rolled into daily summaries)
   reports/                     daily PPTX + JSON output
@@ -319,7 +249,7 @@ threat_monitor/
 
 ## A few honest caveats
 
-- The 1\u201310 threat indices and the byline/outlet scores are Claude's
+- The 1\u201310 threat indices and the byline/outlet scores are Gemini's
   ongoing analytical synthesis of the reporting it finds \u2014 not an
   official metric. Treat the deck as a structured read, not ground
   truth.
