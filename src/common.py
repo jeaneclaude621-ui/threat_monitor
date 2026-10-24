@@ -219,8 +219,10 @@ def _resolve_redirect(url: str) -> str:
 
 def _generate_with_retry(client, prompt, config):
     """client.models.generate_content, retried with long waits when the
-    network is down or the API is overloaded (429/5xx). The free tier's
-    per-minute limit also answers 429, so a wait usually clears it."""
+    network is down or the API is overloaded (5xx). A 429 is retried only
+    when Google says when to (retryDelay: the per-minute limit); without
+    one the quota is spent or zero, and waiting would only burn Actions
+    minutes (24 Oct: search grounding has no free quota)."""
     from google.genai import errors
     import httpx
     for delay in NETWORK_RETRY_DELAYS + [None]:
@@ -228,7 +230,9 @@ def _generate_with_retry(client, prompt, config):
             return client.models.generate_content(model=MODEL, contents=prompt, config=config)
         except (errors.ServerError, errors.ClientError, httpx.TransportError) as e:
             code = getattr(e, "code", None)
-            if delay is None or (isinstance(e, errors.ClientError) and code != 429):
+            if isinstance(e, errors.ClientError) and (code != 429 or "retryDelay" not in str(e)):
+                raise
+            if delay is None:
                 raise
             print(f"  ! Gemini API unavailable ({e}); retrying in {delay}s")
             time.sleep(delay)
