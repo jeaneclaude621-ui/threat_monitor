@@ -21,6 +21,7 @@ import html
 import json
 import re
 import sys
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -58,6 +59,8 @@ SV_TERMS = "(Ryssland OR Ukraina OR Nato OR drönare OR sabotage OR hybridhot OR
 EN_TERMS = "(Russia OR Ukraine OR NATO OR drone OR sabotage OR hybrid)"
 
 _last_gdelt = 0.0
+_gdelt_off = False
+_gdelt_lock = threading.Lock()
 
 
 def _get(url: str, headers: dict = None) -> bytes:
@@ -95,22 +98,28 @@ def google_news(query: str, lang: str = "en", days: int = 1) -> list:
 
 
 def gdelt(query: str, hours: int = 24, limit: int = 40) -> list:
-    """GDELT DOC 2.0 article search. Never raises."""
-    global _last_gdelt
-    wait = _last_gdelt + GDELT_GAP - time.time()
-    if wait > 0:
-        time.sleep(wait)
+    """GDELT DOC 2.0 article search. Never raises. GDELT often turns
+    away shared cloud addresses (429), so the first failure switches it
+    off for the rest of the run; Google News and the feeds still cover."""
+    global _last_gdelt, _gdelt_off
     url = ("https://api.gdeltproject.org/api/v2/doc/doc?" + urllib.parse.urlencode({
         "query": query, "mode": "artlist", "format": "json", "sort": "datedesc",
         "maxrecords": limit, "timespan": f"{hours}h"}))
-    try:
-        raw = _get(url)
-        _last_gdelt = time.time()
-        data = json.loads(raw.decode("utf-8", "replace"))
-    except Exception as e:
-        _last_gdelt = time.time()
-        print(f"  ! GDELT search failed for {query!r} ({type(e).__name__}: {str(e)[:100]})")
-        return []
+    with _gdelt_lock:
+        if _gdelt_off:
+            return []
+        wait = _last_gdelt + GDELT_GAP - time.time()
+        if wait > 0:
+            time.sleep(wait)
+        try:
+            raw = _get(url)
+            data = json.loads(raw.decode("utf-8", "replace"))
+        except Exception as e:
+            _gdelt_off = True
+            print(f"  GDELT unavailable, skipped for this run ({type(e).__name__}: {str(e)[:100]})")
+            return []
+        finally:
+            _last_gdelt = time.time()
     out = []
     for a in data.get("articles", []):
         try:
@@ -194,9 +203,11 @@ class Pool:
         self.items = [a for a in self.items if a.get("published") is None or a["published"] > when]
         return self
 
-    def prompt_block(self, limit: int) -> str:
+    def prompt_block(self, limit: int, record: bool = True) -> str:
         """The newest `limit` articles as "[A1] Outlet · date · title - summary"
-        lines; makes them the link check's list (common.LAST_SEARCH_RESULTS)."""
+        lines. With `record`, they become the link check's list
+        (common.LAST_SEARCH_RESULTS); the hourly checks, which run in
+        parallel and cite no links, pass False."""
         items = sorted(self.items, key=lambda a: a.get("published") or datetime.max, reverse=True)[:limit]
         results, lines = [], []
         for i, a in enumerate(items, start=1):
@@ -206,7 +217,8 @@ class Pool:
             summary = (a.get("summary") or "")[:ARTICLE_TEXT_CHARS if a.get("via") == "app" else SUMMARY_CHARS]
             lines.append(f"[{ref}] {a.get('source') or '?'} · {when} · {a.get('title')}"
                          + (f" - {summary}" if summary else ""))
-        common.LAST_SEARCH_RESULTS[:] = results
+        if record:
+            common.LAST_SEARCH_RESULTS[:] = results
         return "\n".join(lines) or "(no articles found)"
 
 

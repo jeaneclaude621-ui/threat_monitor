@@ -6,6 +6,7 @@ NEW_DEVELOPMENT, NO_CHANGE, CORRECTION, or NARRATIVE_SHIFT.
 Usage:  python src/hourly_monitor.py
 """
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
@@ -97,19 +98,32 @@ def run_once():
                                                     feeds=news_sources.all_feeds(app))
     outcomes = {}
 
-    app_updates = []
-    for thread in state["watchlist"]:
+    def check_thread(thread):
+        pool = news_sources.for_thread(thread, feed_articles, app_articles)
+        prompt = PROMPT_TEMPLATE.format(label=thread["label"], last_snapshot=thread["last_snapshot"],
+                                        since=thread.get("last_checked") or "never",
+                                        articles=pool.prompt_block(60, record=False))
+        # A multi-outlet delta does not fit in ~800 tokens; responses were
+        # being truncated before the JSON closed. The Swedish title and
+        # summary for the web app add ~300 tokens.
+        return ask_model_json(prompt, system=SYSTEM, max_tokens=3000)
+
+    def safe_check(thread):
         try:
-            pool = news_sources.for_thread(thread, feed_articles, app_articles)
-            prompt = PROMPT_TEMPLATE.format(label=thread["label"], last_snapshot=thread["last_snapshot"],
-                                            since=thread.get("last_checked") or "never",
-                                            articles=pool.prompt_block(60))
-            # A multi-outlet delta does not fit in ~800 tokens; responses
-            # were being truncated before the JSON closed. The Swedish
-            # title and summary for the web app add ~300 tokens.
-            result = ask_model_json(prompt, system=SYSTEM, max_tokens=3000)
+            return check_thread(thread)
         except Exception as e:
             print(f"  ! {thread['id']}: failed ({e})")
+            return None
+
+    # A Gemini call takes one to three minutes and Actions bills the
+    # wall clock, so three threads at a time; the results are applied to
+    # the state one by one below.
+    with ThreadPoolExecutor(max_workers=3) as ex:
+        results = list(ex.map(safe_check, state["watchlist"]))
+
+    app_updates = []
+    for thread, result in zip(state["watchlist"], results):
+        if result is None:
             continue
 
         classification = result.get("classification", "NO_CHANGE")
