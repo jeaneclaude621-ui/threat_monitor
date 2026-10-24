@@ -26,7 +26,7 @@ LOG_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 # A model on the Gemini API's free tier, Google Search grounding included.
-MODEL = os.environ.get("GEMINI_MODEL") or "gemini-2.5-flash"
+MODEL = os.environ.get("GEMINI_MODEL") or "gemini-3.8-flash"
 THINKING_BUDGET = 2048
 
 # Waits between attempts when the API is unreachable or overloaded, ~15

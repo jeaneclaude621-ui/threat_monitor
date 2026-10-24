@@ -50,7 +50,7 @@ hour. Both fit in the free Actions minutes of a private repo.
    `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET`, and
    `STATE_DEPLOY_KEY`: the private half of a deploy key with write
    access to the state repo. An optional `GEMINI_MODEL` variable
-   overrides the model (default `gemini-2.5-flash`).
+   overrides the model (default `gemini-3.8-flash`).
 
 3. **Test run:** start "Scheduled jobs" from the Actions tab (Run
    workflow, with "Test run" ticked). The report then goes only to
