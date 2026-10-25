@@ -31,7 +31,7 @@ from email.utils import parseaddr
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import load_state, resolve_proposal
+from common import load_state, masked, resolve_proposal
 from mailer import recipients, send_plain_email
 
 IMAP_TIMEOUT = 60  # seconds per socket operation
@@ -162,12 +162,12 @@ def check_replies(state, dry_run: bool = False) -> int:
                 seen_replies += 1
 
                 if sender not in trusted:
-                    print(f"  Reply check: ignoring '{subject}' from untrusted sender {sender}")
+                    print(f"  Reply check: ignoring '{subject}' from untrusted sender {masked(sender)}")
                     continue
 
                 decision = parse_decision(_plain_body(msg))
                 if decision is None:
-                    print(f"  Reply check: no accept/deny found in reply from {sender} ('{subject}') - "
+                    print(f"  Reply check: no accept/deny found in reply from {masked(sender)} ('{subject}') - "
                           f"use: python3 src/daily_report.py --resolve accept|deny")
                     if not dry_run:
                         imap.store(uid, "+FLAGS", "\\Seen")

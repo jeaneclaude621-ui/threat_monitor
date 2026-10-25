@@ -286,3 +286,15 @@ def _dump_debug(text: str):
             f.write(text)
     except Exception:
         pass
+
+
+def masked(addresses) -> str:
+    """Email addresses as "j***@***" for logs: the run logs of this
+    public repo are public, so a full address never goes in one."""
+    if isinstance(addresses, str):
+        addresses = [a for a in addresses.split(",") if a.strip()]
+    out = []
+    for a in addresses:
+        local, _, domain = a.strip().partition("@")
+        out.append(f"{local[:1]}***@***" if domain else "***")
+    return ", ".join(out)

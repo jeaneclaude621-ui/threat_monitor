@@ -22,7 +22,7 @@ import time
 from email.message import EmailMessage
 from pathlib import Path
 
-from common import NETWORK_RETRY_DELAYS
+from common import NETWORK_RETRY_DELAYS, masked
 
 
 def recipients() -> list:
@@ -228,7 +228,7 @@ def send_daily_email(report_data: dict, pptx_path: str, executive: dict = None) 
     for delay in NETWORK_RETRY_DELAYS + [None]:
         try:
             _smtp_send(host, port, user, password, msg)
-            print(f"  Email sent to {mail_to}")
+            print(f"  Email sent to {masked(mail_to)}")
             return True
         except smtplib.SMTPResponseException as e:
             # The server answered and said no (bad login, rejected
@@ -287,7 +287,7 @@ def send_plain_email(to: str, subject: str, body: str, in_reply_to: str = None) 
     msg.set_content(body)
     try:
         _smtp_send(host, port, user, password, msg)
-        print(f"  Confirmation sent to {to}")
+        print(f"  Confirmation sent to {masked(to)}")
         return True
     except Exception as e:
         print(f"  ! Confirmation email failed to send: {e}")

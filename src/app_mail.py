@@ -41,7 +41,7 @@ from email.utils import parseaddr
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import DATA_DIR
+from common import DATA_DIR, masked
 from mailer import _smtp_send, send_plain_email
 from reply_checker import IMAP_TIMEOUT, QUOTE_START_RE, _imap_config
 
@@ -160,7 +160,7 @@ def send_invites() -> int:
                 _send_invite(to, url, inv.get("role") or "reader", inv.get("requested_by") or "")
             except Exception as e:
                 reason = str(e) or type(e).__name__
-                print(f"  ! Invite to {to} failed: {reason}")
+                print(f"  ! Invite to {masked(to)} failed: {reason}")
                 try:
                     _request("PUT", f"/api/ingest/invites/{iid}", {"status": "failed", "error": reason[:300]}, retries=False)
                 except Exception as e2:
@@ -169,7 +169,7 @@ def send_invites() -> int:
             mailed[iid] = datetime.now(timezone.utc).isoformat()
             INVITES_SENT_PATH.write_text(json.dumps(mailed, indent=1))
             sent += 1
-            print(f"  Invite sent to {to}")
+            print(f"  Invite sent to {masked(to)}")
         try:
             _request("PUT", f"/api/ingest/invites/{iid}", {"status": "sent"}, retries=False)
         except Exception as e:
