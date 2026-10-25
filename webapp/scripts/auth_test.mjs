@@ -90,7 +90,7 @@ async function me(token, { host = 'hotmonitor.example.workers.dev', envOver = {}
 }
 
 let r;
-r = await me(await sign({ ...base, email: 'admin.one@example.org' }));
+r = await me(await sign({ ...base, email: 'Admin.One@Example.org' }));
 expect('valid admin token', r.status, 200); expect('admin role', r.body.role, 'admin');
 r = await me(await sign({ ...base, email: 'admin.two@example.org' }), { cookie: true });
 expect('token in CF_Authorization cookie', r.status, 200);

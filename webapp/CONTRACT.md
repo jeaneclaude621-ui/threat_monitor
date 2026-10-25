@@ -121,9 +121,9 @@ login method OTP only). The Worker decides who is let in, from the D1
 `users` table. Unknown or removed emails get 403 and are logged. The
 Mac's service token policy is unchanged.
 
-`OWNER` (Worker var, `the.owner@example.org`) is always an active
+`OWNER` (Worker secret, the owner's address) is always an active
 admin, whatever the table says - the break-glass key so nobody can lock
-the owner out. `ADMINS`/`READERS` vars only seed the table on first use.
+the owner out. `ADMINS`/`READERS` (optional Worker secrets) only seed the table on first use.
 
 ## New D1 tables
 

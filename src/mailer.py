@@ -8,7 +8,7 @@ ever live in this repo:
     SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, MAIL_FROM
 Optional:
     MAIL_TO   one or more comma-separated addresses
-              (defaults to admin.one@example.org)
+              (defaults to MAIL_FROM)
 
 If the required variables aren't set, sending is skipped with a clear
 log line rather than crashing the rest of the daily report - see
@@ -24,12 +24,10 @@ from pathlib import Path
 
 from common import NETWORK_RETRY_DELAYS
 
-DEFAULT_RECIPIENT = "admin.one@example.org"
-
 
 def recipients() -> list:
     """MAIL_TO as a list - it may name several comma-separated people."""
-    raw = os.environ.get("MAIL_TO") or DEFAULT_RECIPIENT
+    raw = os.environ.get("MAIL_TO") or os.environ.get("MAIL_FROM", "")
     return [addr.strip() for addr in raw.split(",") if addr.strip()]
 
 

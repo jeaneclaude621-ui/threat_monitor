@@ -46,8 +46,9 @@ from mailer import _smtp_send, send_plain_email
 from reply_checker import IMAP_TIMEOUT, QUOTE_START_RE, _imap_config
 
 SUBJECT_MARKER = "Hotmonitor-appen"
-TESTERS = ["admin.one@example.org", "admin.two@example.org"]
-TRUSTED = set(TESTERS) | {"the.owner@example.org"}
+# Addresses come from the environment so none live in this public repo.
+TESTERS = [a.strip().lower() for a in os.environ.get("APP_TESTERS", "").split(",") if a.strip()]
+TRUSTED = set(TESTERS) | {os.environ.get("MAIL_FROM", "").strip().lower()} - {""}
 SEEN_PATH = DATA_DIR / "app_mail_seen.json"
 INVITES_SENT_PATH = DATA_DIR / "app_invites_sent.json"
 

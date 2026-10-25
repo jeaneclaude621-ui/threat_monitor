@@ -24,7 +24,7 @@ consolidated PowerPoint status report every morning at 05:00.
   watchlist; proposes exactly one concrete methodology improvement; and
   builds `reports/YYYY-MM-DD_hybrid_threat_monitor.pptx`. If email is
   configured (see "Email delivery" below), it then sends the report to
-  admin.one@example.org as an iPhone-friendly HTML digest with the deck attached.
+  the `MAIL_TO` recipients as an iPhone-friendly HTML digest with the deck attached.
 - Persists everything in `data/state.json`: source-tier methodology,
   outlet transparency scores, author track records (evidence-based
   only \u2014 corrections and contradictions, never subjective judgments),
@@ -182,7 +182,7 @@ a new one \u2014 only one proposal is ever open at a time.
 
 ## Email delivery (optional)
 
-The 05:00 run emails the report to **admin.one@example.org** automatically
+The 05:00 run emails the report to the `MAIL_TO` recipients automatically
 once you configure SMTP - an iPhone-friendly HTML digest in the
 message body (renders directly in Apple Mail, no attachment tap
 needed) plus the full deck attached as a PowerPoint file. If SMTP
@@ -197,8 +197,8 @@ SMTP_PORT=587
 SMTP_USERNAME=your.address@gmail.com
 SMTP_PASSWORD=your-app-password
 MAIL_FROM=your.address@gmail.com
-MAIL_TO=admin.one@example.org,reader.one@example.org   # optional - comma-separated;
-                                                      # defaults to admin.one@example.org alone
+MAIL_TO=first@example.org,second@example.org   # comma-separated;
+                                                      # defaults to MAIL_FROM
 ```
 
 **Gmail example:** use an **app password**, not your normal Gmail

@@ -7,7 +7,7 @@
 #   VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY   a local key pair
 #   DEV_PUSH_ALLOW=http://127.0.0.1:8799  the fake push server
 # run under `wrangler dev --test-scheduled` (for the cron tests),
-# and OWNER=the.owner@example.org from wrangler.jsonc. The users table
+# and OWNER=the.owner@example.org (a Worker secret in production). The users table
 # is seeded by the Worker on first use from OWNER, ADMINS and READERS.
 #
 #   scripts/smoke_test.sh [base_url]     (default http://127.0.0.1:8787)

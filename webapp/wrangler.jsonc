@@ -27,14 +27,10 @@
   "vars": {
     "TEAM_DOMAIN": "crimson-frog-4f56.cloudflareaccess.com",
     "ACCESS_AUD": "4927acc83722928ac8ca01ece8466a3e92da19bb282814c635ff27363320e3a6",
-    "ADMINS": "admin.one@example.org,admin.two@example.org,the.owner@example.org",
-    "READERS": "reader.one@example.org,reader.two@example.org",
     "MACHINE_CLIENT_ID": "a31ef3f6c5b1989fb694ca7ad6ce0bbf.access",
-    // Always an active admin, whatever the users table says (break-glass).
-    // ADMINS/READERS only seed the users table the first time it is empty;
-    // after that, people are managed on the app's admin page.
-    "OWNER": "the.owner@example.org",
     "SERVICE_TOKEN_EXPIRES": "2027-09-30",
+    // OWNER (always an active admin, break-glass) and the optional ADMINS/
+    // READERS seed lists are Worker secrets so no address lives in this repo.
     // Web Push (CONTRACT.md, Version 3). The private key is the Worker
     // secret VAPID_PRIVATE_KEY (wrangler secret put), never in this file.
     "VAPID_PUBLIC_KEY": "BK26uWj_E45yGG0S4xHUSPeoVnbYb2pawCH2rkHpsU4yaQE5rSSkq7zEOoaadkGte6na53T2dbC_WBrB6mCFFqM"
