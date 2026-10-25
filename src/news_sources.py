@@ -50,10 +50,29 @@ SWEEP_QUERIES = [
     ("Russia NATO Baltic", "en"), ("EU sanctions Russia", "en"),
     ("Russia Arctic military", "en"), ("Ukraine Russia peace talks", "en"),
     ("Ryssland hybridhot", "sv"), ("Ryssland Sverige säkerhet", "sv"),
+    ("Russia undersea cable", "en"), ("GPS jamming Baltic", "en"),
+    ("Russian spy arrested Europe", "en"), ("Russia election interference Europe", "en"),
+    ("Russia Moldova", "en"), ("Russia Kaliningrad", "en"),
+    ("Ryssland drönare", "sv"), ("Ryssland skuggflottan", "sv"),
+    # The neighbours' own press often has the story first.
+    ("Russland Sabotage", "de"), ("Russland Drohnen", "de"),
+    ("Venäjä hybridivaikuttaminen", "fi"), ("Venäjä drooni", "fi"),
+    ("Russland sabotasje", "no"), ("Rusland sabotage", "da"),
+    ("Rosja sabotaż", "pl"), ("Rosja drony", "pl"),
+    ("Venemaa", "et"), ("Krievija", "lv"), ("Rusija", "lt"),
 ]
+# Google News edition per query language.
+EDITIONS = {
+    "sv": "hl=sv&gl=SE&ceid=SE:sv", "de": "hl=de&gl=DE&ceid=DE:de",
+    "fi": "hl=fi&gl=FI&ceid=FI:fi", "no": "hl=no&gl=NO&ceid=NO:no",
+    "da": "hl=da&gl=DK&ceid=DK:da", "pl": "hl=pl&gl=PL&ceid=PL:pl",
+    "et": "hl=et&gl=EE&ceid=EE:et", "lv": "hl=lv&gl=LV&ceid=LV:lv",
+    "lt": "hl=lt&gl=LT&ceid=LT:lt",
+}
 # An RSS article belongs in the daily sweep when it names one of these.
 RELEVANT = re.compile(r"\b(russ|rysk|ryss|kreml|kremlin|putin|moscow|moskva|nato|ukrain|baltic|östersjön"
-                      r"|sabotage|drone|drönare|hybrid|sanction|sanktion|shadow fleet|skuggflott)", re.I)
+                      r"|sabotage|drone|drönare|hybrid|sanction|sanktion|shadow fleet|skuggflott"
+                      r"|rusland|rosj|rosyj|venäj|venäläi|venemaa|krievij|rusij|drohne|drooni|dron|sabotaż|sabotasje)", re.I)
 
 SV_TERMS = "(Ryssland OR Ukraina OR Nato OR drönare OR sabotage OR hybridhot OR försvar)"
 EN_TERMS = "(Russia OR Ukraine OR NATO OR drone OR sabotage OR hybrid)"
@@ -81,7 +100,7 @@ def _domain(url: str) -> str:
 # --------------------------------------------------------------------------
 def google_news(query: str, lang: str = "en", days: int = 1) -> list:
     """Google News search results as articles. Never raises."""
-    loc = "hl=sv&gl=SE&ceid=SE:sv" if lang == "sv" else "hl=en-US&gl=US&ceid=US:en"
+    loc = EDITIONS.get(lang, "hl=en-US&gl=US&ceid=US:en")
     url = f"https://news.google.com/rss/search?q={urllib.parse.quote(f'{query} when:{days}d')}&{loc}"
     try:
         items = feed_prefilter.parse_feed(_get(url, GOOGLE_HEADERS))
@@ -267,7 +286,8 @@ def for_daily(state: dict, feed_articles: list, app_articles: list) -> Pool:
         terms = SV_TERMS if n.get("lang") == "sv" else EN_TERMS
         pool.add(google_news(f"site:{n['domain']} {terms}", n.get("lang", "en")))
     for t in state["watchlist"]:
-        pool.add(google_news(thread_queries(t)[0]))
+        for q in thread_queries(t):
+            pool.add(google_news(q))
     for q, lang in SWEEP_QUERIES:
         pool.add(google_news(q, lang))
     pool.add(gdelt("(Russia OR Russian) (sabotage OR drone OR hybrid OR cyberattack) sourcelang:english"))

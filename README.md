@@ -34,7 +34,7 @@ consolidated PowerPoint status report every morning at 05:00.
 
 Everything runs on GitHub Actions; no computer of your own needs to be
 on. `.github/workflows/scheduled-jobs.yml` runs the daily report (05:00
-Stockholm) and the hourly monitor (every hour 07:00-22:00), and
+Stockholm) and the hourly monitor (every hour, day and night), and
 `.github/workflows/invites.yml` mails queued app invitations every five
 minutes. The repo is public, so Actions minutes are free and unlimited.
 The app is pushed no notifications 22:00-07:00; they wait until 07:00.

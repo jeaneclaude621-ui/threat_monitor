@@ -55,9 +55,9 @@ const INVITE_ID_RE = /^[0-9a-f-]{36}$/;
 // .github/workflows/scheduled-jobs.yml.
 const RUN_JOBS = {
   daily: { label: 'Morgonrapport', hours: [5], maxMinutes: 45 },
-  hourly: { label: 'Trådbevakning', hours: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22], maxMinutes: 20 },
+  hourly: { label: 'Trådbevakning', hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], maxMinutes: 20 },
 };
-const RUN_START_GRACE_MIN = 45;   // GitHub's cron can start this late
+const RUN_START_GRACE_MIN = 75;   // the hourly job fires at :30 and GitHub's cron can lag
 const RUN_ID_RE = /^[0-9a-f]{32}$/;
 const RUN_LOG_URL_RE = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/actions\/runs\/\d+$/;
 const RUNS_KEEP_DAYS = 90;

@@ -392,9 +392,10 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
 
 # Version 3.6 (25 Oct 2026) - schedule and quiet hours
 
-- The hourly monitor runs every hour 07:00-22:00 Stockholm time
+- The hourly monitor runs every hour, day and night
   (`RUN_JOBS.hourly.hours`); invitations are mailed every five minutes,
-  so `MAC_QUIET_MIN` is 30.
+  so `MAC_QUIET_MIN` is 30. The hourly job fires at :30, so
+  `RUN_START_GRACE_MIN` is 75.
 - Quiet hours 22:00-07:00 Stockholm time: `pushTo` sends nothing and
   queues the push (at most 20) in `meta.push_deferred`; the cron sends the
   queue on its first run after 07:00. The missing-report alarm moves from

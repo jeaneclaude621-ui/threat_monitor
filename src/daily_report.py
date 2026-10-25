@@ -59,7 +59,7 @@ def run_self_check(state, yesterday_report, pool):
 Reporting from the last two days, newest first. Base your judgment ONLY
 on these articles - you cannot search, and your own knowledge may be
 outdated:
-{articles.prompt_block(200)}
+{articles.prompt_block(400)}
 
 For each claim, compare it with what has been reported SINCE, and classify:
 CONFIRMED (subsequent reporting supports it), CONTRADICTED (subsequent
@@ -325,7 +325,7 @@ search, and your own knowledge may be outdated. Many items are
 irrelevant, duplicates or low-quality outlets; weigh them by the tiers.
 
 <articles>
-{pool.prompt_block(220)}
+{pool.prompt_block(450)}
 </articles>
 
 Credibility tiers to use when scoring each item (1-10):
