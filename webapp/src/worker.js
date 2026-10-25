@@ -13,7 +13,7 @@
  * OWNER is always an active admin: the key nobody can lock out.
  *
  * Also (Version 3): Web Push on notable reports, and a cron that raises
- * an alarm when the morning report has not arrived by 06:30 Stockholm time.
+ * an alarm when the morning report has not arrived by 07:00 Stockholm time.
  * Version 3.3: invitation emails (queued here, sent by the Mac) and an
  * admin "update everyone" push that makes open apps reload.
  * Version 3.4: the scheduled runs report in (from the Mac or GitHub
@@ -39,7 +39,11 @@ const CLIENT_ID_RE = /^[0-9A-Za-z-]{8,64}$/;
 const ITEM_ID_RE = /^[\w.:-]{1,128}$/;
 const EMAIL_RE = /^[^\s@,;"'<>]{1,64}@[^\s@,;"'<>]{1,190}\.[a-z]{2,}$/i;
 
-const ALARM_AFTER_MINUTES = 6 * 60 + 30;   // 06:30 Stockholm time
+const ALARM_AFTER_MINUTES = 7 * 60;   // 07:00 Stockholm time, when quiet hours end
+// No push sounds at night: pushes due 22:00-07:00 Stockholm time wait in
+// meta 'push_deferred' and the cron sends them at 07:00.
+const QUIET_FROM_MINUTES = 22 * 60;
+const QUIET_UNTIL_MINUTES = 7 * 60;
 const MAX_SUBSCRIPTIONS_PER_USER = 10;
 const INDEX_PUSH_DELTA = 0.5;
 const HIGH_SCORE = 9;
@@ -48,16 +52,16 @@ const REFRESH_MIN_GAP_MS = 30 * 1000;
 const INVITE_ID_RE = /^[0-9a-f-]{36}$/;
 
 // Scheduled runs (Version 3.4), in Stockholm hours. Mirrors the schedule in
-// .github/workflows/scheduled-jobs.yml and schedule/launchd/*.plist.
+// .github/workflows/scheduled-jobs.yml.
 const RUN_JOBS = {
   daily: { label: 'Morgonrapport', hours: [5], maxMinutes: 45 },
-  hourly: { label: 'Trådbevakning', hours: [1, 16], maxMinutes: 20 },
+  hourly: { label: 'Trådbevakning', hours: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22], maxMinutes: 20 },
 };
 const RUN_START_GRACE_MIN = 45;   // GitHub's cron can start this late
 const RUN_ID_RE = /^[0-9a-f]{32}$/;
 const RUN_LOG_URL_RE = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/actions\/runs\/\d+$/;
 const RUNS_KEEP_DAYS = 90;
-const MAC_QUIET_MIN = 75;          // the invitation job (GitHub Actions) polls hourly
+const MAC_QUIET_MIN = 30;          // the invitation job (GitHub Actions) polls every 5 min; its cron can lag
 
 // Reasons written to security_log (CONTRACT.md, Version 2).
 const R = {
@@ -98,11 +102,15 @@ export default {
     }
   },
 
-  // Cron (wrangler.jsonc triggers): the missing-report alarm.
+  // Cron (wrangler.jsonc triggers): pushes held over the night, then the
+  // missing-report alarm.
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(checkMissingReport(env, event.scheduledTime || Date.now()).catch((err) => {
-      console.error('missing-report check failed', err && err.stack ? err.stack : err);
-    }));
+    const now = event.scheduledTime || Date.now();
+    ctx.waitUntil(flushDeferredPushes(env, now)
+      .then(() => checkMissingReport(env, now))
+      .catch((err) => {
+        console.error('scheduled check failed', err && err.stack ? err.stack : err);
+      }));
   },
 };
 
@@ -976,7 +984,7 @@ async function getAlarm(env) {
   return { missing_report: row && row.value ? row.value : null };
 }
 
-/** Past 06:30 Stockholm time with no report for today: raise the alarm once per date. */
+/** Past 07:00 Stockholm time with no report for today: raise the alarm once per date. */
 async function checkMissingReport(env, nowMs) {
   const { date, minutes } = stockholmClock(nowMs);
   if (minutes < ALARM_AFTER_MINUTES) return { checked: false, date };
@@ -988,7 +996,7 @@ async function checkMissingReport(env, nowMs) {
   await audit(env, 'system', 'alarm', null, { missing_report: date });
   await pushTo(env, { adminsOnly: true, pref: 'alarm' }, {
     title: 'Dagens rapport har inte kommit',
-    body: `Ingen morgonrapport för ${date} kl. 06:30. Se Systemstatus.`,
+    body: `Ingen morgonrapport för ${date} kl. 07:00. Se Systemstatus.`,
     url: '/#/admin',
   }, 'high');
   return { checked: true, date, missing: true, raised: true };
@@ -1121,8 +1129,41 @@ async function reportPush(env, body, date) {
   return pushTo(env, { adminsOnly: false, pref: 'report' }, payload, indexTrigger ? 'high' : 'normal');
 }
 
-/** Sends to every matching subscription; dead ones (404/410) are deleted. */
+function inQuietHours(ms) {
+  const { minutes } = stockholmClock(ms);
+  return minutes >= QUIET_FROM_MINUTES || minutes < QUIET_UNTIL_MINUTES;
+}
+
+async function getDeferred(env) {
+  const row = await env.DB.prepare("SELECT value FROM meta WHERE key = 'push_deferred'").first();
+  return row && row.value ? JSON.parse(row.value) : [];
+}
+
+/** Sends the pushes held over quiet hours, once they have ended. */
+async function flushDeferredPushes(env, nowMs) {
+  if (inQuietHours(nowMs)) return { sent: 0, reason: 'quiet hours' };
+  const held = await getDeferred(env);
+  if (!held.length) return { sent: 0 };
+  // Cleared before sending, so an overlapping cron cannot send twice.
+  await env.DB.prepare("DELETE FROM meta WHERE key = 'push_deferred'").run();
+  let sent = 0;
+  for (const p of held) {
+    const r = await pushTo(env, p.target, p.payload, p.urgency);
+    sent += r.sent || 0;
+  }
+  await audit(env, 'system', 'push_deferred_sent', null, { pushes: held.length, sent });
+  return { sent };
+}
+
+/** Sends to every matching subscription; dead ones (404/410) are deleted.
+ *  During quiet hours the push is held until 07:00 instead. */
 async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal') {
+  if (inQuietHours(Date.now())) {
+    const held = await getDeferred(env);
+    held.push({ target: { adminsOnly, pref }, payload, urgency });
+    await setMeta(env, 'push_deferred', JSON.stringify(held.slice(-20)));
+    return { sent: 0, deferred: true, reason: 'quiet hours' };
+  }
   if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) {
     console.warn('push skipped: VAPID keys not configured');
     return { sent: 0, reason: 'not configured' };

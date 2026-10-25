@@ -24,7 +24,8 @@ Stockholm hours the job is due. The run goes ahead only once a due hour
 has come and no run has been started since it (data/last_run.json); the
 other firing finds it done and skips.
 
-"invites" (mail the app invitations queued in the Worker) runs hourly and
+"invites" (mail the app invitations queued in the Worker) runs every five
+minutes and
 quietly: it is not recorded in last_run.json or on the status page, and
 it commits only when someone was mailed.
 

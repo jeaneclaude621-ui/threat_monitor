@@ -34,9 +34,10 @@ consolidated PowerPoint status report every morning at 05:00.
 
 Everything runs on GitHub Actions; no computer of your own needs to be
 on. `.github/workflows/scheduled-jobs.yml` runs the daily report (05:00
-Stockholm) and the hourly monitor (01:00 and 16:00), and
-`.github/workflows/invites.yml` mails queued app invitations once an
-hour. Both fit in the free Actions minutes of a private repo.
+Stockholm) and the hourly monitor (every hour 07:00-22:00), and
+`.github/workflows/invites.yml` mails queued app invitations every five
+minutes. The repo is public, so Actions minutes are free and unlimited.
+The app is pushed no notifications 22:00-07:00; they wait until 07:00.
 
 1. **Get a Gemini API key** at https://aistudio.google.com ("Get API
    key"). The free tier covers this app's few calls a day, Google

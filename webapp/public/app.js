@@ -2218,7 +2218,7 @@ function runsSection(runs) {
             `Senast ${tsFmt(j.last.started_at)} · ${HOST_SV[j.last.host] || j.last.host} · ${runMinutes(j.last)}`, logLink(j.last)) : null))),
       h('div', { class: 'row srow' }, lightDot(runs.mac.light),
         h('div', { class: 'row-main' },
-          h('span', { class: 'row-title' }, 'Inbjudningsmejl', h('span', { class: 'muted' }, ' · varje timme')),
+          h('span', { class: 'row-title' }, 'Inbjudningsmejl', h('span', { class: 'muted' }, ' · var 5:e minut')),
           h('span', { class: 'row-sub run-state' }, runs.mac.text),
           runs.mac.last_seen_at ? h('span', { class: 'row-sub' }, `Hördes senast ${ago(runs.mac.last_seen_at)}`) : null))),
     runs.recent.length ? h('section', { class: 'section' },

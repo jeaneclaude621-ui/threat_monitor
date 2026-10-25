@@ -202,7 +202,7 @@ Per article: `summary_sv` (2-3 sentences, what this article says),
 ## Missing-report alarm (Worker cron)
 
 Worker `scheduled` handler, cron `*/30 3-9 * * *` (UTC). When Europe/Stockholm
-local time is past 06:30 and no report for today's Stockholm date exists,
+local time is past 07:00 and no report for today's Stockholm date exists,
 set `meta.alarm_missing_report = <date>` (once per date), write an
 audit row `alarm` and send a push (below) to admins. Cleared when that
 date's report is ingested. `/api/admin/status` gains `alarm: { missing_report: <date>|null }`,
@@ -389,3 +389,16 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
 - App: admin tab "Källor" between Status and Användare - a link field with
   "Klistra in", a type choice, and the lists of added feeds and articles,
   each removable.
+
+# Version 3.6 (25 Oct 2026) - schedule and quiet hours
+
+- The hourly monitor runs every hour 07:00-22:00 Stockholm time
+  (`RUN_JOBS.hourly.hours`); invitations are mailed every five minutes,
+  so `MAC_QUIET_MIN` is 30.
+- Quiet hours 22:00-07:00 Stockholm time: `pushTo` sends nothing and
+  queues the push (at most 20) in `meta.push_deferred`; the cron sends the
+  queue on its first run after 07:00. The missing-report alarm moves from
+  06:30 to 07:00.
+- `OWNER`, `ADMINS` and `READERS` are Worker secrets, no longer vars in
+  wrangler.jsonc, so no address lives in the (public) repo.
+- Service worker hm-v3.11.
