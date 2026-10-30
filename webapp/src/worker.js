@@ -54,10 +54,10 @@ const INVITE_ID_RE = /^[0-9a-f-]{36}$/;
 // Scheduled runs (Version 3.4), in Stockholm hours. Mirrors the schedule in
 // .github/workflows/scheduled-jobs.yml.
 const RUN_JOBS = {
-  daily: { label: 'Morgonrapport', hours: [5], maxMinutes: 45 },
-  hourly: { label: 'Trådbevakning', hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], maxMinutes: 20 },
+  daily: { label: 'Morgonrapport', hours: [4], maxMinutes: 45 },
+  hourly: { label: 'Trådbevakning', hours: [12, 16, 21], maxMinutes: 20 },
 };
-const RUN_START_GRACE_MIN = 75;   // the hourly job fires at :30 and GitHub's cron can lag
+const RUN_START_GRACE_MIN = 75;   // the thread monitor fires at :30 and GitHub's cron can lag
 const RUN_ID_RE = /^[0-9a-f]{32}$/;
 const RUN_LOG_URL_RE = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/actions\/runs\/\d+$/;
 const RUNS_KEEP_DAYS = 90;

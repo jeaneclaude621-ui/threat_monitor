@@ -29,6 +29,10 @@ THINKING_BUDGET = 2048
 # Waits between attempts when the API is unreachable or overloaded, ~15
 # minutes in all.
 NETWORK_RETRY_DELAYS = [30, 60, 120, 240, 300, 300]
+# A call that has not answered by then is dropped and retried as above: on
+# 26 Oct one hung until the job's 60-minute limit. The daily sweep, the
+# longest call, takes a few minutes.
+REQUEST_TIMEOUT_MS = 10 * 60 * 1000
 
 # The articles last handed to the model, as {ref, url, title, outlet}
 # (news_sources.Pool.prompt_block). The model cites articles by ref; only
@@ -117,7 +121,7 @@ def load_hourly_log(d: date) -> list:
 
 
 def archive_and_clear_log(d: date):
-    """Called by the 05:00 report after it has consolidated the day's
+    """Called by the 04:00 report after it has consolidated the day's
     hourly log, so raw hourly granularity doesn't accumulate forever."""
     path = _log_path_for(d)
     if path.exists():
@@ -146,13 +150,15 @@ def archive_and_clear_log(d: date):
 # --------------------------------------------------------------------------
 def get_client():
     from google import genai
+    from google.genai import types
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError(
             "GEMINI_API_KEY is not set. Set it as an environment variable "
             "before running (see README.md)."
         )
-    return genai.Client(api_key=api_key)
+    return genai.Client(api_key=api_key,
+                        http_options=types.HttpOptions(timeout=REQUEST_TIMEOUT_MS))
 
 
 def ask_model(prompt: str, system: str = None, max_tokens: int = 2000) -> str:
@@ -182,7 +188,9 @@ def _generate_with_retry(client, prompt, config):
     network is down or the API is overloaded (5xx). A 429 is retried only
     when Google says when to (retryDelay: the per-minute limit); without
     one the quota is spent or zero, and waiting would only burn Actions
-    minutes (24 Oct: search grounding has no free quota)."""
+    minutes (24 Oct: search grounding has no free quota). The spent daily
+    quota (a PerDay quotaId) comes with a retryDelay of hours: not
+    retried either, or each call waits out the whole delay list."""
     from google.genai import errors
     import httpx
     for delay in NETWORK_RETRY_DELAYS + [None]:
@@ -190,7 +198,8 @@ def _generate_with_retry(client, prompt, config):
             return client.models.generate_content(model=MODEL, contents=prompt, config=config)
         except (errors.ServerError, errors.ClientError, httpx.TransportError) as e:
             code = getattr(e, "code", None)
-            if isinstance(e, errors.ClientError) and (code != 429 or "retryDelay" not in str(e)):
+            if isinstance(e, errors.ClientError) and (code != 429 or "retryDelay" not in str(e)
+                                                      or "PerDay" in str(e)):
                 raise
             if delay is None:
                 raise

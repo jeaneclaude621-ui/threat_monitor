@@ -1,14 +1,14 @@
 # Russia \u2192 NATO/EU/Ukraine Hybrid Threat Monitor
 
 A local app that watches mainstream reporting on Russia's hybrid activity
-toward NATO/EU/Ukraine, checks hourly for corrections and narrative
-drift, tracks source and author transparency over time, and produces a
-consolidated PowerPoint status report every morning at 05:00.
+toward NATO/EU/Ukraine, checks three times a day for corrections and
+narrative drift, tracks source and author transparency over time, and
+produces a consolidated PowerPoint status report every morning at 04:00.
 
 ## What it does
 
-- **Every hour, 24/day**: rechecks a watchlist of 6 active threads
-  against their last known status. Logs whether each is unchanged, has
+- **At 12:00, 16:00 and 21:00**: rechecks a watchlist of 6 active threads
+  against their last known status, all in one Gemini call. Logs whether each is unchanged, has
   a new development, was formally corrected by an outlet, or shows a
   narrative shift without a formal correction.
   Before the checks, an RSS prefilter (`src/feed_prefilter.py`, feeds in
@@ -17,7 +17,7 @@ consolidated PowerPoint status report every morning at 05:00.
   checked, and `data/logs/prefilter_shadow.jsonl` records which ones it
   would have skipped. `python3 src/feed_prefilter.py --report` shows
   whether it would have missed any change Gemini found.
-- **Every day at 05:00**: self-checks yesterday's scored claims against
+- **Every day at 04:00**: self-checks yesterday's scored claims against
   what actually happened since; runs a broad research sweep for new
   developments; recomputes the two 1\u201310 threat indices (see "Threat
   indices" below); refreshes the
@@ -33,8 +33,8 @@ consolidated PowerPoint status report every morning at 05:00.
 ## Setup
 
 Everything runs on GitHub Actions; no computer of your own needs to be
-on. `.github/workflows/scheduled-jobs.yml` runs the daily report (05:00
-Stockholm) and the hourly monitor (every hour, day and night), and
+on. `.github/workflows/scheduled-jobs.yml` runs the daily report (04:00
+Stockholm) and the thread monitor (12:00, 16:00 and 21:00), and
 `.github/workflows/invites.yml` mails queued app invitations every five
 minutes. The repo is public, so Actions minutes are free and unlimited.
 The app is pushed no notifications 22:00-07:00; they wait until 07:00.
@@ -183,7 +183,7 @@ a new one \u2014 only one proposal is ever open at a time.
 
 ## Email delivery (optional)
 
-The 05:00 run emails the report to the `MAIL_TO` recipients automatically
+The 04:00 run emails the report to the `MAIL_TO` recipients automatically
 once you configure SMTP - an iPhone-friendly HTML digest in the
 message body (renders directly in Apple Mail, no attachment tap
 needed) plus the full deck attached as a PowerPoint file. If SMTP
@@ -224,11 +224,12 @@ plain JSON.
 
 ## Cost note
 
-Each hourly run makes one Gemini call per watchlist thread (6 by
-default) with Google Search grounding; the daily run makes a few larger
-calls. All of it fits the Gemini API's free tier, whose daily limits
-Google can change: if calls start failing with 429, check the limits at
-https://ai.google.dev/gemini-api/docs/rate-limits.
+The Gemini API's free tier allows 20 calls a day per model (Oct 2026;
+Google can change it, see https://ai.google.dev/gemini-api/docs/rate-limits).
+Each monitor run makes one call for all threads and the daily run about
+five, so a day takes about eight. When the day's quota is spent the
+calls fail at once with 429 instead of being retried; it resets at
+midnight Pacific time (08:00-09:00 Stockholm).
 
 ## Files
 
@@ -236,8 +237,8 @@ https://ai.google.dev/gemini-api/docs/rate-limits.
 threat_monitor/
   config/methodology.json      starting source-tier & watchlist config
   src/common.py                state persistence, logging, API wrapper
-  src/hourly_monitor.py        hourly thread-check
-  src/daily_report.py          05:00 consolidation, self-check, proposal, deck build
+  src/hourly_monitor.py        thread check, 12/16/21
+  src/daily_report.py          04:00 consolidation, self-check, proposal, deck build
   src/recalibrate.py           rescores the threat-index history against current rules
   src/pptx_builder.py          PowerPoint generation (python-pptx)
   src/mailer.py                daily HTML digest email + PPTX attachment

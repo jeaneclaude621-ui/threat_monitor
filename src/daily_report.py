@@ -1,5 +1,5 @@
 """
-Runs once a day at 05:00 CET. Consolidates the day's hourly monitoring,
+Runs once a day at 04:00 Stockholm time. Consolidates the day's hourly monitoring,
 self-checks yesterday's assessments against what actually happened,
 does a broad research sweep for new stories, recomputes the two threat
 indices (general, and a 30-day forecast), refreshes the watchlist, generates one proposed methodology

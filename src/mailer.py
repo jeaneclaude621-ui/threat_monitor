@@ -129,7 +129,7 @@ def build_html_digest(report_data: dict, executive: dict = None) -> str:
       <td style="background:#141B47;padding:24px 20px;">
         <div style="color:#CADCFC;font-size:12px;font-weight:700;letter-spacing:1px;">RUSSIA &rarr; NATO / EU / UKRAINE</div>
         <div style="color:#ffffff;font-size:22px;font-weight:700;margin-top:6px;">Hybrid Threat Monitor</div>
-        <div style="color:#8A93B5;font-size:13px;margin-top:4px;">{d.get('date','')} &middot; consolidated 05:00 CET</div>
+        <div style="color:#8A93B5;font-size:13px;margin-top:4px;">{d.get('date','')} &middot; consolidated 04:00 CET</div>
       </td>
     </tr>
     {app_html}

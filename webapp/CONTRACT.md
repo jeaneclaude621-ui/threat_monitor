@@ -403,3 +403,11 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
 - `OWNER`, `ADMINS` and `READERS` are Worker secrets, no longer vars in
   wrangler.jsonc, so no address lives in the (public) repo.
 - Service worker hm-v3.11.
+
+# Version 3.7 (30 Oct 2026) - four runs a day
+
+- The Gemini free tier allows 20 calls a day per model, and the monitor
+  used one per thread every hour. The daily report now runs at 04:00 and
+  the thread monitor at 12:00, 16:00 and 21:00 Stockholm
+  (`RUN_JOBS.daily.hours`, `RUN_JOBS.hourly.hours`); the job keeps its
+  name `hourly`. The monitor checks all threads in one call.

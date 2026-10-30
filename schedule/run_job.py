@@ -10,7 +10,7 @@ other's files and no code path changes. The .pptx decks (and the .m4a
 files of the old spoken briefing) are left out: they are mailed and
 uploaded, and nothing reads them back.
 
-    python3 schedule/run_job.py --at 5 daily
+    python3 schedule/run_job.py --at 4 daily
     python3 schedule/run_job.py invites
 
 Each run: pull the state, run the job with Stockholm time, then commit and

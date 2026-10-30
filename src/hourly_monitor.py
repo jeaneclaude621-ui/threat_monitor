@@ -1,7 +1,11 @@
 """
-Runs every hour, 24x/day. For each watchlist thread, checks current
-reporting against the last known snapshot and classifies what changed:
+Runs at 12:00, 16:00 and 21:00 Stockholm (the 04:00 daily report covers
+the night). Checks every watchlist thread's current reporting
+against its last known snapshot and classifies what changed:
 NEW_DEVELOPMENT, NO_CHANGE, CORRECTION, or NARRATIVE_SHIFT.
+
+All threads go to Gemini in one call: the free tier allows 20 calls a
+day per model, and one call per thread used them up (Oct 2026).
 
 Usage:  python src/hourly_monitor.py
 """
@@ -17,25 +21,34 @@ from app_sync import push_updates
 import feed_prefilter
 import news_sources
 
-SYSTEM = """You are an OSINT monitoring analyst. You track a specific news
-thread and report ONLY what changed since the last check. Be precise and
-skeptical. Never treat Russian state media (Sputnik, RT, TASS) or
-unattributed social accounts as confirming evidence - note them only if
-relevant to a disinformation pattern. Respond with STRICT JSON only, no
-prose outside the JSON object."""
+SYSTEM = """You are an OSINT monitoring analyst. You track several news
+threads and report ONLY what changed on each since its last check. Be
+precise and skeptical. Never treat Russian state media (Sputnik, RT, TASS)
+or unattributed social accounts as confirming evidence - note them only
+if relevant to a disinformation pattern. Respond with STRICT JSON only,
+no prose outside the JSON object."""
 
-PROMPT_TEMPLATE = """Thread being tracked: {label}
+THREAD_TEMPLATE = """=== Thread "{id}": {label}
 
 Last known status: {last_snapshot}
 
 The latest reporting found on this thread since it was last checked
-({since}), newest first. Base your answer ONLY on these articles - you
-cannot search, and your own knowledge may be outdated. Many will be
-unrelated or repeat what is already known; ignore those.
+({since}), newest first:
 
-{articles}
+{articles}"""
 
-Compare that reporting to the last known status above and classify the change:
+PROMPT_TEMPLATE = """You are tracking {count} threads. Each comes with its last known
+status and the reporting found on it since its last check. Base your
+answers ONLY on these articles - you cannot search, and your own knowledge
+may be outdated. Many will be unrelated or repeat what is already known;
+ignore those. Judge each thread on its own articles only.
+
+{threads}
+
+=== End of threads
+
+For each thread, compare its reporting to its last known status and
+classify the change:
 
 - "NEW_DEVELOPMENT": something materially new happened
 - "NO_CHANGE": no meaningful update since last check
@@ -44,22 +57,30 @@ Compare that reporting to the last known status above and classify the change:
 - "NARRATIVE_SHIFT": the framing/emphasis changed without a formal
   correction being issued
 
-Respond as strict JSON:
+Respond as strict JSON with one entry per thread, keyed by the thread
+ids in quotes above ({ids}):
 {{
-  "classification": "...",
-  "outlets": ["outlet names involved - the 5 most significant, no more"],
-  "correcting_outlet": "outlet name if classification is CORRECTION, else null",
-  "byline": "journalist name if attributable, else null",
-  "summary": "1-2 sentence summary of what changed - 60 words maximum",
-  "title_sv": "what changed as a short Swedish headline, max ~10 words",
-  "summary_sv": "the summary in natural Swedish, max ~40 words",
-  "new_snapshot": "updated 1-2 sentence status to replace the last known status with - 60 words maximum"
+  "threads": {{
+    "<thread id>": {{
+      "classification": "...",
+      "outlets": ["outlet names involved - the 5 most significant, no more"],
+      "correcting_outlet": "outlet name if classification is CORRECTION, else null",
+      "byline": "journalist name if attributable, else null",
+      "summary": "1-2 sentence summary of what changed - 60 words maximum",
+      "title_sv": "what changed as a short Swedish headline, max ~10 words",
+      "summary_sv": "the summary in natural Swedish, max ~40 words",
+      "new_snapshot": "updated 1-2 sentence status to replace the last known status with - 60 words maximum"
+    }}
+  }}
 }}
 
 Output the JSON object and nothing else: no preamble, no commentary
 after it. Respect the length limits above - this
-is a scannable hourly delta, not a full report."""
+is a scannable delta, not a full report."""
 
+# Output tokens per thread: a multi-outlet delta does not fit in ~800
+# tokens, and the Swedish title and summary for the web app add ~300.
+TOKENS_PER_THREAD = 3000
 
 def update_outlet_score(state, outlet, positive_transparency=None, contradiction=False):
     scores = state["outlet_scores"].setdefault(
@@ -98,28 +119,40 @@ def run_once():
                                                     feeds=news_sources.all_feeds(app))
     outcomes = {}
 
-    def check_thread(thread):
-        pool = news_sources.for_thread(thread, feed_articles, app_articles)
-        prompt = PROMPT_TEMPLATE.format(label=thread["label"], last_snapshot=thread["last_snapshot"],
-                                        since=thread.get("last_checked") or "never",
-                                        articles=pool.prompt_block(60, record=False))
-        # A multi-outlet delta does not fit in ~800 tokens; responses were
-        # being truncated before the JSON closed. The Swedish title and
-        # summary for the web app add ~300 tokens.
-        return ask_model_json(prompt, system=SYSTEM, max_tokens=3000)
-
-    def safe_check(thread):
+    # Gathering a thread's articles queries Google News and GDELT, so
+    # three threads at a time.
+    def gather(thread):
         try:
-            return check_thread(thread)
+            articles = news_sources.for_thread(thread, feed_articles, app_articles).prompt_block(60, record=False)
         except Exception as e:
-            print(f"  ! {thread['id']}: failed ({e})")
-            return None
+            print(f"  ! {thread['id']}: could not gather articles ({e})")
+            articles = "(no articles found)"
+        return THREAD_TEMPLATE.format(id=thread["id"], label=thread["label"],
+                                      last_snapshot=thread["last_snapshot"],
+                                      since=thread.get("last_checked") or "never",
+                                      articles=articles)
 
-    # A Gemini call takes one to three minutes and Actions bills the
-    # wall clock, so three threads at a time; the results are applied to
-    # the state one by one below.
     with ThreadPoolExecutor(max_workers=3) as ex:
-        results = list(ex.map(safe_check, state["watchlist"]))
+        blocks = list(ex.map(gather, state["watchlist"]))
+
+    ids = [t["id"] for t in state["watchlist"]]
+    prompt = PROMPT_TEMPLATE.format(count=len(ids), threads="\n\n".join(blocks),
+                                    ids=", ".join(ids))
+    try:
+        answers = ask_model_json(prompt, system=SYSTEM,
+                                 max_tokens=TOKENS_PER_THREAD * len(ids)).get("threads")
+    except Exception as e:
+        print(f"  ! thread check failed ({e})")
+        answers = None
+    if answers is not None and not isinstance(answers, dict):
+        print("  ! thread check failed (no \"threads\" object in Gemini's answer)")
+        answers = None
+    results = []
+    for thread in state["watchlist"]:
+        result = (answers or {}).get(thread["id"])
+        if answers is not None and not isinstance(result, dict):
+            print(f"  ! {thread['id']}: missing from Gemini's answer")
+        results.append(result if isinstance(result, dict) else None)
 
     app_updates = []
     for thread, result in zip(state["watchlist"], results):

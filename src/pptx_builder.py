@@ -85,7 +85,7 @@ def _slide_dashboard(s, d):
     _bg(s, NAVY_DK)
     _box(s, 0.6, 0.4, 12.1, 0.4, "RUSSIA \u2192 NATO / EU / UKRAINE", 13, ICE, bold=True, font=FONT_BODY)
     _box(s, 0.6, 0.8, 12.1, 0.7, "Hybrid Threat & Escalation Monitor", 30, WHITE, bold=True, font=FONT_HEAD)
-    _box(s, 0.6, 1.45, 12.1, 0.35, f"Report date: {d['date']}  |  24h monitoring, consolidated 05:00 CET", 12, SLATE, italic=True)
+    _box(s, 0.6, 1.45, 12.1, 0.35, f"Report date: {d['date']}  |  24h monitoring, consolidated 04:00 CET", 12, SLATE, italic=True)
 
     _card(s, 0.6, 2.0, 3.9, 4.9, NAVY)
     _box(s, 0.9, 2.2, 3.3, 0.35, "NATO / EU\u2013RUSSIA THREAT INDEX", 11, ICE, bold=True)
@@ -238,7 +238,7 @@ def _slide_narrative_stability(s, d):
     _bg(s, PAPER)
     _box(s, 0.6, 0.4, 8, 0.35, "NARRATIVE STABILITY", 12, AMBER, bold=True)
     _box(s, 0.6, 0.72, 12.1, 0.55, "24h Correction & Drift Tracker", 24, INK, bold=True, font=FONT_HEAD)
-    _box(s, 0.6, 1.28, 12.1, 0.3, "Based on hourly checks against each watchlist thread's prior known status", 11, MUTED, italic=True)
+    _box(s, 0.6, 1.28, 12.1, 0.3, "Based on checks at 12:00, 16:00 and 21:00 against each watchlist thread's prior known status", 11, MUTED, italic=True)
 
     rows = d["narrative_stability"][:6]
     ty = 1.75
