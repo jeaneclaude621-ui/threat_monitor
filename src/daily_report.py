@@ -25,7 +25,7 @@ from pptx_builder import build_deck
 from mailer import send_daily_email
 from reply_checker import check_replies
 from executive_sv import build_executive_safe
-from app_data import enrich_events, add_favicons, SWEEP_EVENT_FIELDS, SWEEP_EVENT_JSON
+from app_data import enrich_events, add_favicons, SWEEP_EVENT_FIELDS, SWEEP_EVENT_JSON, _norm_url
 from app_sync import pull_assessments, push_report, backup_app
 import common
 import feed_prefilter
@@ -312,6 +312,11 @@ def run_broad_sweep(state, hourly_entries, pool, contradicted=(), forecast_accur
     accepted_notes = "\n".join(f"- {c}" for c in state["accepted_changes"]) or "(none yet)"
     hourly_summary = "\n".join(f"- [{e['classification']}] {e['thread_label']}: {e['summary']}" for e in hourly_entries) or "(no hourly entries logged)"
     operator_desc = operator_weight.prompt_block()
+    recent = load_recent_reports()
+    recent_desc = "\n".join(
+        f"- {d}: {e.get('title')}" + "".join(f"\n    · {a.get('outlet')}: {a.get('title')}"
+                                              for a in e.get("articles", []) if a.get("title"))
+        for d, r in recent for e in r.get("events", [])) or "(none)"
     threads_desc = "\n".join(f"- {t['id']}: {t['label']}" for t in state["watchlist"])
     named = m.get("named_sources", [])
     named_desc = "\n".join(f"- {n['name']} (site:{n['domain']}, tier {n['tier']}, {n['lang']}): {n['use']}"
@@ -359,6 +364,13 @@ reporting. They do not count toward any band, and a standing condition
 that rested on them no longer holds:
 {contradicted_desc}
 
+The events of the last {REPEAT_WINDOW_DAYS} days' reports, with the articles they
+cited. The readers have seen them: don't report the same thing again. A
+story comes back only with a material new development since then, and
+the event then says what is new. Cite articles not listed here; cite a
+listed one again only where today's event cannot be understood without it.
+{recent_desc}
+
 Produce:
 1. Up to 6 of the most important events from the last 24h, each scored
    for credibility per the tiers above, with the corroborating outlets named.
@@ -388,6 +400,7 @@ Respond as strict JSON:
     enforce_bands(result)
     enrich_events(result.get("events", []), date.today().isoformat(), common.LAST_SEARCH_RESULTS,
                   {t["id"] for t in state["watchlist"]})
+    drop_repeated_articles(result.get("events", []), recent)
     trace = operator_weight.apply_to_events(result.get("events", []))
     apply_index_rules(result, result.get("events", []))
     result["operator_influence"] = operator_weight.apply_to_index(result, trace)
@@ -498,6 +511,39 @@ def load_outcomes() -> dict:
         except (OSError, ValueError, KeyError):
             continue
     return outcomes
+
+
+# Days of earlier reports whose events and articles today's report should
+# not repeat.
+REPEAT_WINDOW_DAYS = 3
+
+
+def load_recent_reports(days: int = REPEAT_WINDOW_DAYS) -> list:
+    """[(date, report_data)] for the `days` days before today that have a report."""
+    out = []
+    for n in range(days, 0, -1):
+        d = (date.today() - timedelta(days=n)).isoformat()
+        path = OUTPUT_DIR / f"{d}_report_data.json"
+        if path.exists():
+            with open(path, "r", encoding="utf-8") as f:
+                out.append((d, json.load(f)))
+    return out
+
+
+def drop_repeated_articles(events: list, recent: list):
+    """Takes out of today's events the articles an earlier report in
+    `recent` already cited, unless that would leave an event with none.
+    They stay in the reports that cited them first."""
+    cited = {_norm_url(a["url"]) for _, r in recent for e in r.get("events", [])
+             for a in e.get("articles", []) if a.get("url")}
+    dropped = 0
+    for ev in events:
+        fresh = [a for a in ev.get("articles", []) if not (a.get("url") and _norm_url(a["url"]) in cited)]
+        if fresh and len(fresh) < len(ev.get("articles", [])):
+            dropped += len(ev["articles"]) - len(fresh)
+            ev["articles"] = fresh
+    if dropped:
+        print(f"  Left out {dropped} article(s) already cited in the last {REPEAT_WINDOW_DAYS} days' reports")
 
 
 def load_yesterday_report():
