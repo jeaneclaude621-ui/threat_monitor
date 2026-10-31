@@ -1,9 +1,13 @@
 # The daily report and the thread monitor. schedule/run_job.py pulls the
 # run state before each job and pushes it after.
 #
-# GitHub's cron is UTC, so each job fires at both UTC hours that can be its
-# Stockholm hour (summer and winter time); run_job.py --at lets the first
-# firing that is due run and the other skip.
+# The web app's Worker starts the runs on time through workflow_dispatch,
+# with `at` set to the Stockholm hour that is due (webapp/CONTRACT.md,
+# Version 3.8): GitHub's own schedule starts them hours late or drops them.
+# That schedule stays as the fallback. GitHub's cron is UTC, so each job
+# fires at both UTC hours that can be its Stockholm hour (summer and winter
+# time); run_job.py --at lets the first start that is due run and the
+# others skip.
 name: Scheduled jobs
 
 on:
@@ -20,6 +24,10 @@ on:
         description: "Test run: mail to the sender only, no app upload, nothing saved"
         type: boolean
         default: true
+      at:
+        description: "Stockholm hour the run is due (set by the Worker); skips the run if it already ran"
+        type: string
+        default: ""
 
 # One run at a time, so two runs never push the state against each other.
 concurrency:
@@ -61,6 +69,7 @@ jobs:
           SCHEDULE: ${{ github.event.schedule }}
           DISPATCH_JOB: ${{ inputs.job }}
           DISPATCH_TEST: ${{ inputs.test }}
+          DISPATCH_AT: ${{ inputs.at }}
         run: |
           set -o pipefail
           if [ "$SCHEDULE" = "0 2,3 * * *" ]; then
@@ -72,6 +81,8 @@ jobs:
             # uploaded to the app, and replies are read but left unread.
             export MAIL_TO="$MAIL_FROM" HOTMONITOR_URL="" REPLY_CHECK_DRY_RUN=1
             ARGS="--test $DISPATCH_JOB"
+          elif [ -n "$DISPATCH_AT" ]; then
+            ARGS="--at $DISPATCH_AT $DISPATCH_JOB"
           else
             ARGS="$DISPATCH_JOB"
           fi

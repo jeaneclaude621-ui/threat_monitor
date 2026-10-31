@@ -411,3 +411,17 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   the thread monitor at 12:00, 16:00 and 21:00 Stockholm
   (`RUN_JOBS.daily.hours`, `RUN_JOBS.hourly.hours`); the job keeps its
   name `hourly`. The monitor checks all threads in one call.
+
+# Version 3.8 (31 Oct 2026) - the Worker starts the runs
+
+- GitHub's own schedule started the runs hours late or dropped them. The
+  cron `DISPATCH_CRON` (`0 2,3,10,11,14,15,19,20 * * *`, also in
+  wrangler.jsonc) starts the jobs due at the Stockholm hour (`RUN_JOBS`)
+  through workflow_dispatch of scheduled-jobs.yml, with inputs
+  `{ job, test: "false", at: "<hour>" }`; run_job.py skips a run that has
+  already started since that hour, so GitHub's schedule stays as the
+  fallback. A start that fails is audited and pushed to the admins
+  (`pref: 'alarm'`).
+- Queueing an invite starts invites.yml at once.
+- Var `GITHUB_REPO`; secret `GITHUB_DISPATCH_TOKEN`, a fine-grained token
+  for that repo only with Actions read and write.

@@ -1,16 +1,14 @@
 {
-  "note": "RSS feeds for the hourly monitor's prefilter (src/feed_prefilter.py). Every URL was fetched and parsed on 2026-10-15. Tier follows config/methodology.json where the outlet is named there; tier_note marks the ones it does not name. Reuters, AP, TT, NATO, Forsvarsmakten, Sakerhetspolisen, FOI and the Government Offices have no working public feed and are left to the web search.",
+  "note": "RSS feeds for the hourly monitor's prefilter (src/feed_prefilter.py). Every URL was fetched and parsed on 2026-10-15; reviewed 2026-10-31 (Cornucopia and DW's two small feeds out, DW's full feed, the Nordic and Baltic public broadcasters, Politico Europe, Defense News, EUvsDisinfo, Meduza and The Insider in). Tier follows config/methodology.json where the outlet is named there; tier_note marks the ones it does not name. Reuters, AP, TT, NATO, Forsvarsmakten, Sakerhetspolisen, FOI and the Government Offices have no working public feed and are left to the web search.",
   "feeds": [
     {"name": "SVT Nyheter", "url": "https://www.svt.se/nyheter/rss.xml", "tier": 2, "lang": "sv"},
     {"name": "SVT Utrikes", "url": "https://www.svt.se/nyheter/utrikes/rss.xml", "tier": 2, "lang": "sv"},
     {"name": "Sveriges Radio Ekot", "url": "https://api.sr.se/api/rss/program/83", "tier": 2, "lang": "sv"},
     {"name": "DN", "url": "https://www.dn.se/rss/", "tier": 2, "lang": "sv"},
     {"name": "SvD", "url": "https://www.svd.se/feed/articles.rss", "tier": 2, "lang": "sv"},
-    {"name": "Cornucopia?", "url": "https://cornucopia.cornubot.se/feeds/posts/default?alt=rss", "tier": 4, "lang": "sv"},
     {"name": "BBC Europe", "url": "https://feeds.bbci.co.uk/news/world/europe/rss.xml", "tier": 1, "lang": "en"},
     {"name": "BBC World", "url": "https://feeds.bbci.co.uk/news/world/rss.xml", "tier": 1, "lang": "en"},
-    {"name": "DW World", "url": "https://rss.dw.com/rdf/rss-en-world", "tier": 2, "lang": "en"},
-    {"name": "DW EU", "url": "https://rss.dw.com/rdf/rss-en-eu", "tier": 2, "lang": "en"},
+    {"name": "DW", "url": "https://rss.dw.com/rdf/rss-en-all", "tier": 2, "lang": "en"},
     {"name": "Euronews", "url": "https://www.euronews.com/rss?level=theme&name=news", "tier": 2, "lang": "en"},
     {"name": "Al Jazeera", "url": "https://www.aljazeera.com/xml/rss/all.xml", "tier": 2, "lang": "en"},
     {"name": "PBS NewsHour World", "url": "https://www.pbs.org/newshour/feeds/rss/world", "tier": 2, "lang": "en"},
@@ -18,9 +16,18 @@
     {"name": "Guardian Russia", "url": "https://www.theguardian.com/world/russia/rss", "tier": 2, "lang": "en", "tier_note": "not named in methodology.json"},
     {"name": "Guardian Ukraine", "url": "https://www.theguardian.com/world/ukraine/rss", "tier": 2, "lang": "en", "tier_note": "not named in methodology.json"},
     {"name": "RFE/RL", "url": "https://www.rferl.org/api/epiqq", "tier": 3, "lang": "en", "tier_note": "not named in methodology.json; US-government funded"},
+    {"name": "Yle News", "url": "https://feeds.yle.fi/uutiset/v1/recent.rss?publisherIds=YLE_NEWS", "tier": 2, "lang": "en", "tier_note": "not named in methodology.json; Finnish public broadcaster"},
+    {"name": "ERR News", "url": "https://news.err.ee/rss", "tier": 2, "lang": "en", "tier_note": "not named in methodology.json; Estonian public broadcaster"},
+    {"name": "LSM English", "url": "https://eng.lsm.lv/rss/", "tier": 2, "lang": "en", "tier_note": "not named in methodology.json; Latvian public broadcaster"},
+    {"name": "DR Udland", "url": "https://www.dr.dk/nyheder/service/feeds/udland", "tier": 2, "lang": "da", "tier_note": "not named in methodology.json; Danish public broadcaster"},
+    {"name": "Politico Europe", "url": "https://www.politico.eu/feed/", "tier": 2, "lang": "en", "tier_note": "not named in methodology.json"},
+    {"name": "Defense News Europe", "url": "https://www.defensenews.com/arc/outboundfeeds/rss/category/global/europe/?outputType=xml", "tier": 2, "lang": "en", "tier_note": "not named in methodology.json; defence trade press"},
+    {"name": "EUvsDisinfo", "url": "https://euvsdisinfo.eu/feed/", "tier": 2, "lang": "en", "tier_note": "not named in methodology.json; the EU External Action Service's disinformation unit"},
     {"name": "Council of the EU press releases", "url": "https://www.consilium.europa.eu/en/rss/pressreleases.ashx", "tier": 2, "lang": "en"},
     {"name": "Kyiv Independent", "url": "https://kyivindependent.com/news-archive/rss/", "tier": 3, "lang": "en"},
     {"name": "Kyiv Post", "url": "https://www.kyivpost.com/feed", "tier": 3, "lang": "en"},
-    {"name": "Moscow Times", "url": "https://www.themoscowtimes.com/rss/news", "tier": 3, "lang": "en"}
+    {"name": "Moscow Times", "url": "https://www.themoscowtimes.com/rss/news", "tier": 3, "lang": "en"},
+    {"name": "Meduza", "url": "https://meduza.io/rss/en/all", "tier": 3, "lang": "en", "tier_note": "not named in methodology.json; Russian exile press"},
+    {"name": "The Insider", "url": "https://theins.ru/en/feed", "tier": 3, "lang": "en", "tier_note": "not named in methodology.json; Russian exile press, investigations"}
   ]
 }

@@ -29,6 +29,10 @@
     "ACCESS_AUD": "4927acc83722928ac8ca01ece8466a3e92da19bb282814c635ff27363320e3a6",
     "MACHINE_CLIENT_ID": "a31ef3f6c5b1989fb694ca7ad6ce0bbf.access",
     "SERVICE_TOKEN_EXPIRES": "2027-09-30",
+    // The scheduled runs are started here (CONTRACT.md, Version 3.8), with
+    // the Worker secret GITHUB_DISPATCH_TOKEN: a fine-grained token for this
+    // repo only, with Actions read and write.
+    "GITHUB_REPO": "jeaneclaude621-ui/threat_monitor",
     // OWNER (always an active admin, break-glass) and the optional ADMINS/
     // READERS seed lists are Worker secrets so no address lives in this repo.
     // Web Push (CONTRACT.md, Version 3). The private key is the Worker
@@ -37,6 +41,8 @@
   },
   // Missing-report alarm: every 30 min 03:00-09:30 UTC; the handler itself
   // checks Stockholm local time (DST-safe), so the UTC window covers both
-  // CET and CEST.
-  "triggers": { "crons": ["*/30 3-9 * * *"] }
+  // CET and CEST. Then the cron that starts the scheduled runs on GitHub
+  // Actions (DISPATCH_CRON in worker.js, which must match it): both UTC
+  // hours of 04:00, 12:00, 16:00 and 21:00 Stockholm time.
+  "triggers": { "crons": ["*/30 3-9 * * *", "0 2,3,10,11,14,15,19,20 * * *"] }
 }

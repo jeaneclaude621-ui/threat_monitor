@@ -293,3 +293,21 @@ tail -f ../data/logs/invites.log
 
 No new secrets or vars. People already in the list get no mail; use
 "Skicka inbjudan" on their card if they need one.
+
+## Version 3.8: the Worker starts the scheduled runs
+
+1. On GitHub: Settings → Developer settings → Fine-grained personal access
+   tokens → Generate new token. Repository access: only
+   `jeaneclaude621-ui/threat_monitor`; permissions: Actions **Read and
+   write** (Metadata read-only comes with it). Pick the longest expiry and
+   note the date: when it runs out the runs fall back to GitHub's own,
+   unreliable schedule and the admins get an alarm push at each start.
+2. Store it as a Worker secret (run from `webapp/`, paste the token):
+   ```sh
+   npx wrangler secret put GITHUB_DISPATCH_TOKEN
+   ```
+3. Deploy. This registers the second cron trigger,
+   `0 2,3,10,11,14,15,19,20 * * *` (UTC).
+   ```sh
+   npx wrangler deploy
+   ```

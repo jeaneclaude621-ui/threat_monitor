@@ -18,6 +18,8 @@
  * admin "update everyone" push that makes open apps reload.
  * Version 3.4: the scheduled runs report in (from the Mac or GitHub
  * Actions), and the admin status page shows whether they keep running.
+ * Version 3.8: this cron starts the scheduled runs on GitHub Actions, whose
+ * own schedule starts them hours late or not at all.
  */
 
 import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
@@ -57,11 +59,15 @@ const RUN_JOBS = {
   daily: { label: 'Morgonrapport', hours: [4], maxMinutes: 45 },
   hourly: { label: 'Trådbevakning', hours: [12, 16, 21], maxMinutes: 20 },
 };
-const RUN_START_GRACE_MIN = 75;   // the thread monitor fires at :30 and GitHub's cron can lag
+const RUN_START_GRACE_MIN = 75;   // GitHub's own cron, the fallback, can lag
 const RUN_ID_RE = /^[0-9a-f]{32}$/;
 const RUN_LOG_URL_RE = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/actions\/runs\/\d+$/;
 const RUNS_KEEP_DAYS = 90;
-const MAC_QUIET_MIN = 30;          // the invitation job (GitHub Actions) polls every 5 min; its cron can lag
+const MAC_QUIET_MIN = 30;
+// Version 3.8: the cron that starts the runs (wrangler.jsonc). It fires at
+// both UTC hours that can be each Stockholm hour in RUN_JOBS, summer and
+// winter time; startDueRuns starts only the jobs due at the Stockholm hour.
+const DISPATCH_CRON = '0 2,3,10,11,14,15,19,20 * * *';          // the invitation job (GitHub Actions) polls every 5 min; its cron can lag
 
 // Reasons written to security_log (CONTRACT.md, Version 2).
 const R = {
@@ -102,10 +108,15 @@ export default {
     }
   },
 
-  // Cron (wrangler.jsonc triggers): pushes held over the night, then the
+  // Cron (wrangler.jsonc triggers): DISPATCH_CRON starts the scheduled
+  // runs; the other sends pushes held over the night, then the
   // missing-report alarm.
   async scheduled(event, env, ctx) {
     const now = event.scheduledTime || Date.now();
+    if (event.cron === DISPATCH_CRON) {
+      ctx.waitUntil(startDueRuns(env, now));
+      return;
+    }
     ctx.waitUntil(flushDeferredPushes(env, now)
       .then(() => checkMissingReport(env, now))
       .catch((err) => {
@@ -679,6 +690,12 @@ async function queueInvite(env, actor, email, role) {
     "INSERT INTO invites (id, email, role, requested_at, requested_by, status) VALUES (?, ?, ?, ?, ?, 'pending')"
   ).bind(id, email, role, now, actor.email).run();
   await audit(env, actor.email, 'invite', email, { role });
+  // Mail it now rather than at the invitation job's next scheduled run.
+  try {
+    await dispatchWorkflow(env, 'invites.yml', {});
+  } catch (err) {
+    console.error('could not start the invitation job', err.message);
+  }
   return id;
 }
 
@@ -953,6 +970,49 @@ async function runsStatus(env, nowMs, pendingInvites, invitePullAt) {
     mac: { ...mac, last_seen_at: invitePullAt },
     recent,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Starting the runs (Version 3.8)
+// ---------------------------------------------------------------------------
+/** Starts a GitHub Actions workflow on main (workflow_dispatch). */
+async function dispatchWorkflow(env, workflow, inputs) {
+  if (!env.GITHUB_REPO || !env.GITHUB_DISPATCH_TOKEN) throw new Error('GITHUB_REPO or GITHUB_DISPATCH_TOKEN is not set');
+  const res = await fetch(`https://api.github.com/repos/${env.GITHUB_REPO}/actions/workflows/${workflow}/dispatches`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${env.GITHUB_DISPATCH_TOKEN}`,
+      accept: 'application/vnd.github+json',
+      'x-github-api-version': '2022-11-28',
+      'user-agent': 'hotmonitor-worker',
+    },
+    body: JSON.stringify({ ref: 'main', inputs }),
+  });
+  if (!res.ok) throw new Error(`GitHub answered ${res.status}: ${(await res.text()).slice(0, 200)}`);
+}
+
+/**
+ * Starts the jobs due at this Stockholm hour. `at` lets run_job.py skip a
+ * job that GitHub's own schedule, kept as the fallback, has already run;
+ * that skip also makes a second start of the same run harmless. A start
+ * that fails raises an admin alarm.
+ */
+async function startDueRuns(env, nowMs) {
+  const hour = Math.floor(stockholmClock(nowMs).minutes / 60);
+  for (const [job, spec] of Object.entries(RUN_JOBS)) {
+    if (!spec.hours.includes(hour)) continue;
+    try {
+      await dispatchWorkflow(env, 'scheduled-jobs.yml', { job, test: 'false', at: String(hour) });
+    } catch (err) {
+      console.error(`could not start ${job}`, err.message);
+      await audit(env, 'system', 'alarm', null, { run_not_started: job, error: err.message });
+      await pushTo(env, { adminsOnly: true, pref: 'alarm' }, {
+        title: `${spec.label} kunde inte startas`,
+        body: `Körningen ${String(hour).padStart(2, '0')}:00 startade inte: ${err.message.slice(0, 120)}`,
+        url: '/#/admin',
+      }, 'high');
+    }
+  }
 }
 
 async function audit(env, actor, action, target, detail) {
