@@ -5,7 +5,7 @@ import {
   store, onChange, isAdmin, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
-  reportDevice, pushKey, pushSubscribe, pushUnsubscribe,
+  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
 
@@ -148,6 +148,7 @@ async function route({ keepScroll = false } = {}) {
     case 'arkiv': tab = 'arkiv'; view = () => viewArchive(q); break;
     case 'amnen': tab = 'amnen'; view = () => viewTopics(q); break;
     case 'karta': tab = 'karta'; view = () => viewMap(q); break;
+    case 'trender': tab = 'trender'; view = () => viewTrends(q); break;
     case 'bedom': tab = 'bedom'; view = () => viewAssess(q); break;
     case 'mina': tab = 'bedom'; view = () => viewMine(); break;
     case 'kalla': view = () => viewSource(rest.join('/')); break;
@@ -1406,6 +1407,96 @@ async function viewTopics(q) {
       h('div', { class: 'search' }, searchIcon(), input)),
     barHolder,
     results);
+}
+
+// ---------------------------------------------------------------- trends (Version 3.9)
+// What spreads, apart from the analysis: open sources, and - only when the
+// reader chooses to see it - the Russian side, marked on every item.
+const SHOW_RU_KEY = 'hm.showRussianSide';
+const TREND_SOURCE = {
+  wikipedia: 'Wikipedia', google_trends: 'Google-sökningar', reddit: 'Reddit',
+  mastodon: 'Mastodon', bluesky: 'Bluesky', telegram: 'Telegram',
+};
+const openTrends = new Set();
+function showRussian() { try { return localStorage.getItem(SHOW_RU_KEY) === '1'; } catch { return false; } }
+function setShowRussian(on) {
+  try { if (on) localStorage.setItem(SHOW_RU_KEY, '1'); else localStorage.removeItem(SHOW_RU_KEY); } catch { /* private mode */ }
+}
+
+function russianGate() {
+  return h('section', { class: 'card card-pad ru-gate' },
+    h('div', { class: 'ru-label' }, 'Rysk sida · utesluten källa'),
+    h('h2', { class: 'title-m' }, 'Vill du se den ryska sidan?'),
+    h('p', { class: 'body-sm' }, 'Inlägg från rysk statsmedia, ryska försvarsministeriet och prokremlska krigsbloggare på Telegram. ',
+      'Det är propaganda och påståenden, och i metoden en utesluten källa. Det visas för att du ska se vilka berättelser som drivs – aldrig som belägg för att något har hänt.'),
+    h('div', { class: 'btn-row' },
+      h('button', { class: 'btn primary', type: 'button', onclick: () => { setShowRussian(true); rerender(); } }, 'Visa rysk sida'),
+      h('a', { class: 'btn', href: '#/trender' }, 'Tillbaka till öppna källor')));
+}
+
+function trendRow(t, ru, threadEvents) {
+  const open = openTrends.has(t.id);
+  const toggle = () => { if (open) openTrends.delete(t.id); else openTrends.add(t.id); rerender(); };
+  const title = t.title_sv || t.title;
+  const threadEvent = t.thread_id ? threadEvents.find(({ e }) => e.thread_id === t.thread_id) : null;
+  return h('div', { class: `upd-wrap${ru ? ' trend-ru' : ''}` },
+    h('button', { class: 'row rowbtn', type: 'button', 'aria-expanded': String(open), onclick: toggle },
+      h('span', { class: 'row-main' },
+        h('span', { class: 'row-sub' }, ru ? h('span', { class: 'ru-label' }, 'Rysk sida') : null, ru ? ' ' : null,
+          `${TREND_SOURCE[t.source] || t.source}${t.place ? ` · ${t.place}` : ''}`),
+        h('span', { class: 'row-title' }, title),
+        t.metric_sv ? h('span', { class: 'row-sub' }, t.metric_sv) : null),
+      t.spike && t.spike >= 2 ? h('span', { class: 'nbadge' }, `${String(t.spike).replace('.', ',')}×`) : null,
+      chevDown()),
+    open ? h('div', { class: 'expand' },
+      t.title_sv && t.title_sv !== t.title ? h('p', { class: 'small muted', lang: ru ? 'ru' : null }, 'Original: ', t.title) : null,
+      t.detail ? h('p', { class: 'body-sm', lang: ru ? 'ru' : null }, t.detail) : null,
+      ru ? h('p', { class: 'small muted' }, 'Ett påstående från den ryska sidan, inte bekräftat.') : null,
+      h('p', { class: 'small muted' }, `Sågs först ${tsFmt(t.first_seen)}${t.last_seen !== t.first_seen ? `, senast ${tsFmt(t.last_seen)}` : ''}`),
+      h('div', { class: 'btn-row' },
+        externalButton(t.url, { outlet: t.place }, ru ? 'Öppna på Telegram' : 'Öppna källan'),
+        threadEvent ? h('a', { class: 'btn', href: eventHref(threadEvent.r.date, threadEvent.e.id) }, 'Bevakad tråd') : null)) : null);
+}
+
+async function viewTrends(q) {
+  const ru = q.get('s') === 'ru';
+  const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Vilken sida' },
+    h('button', { type: 'button', 'aria-pressed': String(!ru), onclick: () => { location.hash = '#/trender'; } }, 'Öppna källor'),
+    h('button', { type: 'button', 'aria-pressed': String(ru), class: 'seg-ru', onclick: () => { location.hash = '#/trender?s=ru'; } }, 'Rysk sida'));
+  const head = frag(
+    h('header', { class: 'page-head' }, h('h1', { class: 'title-l' }, 'Trender')),
+    h('p', { class: 'hint' }, 'Det som sprids just nu. Inte bedömt och inte bekräftat – påverkar inte rapporten, trådarna eller index.'),
+    seg);
+  if (ru && !showRussian()) return frag(head, russianGate());
+
+  const [data, index] = await Promise.all([loadTrends(ru ? 'ru' : 'open'), loadIndex()]);
+  const latest = index.length ? await loadReport(index[0].date) : null;
+  const threadEvents = latest ? latest.events.map((e) => ({ r: latest, e })) : [];
+  const items = data.items || [];
+  const summary = (data.summaries || [])[0];
+  const dayAgo = new Date(Date.now() - 86400000).toISOString();
+  const fresh = items.filter((t) => t.last_seen >= dayAgo);
+  const older = items.filter((t) => t.last_seen < dayAgo);
+  const status = data.sources ? Object.entries(data.sources)
+    .filter(([name]) => (name === 'telegram') === ru)
+    .map(([name, s]) => `${TREND_SOURCE[name] || name}${s.error ? ' (svarade inte)' : ''}`) : [];
+
+  return frag(head,
+    ru ? h('div', { class: 'notice err ru-banner', role: 'note' },
+      h('b', null, 'Rysk sida · utesluten källa. '),
+      'Propaganda och påståenden från rysk statsmedia och prokremlska kanaler – inte belägg. ',
+      h('button', { class: 'linkbtn', type: 'button', onclick: () => { setShowRussian(false); location.hash = '#/trender'; } }, 'Dölj den ryska sidan')) : null,
+    summary && summary.text ? h('section', { class: `card card-pad${ru ? ' trend-ru' : ''}` },
+      h('div', { class: 'kicker' }, `Dygnets sammanfattning · ${dateShort(summary.date)}`),
+      h('p', { class: 'body-sm' }, summary.text)) : null,
+    h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, 'Senaste dygnet'),
+      fresh.length ? h('div', { class: 'card list' }, fresh.map((t) => trendRow(t, ru, threadEvents)))
+        : emptyState(ru ? 'Inga inlägg om Nato, Europa eller grannländerna det senaste dygnet.' : 'Inget på ämnet sticker ut det senaste dygnet.')),
+    older.length ? h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, 'Tidigare'),
+      h('div', { class: 'card list' }, older.map((t) => trendRow(t, ru, threadEvents)))) : null,
+    status.length ? h('p', { class: 'small muted' }, `Källor: ${status.join(', ')}`) : null);
 }
 
 // ---------------------------------------------------------------- Karta

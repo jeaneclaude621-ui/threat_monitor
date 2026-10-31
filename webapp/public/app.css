@@ -646,3 +646,19 @@ button.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 
   padding: 4px 6px; cursor: pointer; text-decoration: underline;
 }
 .invite-line.warn { color: var(--neg-fg); }
+
+/* Trends (Version 3.9): the Russian side is marked on every item */
+.ru-label { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 6px; background: #8A1F12; color: #FFFFFF; }
+.trend-ru { box-shadow: inset 4px 0 0 #8A1F12; }
+.ru-gate { border-color: #D9A89B; gap: 10px; }
+.ru-gate .ru-label { align-self: flex-start; }
+.ru-banner { box-shadow: inset 4px 0 0 #8A1F12; }
+.ru-banner .linkbtn { margin-left: 4px; }
+.seg .seg-ru[aria-pressed="true"] { color: #8A1F12; }
+@media (prefers-color-scheme: dark) {
+  .ru-label { background: #F4A28C; color: #1A0A06; }
+  .trend-ru, .ru-banner { box-shadow: inset 4px 0 0 #F4A28C; }
+  .ru-gate { border-color: #6B3A2E; }
+  .seg .seg-ru[aria-pressed="true"] { color: #F4A28C; }
+}

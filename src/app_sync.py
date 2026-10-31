@@ -136,6 +136,21 @@ def backup_app(keep: int = 30) -> bool:
         return False
 
 
+def push_trends(payload: dict) -> bool:
+    """The trends feed (src/trends.py): items of both sides, the last
+    days' summaries and each source's status."""
+    if not _config():
+        print("  App upload skipped - HOTMONITOR_URL / CF_ACCESS_CLIENT_* not set")
+        return False
+    try:
+        r = _request("PUT", "/api/ingest/trends", payload)
+        print(f"  Uploaded {r.get('count', 0)} trend(s) to web app")
+        return True
+    except Exception as e:
+        print(f"  ! Trends upload failed: {e}")
+        return False
+
+
 def short_label(label: str, limit: int = 120) -> str:
     """Watchlist labels have grown into paragraph-long descriptions; the
     app's live feed needs a name. First clause, else cut at a word."""

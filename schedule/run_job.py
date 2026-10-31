@@ -62,6 +62,7 @@ JOBS = {
     "daily": ["src/daily_report.py"],
     "hourly": ["src/hourly_monitor.py"],
     "invites": ["src/app_mail.py", "send-invites"],
+    "trends": ["src/trends.py"],
 }
 QUIET_JOBS = {"invites"}
 HOST = "cloud"

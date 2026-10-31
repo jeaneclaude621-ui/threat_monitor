@@ -20,6 +20,8 @@
  * Actions), and the admin status page shows whether they keep running.
  * Version 3.8: this cron starts the scheduled runs on GitHub Actions, whose
  * own schedule starts them hours late or not at all.
+ * Version 3.9: the trends feed - what spreads, from open sources and,
+ * apart, from the Russian side - which nothing else here reads.
  */
 
 import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
@@ -56,8 +58,9 @@ const INVITE_ID_RE = /^[0-9a-f-]{36}$/;
 // Scheduled runs (Version 3.4), in Stockholm hours. Mirrors the schedule in
 // .github/workflows/scheduled-jobs.yml.
 const RUN_JOBS = {
-  daily: { label: 'Morgonrapport', hours: [4], maxMinutes: 45 },
-  hourly: { label: 'Trådbevakning', hours: [12, 16, 21], maxMinutes: 20 },
+  daily: { label: 'Morgonrapport', hours: [4], maxMinutes: 45, workflow: 'scheduled-jobs.yml' },
+  hourly: { label: 'Trådbevakning', hours: [12, 16, 21], maxMinutes: 20, workflow: 'scheduled-jobs.yml' },
+  trends: { label: 'Trender', hours: [8, 12, 16, 21], maxMinutes: 15, workflow: 'trends.yml' },
 };
 const RUN_START_GRACE_MIN = 75;   // GitHub's own cron, the fallback, can lag
 const RUN_ID_RE = /^[0-9a-f]{32}$/;
@@ -67,7 +70,7 @@ const MAC_QUIET_MIN = 30;
 // Version 3.8: the cron that starts the runs (wrangler.jsonc). It fires at
 // both UTC hours that can be each Stockholm hour in RUN_JOBS, summer and
 // winter time; startDueRuns starts only the jobs due at the Stockholm hour.
-const DISPATCH_CRON = '0 2,3,10,11,14,15,19,20 * * *';          // the invitation job (GitHub Actions) polls every 5 min; its cron can lag
+const DISPATCH_CRON = '0 2,3,6,7,10,11,14,15,19,20 * * *';          // the invitation job (GitHub Actions) polls every 5 min; its cron can lag
 
 // Reasons written to security_log (CONTRACT.md, Version 2).
 const R = {
@@ -241,6 +244,12 @@ async function route(req) {
     return listUpdates(env, url);
   }
 
+  if (path === '/api/trends') {
+    allow(method, 'GET');
+    requireUser(who);
+    return listTrends(env, url);
+  }
+
   if (path === '/api/reads') {
     requireUser(who);
     if (method === 'GET') return getReads(env, who);
@@ -265,6 +274,12 @@ async function route(req) {
     allow(method, 'PUT');
     requireMachine(who);
     return ingestUpdates(request, env);
+  }
+
+  if (path === '/api/ingest/trends') {
+    allow(method, 'PUT');
+    requireMachine(who);
+    return ingestTrends(request, env);
   }
 
   if (path === '/api/export/invites') {
@@ -973,6 +988,86 @@ async function runsStatus(env, nowMs, pendingInvites, invitePullAt) {
 }
 
 // ---------------------------------------------------------------------------
+// Trends (Version 3.9): a feed of its own, read by nothing else here
+// ---------------------------------------------------------------------------
+const TREND_SIDES = new Set(['open', 'ru']);
+const TREND_SOURCES = new Set(['wikipedia', 'google_trends', 'reddit', 'mastodon', 'bluesky', 'telegram']);
+const TREND_KEEP_DAYS = 30;
+const TREND_SHOW_DAYS = 3;
+
+async function ingestTrends(request, env) {
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || !Array.isArray(body.items)) throw new HttpError(400, 'body must be { items, summaries, sources }');
+  if (body.items.length > 500) throw new HttpError(400, 'at most 500 trends per request');
+  const str = (v, max) => (v === undefined || v === null ? null
+    : (typeof v === 'string' && v.length <= max ? v : undefined));
+  const num = (v) => (v === undefined || v === null ? null : (typeof v === 'number' && Number.isFinite(v) ? v : undefined));
+  const stmts = [];
+  for (const t of body.items) {
+    if (!t || typeof t !== 'object' || Array.isArray(t)) throw new HttpError(400, 'each trend must be an object');
+    if (typeof t.id !== 'string' || !ITEM_ID_RE.test(t.id)) throw new HttpError(400, 'trend id must be 1-128 of letters, digits, _ . : -');
+    if (!TREND_SIDES.has(t.side)) throw new HttpError(400, `trend ${t.id}: side must be open or ru`);
+    if (!TREND_SOURCES.has(t.source)) throw new HttpError(400, `trend ${t.id}: unknown source`);
+    for (const k of ['first_seen', 'last_seen']) {
+      if (typeof t[k] !== 'string' || !TS_RE.test(t[k])) throw new HttpError(400, `trend ${t.id}: ${k} must be ISO 8601`);
+    }
+    const f = {
+      place: str(t.where, 200), title: str(t.title, 1000), title_sv: str(t.title_sv, 1000), url: str(t.url, 2000),
+      detail: str(t.detail, 4000), metric_sv: str(t.metric_sv, 300), published: str(t.published, 40),
+      thread_id: str(t.thread_id, 200), metric: num(t.metric), spike: num(t.spike),
+    };
+    for (const [k, v] of Object.entries(f)) {
+      if (v === undefined) throw new HttpError(400, `trend ${t.id}: ${k} has the wrong type or length`);
+    }
+    if (!f.title) throw new HttpError(400, `trend ${t.id}: title is required`);
+    if (f.url && !/^https:\/\//.test(f.url)) throw new HttpError(400, `trend ${t.id}: url must be https`);
+    stmts.push(env.DB.prepare(
+      `INSERT INTO trends (id, side, source, place, title, title_sv, url, detail, metric, spike, metric_sv, published, thread_id, first_seen, last_seen)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         place = excluded.place, title = excluded.title, title_sv = COALESCE(excluded.title_sv, trends.title_sv),
+         url = excluded.url, detail = excluded.detail, metric = excluded.metric, spike = excluded.spike,
+         metric_sv = excluded.metric_sv, published = excluded.published, thread_id = excluded.thread_id,
+         last_seen = excluded.last_seen`
+    ).bind(t.id, t.side, t.source, f.place, f.title, f.title_sv, f.url, f.detail, f.metric, f.spike,
+           f.metric_sv, f.published, f.thread_id, t.first_seen, t.last_seen));
+  }
+  for (const s of Array.isArray(body.summaries) ? body.summaries : []) {
+    if (!s || !DATE_RE.test(s.date || '')) throw new HttpError(400, 'each summary needs a date');
+    const open = str(s.open_sv, 5000); const ru = str(s.ru_sv, 5000);
+    if (open === undefined || ru === undefined) throw new HttpError(400, `summary ${s.date}: open_sv and ru_sv must be strings`);
+    stmts.push(env.DB.prepare(
+      'INSERT INTO trend_summaries (date, open_sv, ru_sv) VALUES (?, ?, ?) ON CONFLICT(date) DO UPDATE SET open_sv = excluded.open_sv, ru_sv = excluded.ru_sv'
+    ).bind(s.date, open, ru));
+  }
+  const cutoff = new Date(Date.now() - TREND_KEEP_DAYS * 86400000).toISOString();
+  stmts.push(env.DB.prepare('DELETE FROM trends WHERE last_seen < ?').bind(cutoff));
+  stmts.push(env.DB.prepare('DELETE FROM trend_summaries WHERE date < ?').bind(cutoff.slice(0, 10)));
+  await env.DB.batch(stmts);
+  if (body.sources && typeof body.sources === 'object') {
+    await setMeta(env, 'trend_sources', JSON.stringify(body.sources).slice(0, 4000));
+  }
+  return json({ ok: true, count: body.items.length });
+}
+
+/** One side at a time: the app asks for 'ru' only when the reader chose to see it. */
+async function listTrends(env, url) {
+  const side = url.searchParams.get('side') || 'open';
+  if (!TREND_SIDES.has(side)) throw new HttpError(400, 'side must be open or ru');
+  const since = new Date(Date.now() - TREND_SHOW_DAYS * 86400000).toISOString();
+  const { results } = await env.DB.prepare(
+    `SELECT id, source, place, title, title_sv, url, detail, metric, spike, metric_sv, published, thread_id, first_seen, last_seen
+     FROM trends WHERE side = ? AND last_seen >= ? ORDER BY last_seen DESC, COALESCE(spike, 1) DESC LIMIT 200`
+  ).bind(side, since).all();
+  const col = side === 'ru' ? 'ru_sv' : 'open_sv';
+  const sums = await env.DB.prepare(
+    `SELECT date, ${col} AS text FROM trend_summaries WHERE ${col} IS NOT NULL ORDER BY date DESC LIMIT 7`
+  ).all();
+  const src = await env.DB.prepare("SELECT value FROM meta WHERE key = 'trend_sources'").first();
+  return json({ side, items: results, summaries: sums.results, sources: src ? JSON.parse(src.value) : null });
+}
+
+// ---------------------------------------------------------------------------
 // Starting the runs (Version 3.8)
 // ---------------------------------------------------------------------------
 /** Starts a GitHub Actions workflow on main (workflow_dispatch). */
@@ -1002,7 +1097,10 @@ async function startDueRuns(env, nowMs) {
   for (const [job, spec] of Object.entries(RUN_JOBS)) {
     if (!spec.hours.includes(hour)) continue;
     try {
-      await dispatchWorkflow(env, 'scheduled-jobs.yml', { job, test: 'false', at: String(hour) });
+      // scheduled-jobs.yml runs several jobs and takes `job`; trends.yml does not.
+      const inputs = { test: 'false', at: String(hour) };
+      if (spec.workflow === 'scheduled-jobs.yml') inputs.job = job;
+      await dispatchWorkflow(env, spec.workflow, inputs);
     } catch (err) {
       console.error(`could not start ${job}`, err.message);
       await audit(env, 'system', 'alarm', null, { run_not_started: job, error: err.message });

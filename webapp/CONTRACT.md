@@ -425,3 +425,27 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
 - Queueing an invite starts invites.yml at once.
 - Var `GITHUB_REPO`; secret `GITHUB_DISPATCH_TOKEN`, a fine-grained token
   for that repo only with Actions read and write.
+
+# Version 3.9 (31 Oct 2026) - trends
+
+- A feed of its own, read by nothing else: src/trends.py collects what
+  spreads at 08:00, 12:00, 16:00 and 21:00 Stockholm (`RUN_JOBS.trends`,
+  workflow trends.yml, which takes `{ test, at }` and no `job`) and the
+  first run from 20:00 adds one Gemini summary a day.
+- Two sides: `open` (Wikipedia page views, Google Trends, Reddit, Mastodon,
+  Bluesky) and `ru` (Russian state and pro-Kremlin Telegram channels, the
+  excluded tier).
+- `PUT /api/ingest/trends` (machine): `{ items, summaries, sources }`.
+  Items `{ id, side, source, where, title, title_sv?, url?, detail?,
+  metric?, spike?, metric_sv?, published?, thread_id?, first_seen,
+  last_seen }`, upserted by id (a later run without `title_sv` keeps the
+  earlier one); summaries `{ date, open_sv, ru_sv }`; `sources` (each
+  source's last status) is kept in meta `trend_sources`. Items and
+  summaries older than 30 days are pruned.
+- `GET /api/trends?side=open|ru` (user): the side's items seen in the last
+  3 days, its summary text of the last 7 days, and the source status.
+- App: tab "Trender" (`#/trender`, `?s=ru` for the Russian side). The
+  Russian side is asked for only after the reader chose to see it
+  (localStorage `hm.showRussianSide`), and every item, the summary and a
+  banner carry "Rysk sida · utesluten källa".
+- Migration 0008_trends.sql. Service worker hm-v3.12.

@@ -307,6 +307,13 @@ export async function loadUpdates() {
   return store.updates;
 }
 
+// --- Trends (Version 3.9) ------------------------------------------------------
+
+// One side at a time; 'ru' is asked for only when the reader chose to see it.
+export function loadTrends(side) {
+  return getJSON(`/api/trends?side=${encodeURIComponent(side)}`, { cache: 'no-store' });
+}
+
 export async function loadNotices() {
   const rows = await getJSON('/api/notices', { cache: 'no-store' });
   store.notices = Array.isArray(rows) ? rows : [];
