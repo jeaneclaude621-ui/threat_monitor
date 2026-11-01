@@ -2098,7 +2098,19 @@ async function viewStrikes() {
     trailsG.replaceChildren();
     const rows = day.rows.filter((r) => !kind || r.kind === kind);
     const launches = new Map(); const targets = new Map();
+    // The Air Force's report often splits one attack over rows: one with
+    // the launch areas and target "Ukraine", regional ones with the target
+    // regions and no launch area. Within a night and weapon kind, a row
+    // missing one side takes the other rows' places - drawn as inferred.
+    const byKind = {};
+    for (const r of rows) {
+      const k = byKind[r.kind] ||= { from: new Map(), to: new Map() };
+      for (const a of r.from) k.from.set(a.name, a);
+      for (const b of r.to) k.to.set(b.name, b);
+    }
     rows.forEach((r, i) => {
+      const inferred = !r.from.length || !r.to.length;
+      r = { ...r, from: r.from.length ? r.from : [...byKind[r.kind].from.values()], to: r.to.length ? r.to : [...byKind[r.kind].to.values()] };
       const colour = (STRIKE_KIND[r.kind] || STRIKE_KIND['övrigt'])[1];
       const width = u * (0.15 + Math.min(0.7, Math.sqrt((r.launched || 1) / Math.max(1, r.from.length * Math.max(1, r.to.length))) * 0.06));
       for (const b of r.to) targets.set(b.name, b);
@@ -2121,7 +2133,7 @@ async function viewStrikes() {
           const cx = (x1 + x2) / 2 - (y2 - y1) / len * bend; const cy = (y1 + y2) / 2 + (x2 - x1) / len * bend;
           const d = `M${x1} ${y1}Q${cx} ${cy} ${x2} ${y2}`;
           trailsG.append(svgEl('path', { d, class: 'strail-bg', stroke: colour, 'stroke-width': width * 2.4 }),
-            svgEl('path', { d, class: 'strail', stroke: colour, 'stroke-width': width, style: `animation-delay:${(i % 6) * 0.35}s` }));
+            svgEl('path', { d, class: `strail${inferred ? ' inferred' : ''}`, stroke: colour, 'stroke-width': width, style: `animation-delay:${(i % 6) * 0.35}s` }));
         }
       }
     });
@@ -2160,7 +2172,8 @@ async function viewStrikes() {
     weapons,
     h('div', { class: 'flegend small muted' }, h('span', null, h('b', { class: 'slegend-launch' }), 'Avfyrningsområde'),
       h('span', null, h('b', { class: 'fdot starget-dot' }), 'Målregion'),
-      h('span', null, h('b', { class: 'slegend-open' }), 'Mål ej angivet i rapporten')),
+      h('span', null, h('b', { class: 'slegend-open' }), 'Mål ej angivet i rapporten'),
+      h('span', null, h('b', { class: 'slegend-inf' }), 'Härlett: avfyrning och mål från olika rader i rapporten')),
     list,
     h('p', { class: 'notice' }, 'Källa: ukrainska flygvapnets dagliga rapporter, sammanställda i ', externalButton(data.source.url, { outlet: 'Kaggle' }, 'Kaggle-datasetet'),
       '. Uppdateras varje morgon. Siffrorna är Ukrainas egna och inte oberoende verifierade. Platserna är ungefärliga och spåren visar riktning, inte verklig flygväg. Påverkar inte index.'));

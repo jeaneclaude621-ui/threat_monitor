@@ -1,0 +1,671 @@
+{
+ "note": "Interim catalogue of the strike weapons (1 Nov 2026); the cloud-built database replaces it.",
+ "systems": [
+  {
+   "id": "geran-2",
+   "name": "Geran-2 (Shahed-136)",
+   "category_sv": "Attackdrönare",
+   "description_sv": "Iransk-konstruerad attackdrönare som Ryssland tillverkar själv som Geran-2. Den flyger långsamt och lågt mot förutbestämda mål och sänds i stora antal varje natt för att mätta luftvärnet.",
+   "key_figures": {
+    "Räckvidd": "1 500–2 500 km",
+    "Hastighet": "cirka 185 km/h",
+    "Stridsdel": "40–90 kg",
+    "Vikt": "cirka 200 kg"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-geran-2.jpg",
+    "author": "Mohammadreza Jabbari",
+    "license": "CC BY 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:2023_IRGC_Aerospace_Force_achievements_Exhibition_in_Qom_(33).jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/HESA_Shahed_136",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "shahed-131",
+   "name": "Shahed-131 (Geran-1)",
+   "category_sv": "Attackdrönare",
+   "description_sv": "Mindre och äldre syskon till Shahed-136, med kortare räckvidd och mindre stridsdel.",
+   "key_figures": {
+    "Räckvidd": "cirka 900 km",
+    "Stridsdel": "15–20 kg"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-shahed-131.jpg",
+    "author": "Alexpl",
+    "license": "CC BY 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Shahed-131-draw.svg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/HESA_Shahed_131",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "geran-3",
+   "name": "Geran-3 (jetdriven Shahed)",
+   "category_sv": "Jetdriven attackdrönare",
+   "description_sv": "Jetdriven version av Shahed-familjen. Den är betydligt snabbare och därför svårare att skjuta ner med kulsprutor och korträckviddigt luftvärn.",
+   "key_figures": {
+    "Hastighet": "500–600 km/h",
+    "Stridsdel": "cirka 50 kg"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/HESA_Shahed_238",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "geran-4",
+   "name": "Geran-4",
+   "category_sv": "Attackdrönare",
+   "description_sv": "Nyare rysk attackdrönare i Geran-familjen som rapporterats sedan 2025. Uppgifterna om prestanda är osäkra.",
+   "key_figures": {},
+   "figures_note": null,
+   "image": null,
+   "sources": []
+  },
+  {
+   "id": "geran-5",
+   "name": "Geran-5",
+   "category_sv": "Jetdriven attackdrönare",
+   "description_sv": "Nyare rysk jetdriven attackdrönare som rapporterats sedan 2025. Uppgifterna om prestanda är osäkra.",
+   "key_figures": {},
+   "figures_note": null,
+   "image": null,
+   "sources": []
+  },
+  {
+   "id": "gerbera",
+   "name": "Gerbera",
+   "category_sv": "Skendrönare",
+   "description_sv": "Billig drönare av skumplast och plywood som används som lockbete. Den ska få luftvärnet att avslöja sig och slösa robotar.",
+   "key_figures": {
+    "Räckvidd": "cirka 600 km"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": null,
+   "sources": []
+  },
+  {
+   "id": "kh-101",
+   "name": "Kh-101",
+   "category_sv": "Kryssningsrobot (luftburen)",
+   "description_sv": "Rysk långräckviddig kryssningsrobot som avfyras från strategiska bombplan som Tu-95MS och Tu-160, ofta långt inne i Ryssland.",
+   "key_figures": {
+    "Räckvidd": "2 500–2 800 km",
+    "Stridsdel": "400–450 kg",
+    "Bärare": "Tu-95MS, Tu-160"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-kh-101.jpg",
+    "author": "Vslv",
+    "license": "CC0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:H101_missile.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kh-101",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "kh-555",
+   "name": "Kh-555",
+   "category_sv": "Kryssningsrobot (luftburen)",
+   "description_sv": "Konventionell version av den sovjetiska Kh-55, avfyrad från strategiska bombplan.",
+   "key_figures": {
+    "Räckvidd": "cirka 2 000 km",
+    "Stridsdel": "cirka 410 kg",
+    "Bärare": "Tu-95MS, Tu-160"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-kh-555.jpg",
+    "author": "George Chernilevsky",
+    "license": "Public domain",
+    "source_url": "https://commons.wikimedia.org/wiki/File:H-55_AS-15_Kent_2008_G1.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kh-55",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "kalibr",
+   "name": "Kalibr (3M-14)",
+   "category_sv": "Kryssningsrobot (sjöburen)",
+   "description_sv": "Kryssningsrobot som avfyras från fartyg och ubåtar, bland annat i Svarta havet och Kaspiska havet.",
+   "key_figures": {
+    "Räckvidd": "1 500–2 500 km",
+    "Stridsdel": "cirka 450 kg",
+    "Bärare": "fartyg, ubåtar"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-kalibr.jpg",
+    "author": "Allocer",
+    "license": "CC BY-SA 3.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:3M-54E1.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/3M-54_Kalibr",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "iskander-m",
+   "name": "Iskander-M",
+   "category_sv": "Ballistisk robot",
+   "description_sv": "Markbaserad kortdistansrobot med hög hastighet och manövrerande slutfas, vilket gör den svår att skjuta ner.",
+   "key_figures": {
+    "Räckvidd": "cirka 500 km",
+    "Stridsdel": "480–700 kg",
+    "Hastighet": "upp till Mach 6–7"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-iskander-m.jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Army2016demo-075.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/9K720_Iskander",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "iskander-k",
+   "name": "Iskander-K",
+   "category_sv": "Kryssningsrobot (markbaserad)",
+   "description_sv": "Kryssningsrobotversionen av Iskander-systemet (9M728/9M729), avfyrad från samma bärraketfordon.",
+   "key_figures": {
+    "Räckvidd": "500 km eller mer"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-iskander-k.jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Army2016demo-075.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/9K720_Iskander",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "kn-23",
+   "name": "KN-23 (Hwasong-11)",
+   "category_sv": "Ballistisk robot",
+   "description_sv": "Nordkoreansk ballistisk robot som levererats till Ryssland och använts mot Ukraina sedan slutet av 2023.",
+   "key_figures": {
+    "Räckvidd": "450–700 km",
+    "Stridsdel": "cirka 500 kg"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/KN-23",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "kinzhal",
+   "name": "Kh-47M2 Kinzjal",
+   "category_sv": "Luftburen ballistisk robot",
+   "description_sv": "Luftburen ballistisk robot som bärs av MiG-31K och avfyras på hög höjd. Ryssland kallar den hypersonisk.",
+   "key_figures": {
+    "Räckvidd": "cirka 480 km plus bärarens räckvidd",
+    "Hastighet": "uppgiven upp till Mach 10",
+    "Bärare": "MiG-31K"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-kinzhal.jpg",
+    "author": "The Presidential Press and Information Office",
+    "license": "CC BY 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:2018_Moscow_Victory_Day_Parade_66.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kh-47M2_Kinzhal",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "kh-22",
+   "name": "Kh-22",
+   "category_sv": "Kryssningsrobot (tung, sjömål)",
+   "description_sv": "Tung sovjetisk robot konstruerad mot fartyg, som används mot markmål med dålig precision.",
+   "key_figures": {
+    "Räckvidd": "cirka 600 km",
+    "Stridsdel": "cirka 1 000 kg",
+    "Hastighet": "Mach 3–4",
+    "Bärare": "Tu-22M3"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kh-22",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "kh-32",
+   "name": "Kh-32",
+   "category_sv": "Kryssningsrobot (tung)",
+   "description_sv": "Moderniserad efterföljare till Kh-22, med längre räckvidd.",
+   "key_figures": {
+    "Räckvidd": "cirka 1 000 km",
+    "Hastighet": "Mach 4",
+    "Bärare": "Tu-22M3"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-kh-32.jpg",
+    "author": "uploaded by Jno",
+    "license": "Public domain",
+    "source_url": "https://commons.wikimedia.org/wiki/File:X-22_under_Tu-22M3.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kh-32",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "kh-59",
+   "name": "Kh-59",
+   "category_sv": "Kryssningsrobot (taktisk)",
+   "description_sv": "Taktisk kryssningsrobot som avfyras från stridsflygplan.",
+   "key_figures": {
+    "Räckvidd": "115–290 km",
+    "Stridsdel": "cirka 320 kg",
+    "Bärare": "Su-34, Su-35"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-kh-59.jpg",
+    "author": "Allocer",
+    "license": "CC BY-SA 3.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Kh-59MK2_maks2009.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kh-59",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "kh-69",
+   "name": "Kh-69",
+   "category_sv": "Kryssningsrobot (taktisk)",
+   "description_sv": "Nyare taktisk kryssningsrobot med smygegenskaper, bärs av stridsflygplan.",
+   "key_figures": {
+    "Räckvidd": "290–400 km",
+    "Stridsdel": "cirka 310 kg",
+    "Bärare": "Su-34, Su-35"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-kh-69.jpg",
+    "author": "Mike1979 Russia",
+    "license": "CC BY-SA 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Kh-69_Army-2022_2022-08-20_2330.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kh-69",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "kh-31p",
+   "name": "Kh-31P",
+   "category_sv": "Antiradarrobot",
+   "description_sv": "Snabb robot som söker sig mot radarsändare, bland annat luftvärnets radarstationer.",
+   "key_figures": {
+    "Räckvidd": "110–250 km",
+    "Hastighet": "cirka Mach 3,5"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-kh-31p.jpg",
+    "author": "Boevaya mashina",
+    "license": "CC BY-SA 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Kh-31_Armia-2018_1.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kh-31",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "kh-31",
+   "name": "Kh-31",
+   "category_sv": "Robot (luftburen)",
+   "description_sv": "Snabb luftburen robot i antiradar- och sjömålsversioner.",
+   "key_figures": {
+    "Räckvidd": "upp till cirka 250 km",
+    "Hastighet": "cirka Mach 3,5"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-kh-31.jpg",
+    "author": "Boevaya mashina",
+    "license": "CC BY-SA 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Kh-31_Armia-2018_1.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kh-31",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "kh-35",
+   "name": "Kh-35",
+   "category_sv": "Sjömålsrobot",
+   "description_sv": "Sjömålsrobot som också använts mot mål på land.",
+   "key_figures": {
+    "Räckvidd": "130–260 km",
+    "Stridsdel": "cirka 145 kg"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-kh-35.jpg",
+    "author": "Allocer",
+    "license": "CC BY-SA 3.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Kh-35E_fol_maks2009.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kh-35",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "oniks",
+   "name": "P-800 Oniks",
+   "category_sv": "Överljudsrobot",
+   "description_sv": "Överljudssnabb sjömålsrobot, avfyrad bland annat från Bastion-P-batterier på Krim, även mot mål på land.",
+   "key_figures": {
+    "Räckvidd": "300–600 km",
+    "Hastighet": "cirka Mach 2,5",
+    "Stridsdel": "200–250 kg"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-oniks.jpg",
+    "author": "Boevaya mashina",
+    "license": "CC BY-SA 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:3M55_Yakhont_Onyx_SS-N-26_Armia_2018.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/P-800_Oniks",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "tsirkon",
+   "name": "3M22 Tsirkon",
+   "category_sv": "Hypersonisk kryssningsrobot",
+   "description_sv": "Rysk robot som uppges vara hypersonisk och som använts mot Kyiv sedan 2024.",
+   "key_figures": {
+    "Räckvidd": "cirka 1 000 km",
+    "Hastighet": "uppgiven Mach 8"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-tsirkon.jpg",
+    "author": "Минобороны РФ",
+    "license": "CC BY 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Zirkon_03.12.2024.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/3M22_Zircon",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "s-300",
+   "name": "S-300 (markmål)",
+   "category_sv": "Luftvärnsrobot mot markmål",
+   "description_sv": "Luftvärnsrobotar som skjuts ballistiskt mot städer nära fronten, framför allt Charkiv och Zaporizjzja.",
+   "key_figures": {
+    "Räckvidd i markmålsrollen": "cirka 100–150 km"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-s-300.jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:S-300_-_2009_Moscow_Victory_Day_Parade_(2).jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/S-300_missile_system",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "s-400",
+   "name": "S-400 (markmål)",
+   "category_sv": "Luftvärnsrobot mot markmål",
+   "description_sv": "Luftvärnsrobotar (48N6) som skjuts mot markmål från Kursk, Belgorod och Krim.",
+   "key_figures": {
+    "Räckvidd i markmålsrollen": "cirka 150 km eller mer"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-s-400.jpg",
+    "author": "Соколрус",
+    "license": "CC BY-SA 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:%D0%A1-400_%C2%AB%D0%A2%D1%80%D0%B8%D1%83%D0%BC%D1%84%C2%BB.JPG"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/S-400_missile_system",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "banderol",
+   "name": "Banderol",
+   "category_sv": "Kryssningsrobot (från drönare)",
+   "description_sv": "Liten kryssningsrobot som bärs av Orion-drönaren, rapporterad sedan 2025.",
+   "key_figures": {},
+   "figures_note": null,
+   "image": null,
+   "sources": []
+  },
+  {
+   "id": "orlan-10",
+   "name": "Orlan-10",
+   "category_sv": "Spaningsdrönare",
+   "description_sv": "Rysk spaningsdrönare som ofta används för eldledning av artilleri.",
+   "key_figures": {
+    "Räckvidd": "cirka 120 km från ledningsstationen",
+    "Uthållighet": "upp till 16 h"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-orlan-10.jpg",
+    "author": "Mike1979 Russia",
+    "license": "CC BY-SA 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Orlan-10_UAV_Army-2022_2022-08-20_2475.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Orlan-10",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "lancet",
+   "name": "Lancet",
+   "category_sv": "Kamikazedrönare (taktisk)",
+   "description_sv": "Taktisk kamikazedrönare mot fordon och artilleri nära fronten.",
+   "key_figures": {
+    "Räckvidd": "40–70 km",
+    "Stridsdel": "1–5 kg"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-lancet.jpg",
+    "author": "Nickel nitride",
+    "license": "CC0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:ZALA_Lancet_1.jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/ZALA_Lancet",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "supercam",
+   "name": "Supercam",
+   "category_sv": "Spaningsdrönare",
+   "description_sv": "Rysk spaningsdrönare.",
+   "key_figures": {
+    "Uthållighet": "cirka 4 h"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": null,
+   "sources": []
+  },
+  {
+   "id": "zala",
+   "name": "ZALA",
+   "category_sv": "Spaningsdrönare",
+   "description_sv": "Spaningsdrönare från ZALA Aero (Kalasjnikovkoncernen).",
+   "key_figures": {},
+   "figures_note": null,
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/ZALA_Aero",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "merlin-vr",
+   "name": "Merlin-VR",
+   "category_sv": "Spaningsdrönare",
+   "description_sv": "Rysk spaningsdrönare.",
+   "key_figures": {},
+   "figures_note": null,
+   "image": null,
+   "sources": []
+  },
+  {
+   "id": "orion",
+   "name": "Orion",
+   "category_sv": "Beväpnad drönare (MALE)",
+   "description_sv": "Rysk medelhöghöjdsdrönare med lång uthållighet som kan bära bomber och robotar.",
+   "key_figures": {
+    "Uthållighet": "cirka 24 h",
+    "Nyttolast": "cirka 200 kg"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-orion.jpg",
+    "author": "Nickel nitride",
+    "license": "CC0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Army-2020-209.JPG"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kronshtadt_Orion",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "mohajer-6",
+   "name": "Mohajer-6",
+   "category_sv": "Beväpnad drönare",
+   "description_sv": "Iransk drönare för spaning och attack som levererats till Ryssland.",
+   "key_figures": {
+    "Räckvidd": "cirka 200 km",
+    "Uthållighet": "cirka 12 h"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": {
+    "file": "sys-mohajer-6.jpg",
+    "author": "Hadi Hirbodvash",
+    "license": "CC BY 4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:IRGC_Ground_New_Equipment_2021_(09).jpg"
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Qods_Mohajer-6",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  {
+   "id": "forpost",
+   "name": "Forpost",
+   "category_sv": "Spaningsdrönare",
+   "description_sv": "Rysk licenstillverkad version av israeliska IAI Searcher.",
+   "key_figures": {
+    "Uthållighet": "cirka 18 h"
+   },
+   "figures_note": "enligt publicerade uppgifter, ungefärligt",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Forpost_%28UAV%29",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  }
+ ]
+}
