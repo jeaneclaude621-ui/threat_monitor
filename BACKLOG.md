@@ -45,6 +45,25 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
 
 ## Förslag som väntar på beslut
 
+### Nato: en flik bredvid Svenska myndigheter
+*Föreslaget 2026-11-01.* Mockup och kostnad: https://claude.ai/artifact/FMnaHUVGGBjyWZDTiD3rnd (bild 3)
+
+Visar vad Nato självt säger, översatt till svenska: generalsekreteraren och
+högkvarteret, de militära kommandona, Östersjön och östflanken, Ukraina.
+
+Källor:
+- nato.int läses via Google News `site:nato.int`. Natos RSS svarar 404, och
+  sidans nyhetslista laddas med JavaScript.
+- Medierapporter kompletterar.
+- SHAPE, MARCOM och AIRCOM svarar 403 på automatiska anrop.
+
+Förslag: lägg Nato i samma Gemini-anrop som Svenska myndigheter kl. 07 och
+17. Det ger 0 extra anrop, och totalt blir det ungefär 14 av 20 per dygn.
+Raden på Idag får då namnet "Sverige och Nato", och sidan får två flikar.
+
+Måste filtreras bort: gamla artiklar som återpubliceras med nytt datum. I
+testet hade två artiklar från LSM juni- och septemberdatum i adressen.
+
 ### Spärra Telegram och rysk statsmedia i fliken Källor
 *Föreslaget 2026-11-01.*
 
