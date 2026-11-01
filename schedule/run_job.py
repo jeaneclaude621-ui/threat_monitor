@@ -66,7 +66,7 @@ JOBS = {
     "authorities": ["src/authorities.py"],
     "forces": ["src/forces.py"],
 }
-QUIET_JOBS = {"invites"}
+QUIET_JOBS = {"invites", "forces"}   # forces: a manual extra run; the nightly one runs inside daily
 HOST = "cloud"
 
 # What the state repo tracks, as git pathspecs. Named at every add rather
