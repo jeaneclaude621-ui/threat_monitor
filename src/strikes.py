@@ -75,11 +75,34 @@ TARGET = {
     "kramatorsk": (48.72, 37.56), "sloviansk": (48.85, 37.6), "luhansk oblast": (48.8, 38.9),
     "ochakiv": (46.61, 31.55), "kryvyi rih": (47.91, 33.39), "pavlohrad": (48.53, 35.87), "izmail": (45.35, 28.84),
     "south": (47.0, 32.5), "north": (51.0, 31.5), "east": (49.0, 36.5), "west": (49.5, 25.0), "center": (49.0, 32.0),
-    "centre": (49.0, 32.0),
+    "centre": (49.0, 32.0), "south-east": (47.6, 35.5), "north-east": (50.6, 35.2), "center-east": (48.6, 34.8),
+    "center-west": (49.6, 27.5), "south-west": (47.5, 29.5), "north-west": (51.0, 26.5),
 }
 KINDS = [("drönare", re.compile(r"shahed|geran|gerbera|uav|drone|lancet|italmas|parody|гербера", re.I)),
-         ("ballistisk robot", re.compile(r"iskander-m|kn-23|kinzhal|x-47|kh-47|ballistic|s-300|s-400|tochka|oreshnik", re.I)),
-         ("kryssningsrobot", re.compile(r"x-\d|kh-\d|kalibr|iskander-k|onyx|oniks|cruise|zircon|tsirkon|p-800", re.I))]
+         ("ballistisk robot", re.compile(r"iskander-m|kn-23|kinzhal|x-47|kh-47|ballistic|[sc]-[34]00|tochka|oreshnik", re.I)),
+         ("kryssningsrobot", re.compile(r"x-\d|kh-\d|kalibr|iskander-k|onyx|oniks|cruise|zircon|tsirkon|p-800|banderol", re.I))]
+# The dataset's weapon names -> the ids of the app's weapon catalogue
+# (webapp/public/forces/systems.json), for the picture and performance card.
+SYSTEM_IDS = {
+    "shahed-136": "geran-2", "shahed": "geran-2", "geran-2": "geran-2", "131": "shahed-131", "geran-3": "geran-3",
+    "geran-4": "geran-4", "geran-5": "geran-5", "gerbera": "gerbera", "x-101": "kh-101", "x-555": "kh-555",
+    "kalibr": "kalibr", "iskander-m": "iskander-m", "iskander-k": "iskander-k", "kn-23": "kn-23",
+    "x-47 kinzhal": "kinzhal", "kinzhal": "kinzhal", "x-22": "kh-22", "x-32": "kh-32", "x-59": "kh-59", "x-69": "kh-69",
+    "x-31p": "kh-31p", "x-31pd": "kh-31p", "x-31": "kh-31", "x-35": "kh-35", "x-35y": "kh-35", "p-800 oniks": "oniks",
+    "3m22 zircon": "tsirkon", "zircon": "tsirkon", "c-300": "s-300", "c-400": "s-400", "banderol": "banderol",
+    "orlan-10": "orlan-10", "lancet": "lancet", "supercam": "supercam", "zala": "zala", "merlin-vr": "merlin-vr",
+    "orion": "orion", "mohajer-6": "mohajer-6", "forpost": "forpost",
+}
+
+
+def system_ids(model: str) -> list:
+    """"C-400 and Iskander-M/KN-23" -> ["s-400", "iskander-m", "kn-23"]."""
+    out = []
+    for part in re.split(r"\s+and\s+|/", (model or "").lower()):
+        sid = SYSTEM_IDS.get(part.strip())
+        if sid and sid not in out:
+            out.append(sid)
+    return out
 
 
 def kind_of(model: str) -> str:
@@ -129,14 +152,21 @@ def build(rows: list, today: date) -> dict:
         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", end) or end < since:
             continue
         launch, u1 = places(r.get("launch_place"), LAUNCH)
-        target, u2 = places(r.get("target"), TARGET)
+        # target_main names the regions actually aimed at when the report
+        # gives them; target is often only "Ukraine" or a direction.
+        main = (r.get("target_main") or "").strip()
+        target, u2 = places(main or r.get("target"), TARGET)
         unknown.update(u1 + u2)
+        unspecified = not target or all(t["name"].lower() == "ukraine" for t in target)
         model = (r.get("model") or "").strip()
         nights.setdefault(end, []).append({
             "model": model[:120], "kind": kind_of(model), "launched": _num(r.get("launched")),
             "destroyed": _num(r.get("destroyed")), "carrier": (r.get("carrier") or "").strip()[:120] or None,
             "launch_place": (r.get("launch_place") or "").strip()[:300], "target": (r.get("target") or "").strip()[:300],
-            "from": launch, "to": target, "time_start": (r.get("time_start") or "")[:16], "time_end": (r.get("time_end") or "")[:16]})
+            "target_main": main[:300] or None, "unspecified": unspecified, "systems": system_ids(model),
+            "hits": _num(r.get("num_hit_location")), "fragments": _num(r.get("num_fall_fragment_location")),
+            "hidden": r.get("status_data") == "hidden",
+            "from": launch, "to": [] if unspecified else target, "time_start": (r.get("time_start") or "")[:16], "time_end": (r.get("time_end") or "")[:16]})
     if unknown:
         print("  Strikes: places not on the map: " + ", ".join(f"{n} ({c})" for n, c in unknown.most_common(25)))
     days = []

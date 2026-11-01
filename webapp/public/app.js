@@ -2030,10 +2030,44 @@ async function viewForces() {
 const STRIKE_KIND = { 'drönare': ['Drönare', '#C2410C'], kryssningsrobot: ['Kryssningsrobotar', '#7C3AED'], 'ballistisk robot': ['Ballistiska robotar', '#B91C1C'], 'övrigt': ['Övrigt', '#6B7280'] };
 const strikesUi = { date: null, kind: null };
 
+// The weapon catalogue (webapp/public/forces/systems.json): pictures and
+// performance. Missing until the database is in; the cards then show text.
+let systemsCat = null;
+async function loadSystems() {
+  if (!systemsCat) {
+    try {
+      const r = await fetch('/forces/systems.json');
+      const j = r.ok ? await r.json() : [];
+      systemsCat = new Map((Array.isArray(j) ? j : j.systems || []).map((x) => [x.id, x]));
+    } catch { systemsCat = new Map(); }
+  }
+  return systemsCat;
+}
+
+function weaponCard(id, sys, rows) {
+  const launched = rows.reduce((n, r) => n + (r.launched || 0), 0);
+  const name = sys?.name || rows[0]?.model || id;
+  const img = sys?.image?.file ? (sys.image.file.startsWith('/') ? sys.image.file : `/forces/img/${sys.image.file}`) : null;
+  const figures = Object.entries(sys?.key_figures || {});
+  const more = h('div', { class: 'swmore', hidden: true },
+    sys?.description_sv ? h('p', { class: 'body-sm' }, sys.description_sv) : h('p', { class: 'small muted' }, 'Ingen beskrivning än.'),
+    figures.length ? h('dl', { class: 'swfig' }, figures.flatMap(([k, v]) => [h('dt', null, k), h('dd', null, v)])) : null,
+    sys?.image ? h('p', { class: 'small muted' }, `Bild: ${sys.image.author || 'okänd'}, ${sys.image.license || ''}. `,
+      sys.image.source_url ? externalButton(sys.image.source_url, { outlet: 'Wikimedia Commons' }, 'Commons') : null) : null);
+  const toggle = () => { more.hidden = !more.hidden; };
+  return h('div', { class: 'swcard card', role: 'button', tabindex: '0', onclick: toggle, onkeydown: (ev) => { if (ev.key === 'Enter') toggle(); } },
+    img ? h('img', { src: img, alt: name, loading: 'lazy' }) : h('div', { class: 'swnoimg' }, name.slice(0, 2)),
+    h('div', { class: 'swbody' },
+      h('div', { class: 'row-title' }, name),
+      h('div', { class: 'small muted' }, [sys?.category_sv, launched ? `${launched} avfyrade` : null].filter(Boolean).join(' · ')),
+      figures.slice(0, 2).map(([k, v]) => h('div', { class: 'small' }, h('b', null, `${k}: `), v)),
+      more));
+}
+
 async function viewStrikes() {
-  const [land, data] = await Promise.all([
+  const [land, data, systems] = await Promise.all([
     forcesLand || fetch('/forces/countries.json').then((r) => { if (!r.ok) throw new Error(`countries: ${r.status}`); return r.json(); }),
-    loadStrikes()]);
+    loadStrikes(), loadSystems()]);
   forcesLand = land;
   const head = h('header', { class: 'page-head' }, h('div', null,
     h('div', { class: 'kicker' }, data ? `Uppdaterad ${dateShort(data.date)}` : 'Anfall mot Ukraina'),
@@ -2057,6 +2091,7 @@ async function viewStrikes() {
   const kinds = h('div', { class: 'chips' });
   const totals = h('div', { class: 'stotals' });
   const list = h('div');
+  const weapons = h('div');
 
   function draw() {
     Object.assign(strikesUi, { date: day.date, kind });
@@ -2065,11 +2100,21 @@ async function viewStrikes() {
     const launches = new Map(); const targets = new Map();
     rows.forEach((r, i) => {
       const colour = (STRIKE_KIND[r.kind] || STRIKE_KIND['övrigt'])[1];
-      const width = u * (0.15 + Math.min(0.7, Math.sqrt((r.launched || 1) / Math.max(1, r.from.length * r.to.length)) * 0.06));
+      const width = u * (0.15 + Math.min(0.7, Math.sqrt((r.launched || 1) / Math.max(1, r.from.length * Math.max(1, r.to.length))) * 0.06));
+      for (const b of r.to) targets.set(b.name, b);
       for (const a of r.from) {
         launches.set(a.name, a);
+        // No target region in the report: a short fading trail pointing
+        // into Ukraine, not a line to a made-up target.
+        if (!r.to.length) {
+          const [x1, y1] = [FX(a.lon), FY(a.lat)];
+          const [ux, uy] = [FX(31.4), FY(49.0)];
+          const k = Math.min(0.55, (u * 22) / (Math.hypot(ux - x1, uy - y1) || 1));
+          const d = `M${x1} ${y1}L${x1 + (ux - x1) * k} ${y1 + (uy - y1) * k}`;
+          trailsG.append(svgEl('path', { d, class: 'strail open', stroke: colour, 'stroke-width': width, style: `animation-delay:${(i % 6) * 0.35}s` }));
+          continue;
+        }
         for (const b of r.to) {
-          targets.set(b.name, b);
           const [x1, y1, x2, y2] = [FX(a.lon), FY(a.lat), FX(b.lon), FY(b.lat)];
           const len = Math.hypot(x2 - x1, y2 - y1);
           const bend = (i % 2 ? 1 : -1) * len * 0.18;
@@ -2095,11 +2140,16 @@ async function viewStrikes() {
       h('div', { class: 'stotal-n', style: `color:${(STRIKE_KIND[k] || STRIKE_KIND['övrigt'])[1]}` }, String(t.launched)),
       h('div', { class: 'small' }, (STRIKE_KIND[k] || STRIKE_KIND['övrigt'])[0]),
       h('div', { class: 'small muted' }, t.launched ? `${t.destroyed} nedskjutna (${Math.round(100 * t.destroyed / t.launched)} %)` : ''))));
+    const ids = [...new Set(rows.flatMap((r) => r.systems || []))];
+    weapons.replaceChildren(ids.length ? h('section', null, h('h2', { class: 'fsub' }, 'Vapnen den här natten'),
+      h('div', { class: 'swgrid' }, ids.map((id) => weaponCard(id, systems.get(id), rows.filter((r) => (r.systems || []).includes(id)))))) : '');
     list.replaceChildren(h('div', { class: 'card list' }, rows.map((r) => h('div', { class: 'row' },
       h('b', { class: 'fdot', style: `background:${(STRIKE_KIND[r.kind] || STRIKE_KIND['övrigt'])[1]}` }),
       h('span', { class: 'row-main' },
         h('span', { class: 'row-title' }, `${r.launched ?? '?'} × ${r.model}`, r.destroyed != null ? h('span', { class: 'muted' }, ` · ${r.destroyed} nedskjutna`) : ''),
-        h('span', { class: 'row-sub' }, `Från ${r.launch_place || 'okänt'}${r.carrier ? ` (${r.carrier})` : ''} → ${r.target || 'okänt'}`))))));
+        h('span', { class: 'row-sub' }, `Från ${r.launch_place || 'okänt'}${r.carrier ? ` (${r.carrier})` : ''} → `
+          + (r.unspecified ? 'mål ej angivet (hela Ukraina)' : (r.target_main || r.target || 'okänt'))
+          + (r.hits != null ? ` · träff på ${r.hits} platser` : '') + (r.hidden ? ' · antal ej angivet' : '')))))));
   }
   draw();
 
@@ -2107,8 +2157,10 @@ async function viewStrikes() {
     h('p', { class: 'hint' }, 'Natt för natt: vad Ryssland avfyrade mot Ukraina, varifrån och mot vilka regioner. Spåren är schematiska.'),
     nights, totals, kinds,
     h('div', { class: 'fmap-wrap card' }, svg),
+    weapons,
     h('div', { class: 'flegend small muted' }, h('span', null, h('b', { class: 'slegend-launch' }), 'Avfyrningsområde'),
-      h('span', null, h('b', { class: 'fdot starget-dot' }), 'Målregion')),
+      h('span', null, h('b', { class: 'fdot starget-dot' }), 'Målregion'),
+      h('span', null, h('b', { class: 'slegend-open' }), 'Mål ej angivet i rapporten')),
     list,
     h('p', { class: 'notice' }, 'Källa: ukrainska flygvapnets dagliga rapporter, sammanställda i ', externalButton(data.source.url, { outlet: 'Kaggle' }, 'Kaggle-datasetet'),
       '. Uppdateras varje morgon. Siffrorna är Ukrainas egna och inte oberoende verifierade. Platserna är ungefärliga och spåren visar riktning, inte verklig flygväg. Påverkar inte index.'));
