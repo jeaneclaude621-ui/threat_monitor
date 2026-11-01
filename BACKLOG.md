@@ -66,4 +66,27 @@ Förutsättningar:
 
 Öppen fråga: ska Narrativ vara publikt eller bara för inloggade?
 
+### Svenska myndigheter: ny rad och sida i appen
+*Föreslaget 2026-11-01.* Mockup och kostnad: https://claude.ai/artifact/FMnaHUVGGBjyWZDTiD3rnd
+
+En sammanfattning av vad Försvarsmakten, MUST, MCF, regeringen, Polisen,
+Säpo, Tullverket och Kustbevakningen säger om läget, både överlag och det
+senaste dygnet.
+
+Källorna testade 1 nov:
+- Egna flöden: MCF (`mcf.se/sv/rss-floden/...`), regeringens
+  pressmeddelanden och Polisens nyheter.
+- Google News för forsvarsmakten.se och regeringen.se.
+- Övriga via svenska medier: Säpo, Tullverket, Kustbevakningen och MUST.
+
+Kostnad: 1 Gemini-anrop per uppdatering. Förslag: kl. 07 och 17, alltså +2
+anrop och totalt ungefär 14 av 20 per dygn.
+
+Måste filtreras bort:
+- Försvarsmaktens platsannonser.
+- Utländska "kustbevakningar".
+- Gamla klipp som återpubliceras, till exempel TV4 2022.
+
+Väntar på beslut: hur ofta, och var raden ska ligga.
+
 ## Klart
