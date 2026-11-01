@@ -650,6 +650,10 @@ const openUpdates = new Set();
 
 function ensureScope(index) { if (index.length) scopeStart = addDays(index[0].date, -(SCOPE_DAYS - 1)); }
 
+// The live feed on Idag shows its newest few until the reader asks for all.
+const FEED_PREVIEW = 3;
+let showAllFeed = false;
+
 async function viewReport(date, q) {
   const index = await loadIndex();
   if (!index.length) return emptyState('Inga rapporter ännu.');
@@ -685,19 +689,16 @@ async function viewReport(date, q) {
         date ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
         admin ? h('a', { class: 'icon-btn', href: '#/admin', 'aria-label': 'Status och administration', title: 'Status och administration' }, gearIcon()) : null)),
     archived ? null : noticeCards(),
-    archived ? null : newBox(latest, r),
-    archived ? null : installCard(),
-    archived ? null : pushNudge(),
+    // The figures and the news first; what is new for me, the controls
+    // and the device cards come after or fold away.
     heroCard(r),
     top ? h('section', { class: 'section' },
       h('div', { class: 'kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
       h('p', { class: 'lead' }, top)) : null,
-    admin ? h('div', { class: 'btn-row' },
-      h('a', { class: 'btn primary', href: '#/bedom' }, 'Bedöm artiklar'),
-      h('a', { class: 'btn', href: '#/mina' }, 'Mina bedömningar')) : null,
-    filterBar(topFacets(facetEvents, selected), selected, setFacets),
+    archived ? null : newBox(latest, r),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Dygnets händelser'),
+      filterBar(topFacets(facetEvents, selected), selected, setFacets),
       events.length
         ? h('div', { class: 'card list' }, events.map((e) => eventRow(r.date, e)))
         : selected.length
@@ -710,9 +711,18 @@ async function viewReport(date, q) {
         h('h2', { class: 'kicker' }, feedTitle),
         archived ? null : h('button', { class: 'linkbtn', type: 'button', onclick: () => doRefresh() }, 'Uppdatera')),
       feed.length
-        ? h('div', { class: 'card list' }, feed.map((u) => updateRow(u, reports)))
-        : h('p', { class: 'small muted' }, selected.length ? 'Inga uppdateringar för filtret.' : 'Inga uppdateringar ännu i dag.')) : null,
+        ? h('div', { class: 'card list' }, (showAllFeed ? feed : feed.slice(0, FEED_PREVIEW)).map((u) => updateRow(u, reports)))
+        : h('p', { class: 'small muted' }, selected.length ? 'Inga uppdateringar för filtret.' : 'Inga uppdateringar ännu i dag.'),
+      feed.length > FEED_PREVIEW
+        ? h('button', { class: 'linkbtn', type: 'button', onclick: () => { showAllFeed = !showAllFeed; rerender(); } },
+          showAllFeed ? 'Visa färre' : `Visa alla ${feed.length}`)
+        : null) : null,
+    admin ? h('div', { class: 'btn-row' },
+      h('a', { class: 'btn primary', href: '#/bedom' }, 'Bedöm artiklar'),
+      h('a', { class: 'btn', href: '#/mina' }, 'Mina bedömningar')) : null,
     executiveBlock(r.executive_sv),
+    archived ? null : installCard(),
+    archived ? null : pushNudge(),
   );
 }
 
@@ -746,13 +756,9 @@ function newBox(latest, r) {
     markRead(ids);
     computeBadges().then(rerender);
   };
-  return h('section', { class: 'newbox', 'aria-label': 'Nytt sedan senast' },
-    h('div', { class: 'kicker amber' }, 'Nytt sedan senast'),
-    h('p', { class: 'newbox-main' }, parts.join(' · ')),
-    store.lastVisit ? h('p', { class: 'small muted' }, `Ditt förra besök: ${tsFmt(store.lastVisit)}`) : null,
-    h('div', { class: 'btn-row' },
-      h('button', { class: 'btn', type: 'button', onclick: markAll }, 'Markera allt som läst'),
-      h('button', { class: 'btn', type: 'button', onclick: () => doRefresh() }, 'Uppdatera')));
+  return h('div', { class: 'newline', role: 'status', 'aria-label': 'Nytt sedan senast' },
+    h('span', null, h('b', null, 'Nytt: '), parts.join(' · ')),
+    h('button', { class: 'linkbtn', type: 'button', onclick: markAll }, 'Markera som läst'));
 }
 
 function updateRow(u, reports) {
@@ -803,6 +809,13 @@ function heroCard(r) {
     h('div', { class: 'scale', role: 'img', 'aria-label': `Skala 0 till 10: i dag ${fmt1(r.threat_index)}${hasF ? `, prognos ${fmt1(r.threat_index_30d)}` : ''}` },
       h('div', { class: 'scale-fill', style: `width:${pct(r.threat_index)}` }),
       hasF ? h('div', { class: 'scale-tick', style: `left:${pct(r.threat_index_30d)}` }) : null),
+    heroMore(r, oi));
+}
+
+// Operator influence, the code's checks and the forecast's track record:
+// folded away under the figures, open on a tap.
+function heroMore(r, oi) {
+  const notes = [
     oi && Number(oi.index_delta)
       ? h('div', { class: 'hero-note' },
         h('strong', null, 'Operatörens påverkan: '),
@@ -813,7 +826,10 @@ function heroCard(r) {
           : null)
       : null,
     checksNote(r),
-    forecastNote(r));
+    forecastNote(r),
+  ].filter(Boolean);
+  if (!notes.length) return null;
+  return h('details', { class: 'hero-more' }, h('summary', null, 'Kontroller och prognos'), ...notes);
 }
 
 // What the code changed in the model's index (index_checks). Reports
