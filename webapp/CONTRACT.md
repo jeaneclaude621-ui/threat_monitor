@@ -453,3 +453,7 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   works), the status page's job label too, and Idag links to the Russian
   side ("Visa det ryska narrativet", in red), which asks first as before.
   Service worker hm-v3.14.
+- 1 Nov: trend items carry `summary_sv` too (migration
+  0009_trend_summary_sv.sql). Each run puts new Russian posts, and open
+  items not in Swedish or English, into Swedish; the app shows the Swedish
+  and folds the original away. Service worker hm-v3.16.

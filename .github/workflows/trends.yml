@@ -16,6 +16,10 @@ on:
         description: "Test run: nothing uploaded or saved, no Gemini call"
         type: boolean
         default: true
+      summary:
+        description: "Write the day's summary now, whatever the hour"
+        type: boolean
+        default: false
       at:
         description: "Stockholm hour the run is due (set by the Worker); skips the run if it already ran"
         type: string
@@ -54,6 +58,7 @@ jobs:
           SCHEDULE: ${{ github.event.schedule }}
           DISPATCH_TEST: ${{ inputs.test }}
           DISPATCH_AT: ${{ inputs.at }}
+          TRENDS_SUMMARY: ${{ inputs.summary && '1' || '' }}
         run: |
           set -o pipefail
           if [ -n "$SCHEDULE" ]; then

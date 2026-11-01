@@ -21,14 +21,18 @@ Virality is growth, not size: views against the page's usual level
 (Telegram), today's sharing against the days before (Mastodon). Only
 items on the subject are kept.
 
-One Gemini call a day, in the first run from 20:00: a Swedish summary of
-each side and Swedish titles for the Russian posts.
+One Gemini call a run: a Swedish title and short summary for each new
+Russian post and each open item in another language than Swedish or
+English; the first run from 20:00 (or --summary) adds the day's Swedish
+summary of each side to the same call.
 
-    python3 src/trends.py            # collect, upload, summarise if due
+    python3 src/trends.py            # collect, translate, upload, summarise if due
+    python3 src/trends.py --summary  # the day's summary now, whatever the hour
     python3 src/trends.py --dry-run  # print what it found, keep and send nothing
 """
 import argparse
 import hashlib
+import os
 import html
 import json
 import re
@@ -272,40 +276,60 @@ def rank(item: dict) -> float:
     return (item.get("spike") or 1.0) + (0.5 if item["source"] in ("google_trends", "wikipedia") else 0)
 
 
-def summarise(items: list, date: str) -> dict:
-    by_side = {s: [i for i in items if i["side"] == s] for s in ("open", "ru")}
-    listing = "\n\n".join(
-        f"=== {side}\n" + "\n".join(
-            f"[{i['id']}] {i['where']} · {i['metric_sv']} · {i['title']}"
-            + (f"\n    {i['detail'][:300]}" if i.get("detail") and side == "ru" else "")
-            for i in sorted(group, key=rank, reverse=True)[:MAX_ITEMS[side]])
-        for side, group in by_side.items() if group)
-    prompt = f"""Below is what spread on {date} on the subject of Russia, NATO, the EU
-and Ukraine, from two sides kept apart:
+# Open items already in Swedish or English need no translation.
+NATIVE_PLACES = {"sv.wikipedia", "en.wikipedia", "SE", "GB", "US"}
 
-- "open": what people in Europe read on Wikipedia, searched on Google,
-  and shared on Mastodon and Bluesky;
+
+def needs_swedish(item: dict) -> bool:
+    if item.get("title_sv"):
+        return False
+    return item["side"] == "ru" or (item["source"] in ("wikipedia", "google_trends")
+                                    and item.get("where") not in NATIVE_PLACES)
+
+
+def ask_gemini(to_translate: list, todays: list, summary_date: str = None) -> dict:
+    """One call: Swedish titles and summaries for `to_translate`, and with
+    `summary_date` the day's summary of each side from `todays`."""
+    tasks, parts = [], []
+    if to_translate:
+        parts.append("Items to put into Swedish:\n" + "\n".join(
+            f"[{i['id']}] ({i['side']}) {i['where']} · {i['title']}"
+            + (f"\n    {i['detail'][:500]}" if i.get("detail") else "") for i in to_translate))
+        tasks.append("""- "items": for every item listed under "Items to put into Swedish",
+  keyed by its id: "title_sv", a short Swedish title (max ~12 words), and
+  "summary_sv", one or two Swedish sentences on what it says (max ~40
+  words; empty when there is only a title). For "ru" items write them as
+  the channel's claims ("Rybar hävdar att ...", "TASS uppger att ..."),
+  never as facts.""")
+    if summary_date:
+        by_side = {s: sorted((i for i in todays if i["side"] == s), key=rank, reverse=True)[:MAX_ITEMS[s]]
+                   for s in ("open", "ru")}
+        parts.append(f"What spread on {summary_date}:\n\n" + "\n\n".join(
+            f"=== {side}\n" + "\n".join(f"[{i['id']}] {i['where']} · {i['metric_sv']} · {i.get('title_sv') or i['title']}"
+                                         for i in group)
+            for side, group in by_side.items() if group))
+        tasks.append("""- "open_sv": 2-4 Swedish sentences on what is spreading on the open
+  side that day and what it seems to be about. Say plainly when little is.
+- "ru_sv": 2-4 Swedish sentences on which narratives the Russian side is
+  pushing about NATO, Europe and the neighbours, as claims and narratives
+  ("ryska kanaler hävdar ..."), never as facts.""")
+    prompt = f"""Two sides of what spreads on the subject of Russia, NATO, the EU and
+Ukraine, kept apart:
+- "open": what people in Europe read on Wikipedia, searched on Google and
+  shared on Mastodon and Bluesky;
 - "ru": posts of Russian state media, the Russian defence ministry and
   pro-Kremlin war bloggers on Telegram (in Russian).
 
-{listing}
+{chr(10).join(parts)}
 
 Write, in natural Swedish:
-- "open_sv": 2-4 sentences on what is spreading on the open side and
-  what it seems to be about. Say plainly when little is.
-- "ru_sv": 2-4 sentences on which narratives the Russian side is
-  pushing about NATO, Europe and the neighbours. Report them as claims
-  and narratives ("ryska kanaler hävdar ..."), never as facts.
-- "titles_sv": for every "ru" item, and every "open" item not in Swedish
-  or English, a short Swedish title (max ~12 words), keyed by its id.
-  For "ru" items, again as a claim ("Rybar hävdar att ...").
+{chr(10).join(tasks)}
 
-Respond as strict JSON:
-{{"open_sv": "...", "ru_sv": "...", "titles_sv": {{"<id>": "..."}}}}"""
-    result = ask_model_json(prompt, system="You summarise social-media and search trends for a Swedish "
-                            "security analysis team. Strict JSON only.", max_tokens=6000)
-    return {"date": date, "open_sv": result.get("open_sv"), "ru_sv": result.get("ru_sv"),
-            "titles_sv": {k: v for k, v in (result.get("titles_sv") or {}).items() if isinstance(v, str)}}
+Respond as strict JSON with just those keys:
+{{"items": {{"<id>": {{"title_sv": "...", "summary_sv": "..."}}}}, "open_sv": "...", "ru_sv": "..."}}"""
+    return ask_model_json(prompt, system="You translate and summarise social-media and search trends for a "
+                          "Swedish security analysis team. Strict JSON only.",
+                          max_tokens=1500 + 150 * len(to_translate))
 
 
 # --------------------------------------------------------------------------
@@ -316,7 +340,7 @@ def load() -> dict:
     return {"items": {}, "summaries": {}, "sources": {}}
 
 
-def run(dry_run: bool = False):
+def run(dry_run: bool = False, force_summary: bool = False):
     now = datetime.now(timezone.utc)
     local = datetime.now()
     print(f"[{local.isoformat(timespec='minutes')}] Trends starting")
@@ -346,21 +370,29 @@ def run(dry_run: bool = False):
     data["items"] = {k: v for k, v in data["items"].items() if v["last_seen"] >= cutoff}
 
     today = f"{local:%Y-%m-%d}"
-    summary = None
-    if local.hour >= SUMMARY_FROM_HOUR and today not in data["summaries"]:
-        todays = [i for i in data["items"].values() if i["last_seen"][:10] >= f"{now:%Y-%m-%d}"]
-        if dry_run:
-            print(f"  Summary due: would send {len(todays)} items to Gemini")
-        elif todays:
-            try:
-                summary = summarise(todays, today)
-                for iid, title in summary.pop("titles_sv").items():
-                    if iid in data["items"]:
-                        data["items"][iid]["title_sv"] = title
-                data["summaries"][today] = summary
+    todays = [i for i in data["items"].values() if i["last_seen"][:10] >= f"{now:%Y-%m-%d}"]
+    summary_due = (force_summary or local.hour >= SUMMARY_FROM_HOUR) and bool(todays) \
+        and (force_summary or today not in data["summaries"])
+    to_translate = [i for i in data["items"].values() if needs_swedish(i)]
+    if dry_run:
+        print(f"  Would put {len(to_translate)} item(s) into Swedish"
+              + (f" and summarise {len(todays)}" if summary_due else ""))
+    elif to_translate or summary_due:
+        try:
+            result = ask_gemini(to_translate, todays, today if summary_due else None)
+            done = 0
+            for iid, sv in (result.get("items") or {}).items():
+                if iid in data["items"] and isinstance(sv, dict) and isinstance(sv.get("title_sv"), str):
+                    data["items"][iid]["title_sv"] = sv["title_sv"]
+                    if isinstance(sv.get("summary_sv"), str) and sv["summary_sv"].strip():
+                        data["items"][iid]["summary_sv"] = sv["summary_sv"]
+                    done += 1
+            print(f"  Put {done} of {len(to_translate)} item(s) into Swedish")
+            if summary_due:
+                data["summaries"][today] = {"date": today, "open_sv": result.get("open_sv"), "ru_sv": result.get("ru_sv")}
                 print("  Daily summary written")
-            except Exception as e:
-                print(f"  ! Daily summary failed ({e})")
+        except Exception as e:
+            print(f"  ! Swedish titles and summary failed ({e})")
     data["summaries"] = dict(sorted(data["summaries"].items())[-14:])
 
     if dry_run:
@@ -378,4 +410,7 @@ def run(dry_run: bool = False):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
-    run(ap.parse_args().dry_run)
+    ap.add_argument("--summary", action="store_true", help="write the day's summary now, whatever the hour")
+    args = ap.parse_args()
+    # TRENDS_SUMMARY=1: the workflow's "summary" input, through run_job.py.
+    run(args.dry_run, args.summary or os.environ.get("TRENDS_SUMMARY") == "1")

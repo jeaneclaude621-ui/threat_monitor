@@ -1012,7 +1012,7 @@ async function ingestTrends(request, env) {
       if (typeof t[k] !== 'string' || !TS_RE.test(t[k])) throw new HttpError(400, `trend ${t.id}: ${k} must be ISO 8601`);
     }
     const f = {
-      place: str(t.where, 200), title: str(t.title, 1000), title_sv: str(t.title_sv, 1000), url: str(t.url, 2000),
+      place: str(t.where, 200), title: str(t.title, 1000), title_sv: str(t.title_sv, 1000), summary_sv: str(t.summary_sv, 2000), url: str(t.url, 2000),
       detail: str(t.detail, 4000), metric_sv: str(t.metric_sv, 300), published: str(t.published, 40),
       thread_id: str(t.thread_id, 200), metric: num(t.metric), spike: num(t.spike),
     };
@@ -1022,14 +1022,15 @@ async function ingestTrends(request, env) {
     if (!f.title) throw new HttpError(400, `trend ${t.id}: title is required`);
     if (f.url && !/^https:\/\//.test(f.url)) throw new HttpError(400, `trend ${t.id}: url must be https`);
     stmts.push(env.DB.prepare(
-      `INSERT INTO trends (id, side, source, place, title, title_sv, url, detail, metric, spike, metric_sv, published, thread_id, first_seen, last_seen)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO trends (id, side, source, place, title, title_sv, summary_sv, url, detail, metric, spike, metric_sv, published, thread_id, first_seen, last_seen)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
          place = excluded.place, title = excluded.title, title_sv = COALESCE(excluded.title_sv, trends.title_sv),
+         summary_sv = COALESCE(excluded.summary_sv, trends.summary_sv),
          url = excluded.url, detail = excluded.detail, metric = excluded.metric, spike = excluded.spike,
          metric_sv = excluded.metric_sv, published = excluded.published, thread_id = excluded.thread_id,
          last_seen = excluded.last_seen`
-    ).bind(t.id, t.side, t.source, f.place, f.title, f.title_sv, f.url, f.detail, f.metric, f.spike,
+    ).bind(t.id, t.side, t.source, f.place, f.title, f.title_sv, f.summary_sv, f.url, f.detail, f.metric, f.spike,
            f.metric_sv, f.published, f.thread_id, t.first_seen, t.last_seen));
   }
   for (const s of Array.isArray(body.summaries) ? body.summaries : []) {
@@ -1056,7 +1057,7 @@ async function listTrends(env, url) {
   if (!TREND_SIDES.has(side)) throw new HttpError(400, 'side must be open or ru');
   const since = new Date(Date.now() - TREND_SHOW_DAYS * 86400000).toISOString();
   const { results } = await env.DB.prepare(
-    `SELECT id, source, place, title, title_sv, url, detail, metric, spike, metric_sv, published, thread_id, first_seen, last_seen
+    `SELECT id, source, place, title, title_sv, summary_sv, url, detail, metric, spike, metric_sv, published, thread_id, first_seen, last_seen
      FROM trends WHERE side = ? AND last_seen >= ? ORDER BY last_seen DESC, COALESCE(spike, 1) DESC LIMIT 200`
   ).bind(side, since).all();
   const col = side === 'ru' ? 'ru_sv' : 'open_sv';

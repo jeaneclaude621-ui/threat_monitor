@@ -1469,8 +1469,12 @@ function trendRow(t, ru, threadEvents) {
       t.spike && t.spike >= 2 ? h('span', { class: 'nbadge' }, `${String(t.spike).replace('.', ',')}×`) : null,
       chevDown()),
     open ? h('div', { class: 'expand' },
-      t.title_sv && t.title_sv !== t.title ? h('p', { class: 'small muted', lang: ru ? 'ru' : null }, 'Original: ', t.title) : null,
-      t.detail ? h('p', { class: 'body-sm', lang: ru ? 'ru' : null }, t.detail) : null,
+      t.summary_sv ? h('p', { class: 'body-sm' }, t.summary_sv) : null,
+      // The original: open when there is no Swedish, folded away when there is.
+      t.title_sv || t.summary_sv
+        ? h('details', { class: 'small muted' }, h('summary', null, ru ? 'Originalet på ryska' : 'Originalet'),
+          h('p', { lang: ru ? 'ru' : null }, t.title), t.detail ? h('p', { lang: ru ? 'ru' : null }, t.detail) : null)
+        : t.detail ? h('p', { class: 'body-sm', lang: ru ? 'ru' : null }, t.detail) : null,
       ru ? h('p', { class: 'small muted' }, 'Ett påstående från den ryska sidan, inte bekräftat.') : null,
       h('p', { class: 'small muted' }, `Sågs först ${tsFmt(t.first_seen)}${t.last_seen !== t.first_seen ? `, senast ${tsFmt(t.last_seen)}` : ''}`),
       h('div', { class: 'btn-row' },
