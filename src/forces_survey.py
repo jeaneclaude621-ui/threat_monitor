@@ -51,7 +51,8 @@ def survey_model() -> str:
     if os.environ.get("FORCES_SURVEY_MODEL"):
         return os.environ["FORCES_SURVEY_MODEL"]
     from common import get_client
-    names = [m.name.removeprefix("models/") for m in get_client().models.list()]
+    client = get_client()   # kept: the list pages lazily, and a dropped client is closed
+    names = [m.name.removeprefix("models/") for m in client.models.list()]
     lite = [n for n in names if "flash-lite" in n and not re.search(r"preview|exp|tts|image|audio|live", n)]
     if not lite:
         return None
