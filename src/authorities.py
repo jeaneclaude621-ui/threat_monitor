@@ -103,13 +103,34 @@ NATO_QUERIES = [
 ]
 NATO_NAMES = re.compile(r"\bNATO\b|\bNato\b|\bOTAN\b|Rutte|SHAPE|Allied (Air|Maritime|Land|Command)", re.I)
 NATO_NOT_NEWS = re.compile(r"^(Home|Remarks|Monthly Archives|Archive|Search)\b|Portal|Science and Technology Organization$", re.I)
+# A media source named in Latin script: Google News's English edition also
+# carries Russian sites (1 Nov: "Военное дело").
+LATIN_NAME = re.compile(r"^[^\u0400-\u04FF\u0600-\u06FF]*$")
+# A date in an article's address: old stories come back with a new date
+# (LSM's June and September articles on 31 Oct, a 2022 TV4 clip).
+URL_DATES = [re.compile(r"(?<!\d)(?P<d>\d{2})\.(?P<m>\d{2})\.(?P<y>20\d{2})(?!\d)"),
+             re.compile(r"/(?P<y>20\d{2})/(?P<m>\d{1,2})/(?P<d>\d{1,2})(?:/|$)"),
+             re.compile(r"(?<!\d)(?P<y>20\d{2})-(?P<m>\d{2})-(?P<d>\d{2})(?!\d)")]
+
+
+def url_date(url: str):
+    for rx in URL_DATES:
+        m = rx.search(url or "")
+        if m:
+            try:
+                return datetime(int(m["y"]), int(m["m"]), int(m["d"]))
+            except ValueError:
+                pass
+    return None
+
+
 NATO_TOPICS = ["Generalsekreteraren", "Militära kommandon", "Östersjön och östflanken", "Ukraina", "EU och partner", "Övrigt"]
 
 
 def gather_nato(now: datetime) -> list:
-    items, kept, seen = [], [], set()
-    for q, days, own in NATO_QUERIES:
-        items += [dict(a, own=own) for a in news_sources.google_news(q, "en", days=days)]
+    items, own, media, seen = [], [], [], set()
+    for q, days, is_own in NATO_QUERIES:
+        items += [dict(a, own=is_own) for a in news_sources.google_news(q, "en", days=days)]
     for a in sorted(items, key=lambda a: a.get("published") or datetime.min, reverse=True):
         text = f"{a.get('title', '')} {a.get('summary', '')}"
         key = re.sub(r"\W+", " ", a.get("title", "").lower()).strip()
@@ -117,12 +138,14 @@ def gather_nato(now: datetime) -> list:
             continue
         if (a["own"] and NATO_NOT_NEWS.search(a["title"])) or FOREIGN_SOURCE.search(a.get("source") or ""):
             continue
-        if not a["own"] and not NATO_NAMES.search(text):
+        if not a["own"] and not (NATO_NAMES.search(text) and LATIN_NAME.match(a.get("source") or "")):
             continue
         seen.add(key)
-        kept.append(a)
-    print(f"  {NATO}: {len(kept[:2 * MAX_PER_AGENCY])} item(s)")
-    return kept[:2 * MAX_PER_AGENCY]
+        (own if a["own"] else media).append(a)
+    # NATO's own news first: newer media items must not push it out.
+    kept = own[:MAX_PER_AGENCY] + media[:MAX_PER_AGENCY]
+    print(f"  {NATO}: {len(kept)} item(s), {len(own[:MAX_PER_AGENCY])} from nato.int")
+    return kept
 
 
 def _outlet(article: dict) -> str:
@@ -219,7 +242,9 @@ stronger than the source. Give a person's title or role only as the items
 state it, never from your own knowledge; when unsure, give the name alone.
 Put an item under the authority it is really about, not under the query
 that found it. Prefer established media over aggregator and content-farm
-sites. Leave out job ads, routine and local matters unrelated to security,
+sites (such as Magzter, HurBra). For NATO, build on NATO's own items (nato.int) first and use media
+for what they do not cover; never cite Russian state or pro-Kremlin outlets.
+Leave out job ads, routine and local matters unrelated to security,
 items about other countries' authorities (in part 1), and anything that is
 an old story republished (events from earlier years or months with a new
 date). Nothing worth knowing gives no items.
@@ -233,6 +258,16 @@ Respond as strict JSON:
     def build(it, label):
         cited = [refs[r] for r in it.get("refs") or [] if r in refs]
         if not cited or not isinstance(it.get("text_sv"), str):
+            return None
+        # Drop it when every source's address dates it before the window.
+        dates = []
+        for _, a in cited:
+            link = a.get("link") or ""
+            if "news.google.com/rss/articles/" in link:
+                link = a["link"] = news_sources.decode_google_link(link) or link
+            dates.append(url_date(link))
+        if all(d and d < now - timedelta(days=WINDOW_DAYS + 1) for d in dates):
+            print(f"  Left out an old story: {cited[0][1].get('title', '')[:80]}")
             return None
         newest = max(a["published"] for _, a in cited)
         media = sorted({_outlet(a) for _, a in cited if not a["own"]})
