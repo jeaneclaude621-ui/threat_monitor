@@ -501,3 +501,22 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   heading with its likelihood and trend, the last 30 days as bars, the map,
   the text and the signs.
 - Migration 0011_courses.sql. Service worker hm-v3.20.
+
+# Version 3.12 (1 Nov 2026) - the forces map
+
+- src/forces.py, run by daily_report.py after the report and the courses of
+  action (one Gemini call), or alone as the `forces` job of scheduled-jobs.yml.
+  It reads the last day's reporting on Russian bases and forces (its own
+  Google News searches and the report's articles, no Russian state media)
+  and records attacks, follow-ups and changes to units and equipment, each
+  with sources. State in data/forces.json.
+- `PUT /api/ingest/forces` (machine): `{ date, generated_at, note, bases:
+  [{ id, name, name_ru, lat, lon, branch, country, curated, source,
+  original: { units, equipment }, units, equipment, changes, events,
+  status (anfallen | aktiv | okänd), last_attack, updated }], nights:
+  [{ date, summary_sv, attacks, follow_ups, changes, other }] }`. One row a
+  day in D1 `force_maps`, kept 30 days.
+- `GET /api/forces` (user): the newest map, or null.
+- The app's tab Styrkor (`#/styrkor`). The land outlines are static
+  (/forces/countries.json, Natural Earth).
+- Migration 0012_forces.sql.

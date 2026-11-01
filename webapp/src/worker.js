@@ -24,6 +24,7 @@
  * apart, from the Russian side - which nothing else here reads.
  * Version 3.10: the Swedish authorities' brief, also read by nothing else.
  * Version 3.11: Russia's courses of action, updated daily after the report.
+ * Version 3.12: the forces map - Russia's bases, units and their status, nightly.
  */
 
 import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
@@ -254,6 +255,13 @@ async function route(req) {
     return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
   }
 
+  if (path === '/api/forces') {
+    allow(method, 'GET');
+    requireUser(who);
+    const row = await env.DB.prepare('SELECT data FROM force_maps ORDER BY date DESC LIMIT 1').first();
+    return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
+  }
+
   if (path === '/api/authorities') {
     allow(method, 'GET');
     requireUser(who);
@@ -297,6 +305,12 @@ async function route(req) {
     allow(method, 'PUT');
     requireMachine(who);
     return ingestCourses(request, env);
+  }
+
+  if (path === '/api/ingest/forces') {
+    allow(method, 'PUT');
+    requireMachine(who);
+    return ingestForces(request, env);
   }
 
   if (path === '/api/ingest/authorities') {
@@ -1106,6 +1120,41 @@ async function ingestCourses(request, env) {
   await env.DB.batch([
     env.DB.prepare('INSERT INTO course_assessments (date, data) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET data = excluded.data').bind(b.date, data),
     env.DB.prepare("DELETE FROM course_assessments WHERE date < date('now', '-120 days')"),
+  ]);
+  return json({ ok: true });
+}
+
+// ---------------------------------------------------------------------------
+// The forces map (Version 3.12)
+// ---------------------------------------------------------------------------
+const FORCE_BRANCHES = new Set(['flyg', 'marin', 'armé', 'luftvärn', 'robot', 'fallskärm']);
+const FORCE_STATUSES = new Set(['anfallen', 'aktiv', 'okänd']);
+
+async function ingestForces(request, env) {
+  const b = await readJson(request);
+  if (!b || typeof b !== 'object' || !DATE_RE.test(b.date || '')) throw new HttpError(400, 'body must be a forces map with a date');
+  if (!Array.isArray(b.bases) || !b.bases.length || b.bases.length > 2000) throw new HttpError(400, 'bases must be an array of at most 2000');
+  const str = (v, max) => typeof v === 'string' && v.length <= max;
+  const strs = (a) => Array.isArray(a) && a.length <= 60 && a.every((t) => str(t, 200));
+  for (const x of b.bases) {
+    if (!x || !ITEM_ID_RE.test(x.id || '') || !str(x.name, 300)) throw new HttpError(400, 'each base needs an id and a name');
+    if (typeof x.lat !== 'number' || typeof x.lon !== 'number') throw new HttpError(400, `${x.id}: lat and lon`);
+    if (!FORCE_BRANCHES.has(x.branch) || !FORCE_STATUSES.has(x.status)) throw new HttpError(400, `${x.id}: branch and status`);
+    if (!strs(x.units) || !strs(x.equipment)) throw new HttpError(400, `${x.id}: units and equipment`);
+    if (!Array.isArray(x.events) || !Array.isArray(x.changes)) throw new HttpError(400, `${x.id}: events and changes`);
+    for (const e of [...x.events, ...x.changes]) {
+      if (!e || !DATE_RE.test(e.date || '') || !str(e.text_sv, 1000)) throw new HttpError(400, `${x.id}: each entry needs a date and text_sv`);
+      if (e.sources != null && (!Array.isArray(e.sources) || !e.sources.every((s) => s && str(s.url, 2000) && /^https?:\/\//.test(s.url)))) {
+        throw new HttpError(400, `${x.id}: sources must be http(s) links`);
+      }
+    }
+  }
+  if (!Array.isArray(b.nights) || b.nights.length > 60) throw new HttpError(400, 'nights must be an array');
+  const data = JSON.stringify(b);
+  if (data.length > MAX_BODY_BYTES) throw new HttpError(413, 'forces map too large');
+  await env.DB.batch([
+    env.DB.prepare('INSERT INTO force_maps (date, data) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET data = excluded.data').bind(b.date, data),
+    env.DB.prepare("DELETE FROM force_maps WHERE date < date('now', '-30 days')"),
   ]);
   return json({ ok: true });
 }

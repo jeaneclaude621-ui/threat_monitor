@@ -19,7 +19,7 @@ on:
       job:
         description: Job to run
         type: choice
-        options: [hourly, daily]
+        options: [hourly, daily, forces]   # forces: the forces map alone (it also runs after daily)
       test:
         description: "Test run: mail to the sender only, no app upload, nothing saved"
         type: boolean

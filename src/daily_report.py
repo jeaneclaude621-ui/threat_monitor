@@ -668,6 +668,10 @@ def run_daily_report():
     # failure there stops nothing here).
     import courses
     courses.run_safe(report_data, hourly_entries)
+    # The forces map: the night's attacks on bases and changes to the
+    # forces there (one call, same terms).
+    import forces
+    forces.run_safe(report_data, pool)
 
     archive_and_clear_log(today - timedelta(days=1))
     save_state(state)

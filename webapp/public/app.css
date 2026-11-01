@@ -733,3 +733,37 @@ button.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 
 .coa-sign.part > i { background: var(--amber-mid); border-color: var(--amber-mid); }
 .coa-sign.obs > i { background: #8A1F12; border-color: #8A1F12; }
 .coa-sign-sub { color: var(--muted); font-size: 12px; }
+
+/* Forces map (Version 3.12) */
+.fsub { font-size: 15px; font-weight: 700; margin: 14px 0 6px; }
+.fsrc { display: inline-flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.fsrc .btn { min-height: 28px; padding: 2px 10px; font-size: 12px; }
+.fsearch { width: 100%; min-height: 42px; border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; font: inherit; font-size: 15px; background: var(--card); color: var(--ink); }
+.fsugg:empty, .fchips:empty { display: none; }
+.fmap-wrap { position: relative; overflow: hidden; padding: 0; }
+.fmap { display: block; width: 100%; height: min(58vh, 520px); background: #DCE6F0; touch-action: none; cursor: grab; }
+.fland { fill: #F5F2EC; stroke: #B9B2A5; stroke-width: .35; vector-effect: non-scaling-stroke; }
+.fland.ru { fill: #EBD3CC; stroke: #C99A8E; }
+.fclu circle { fill: rgba(21,32,59,.82); stroke: #fff; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.fclu.hit circle { fill: rgba(138,31,18,.88); }
+.fclu text, .fpt text { fill: #fff; text-anchor: middle; font-family: var(--sans); font-weight: 700; pointer-events: none; }
+.fclu, .fpt { cursor: pointer; }
+.fpt circle { stroke: #fff; stroke-width: 1.2; vector-effect: non-scaling-stroke; opacity: .85; }
+.fpt.cur circle { opacity: 1; }
+.fpt.hit circle { stroke: #D7261E; stroke-width: 3; }
+.fpt.sel circle { stroke: #F0B775; stroke-width: 3.5; }
+.fpt text.flab { fill: var(--ink); text-anchor: start; font-weight: 600; paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; }
+.fmap-tools { position: absolute; right: 8px; top: 8px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.fmap-tools .icon-btn { width: 34px; height: 34px; border-radius: 10px; background: var(--card); border: 1px solid var(--line); font-size: 18px; font-weight: 600; }
+.fmap-tools .chip { background: var(--card); min-height: 34px; }
+.flegend { display: flex; flex-wrap: wrap; gap: 6px 12px; }
+.flegend span { display: inline-flex; align-items: center; gap: 5px; }
+.fdot { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; color: #fff; font-size: 9px; flex-shrink: 0; background: #888; }
+.fdot.anfallen { background: #fff; border: 3px solid #D7261E; width: 12px; height: 12px; }
+.fdot.aktiv { background: #5B6B3A; } .fdot.okänd { background: var(--chip); }
+.fstatus { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--chip); }
+.fstatus.anfallen { background: #8A1F12; color: #fff; } .fstatus.aktiv { background: #DCE5D0; color: #2F3A1E; }
+@media (prefers-color-scheme: dark) {
+  .fmap { background: #13203A; } .fland { fill: #1E2B4E; stroke: #3A4A78; } .fland.ru { fill: #4A2A26; stroke: #6B3A2E; }
+  .fpt text.flab { stroke: #0F1526; }
+}

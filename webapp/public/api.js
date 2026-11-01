@@ -313,6 +313,12 @@ export function loadCourses() {
   return getJSON('/api/courses', { cache: 'no-store' });
 }
 
+// --- The forces map (Version 3.12) ----------------------------------------------
+
+export function loadForces() {
+  return getJSON('/api/forces', { cache: 'no-store' });
+}
+
 // --- The Swedish authorities' brief (Version 3.10) ------------------------------
 
 export function loadAuthorities() {

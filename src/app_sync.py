@@ -165,6 +165,20 @@ def push_courses(assessment: dict) -> bool:
         return False
 
 
+def push_forces(data: dict) -> bool:
+    """The forces map: bases, units and the nights' findings (src/forces.py)."""
+    if not _config():
+        print("  App upload skipped - HOTMONITOR_URL / CF_ACCESS_CLIENT_* not set")
+        return False
+    try:
+        _request("PUT", "/api/ingest/forces", data)
+        print("  Uploaded the forces map to web app")
+        return True
+    except Exception as e:
+        print(f"  ! Forces upload failed: {e}")
+        return False
+
+
 def push_authorities(brief: dict) -> bool:
     """The Swedish authorities' brief (src/authorities.py)."""
     if not _config():

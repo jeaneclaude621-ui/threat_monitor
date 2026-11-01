@@ -327,6 +327,12 @@ class Handler(SimpleHTTPRequestHandler):
             alarm = {"missing_report": MISSING_DATE if ALARM else None,
                      "checked_at": ago(minutes=12) if ALARM else None}
             return self._json(200, {"email": EMAIL, "role": me["role"], "is_owner": EMAIL == OWNER, "alarm": alarm})
+        if path == "/api/forces":
+            # The forces map: data/forces.json as the app gets it, if a run made one.
+            import sys
+            sys.path.insert(0, str(ROOT / "src"))
+            import forces
+            return self._json(200, forces.payload(forces.load()) if forces.STATE_PATH.exists() else None)
         if path == "/api/push/key":
             return self._json(200, {"publicKey": VAPID_PUBLIC})
         if path == "/api/updates":

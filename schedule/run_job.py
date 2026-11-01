@@ -64,6 +64,7 @@ JOBS = {
     "invites": ["src/app_mail.py", "send-invites"],
     "trends": ["src/trends.py"],
     "authorities": ["src/authorities.py"],
+    "forces": ["src/forces.py"],
 }
 QUIET_JOBS = {"invites"}
 HOST = "cloud"

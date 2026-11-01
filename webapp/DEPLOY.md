@@ -332,3 +332,10 @@ npx wrangler deploy                                     # adds 05 and 16 UTC to 
 npx wrangler d1 migrations apply hotmonitor --remote   # 0011_courses.sql
 npx wrangler deploy
 ```
+
+## Version 3.12: the forces map
+
+```sh
+npx wrangler d1 migrations apply hotmonitor --remote   # 0012_forces.sql
+npx wrangler deploy
+```

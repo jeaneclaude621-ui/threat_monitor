@@ -5,7 +5,7 @@ import {
   store, onChange, isAdmin, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
-  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities, loadCourses,
+  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities, loadCourses, loadForces,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
 
@@ -152,6 +152,7 @@ async function route({ keepScroll = false } = {}) {
     case 'narrativ': case 'trender': tab = 'narrativ'; view = () => viewTrends(q); break;
     case 'myndigheter': view = () => viewAuthorities(q); break;
     case 'handlingsalternativ': view = () => viewCourses(); break;
+    case 'styrkor': tab = 'styrkor'; view = () => viewForces(); break;
     case 'bedom': tab = 'bedom'; view = () => viewAssess(q); break;
     case 'mina': tab = 'bedom'; view = () => viewMine(); break;
     case 'kalla': view = () => viewSource(rest.join('/')); break;
@@ -1737,6 +1738,265 @@ async function viewTrends(q) {
       h('h2', { class: 'kicker' }, 'Tidigare'),
       h('div', { class: 'card list' }, older.map((t) => trendRow(t, ru, threadEvents)))) : null,
     status.length ? h('p', { class: 'small muted' }, `Källor: ${status.join(', ')}`) : null);
+}
+
+// ---------------------------------------------------------------- forces map (Version 3.12)
+// Russia's (and Belarus's) known bases on a zoomable map of Europe and
+// Russia, drawn here from Natural Earth outlines (no map tiles, nothing
+// from other hosts). Far out the bases gather into clusters; closer in each
+// base shows with its branch and status; tap one for what is there. The
+// search filters as you type ("su" lists every Su type, "su34" the Su-34).
+// Data: /api/forces, from src/forces.py every night after the 04:00 report
+// (Wikidata + a hand-kept list, and the night's attacks and changes).
+const FORCE_BRANCH = {
+  flyg: ['Flyg', 'F', '#2D5B8C'], marin: ['Marin', 'M', '#1F6E7A'], 'armé': ['Armé', 'A', '#5B6B3A'],
+  luftvärn: ['Luftvärn', 'L', '#6B4E8B'], robot: ['Robot', 'R', '#8A3B12'], fallskärm: ['Fallskärm', 'V', '#7A5A1F'],
+};
+const FORCE_STATUS = { anfallen: 'Anfallen senaste 30 dagarna', aktiv: 'Aktiv', 'okänd': 'Status okänd' };
+const FORCE_CHANGE = { 'tillfört': 'Tillfört', flyttat: 'Flyttat', borta: 'Borta', 'ändrat': 'Ändrat' };
+const FX = (lon) => (lon + 25) * 5.3;      // equirectangular, squeezed for latitude ~58
+const FY = (lat) => (82 - lat) * 10;
+const FULL = { x: 0, y: 0, w: FX(192), h: FY(34) };
+const fnorm = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9åäöа-я]+/g, '');
+let forcesLand = null;
+// The view's state, kept here: the app redraws the view when fresh data
+// comes in, and the search, zoom and chosen base must survive that.
+const forcesUi = { vb: null, query: '', branch: null, onlyHit: false, selected: null };
+
+async function loadForcesView() {
+  const [land, data] = await Promise.all([
+    forcesLand || fetch('/forces/countries.json').then((r) => { if (!r.ok) throw new Error(`countries: ${r.status}`); return r.json(); }),
+    loadForces()]);
+  forcesLand = land;
+  if (!data) return null;
+  for (const b of data.bases) {
+    b.x = FX(b.lon); b.y = FY(b.lat);
+    b.hay = [b.name, b.name_ru, FORCE_BRANCH[b.branch]?.[0], ...b.units, ...b.equipment].map(fnorm);
+  }
+  return { land: land.countries, bases: data.bases, byId: new Map(data.bases.map((b) => [b.id, b])), data };
+}
+
+function forceSources(list) {
+  return (list || []).length ? h('span', { class: 'fsrc' }, list.map((s) => externalButton(s.url, { outlet: s.outlet }, s.outlet || 'Källa'))) : null;
+}
+
+async function viewForces() {
+  const loaded = await loadForcesView();
+  if (!loaded) {
+    return frag(h('header', { class: 'page-head' }, h('div', null, h('h1', { class: 'title-xl' }, 'Styrkor'))),
+      emptyState('Ingen lägesbild ännu. Den görs varje natt efter morgonrapporten kl. 04.'));
+  }
+  const { land, bases, byId, data } = loaded;
+  let vb = forcesUi.vb || { ...FULL };
+  let { query, branch, onlyHit } = forcesUi;
+  // The chosen base by id: the bases are new objects after each load.
+  let selected = forcesUi.selected ? byId.get(forcesUi.selected) || null : null;
+
+  const svg = svgEl('svg', { class: 'fmap', role: 'img', 'aria-label': 'Karta över ryska baser' });
+  const landG = svgEl('g');
+  for (const c of land) {
+    const enemy = c.name === 'Russia' || c.name === 'Belarus';
+    const d = c.rings.map((r) => `M${r.map(([lon, lat]) => `${FX(lon).toFixed(1)} ${FY(lat).toFixed(1)}`).join('L')}Z`).join('');
+    landG.appendChild(svgEl('path', { d, class: `fland${enemy ? ' ru' : ''}` }));
+  }
+  const ptsG = svgEl('g');
+  svg.append(landG, ptsG);
+
+  const search = h('input', { type: 'search', class: 'fsearch', placeholder: 'Sök: Su, Su-34, Iskander, S-400, marin …', autocomplete: 'off', enterkeyhint: 'search' });
+  const sugg = h('div', { class: 'chips fsugg' });
+  const chips = h('div', { class: 'chips fchips' });
+  const info = h('p', { class: 'small muted' });
+  const detail = h('div');
+  const list = h('div');
+
+  const matches = () => {
+    const q = fnorm(query);
+    return bases.filter((b) => (!branch || b.branch === branch) && (!onlyHit || b.status === 'anfallen')
+      && (!q || b.hay.some((t) => t.includes(q))));
+  };
+
+  // Equipment, units and branches that match what is typed, with counts.
+  function suggestions(hit) {
+    const q = fnorm(query);
+    if (!q) return [];
+    const count = new Map();
+    for (const b of hit) for (const t of b.equipment) if (fnorm(t).includes(q)) count.set(t, (count.get(t) || 0) + 1);
+    return [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 12);
+  }
+
+  function zoomTo(x, y, w) {
+    const ww = Math.max(FULL.w / 40, Math.min(FULL.w, w));
+    const hh = ww * FULL.h / FULL.w;
+    vb = { x: x - ww / 2, y: y - hh / 2, w: ww, h: hh };
+    draw();
+  }
+
+  function draw() {
+    Object.assign(forcesUi, { vb, query, branch, onlyHit, selected: selected?.id || null });
+    svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+    const hit = matches();
+    const z = FULL.w / vb.w;
+    const u = vb.w / 100;            // one hundredth of the view, so marks keep their screen size
+    ptsG.replaceChildren();
+    if (z < 2.5) {
+      // Clusters on a grid of the view.
+      const cell = vb.w / 9;
+      const groups = new Map();
+      for (const b of hit) {
+        const k = `${Math.floor(b.x / cell)}:${Math.floor(b.y / cell)}`;
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k).push(b);
+      }
+      for (const g of groups.values()) {
+        const x = g.reduce((s2, b) => s2 + b.x, 0) / g.length; const y = g.reduce((s2, b) => s2 + b.y, 0) / g.length;
+        const r = u * (1.4 + Math.sqrt(g.length) * 0.45);
+        const node = svgEl('g', { class: `fclu${g.some((b) => b.status === 'anfallen') ? ' hit' : ''}`, tabindex: '0', role: 'button',
+          'aria-label': `${g.length} baser, zooma in` });
+        node.append(svgEl('circle', { cx: x, cy: y, r }), svgEl('text', { x, y: y + u * 0.55, 'font-size': u * 1.5 }, String(g.length)));
+        node.addEventListener('click', () => (g.length === 1 ? select(g[0]) : zoomTo(x, y, vb.w / 3)));
+        ptsG.appendChild(node);
+      }
+    } else {
+      for (const b of hit) {
+        const [, letter, colour] = FORCE_BRANCH[b.branch] || ['', '?', '#555'];
+        const node = svgEl('g', { class: `fpt${b.status === 'anfallen' ? ' hit' : ''}${b === selected ? ' sel' : ''}${b.curated ? ' cur' : ''}`,
+          tabindex: '0', role: 'button', 'aria-label': b.name });
+        node.append(svgEl('circle', { cx: b.x, cy: b.y, r: u * (b.curated ? 1.3 : 0.9), fill: colour }));
+        if (b.curated || z > 6) node.append(svgEl('text', { x: b.x, y: b.y + u * 0.45, 'font-size': u * 1.2 }, letter));
+        if (z > 5 && (b.curated || z > 9)) node.append(svgEl('text', { class: 'flab', x: b.x + u * 1.8, y: b.y + u * 0.5, 'font-size': u * 1.4 }, b.name));
+        node.addEventListener('click', () => select(b));
+        ptsG.appendChild(node);
+      }
+    }
+    info.textContent = `${hit.length} av ${bases.length} baser${hit.length && z < 2.5 ? ' · tryck på en grupp för att zooma in' : ''}`;
+    const sg = suggestions(hit);
+    sugg.replaceChildren(...sg.map(([t, n]) => h('button', { class: 'chip', type: 'button', onclick: () => { query = t; search.value = t; draw(); } }, `${t} · ${n}`)));
+    list.replaceChildren(fnorm(query) && hit.length <= 40 ? h('div', { class: 'card list' }, hit.map((b) =>
+      h('button', { class: 'row rowbtn', type: 'button', onclick: () => select(b) },
+        h('span', { class: `fdot ${b.status}` }),
+        h('span', { class: 'row-main' }, h('span', { class: 'row-title' }, b.name),
+          h('span', { class: 'row-sub' }, [FORCE_BRANCH[b.branch]?.[0], b.equipment.join(', ')].filter(Boolean).join(' · '))),
+        chevRight()))) : '');
+    chips.replaceChildren(
+      ...Object.entries(FORCE_BRANCH).map(([k, [label]]) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(branch === k),
+        onclick: () => { branch = branch === k ? null : k; draw(); } }, label)),
+      h('button', { class: 'chip', type: 'button', 'aria-pressed': String(onlyHit), onclick: () => { onlyHit = !onlyHit; draw(); } }, 'Anfallna'));
+  }
+
+  function select(b, zoom = true) {
+    selected = b;
+    if (zoom && FULL.w / vb.w < 6) zoomTo(b.x, b.y, FULL.w / 8); else draw();
+    const events = [...b.events].sort((a, c) => (a.date < c.date ? 1 : -1));
+    const changes = [...b.changes].sort((a, c) => (a.date < c.date ? 1 : -1));
+    const orig = b.original || { units: [], equipment: [] };
+    const same = (x, y) => x.length === y.length && x.every((t) => y.includes(t));
+    const changed = !same(orig.units, b.units) || !same(orig.equipment, b.equipment);
+    const otherBase = (id) => byId.get(id)?.name || id;
+    detail.replaceChildren(h('section', { class: 'card card-pad fdetail' },
+      h('div', { class: 'coa-head-row' },
+        h('span', { class: `fstatus ${b.status}` }, FORCE_STATUS[b.status]),
+        b.updated ? h('span', { class: 'small muted' }, `senast ändrad ${dateShort(b.updated)}`) : null),
+      h('h2', { class: 'coa-title' }, b.name, b.name_ru ? h('span', { class: 'small muted' }, ` · ${b.name_ru}`) : null),
+      h('p', { class: 'small muted' }, [FORCE_BRANCH[b.branch]?.[0], b.country === 'BY' ? 'Belarus' : 'Ryssland',
+        `${b.lat.toFixed(2)}° N, ${b.lon.toFixed(2)}° E`].join(' · ')),
+      b.units.length ? h('p', { class: 'body-sm' }, h('b', null, 'Förband nu: '), b.units.join(', ')) : null,
+      b.equipment.length ? h('div', { class: 'chips' }, b.equipment.map((t) => h('button', { class: 'chip', type: 'button',
+        onclick: () => { query = t; search.value = t; draw(); } }, t))) : null,
+      changed ? h('p', { class: 'small muted' }, h('b', null, 'Ursprungligt underlag: '),
+        [orig.units.join(', '), orig.equipment.join(', ')].filter(Boolean).join(' · ') || 'inget') : null,
+      changes.length ? h('div', null, h('h3', { class: 'fsub' }, 'Ändringar i styrkan'),
+        h('ul', { class: 'coa-signs' }, changes.map((c) => h('li', { class: 'coa-sign part' }, h('i'),
+          h('span', null, h('b', null, `${dateShort(c.date)}: ${FORCE_CHANGE[c.kind] || c.kind} ${c.what}`),
+            c.to_base ? ` → ${otherBase(c.to_base)}` : '', c.from_base ? ` (från ${otherBase(c.from_base)})` : '',
+            h('br'), c.text_sv, ' ', forceSources(c.sources)))))) : null,
+      events.length ? h('div', null, h('h3', { class: 'fsub' }, 'Anfall och uppföljningar'),
+        h('ul', { class: 'coa-signs' }, events.map((e) => h('li', { class: `coa-sign ${e.kind === 'anfallen' ? 'obs' : 'part'}` },
+          h('i'), h('span', null, h('b', null, `${dateShort(e.date)} ${e.date.slice(0, 4)}${e.kind === 'uppföljning' ? ', uppföljning' : ''}: `), e.text_sv,
+            ' ', forceSources(e.sources)))))) : null,
+      !b.curated && !b.units.length && !b.equipment.length ? h('p', { class: 'small muted' }, 'Bara position och typ är kända (Wikidata). Förband saknas än.') : null,
+      b.source ? externalButton(b.source, { outlet: 'Wikidata' }, 'Wikidata') : null));
+    if (zoom) detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Pan with one pointer, pinch with two, zoom with the wheel.
+  const ptrs = new Map();
+  let start = null;
+  const toMap = (cx, cy) => { const r = svg.getBoundingClientRect(); return [vb.x + (cx - r.left) / r.width * vb.w, vb.y + (cy - r.top) / r.height * vb.h]; };
+  svg.addEventListener('pointerdown', (ev) => {
+    ptrs.set(ev.pointerId, [ev.clientX, ev.clientY]);
+    start = { vb: { ...vb }, ptrs: new Map(ptrs) };
+  });
+  svg.addEventListener('pointermove', (ev) => {
+    if (!ptrs.has(ev.pointerId) || !start) return;
+    ptrs.set(ev.pointerId, [ev.clientX, ev.clientY]);
+    const r = svg.getBoundingClientRect();
+    if (ptrs.size === 1 && start.ptrs.size === 1) {
+      const [sx, sy] = [...start.ptrs.values()][0];
+      const dx = (ev.clientX - sx) / r.width * start.vb.w; const dy = (ev.clientY - sy) / r.height * start.vb.h;
+      if (Math.abs(dx) + Math.abs(dy) > start.vb.w / 200) svg.setPointerCapture(ev.pointerId);
+      vb = { ...start.vb, x: start.vb.x - dx, y: start.vb.y - dy };
+      draw();
+    } else if (ptrs.size === 2 && start.ptrs.size === 2) {
+      const [a, b] = [...ptrs.values()]; const [a0, b0] = [...start.ptrs.values()];
+      const k = Math.hypot(a0[0] - b0[0], a0[1] - b0[1]) / (Math.hypot(a[0] - b[0], a[1] - b[1]) || 1);
+      const cx = start.vb.x + ((a0[0] + b0[0]) / 2 - r.left) / r.width * start.vb.w;
+      const cy = start.vb.y + ((a0[1] + b0[1]) / 2 - r.top) / r.height * start.vb.h;
+      const w = Math.max(FULL.w / 40, Math.min(FULL.w, start.vb.w * k));
+      vb = { x: cx - (cx - start.vb.x) * w / start.vb.w, y: cy - (cy - start.vb.y) * w / start.vb.w, w, h: w * FULL.h / FULL.w };
+      draw();
+    }
+  });
+  const end = (ev) => { ptrs.delete(ev.pointerId); start = ptrs.size ? { vb: { ...vb }, ptrs: new Map(ptrs) } : null; };
+  svg.addEventListener('pointerup', end);
+  svg.addEventListener('pointercancel', end);
+  svg.addEventListener('wheel', (ev) => {
+    ev.preventDefault();
+    const [mx, my] = toMap(ev.clientX, ev.clientY);
+    const w = Math.max(FULL.w / 40, Math.min(FULL.w, vb.w * (ev.deltaY > 0 ? 1.25 : 0.8)));
+    vb = { x: mx - (mx - vb.x) * w / vb.w, y: my - (my - vb.y) * w / vb.w, w, h: w * FULL.h / FULL.w };
+    draw();
+  }, { passive: false });
+
+  search.value = query;
+  search.addEventListener('input', () => { query = search.value; draw(); });
+  const centre = () => [vb.x + vb.w / 2, vb.y + vb.h / 2];
+  const tools = h('div', { class: 'fmap-tools' },
+    h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma in', onclick: () => zoomTo(...centre(), vb.w / 1.6) }, '+'),
+    h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma ut', onclick: () => zoomTo(...centre(), vb.w * 1.6) }, '−'),
+    h('button', { class: 'chip', type: 'button', onclick: () => zoomTo(FX(28), FY(56), FX(62) - FX(-12)) }, 'Europa'),
+    h('button', { class: 'chip', type: 'button', onclick: () => { vb = { ...FULL }; draw(); } }, 'Hela kartan'));
+  if (selected) select(selected, false); else draw();
+
+  // The latest night: what was found, each base a tap away.
+  const night = (data.nights || []).at(-1);
+  const baseBtn = (id) => { const b = byId.get(id); return b ? h('a', { href: '#/styrkor', onclick: (ev) => { ev.preventDefault(); select(b); } }, b.name) : id; };
+  const nightRows = night ? [
+    ...night.attacks.map((e) => h('li', { class: 'coa-sign obs' }, h('i'), h('span', null, h('b', null, 'Anfall: '), baseBtn(e.base), ` (${dateShort(e.date)}). `, e.text_sv, ' ', forceSources(e.sources)))),
+    ...night.follow_ups.map((e) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, 'Uppföljning: '), baseBtn(e.base), '. ', e.text_sv, ' ', forceSources(e.sources)))),
+    ...night.changes.map((c) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, `${FORCE_CHANGE[c.kind] || c.kind} ${c.what}: `), baseBtn(c.base),
+      c.to_base ? [' → ', baseBtn(c.to_base)] : '', '. ', c.text_sv, ' ', forceSources(c.sources)))),
+    ...night.other.map((o) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, `${o.place}: `), o.text_sv, ' ', forceSources(o.sources)))),
+  ] : [];
+  const counts = { anfallen: 0, aktiv: 0, 'okänd': 0 };
+  for (const b of bases) counts[b.status] += 1;
+
+  return frag(
+    h('header', { class: 'page-head' }, h('div', null,
+      h('div', { class: 'kicker' }, `Lägesbild ${dateShort(data.date)}`),
+      h('h1', { class: 'title-xl' }, 'Ryska styrkor'))),
+    night ? h('section', { class: 'card card-pad' },
+      h('h2', { class: 'fsub' }, `Senaste dygnet (natten till ${dateShort(night.date)})`),
+      night.summary_sv ? h('p', { class: 'body-sm' }, night.summary_sv) : null,
+      nightRows.length ? h('ul', { class: 'coa-signs' }, nightRows) : h('p', { class: 'small muted' }, 'Inget nytt rapporterat om baserna eller styrkorna.')) : null,
+    h('p', { class: 'small muted' }, `${bases.length} baser: ${counts.anfallen} anfallna senaste 30 dagarna, ${counts.aktiv} med kända förband, ${counts['okänd']} bara position.`),
+    search, sugg, chips,
+    h('div', { class: 'fmap-wrap card' }, svg, tools),
+    h('div', { class: 'flegend small muted' },
+      Object.values(FORCE_BRANCH).map(([label, letter, colour]) => h('span', null, h('b', { class: 'fdot', style: `background:${colour}` }, letter), label)),
+      h('span', null, h('b', { class: 'fdot anfallen' }), 'Anfallen senaste 30 dagarna')),
+    info, detail, list,
+    h('p', { class: 'notice' }, 'Uppdateras varje natt efter morgonrapporten. AI läser senaste dygnets öppna rapportering (inte rysk statsmedia) och noterar anfall mot baser, uppföljningar och ändringar i förband och materiel, alltid med källa. ',
+      'Baspositioner från Wikidata; förband och materiel utgår från ett handskrivet underlag. Inte verifierat. Påverkar inte index.'));
 }
 
 // ---------------------------------------------------------------- Karta
