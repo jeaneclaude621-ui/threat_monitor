@@ -25,7 +25,7 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 - Behörighetsspärren stoppar `wrangler deploy` om inte användaren har sagt
   till uttryckligen i samma meddelande.
 
-**Anfallskartan v2 (1 nov, pushad, väntar på `wrangler deploy`):** målen tas
+**Anfallskartan v2 (driftsatt 1 nov):** målen tas
 ur `target_main` (72 av 112 rader har målregioner, nu spritt över hela
 Ukraina). Rader utan mål ritas som korta, blekande spår. Vapenkort med bild
 och prestanda läses från `webapp/public/forces/systems.json`, som
