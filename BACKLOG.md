@@ -6,8 +6,7 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 ## Att följa upp
 
 ### Kolla den första dagliga bedömningen av Rysslands handlingsalternativ
-*Lagt till 2026-11-01.* Den första körs efter den första morgonrapporten
-efter driftsättningen.
+*Lagt till 2026-11-01.* Den första körs efter morgonrapporten 2 nov kl. 04.
 
 Kontrollera:
 - att tecknen markeras rimligt, att observerat betyder att något faktiskt
@@ -98,6 +97,9 @@ Förutsättningar:
 Öppen fråga: ska Narrativ vara publikt eller bara för inloggade?
 
 ## Klart
+
+- 2026-11-01: Rysslands handlingsalternativ. Uppdateras varje dag efter
+  morgonrapporten, 1 anrop. Den ryska sidan i Narrativ hålls utanför.
 
 - 2026-11-01: Nato. En flik bredvid Svenska myndigheter, i samma Gemini-anrop
   (alternativ 1), översatt till svenska. Raden på Idag heter "Sverige och
