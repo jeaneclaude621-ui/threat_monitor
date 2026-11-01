@@ -60,6 +60,7 @@ jobs:
           FORCES_SURVEY_MODEL: ${{ vars.FORCES_SURVEY_MODEL }}
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+          STRIKES_DEBUG: ${{ vars.STRIKES_DEBUG }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}

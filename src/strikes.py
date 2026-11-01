@@ -157,6 +157,14 @@ def run(dry_run: bool = False):
     if rows is None:
         print("  Strikes: KAGGLE_USERNAME / KAGGLE_KEY not set; skipped")
         return
+    if os.environ.get("STRIKES_DEBUG"):
+        print("  Columns:", list(rows[0].keys()))
+        for r in rows[-6:]:
+            print("  ROW", {k: v[:120] for k, v in r.items() if v})
+        from collections import Counter as C
+        print("  Targets:", C(r.get("target", "") for r in rows[-400:]).most_common(15))
+        print("  Affected:", C(r.get("affected_region", "") for r in rows[-400:]).most_common(15))
+        print("  Models:", C(r.get("model", "") for r in rows[-1500:]).most_common(40))
     data = build(rows, date.today())
     print(f"  Strikes: {len(rows)} rows in the dataset, {len(data['days'])} nights in the last {DAYS} days"
           + (f", newest {data['days'][0]['date']}" if data["days"] else ""))
