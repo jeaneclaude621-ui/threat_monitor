@@ -27,13 +27,11 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
   `env -u CLOUDFLARE_API_TOKEN npx wrangler d1 migrations apply hotmonitor --remote`
   (0013_strikes.sql) och `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`.
 
-**Väntar på användaren:**
-- Kaggle-konto: GitHub-hemligheterna `KAGGLE_USERNAME` och `KAGGLE_KEY`
-  (`gh secret set ...`). Utan dem hoppar `strikes.py` över. När de finns:
-  kör jobbet `strikes` och läs loggen efter "places not on the map", och
-  lägg till de platserna i `LAUNCH`/`TARGET`. Kontrollera också att
-  datasetets kolumner (`launch_place`, `target`, `model`, `launched`,
-  `destroyed`, `time_end`) stämmer.
+**Kaggle: klart 1 nov.** Hemligheterna är satta, och jobbet `strikes` hämtade
+4306 rader och 30 nätter (senast 31 okt, 134 Shahed varav 105 nedskjutna).
+Uppladdningen ger 404 tills Workern är driftsatt (v3.13). Saknade
+platsnamn läggs till i `LAUNCH` och `TARGET` i `src/strikes.py` (loggraden
+"places not on the map").
 
 **Pågår:**
 - Veckosökningen: första fullständiga körningen klar 1 nov 23:16
