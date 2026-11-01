@@ -663,3 +663,7 @@ button.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 
 .hero-more > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--hero-muted); min-height: 32px; padding-top: 6px; }
 .newline { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
   font-size: 14px; padding: 4px 12px; border-radius: 12px; background: var(--amber-soft); color: var(--neg-fg); }
+.ru-link { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 12px;
+  border: 1px solid #D9A89B; background: var(--card); color: #8A1F12; font-size: 14px; font-weight: 600; text-decoration: none; }
+.ru-link .chev { margin-left: auto; }
+@media (prefers-color-scheme: dark) { .ru-link { border-color: #6B3A2E; color: #F4A28C; } }

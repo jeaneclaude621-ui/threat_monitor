@@ -148,7 +148,8 @@ async function route({ keepScroll = false } = {}) {
     case 'arkiv': tab = 'arkiv'; view = () => viewArchive(q); break;
     case 'amnen': tab = 'amnen'; view = () => viewTopics(q); break;
     case 'karta': tab = 'karta'; view = () => viewMap(q); break;
-    case 'trender': tab = 'trender'; view = () => viewTrends(q); break;
+    // #/trender is the tab's first name; links to it still work.
+    case 'narrativ': case 'trender': tab = 'narrativ'; view = () => viewTrends(q); break;
     case 'bedom': tab = 'bedom'; view = () => viewAssess(q); break;
     case 'mina': tab = 'bedom'; view = () => viewMine(); break;
     case 'kalla': view = () => viewSource(rest.join('/')); break;
@@ -706,6 +707,9 @@ async function viewReport(date, q) {
             h('p', { class: 'small' }, `Inga händelser ${archived ? 'den dagen' : 'i dag'} för ${selected.map(facetLabel).join(' + ')}.`),
             h('a', { class: 'btn', href: `#/arkiv?f=${encodeURIComponent(selected.join(','))}&r=30` }, 'Visa i arkivet'))
           : h('p', { class: 'muted' }, 'Inga händelser registrerade.')),
+    // Into the Narrativ tab's Russian side, which still asks first.
+    archived ? null : h('a', { class: 'ru-link', href: '#/narrativ?s=ru' },
+      h('span', { class: 'ru-label' }, 'Rysk sida'), ' Visa det ryska narrativet', chevRight()),
     feed.length || !archived ? h('section', { class: 'section' },
       h('div', { class: 'sec-head' },
         h('h2', { class: 'kicker' }, feedTitle),
@@ -1447,7 +1451,7 @@ function russianGate() {
       'Det är propaganda och påståenden, och i metoden en utesluten källa. Det visas för att du ska se vilka berättelser som drivs – aldrig som belägg för att något har hänt.'),
     h('div', { class: 'btn-row' },
       h('button', { class: 'btn primary', type: 'button', onclick: () => { setShowRussian(true); rerender(); } }, 'Visa rysk sida'),
-      h('a', { class: 'btn', href: '#/trender' }, 'Tillbaka till öppna källor')));
+      h('a', { class: 'btn', href: '#/narrativ' }, 'Tillbaka till öppna källor')));
 }
 
 function trendRow(t, ru, threadEvents) {
@@ -1477,10 +1481,10 @@ function trendRow(t, ru, threadEvents) {
 async function viewTrends(q) {
   const ru = q.get('s') === 'ru';
   const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Vilken sida' },
-    h('button', { type: 'button', 'aria-pressed': String(!ru), onclick: () => { location.hash = '#/trender'; } }, 'Öppna källor'),
-    h('button', { type: 'button', 'aria-pressed': String(ru), class: 'seg-ru', onclick: () => { location.hash = '#/trender?s=ru'; } }, 'Rysk sida'));
+    h('button', { type: 'button', 'aria-pressed': String(!ru), onclick: () => { location.hash = '#/narrativ'; } }, 'Öppna källor'),
+    h('button', { type: 'button', 'aria-pressed': String(ru), class: 'seg-ru', onclick: () => { location.hash = '#/narrativ?s=ru'; } }, 'Rysk sida'));
   const head = frag(
-    h('header', { class: 'page-head' }, h('h1', { class: 'title-l' }, 'Trender')),
+    h('header', { class: 'page-head' }, h('h1', { class: 'title-l' }, 'Narrativ')),
     h('p', { class: 'hint' }, 'Det som sprids just nu. Inte bedömt och inte bekräftat – påverkar inte rapporten, trådarna eller index.'),
     seg);
   if (ru && !showRussian()) return frag(head, russianGate());
@@ -1501,7 +1505,7 @@ async function viewTrends(q) {
     ru ? h('div', { class: 'notice err ru-banner', role: 'note' },
       h('b', null, 'Rysk sida · utesluten källa. '),
       'Propaganda och påståenden från rysk statsmedia och prokremlska kanaler – inte belägg. ',
-      h('button', { class: 'linkbtn', type: 'button', onclick: () => { setShowRussian(false); location.hash = '#/trender'; } }, 'Dölj den ryska sidan')) : null,
+      h('button', { class: 'linkbtn', type: 'button', onclick: () => { setShowRussian(false); location.hash = '#/narrativ'; } }, 'Dölj den ryska sidan')) : null,
     summary && summary.text ? h('section', { class: `card card-pad${ru ? ' trend-ru' : ''}` },
       h('div', { class: 'kicker' }, `Dygnets sammanfattning · ${dateShort(summary.date)}`),
       h('p', { class: 'body-sm' }, summary.text)) : null,

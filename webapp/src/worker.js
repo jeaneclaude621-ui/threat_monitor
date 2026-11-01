@@ -60,7 +60,7 @@ const INVITE_ID_RE = /^[0-9a-f-]{36}$/;
 const RUN_JOBS = {
   daily: { label: 'Morgonrapport', hours: [4], maxMinutes: 45, workflow: 'scheduled-jobs.yml' },
   hourly: { label: 'Trådbevakning', hours: [12, 16, 21], maxMinutes: 20, workflow: 'scheduled-jobs.yml' },
-  trends: { label: 'Trender', hours: [8, 12, 16, 21], maxMinutes: 15, workflow: 'trends.yml' },
+  trends: { label: 'Narrativ', hours: [8, 12, 16, 21], maxMinutes: 15, workflow: 'trends.yml' },
 };
 const RUN_START_GRACE_MIN = 75;   // GitHub's own cron, the fallback, can lag
 const RUN_ID_RE = /^[0-9a-f]{32}$/;

@@ -449,3 +449,7 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   (localStorage `hm.showRussianSide`), and every item, the summary and a
   banner carry "Rysk sida · utesluten källa".
 - Migration 0008_trends.sql. Service worker hm-v3.12.
+- 1 Nov: the tab is called "Narrativ" (`#/narrativ`; `#/trender` still
+  works), the status page's job label too, and Idag links to the Russian
+  side ("Visa det ryska narrativet", in red), which asks first as before.
+  Service worker hm-v3.14.
