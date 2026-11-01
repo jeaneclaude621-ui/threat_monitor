@@ -64,7 +64,7 @@ AGENCIES = [
      None, False),
     ("MUST", ["forsvarsmakten.se"], [],
      [("MUST underrättelse", 7), ('"Militära underrättelse- och säkerhetstjänsten"', 7)],
-     None, False),
+     r"\bMUST\b|militära underrättelse", False),
     ("MCF", ["mcf.se"],
      ["https://www.mcf.se/sv/rss-floden/rss-alla-nyheter-fran-myndigheten-for-civilt-forsvar/"],
      [('"Myndigheten för civilt försvar"', 7)],
@@ -186,6 +186,11 @@ Respond as strict JSON:
         cited = [refs[r] for r in it.get("refs") or [] if r in refs]
         if it.get("agency") not in names or not cited or not isinstance(it.get("text_sv"), str):
             continue
+        # Under the authority its sources were found for, not where the
+        # model put it (1 Nov: Försvarsmakten's warning filed under MUST).
+        groups = [g for g, _ in cited]
+        if it["agency"] not in groups:
+            it["agency"] = max(set(groups), key=groups.count)
         newest = max(a["published"] for _, a in cited)
         media = sorted({_outlet(a) for _, a in cited if not a["own"]})
         link = next((a.get("link") for _, a in cited if a["own"]), None) or cited[0][1].get("link")
