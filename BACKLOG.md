@@ -36,13 +36,12 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
   `destroyed`, `time_end`) stämmer.
 
 **Pågår:**
-- Veckosökningens första fullständiga körning (jobbet `forces_survey`,
-  GitHub-körning 41354621818). Den första körningen föll på ett fel
-  ("client has been closed"), som är rättat. Kontrollera:
-  - vilken modell som valdes;
-  - hur många baser som lästes;
-  - att flash-lite inte delar kvot med huvudmodellen.
-  Om ingen modell hittas, sätt repo-variabeln `FORCES_SURVEY_MODEL`.
+- Veckosökningen: första fullständiga körningen klar 1 nov 23:16
+  (`gemini-3.5-flash-lite`, valdes automatiskt). 228 baser lästa, 113 med
+  förband, 34 utan Wikipedia-artikel. Stickprov bra (Engels-2,
+  Gadzjijevo, Migalovo). Nedlagda baser (t.ex. Orlovka, stängd 2001)
+  syns som "status okänd"; överväg en egen status "nedlagd" från
+  veckosökningen.
 - Molnjobb (Claude Code i molnet, användarens krediter) bygger
   grunddatabasen på grenen `grunddata-styrkor`:
   - `config/forces_db/bases.json`, `units.json` och `systems.json`;
