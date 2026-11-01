@@ -716,3 +716,6 @@ button.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 
 @media (prefers-color-scheme: dark) {
   .coa-tile.ru { fill: #4A2A26; } .coa-tile.sea { fill: #1B2A44; stroke: #2A3A5A; } .coa-tile.hit { fill: #243B5C; }
 }
+.coa-toc .row { gap: 10px; }
+.coa-toc .coa-badge { flex-shrink: 0; min-width: 92px; text-align: center; }
+.coa-card { scroll-margin-top: 12px; }

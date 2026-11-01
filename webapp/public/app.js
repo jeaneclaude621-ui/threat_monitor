@@ -151,7 +151,7 @@ async function route({ keepScroll = false } = {}) {
     // #/trender is the tab's first name; links to it still work.
     case 'narrativ': case 'trender': tab = 'narrativ'; view = () => viewTrends(q); break;
     case 'myndigheter': view = () => viewAuthorities(q); break;
-    case 'handlingsalternativ': view = () => viewCourses(q); break;
+    case 'handlingsalternativ': view = () => viewCourses(); break;
     case 'bedom': tab = 'bedom'; view = () => viewAssess(q); break;
     case 'mina': tab = 'bedom'; view = () => viewMine(); break;
     case 'kalla': view = () => viewSource(rest.join('/')); break;
@@ -1560,25 +1560,32 @@ function coursesRow() {
     chevRight());
 }
 
-async function viewCourses(q) {
-  const pick = COURSES.find((c) => c.id === q.get('a')) || COURSES[0];
+// All three under headings of their own, with a contents list on top.
+function coaSection(c, i) {
+  return h('section', { class: `card card-pad coa-card ${c.tone}`, id: `coa-${c.id}` },
+    h('div', { class: 'coa-head-row' },
+      h('span', { class: `coa-badge ${c.tone}` }, `${i + 1}. ${c.label}`), h('span', { class: 'small muted' }, c.sub)),
+    h('h2', { class: 'coa-title' }, c.title),
+    coaMap(c),
+    coaLegend(c),
+    h('p', { class: 'body-sm' }, c.text.join(' ')),
+    h('div', { class: 'kicker' }, 'Tecken att bevaka'),
+    h('div', { class: 'chips' }, c.signs.map((t) => h('span', { class: 'chip' }, t))));
+}
+
+async function viewCourses() {
+  const jump = (id) => (ev) => { ev.preventDefault(); document.getElementById(`coa-${id}`).scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   return frag(backLink('#/', 'Idag'),
     h('header', { class: 'page-head' }, h('div', null,
       h('div', { class: 'kicker' }, 'Prototyp · underlag 25 okt–1 nov'),
       h('h1', { class: 'title-l' }, 'Rysslands handlingsalternativ'))),
     h('p', { class: 'hint' }, 'Hur Ryssland kan flytta fram sina positioner, splittra Europa och skapa buffertzoner – med våld, hot eller ombud.'),
-    h('div', { class: 'seg coa-seg', role: 'group', 'aria-label': 'Alternativ' },
-      COURSES.map((c) => h('button', { type: 'button', class: `coa-tab ${c.tone}`, 'aria-pressed': String(c === pick),
-        onclick: () => { location.hash = `#/handlingsalternativ?a=${c.id}`; } }, c.label))),
-    h('section', { class: `card card-pad coa-card ${pick.tone}` },
-      h('div', { class: 'coa-head-row' },
-        h('span', { class: `coa-badge ${pick.tone}` }, pick.label), h('span', { class: 'small muted' }, pick.sub)),
-      h('h2', { class: 'coa-title' }, pick.title),
-      coaMap(pick),
-      coaLegend(pick),
-      h('p', { class: 'body-sm' }, pick.text.join(' ')),
-      h('div', { class: 'kicker' }, 'Tecken att bevaka'),
-      h('div', { class: 'chips' }, pick.signs.map((t) => h('span', { class: 'chip' }, t)))),
+    h('nav', { class: 'card list coa-toc', 'aria-label': 'Alternativen' }, COURSES.map((c, i) =>
+      h('a', { class: 'row', href: `#coa-${c.id}`, onclick: jump(c.id) },
+        h('span', { class: `coa-badge ${c.tone}` }, `${i + 1}. ${c.label}`),
+        h('span', { class: 'row-main' }, h('span', { class: 'row-title' }, c.title)),
+        chevDown()))),
+    COURSES.map(coaSection),
     h('p', { class: 'notice' }, 'Prototyp. Bedömningen är skriven för hand utifrån veckans insamlade material (rapporter, myndigheter, Nato, Narrativ och Cornucopia), inte av modellen, och påverkar inte index. Kartan är schematisk.'));
 }
 
