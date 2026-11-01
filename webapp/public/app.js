@@ -150,7 +150,7 @@ async function route({ keepScroll = false } = {}) {
     case 'karta': tab = 'karta'; view = () => viewMap(q); break;
     // #/trender is the tab's first name; links to it still work.
     case 'narrativ': case 'trender': tab = 'narrativ'; view = () => viewTrends(q); break;
-    case 'myndigheter': view = () => viewAuthorities(); break;
+    case 'myndigheter': view = () => viewAuthorities(q); break;
     case 'bedom': tab = 'bedom'; view = () => viewAssess(q); break;
     case 'mina': tab = 'bedom'; view = () => viewMine(); break;
     case 'kalla': view = () => viewSource(rest.join('/')); break;
@@ -1438,12 +1438,12 @@ async function viewTopics(q) {
 // from media rather than the authority itself.
 function authoritiesRow(brief) {
   if (!brief || !Array.isArray(brief.items)) return null;
-  const fresh = brief.items.filter((i) => i.fresh).length;
+  const fresh = [...brief.items, ...((brief.nato && brief.nato.items) || [])].filter((i) => i.fresh).length;
   return h('a', { class: 'menurow', href: '#/myndigheter' },
     h('span', { class: 'se-flag', 'aria-hidden': 'true' }),
     h('span', { class: 'row-main' },
-      h('span', { class: 'row-title' }, 'Svenska myndigheter'),
-      h('span', { class: 'row-sub' }, 'Vad de säger om läget · senaste dygnet')),
+      h('span', { class: 'row-title' }, 'Sverige och Nato'),
+      h('span', { class: 'row-sub' }, 'Vad myndigheterna och alliansen säger · senaste dygnet')),
     fresh ? h('span', { class: 'nbadge' }, `${fresh} ${fresh === 1 ? 'ny' : 'nya'}`) : null,
     chevRight());
 }
@@ -1453,35 +1453,42 @@ function authorityRow(it) {
     h('span', { class: 'row-main' },
       h('span', { class: 'row-title' }, it.agency),
       h('span', { class: 'body-sm' }, it.text_sv),
-      h('span', { class: 'row-sub' }, `${it.via ? `Via ${it.via}` : 'Myndighetens egen kanal'} · ${dateShort(it.date)}`),
+      h('span', { class: 'row-sub' }, `${it.via ? `Via ${it.via}` : 'Egen kanal'} · ${dateShort(it.date)}`),
       it.url ? h('span', null, externalButton(it.url, { outlet: it.via || it.agency }, 'Källan')) : null),
     it.fresh ? h('span', { class: 'nbadge' }, '24 h') : null);
 }
 
-async function viewAuthorities() {
+// Two tabs: the Swedish authorities, and NATO (?s=nato), from the same brief.
+async function viewAuthorities(q) {
   const brief = await loadAuthorities();
   const back = backLink('#/', 'Idag');
   if (!brief) return frag(back, emptyState('Ingen sammanställning ännu. Den görs kl. 07 och 17.'));
-  const at = new Date(brief.generated_at);
-  const fresh = brief.items.filter((i) => i.fresh);
-  const older = brief.items.filter((i) => !i.fresh);
+  const isNato = q.get('s') === 'nato';
+  const part = isNato ? (brief.nato || { overall_sv: null, items: [] }) : brief;
+  const fresh = part.items.filter((i) => i.fresh);
+  const older = part.items.filter((i) => !i.fresh);
   return frag(back,
     h('header', { class: 'page-head' }, h('div', null,
-      h('div', { class: 'kicker' }, `Sammanställt ${tsFmt(at)}`),
-      h('h1', { class: 'title-l' }, 'Svenska myndigheter'))),
-    brief.overall_sv ? h('section', { class: 'card card-pad' },
-      h('div', { class: 'kicker amber' }, 'Läget överlag'),
-      h('p', { class: 'body-sm' }, brief.overall_sv)) : null,
+      h('div', { class: 'kicker' }, `Sammanställt ${tsFmt(new Date(brief.generated_at))}`),
+      h('h1', { class: 'title-l' }, 'Sverige och Nato'))),
+    h('div', { class: 'seg', role: 'group', 'aria-label': 'Vems uppgifter' },
+      h('button', { type: 'button', 'aria-pressed': String(!isNato), onclick: () => { location.hash = '#/myndigheter'; } }, 'Svenska myndigheter'),
+      h('button', { type: 'button', 'aria-pressed': String(isNato), onclick: () => { location.hash = '#/myndigheter?s=nato'; } }, 'Nato')),
+    part.overall_sv ? h('section', { class: 'card card-pad' },
+      h('div', { class: 'kicker amber' }, isNato ? 'Natos linje' : 'Läget överlag'),
+      h('p', { class: 'body-sm' }, part.overall_sv)) : null,
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Senaste dygnet'),
       fresh.length ? h('div', { class: 'card list' }, fresh.map(authorityRow))
-        : h('p', { class: 'small muted' }, 'Inget nytt från myndigheterna det senaste dygnet.')),
+        : h('p', { class: 'small muted' }, isNato ? 'Inget nytt från Nato det senaste dygnet.' : 'Inget nytt från myndigheterna det senaste dygnet.')),
     older.length ? h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Senaste veckan'),
       h('div', { class: 'card list' }, older.map(authorityRow))) : null,
-    brief.quiet && brief.quiet.length ? h('p', { class: 'small muted' }, h('b', null, 'Inget nytt hittat: '), brief.quiet.join(', ')) : null,
-    h('p', { class: 'notice' }, 'AI-sammanfattning av myndigheternas egna kanaler och svensk nyhetsrapportering. ',
-      '"Via" betyder att uppgiften kommer från medier, inte direkt från myndigheten. Påverkar inte index eller rapportens bedömningar. Uppdateras kl. 07 och 17.'));
+    !isNato && brief.quiet && brief.quiet.length ? h('p', { class: 'small muted' }, h('b', null, 'Inget nytt hittat: '), brief.quiet.join(', ')) : null,
+    h('p', { class: 'notice' }, isNato
+      ? 'AI-sammanfattning, översatt till svenska, av Natos egna kanaler och internationell rapportering. '
+      : 'AI-sammanfattning av myndigheternas egna kanaler och svensk nyhetsrapportering. ',
+    '"Via" betyder att uppgiften kommer från medier. Påverkar inte index eller rapportens bedömningar. Uppdateras kl. 07 och 17.'));
 }
 
 // ---------------------------------------------------------------- trends (Version 3.9)

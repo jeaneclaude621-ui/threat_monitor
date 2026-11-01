@@ -35,7 +35,8 @@ produces a consolidated PowerPoint status report every morning at 04:00.
   also read by nothing else: one Gemini summary of what Försvarsmakten, MUST,
   MCF, the Government, the Police, Säpo, Tullverket and Kustbevakningen say
   about the security situation, from their own feeds and from Swedish media
-  ("via"). A row on the app's Idag page leads to it.
+  ("via"), and in the same call what NATO itself says, in Swedish. A row
+  on the app's Idag page, "Sverige och Nato", leads to it.
 - Persists everything in `data/state.json`: source-tier methodology,
   outlet transparency scores, author track records (evidence-based
   only \u2014 corrections and contradictions, never subjective judgments),

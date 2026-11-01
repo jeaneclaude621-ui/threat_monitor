@@ -1070,6 +1070,7 @@ async function ingestTrends(request, env) {
 // The Swedish authorities' brief (Version 3.10), read by nothing else here
 // ---------------------------------------------------------------------------
 const AUTHORITIES = new Set(['Försvarsmakten', 'MUST', 'MCF', 'Regeringen', 'Polisen', 'Säpo', 'Tullverket', 'Kustbevakningen']);
+const NATO_TOPICS = new Set(['Generalsekreteraren', 'Militära kommandon', 'Östersjön och östflanken', 'Ukraina', 'EU och partner', 'Övrigt']);
 const AUTHORITY_BRIEFS_KEEP = 60;
 
 async function ingestAuthorities(request, env) {
@@ -1078,16 +1079,24 @@ async function ingestAuthorities(request, env) {
   if (typeof b.generated_at !== 'string' || !TS_RE.test(b.generated_at)) throw new HttpError(400, 'generated_at must be ISO 8601');
   if (typeof b.overall_sv !== 'string' || b.overall_sv.length > 3000) throw new HttpError(400, 'overall_sv must be a string');
   if (!Array.isArray(b.items) || b.items.length > 40) throw new HttpError(400, 'items must be an array of at most 40');
-  const items = b.items.map((it) => {
-    if (!it || !AUTHORITIES.has(it.agency)) throw new HttpError(400, 'each item needs a known agency');
+  const item = (known) => (it) => {
+    if (!it || !known.has(it.agency)) throw new HttpError(400, 'each item needs a known agency or topic');
     if (typeof it.text_sv !== 'string' || it.text_sv.length > 1000) throw new HttpError(400, `${it.agency}: text_sv must be a string`);
     if (it.url != null && (typeof it.url !== 'string' || !/^https:\/\//.test(it.url) || it.url.length > 2000)) throw new HttpError(400, `${it.agency}: url must be https`);
     if (it.via != null && (typeof it.via !== 'string' || it.via.length > 300)) throw new HttpError(400, `${it.agency}: via must be a string`);
     if (typeof it.date !== 'string' || !DATE_RE.test(it.date)) throw new HttpError(400, `${it.agency}: date must be YYYY-MM-DD`);
     return { agency: it.agency, text_sv: it.text_sv, via: it.via ?? null, url: it.url ?? null, date: it.date, fresh: it.fresh === true };
-  });
+  };
+  const items = b.items.map(item(AUTHORITIES));
   const quiet = Array.isArray(b.quiet) ? b.quiet.filter((a) => AUTHORITIES.has(a)) : [];
-  const data = JSON.stringify({ generated_at: b.generated_at, overall_sv: b.overall_sv, items, quiet });
+  // NATO (1 Nov): its own brief in the same row; items carry a topic in `agency`.
+  let nato = null;
+  if (b.nato != null) {
+    if (typeof b.nato !== 'object' || !Array.isArray(b.nato.items) || b.nato.items.length > 20) throw new HttpError(400, 'nato must be { overall_sv, items }');
+    if (b.nato.overall_sv != null && (typeof b.nato.overall_sv !== 'string' || b.nato.overall_sv.length > 3000)) throw new HttpError(400, 'nato.overall_sv must be a string');
+    nato = { overall_sv: b.nato.overall_sv ?? null, items: b.nato.items.map(item(NATO_TOPICS)) };
+  }
+  const data = JSON.stringify({ generated_at: b.generated_at, overall_sv: b.overall_sv, items, quiet, nato });
   await env.DB.batch([
     env.DB.prepare('INSERT INTO authority_briefs (generated_at, data) VALUES (?, ?) ON CONFLICT(generated_at) DO UPDATE SET data = excluded.data')
       .bind(b.generated_at, data),

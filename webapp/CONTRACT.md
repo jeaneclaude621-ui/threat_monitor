@@ -475,3 +475,8 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   agency's own.
 - Migration 0010_authorities.sql; the dispatch cron gains 05 and 16 UTC.
   Service worker hm-v3.17.
+- 1 Nov: NATO in the same brief and Gemini call: `nato: { overall_sv,
+  items }`, items with a topic in `agency` (Generalsekreteraren, Militära
+  kommandon, Östersjön och östflanken, Ukraina, EU och partner, Övrigt),
+  translated into Swedish. The Idag row is "Sverige och Nato"; the page has
+  two tabs (`#/myndigheter`, `?s=nato`). Service worker hm-v3.19.

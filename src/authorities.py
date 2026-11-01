@@ -1,8 +1,8 @@
 """
 What the Swedish authorities say: Försvarsmakten, MUST, MCF, the
 Government, the Police, Säpo, Tullverket and Kustbevakningen - on the
-situation overall, and the last 24 hours. Runs at 07:00 and 17:00
-Stockholm.
+situation overall, and the last 24 hours - and, in the same call, what
+NATO itself says, in Swedish. Runs at 07:00 and 17:00 Stockholm.
 
 A page of its own beside the analysis, like the trends feed: nothing else
 reads data/authorities.json, and this job only writes there and to the
@@ -20,7 +20,11 @@ sees it: Försvarsmakten's job ads, other countries' coast guards,
 unrelated local crime. Old stories republished with a new date (a 2022 TV4
 clip in the 1 Nov test) are left to the model.
 
-One Gemini call a run.
+NATO's own feeds answer 404 and its commands' sites (SHAPE, MARCOM,
+AIRCOM) refuse scripts (403, 1 Nov 2026); nato.int is read through Google
+News for its own site, with international reporting beside it.
+
+One Gemini call a run, for both.
 
     python3 src/authorities.py            # collect, summarise, upload
     python3 src/authorities.py --dry-run  # print what it would send, no call
@@ -88,6 +92,39 @@ AGENCIES = [
 ]
 
 
+# NATO: (query, days, own channel). Its own site's pages that are not news
+# ("Home", "Monthly Archives") are dropped.
+NATO = "Nato"
+NATO_QUERIES = [
+    ("site:nato.int", 7, True),
+    ("NATO Secretary General Rutte", 3, False),
+    ('NATO SHAPE OR "Allied Maritime Command" OR "Allied Air Command"', 7, False),
+    ('NATO "Baltic Sentry" OR "Eastern Sentry" OR "air policing" OR "eastern flank"', 3, False),
+]
+NATO_NAMES = re.compile(r"\bNATO\b|\bNato\b|\bOTAN\b|Rutte|SHAPE|Allied (Air|Maritime|Land|Command)", re.I)
+NATO_NOT_NEWS = re.compile(r"^(Home|Remarks|Monthly Archives|Archive|Search)\b|Portal|Science and Technology Organization$", re.I)
+NATO_TOPICS = ["Generalsekreteraren", "Militära kommandon", "Östersjön och östflanken", "Ukraina", "EU och partner", "Övrigt"]
+
+
+def gather_nato(now: datetime) -> list:
+    items, kept, seen = [], [], set()
+    for q, days, own in NATO_QUERIES:
+        items += [dict(a, own=own) for a in news_sources.google_news(q, "en", days=days)]
+    for a in sorted(items, key=lambda a: a.get("published") or datetime.min, reverse=True):
+        text = f"{a.get('title', '')} {a.get('summary', '')}"
+        key = re.sub(r"\W+", " ", a.get("title", "").lower()).strip()
+        if not key or key in seen or not a.get("published") or a["published"] < now - timedelta(days=WINDOW_DAYS):
+            continue
+        if (a["own"] and NATO_NOT_NEWS.search(a["title"])) or FOREIGN_SOURCE.search(a.get("source") or ""):
+            continue
+        if not a["own"] and not NATO_NAMES.search(text):
+            continue
+        seen.add(key)
+        kept.append(a)
+    print(f"  {NATO}: {len(kept[:2 * MAX_PER_AGENCY])} item(s)")
+    return kept[:2 * MAX_PER_AGENCY]
+
+
 def _outlet(article: dict) -> str:
     """A short outlet name: "Omni – Alla nyheter. Alla perspektiv." is Omni,
     a bare address its domain."""
@@ -135,6 +172,7 @@ def gather(now: datetime) -> dict:
             kept.append(a)
         out[name] = kept[:MAX_PER_AGENCY]
         print(f"  {name}: {len(out[name])} item(s)")
+    out[NATO] = gather_nato(now)
     return out
 
 
@@ -145,72 +183,101 @@ def summarise(material: dict, now: datetime) -> dict:
         for a in items:
             ref = f"A{len(refs) + 1}"
             refs[ref] = (name, a)
-            source = name if a["own"] else _outlet(a)
+            source = (name if name != NATO else "nato.int") if a["own"] else _outlet(a)
             lines.append(f"[{ref}] {a['published']:%Y-%m-%d %H:%M} · {source} · {a['title']}"
                          + (f" - {a['summary'][:300]}" if a.get("summary") and a["summary"] != a["title"] else ""))
         blocks.append(f"=== {name}\n" + ("\n".join(lines) or "(nothing found)"))
+    names = [a[0] for a in AGENCIES]
     prompt = f"""It is {now:%Y-%m-%d %H:%M} in Stockholm. Below is what was published in the
-last {WINDOW_DAYS} days by or about Swedish authorities, grouped by authority: their own
-channels, and Swedish media reporting what they say. Each item has a ref.
+last {WINDOW_DAYS} days by or about Swedish authorities, grouped by authority, and, last,
+by or about NATO: their own channels, and media reporting what they say.
+Each item has a ref.
 
 {chr(10).join(blocks)}
 
-Write a short brief, in natural Swedish, of what these authorities say
-about the security situation - Russia, hybrid threats, defence, espionage,
-sabotage, preparedness, the Baltic Sea:
+Write two short briefs, both in natural Swedish (translate what is in
+English), on the security situation - Russia, hybrid threats, defence,
+espionage, sabotage, preparedness, the Baltic Sea, Ukraine:
 
-- "overall_sv": 3-5 sentences on the situation as the authorities describe
-  it, from all of it together.
+1. The Swedish authorities ({", ".join(names)}):
+- "overall_sv": 3-5 sentences on the situation as these authorities
+  describe it, from all of it together.
 - "items": the things worth knowing, at most 3 per authority, newest
-  first. Each: "agency" (exactly one of the names above), "refs" (the refs
-  it rests on), "text_sv" (one or two sentences, max ~40 words: who said or
-  did what). Write what the authority says or does; when it rests on media,
-  write it as reported ("enligt TV4"), never stronger than the source.
-  Give a person's title or role only as the items state it, never from
-  your own knowledge; when unsure, give the name alone. Put an item under
-  the authority it is really about, not under the query that found it.
-  Prefer established Swedish media over aggregator and content-farm sites.
+  first. Each: "agency" (exactly one of those names), "refs", "text_sv"
+  (one or two sentences, max ~40 words: who said or did what).
 
-Leave out: job ads, routine and local matters unrelated to security,
-items about other countries' authorities, and anything that is an old
-story republished (e.g. events from 2022 or earlier). An authority with
-nothing worth knowing gets no items.
+2. NATO (the "=== {NATO}" group):
+- "nato_overall_sv": 3-4 sentences on NATO's line: what NATO itself says
+  and does.
+- "nato_items": at most 8, newest first. Each: "topic" (exactly one of:
+  {", ".join(NATO_TOPICS)}), "refs", "text_sv" (one or two sentences, max
+  ~40 words).
+
+For both: write what the authority or NATO says or does; when it rests on
+media, write it as reported ("enligt TV4", "enligt Reuters"), never
+stronger than the source. Give a person's title or role only as the items
+state it, never from your own knowledge; when unsure, give the name alone.
+Put an item under the authority it is really about, not under the query
+that found it. Prefer established media over aggregator and content-farm
+sites. Leave out job ads, routine and local matters unrelated to security,
+items about other countries' authorities (in part 1), and anything that is
+an old story republished (events from earlier years or months with a new
+date). Nothing worth knowing gives no items.
 
 Respond as strict JSON:
-{{"overall_sv": "...", "items": [{{"agency": "...", "refs": ["A1"], "text_sv": "..."}}]}}"""
+{{"overall_sv": "...", "items": [{{"agency": "...", "refs": ["A1"], "text_sv": "..."}}],
+  "nato_overall_sv": "...", "nato_items": [{{"topic": "...", "refs": ["A9"], "text_sv": "..."}}]}}"""
     result = ask_model_json(prompt, system="You brief a Swedish security analysis team on what Swedish "
-                            "authorities say. Strict JSON only.", max_tokens=4000)
-    names = [a[0] for a in AGENCIES]
-    items = []
-    for it in result.get("items") or []:
+                            "authorities and NATO say. Strict JSON only.", max_tokens=6000)
+
+    def build(it, label):
         cited = [refs[r] for r in it.get("refs") or [] if r in refs]
-        if it.get("agency") not in names or not cited or not isinstance(it.get("text_sv"), str):
-            continue
-        # Under the authority its sources were found for, not where the
-        # model put it (1 Nov: Försvarsmakten's warning filed under MUST).
-        groups = [g for g, _ in cited]
-        if it["agency"] not in groups:
-            it["agency"] = max(set(groups), key=groups.count)
+        if not cited or not isinstance(it.get("text_sv"), str):
+            return None
         newest = max(a["published"] for _, a in cited)
         media = sorted({_outlet(a) for _, a in cited if not a["own"]})
         link = next((a.get("link") for _, a in cited if a["own"]), None) or cited[0][1].get("link")
         if link and "news.google.com/rss/articles/" in link:
             link = news_sources.decode_google_link(link)
-        items.append({
-            "agency": it["agency"], "text_sv": it["text_sv"].strip(),
+        return {
+            "agency": label, "text_sv": it["text_sv"].strip(),
             "via": (", ".join(media[:-1]) + " och " + media[-1] if len(media) > 1 else media[0])
                    if media and not any(a["own"] for _, a in cited) else None,
             "date": f"{newest:%Y-%m-%d}", "url": link if link and link.startswith("https://") else None,
             "fresh": newest >= now - timedelta(hours=FRESH_HOURS),
-        })
+        }, [g for g, _ in cited]
+
+    items = []
+    for it in result.get("items") or []:
+        built = build(it, it.get("agency")) if it.get("agency") in names else None
+        if not built:
+            continue
+        item, groups = built
+        # Under the authority its sources were found for, not where the
+        # model put it (1 Nov: Försvarsmakten's warning filed under MUST).
+        groups = [g for g in groups if g in names]
+        if not groups:
+            continue
+        if item["agency"] not in groups:
+            item["agency"] = max(set(groups), key=groups.count)
+        items.append(item)
     # Agencies in their order above, each newest first.
     items.sort(key=lambda i: i["date"], reverse=True)
     items.sort(key=lambda i: names.index(i["agency"]))
+
+    nato_items = []
+    for it in result.get("nato_items") or []:
+        built = build(it, it.get("topic") if it.get("topic") in NATO_TOPICS else "Övrigt")
+        if built and NATO in built[1]:
+            nato_items.append(built[0])
+    nato_items.sort(key=lambda i: i["date"], reverse=True)
+
     return {
         "generated_at": now.astimezone().isoformat(timespec="seconds"),
         "overall_sv": result.get("overall_sv"),
         "items": items,
         "quiet": [n for n in names if not any(i["agency"] == n for i in items)],
+        "nato": {"overall_sv": result.get("nato_overall_sv"), "items": nato_items},
         "found": {n: len(v) for n, v in material.items()},
     }
 
@@ -229,7 +296,8 @@ def run(dry_run: bool = False):
         return
     brief = summarise(material, now)
     print(f"  Brief: {len(brief['items'])} item(s), {sum(i['fresh'] for i in brief['items'])} from the last "
-          f"{FRESH_HOURS}h; nothing from {', '.join(brief['quiet']) or 'none'}")
+          f"{FRESH_HOURS}h; nothing from {', '.join(brief['quiet']) or 'none'}; "
+          f"NATO: {len(brief['nato']['items'])} item(s)")
     with open(AUTHORITIES_PATH, "w", encoding="utf-8") as f:
         json.dump(brief, f, ensure_ascii=False, indent=1)
     from app_sync import push_authorities
