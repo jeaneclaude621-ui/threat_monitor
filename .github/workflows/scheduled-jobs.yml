@@ -19,7 +19,7 @@ on:
       job:
         description: Job to run
         type: choice
-        options: [hourly, daily, forces]   # forces: the forces map alone (it also runs after daily)
+        options: [hourly, daily, forces, forces_survey, strikes]   # forces: the forces map alone (it also runs after daily)
       test:
         description: "Test run: mail to the sender only, no app upload, nothing saved"
         type: boolean
@@ -57,6 +57,9 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          FORCES_SURVEY_MODEL: ${{ vars.FORCES_SURVEY_MODEL }}
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}

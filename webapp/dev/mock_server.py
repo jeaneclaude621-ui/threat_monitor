@@ -327,6 +327,9 @@ class Handler(SimpleHTTPRequestHandler):
             alarm = {"missing_report": MISSING_DATE if ALARM else None,
                      "checked_at": ago(minutes=12) if ALARM else None}
             return self._json(200, {"email": EMAIL, "role": me["role"], "is_owner": EMAIL == OWNER, "alarm": alarm})
+        if path == "/api/strikes":
+            f = ROOT / "data" / "strikes.json"
+            return self._json(200, json.loads(f.read_text()) if f.exists() else None)
         if path == "/api/forces":
             # The forces map: data/forces.json as the app gets it, if a run made one.
             import sys

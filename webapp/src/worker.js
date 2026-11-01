@@ -25,6 +25,7 @@
  * Version 3.10: the Swedish authorities' brief, also read by nothing else.
  * Version 3.11: Russia's courses of action, updated daily after the report.
  * Version 3.12: the forces map - Russia's bases, units and their status, nightly.
+ * Version 3.13: Russia's air attacks on Ukraine, per night, and a weekly survey of the bases.
  */
 
 import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
@@ -255,6 +256,13 @@ async function route(req) {
     return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
   }
 
+  if (path === '/api/strikes') {
+    allow(method, 'GET');
+    requireUser(who);
+    const row = await env.DB.prepare('SELECT data FROM strike_maps ORDER BY date DESC LIMIT 1').first();
+    return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
+  }
+
   if (path === '/api/forces') {
     allow(method, 'GET');
     requireUser(who);
@@ -305,6 +313,12 @@ async function route(req) {
     allow(method, 'PUT');
     requireMachine(who);
     return ingestCourses(request, env);
+  }
+
+  if (path === '/api/ingest/strikes') {
+    allow(method, 'PUT');
+    requireMachine(who);
+    return ingestStrikes(request, env);
   }
 
   if (path === '/api/ingest/forces') {
@@ -1129,6 +1143,27 @@ async function ingestCourses(request, env) {
 // ---------------------------------------------------------------------------
 const FORCE_BRANCHES = new Set(['flyg', 'marin', 'armé', 'luftvärn', 'robot', 'fallskärm']);
 const FORCE_STATUSES = new Set(['anfallen', 'aktiv', 'okänd']);
+
+async function ingestStrikes(request, env) {
+  const b = await readJson(request);
+  if (!b || typeof b !== 'object' || !DATE_RE.test(b.date || '')) throw new HttpError(400, 'body must be a strike map with a date');
+  if (!Array.isArray(b.days) || b.days.length > 60) throw new HttpError(400, 'days must be an array of at most 60');
+  const place = (p) => p && typeof p.lat === 'number' && typeof p.lon === 'number' && typeof p.name === 'string' && p.name.length <= 200;
+  for (const d of b.days) {
+    if (!d || !DATE_RE.test(d.date || '') || !Array.isArray(d.rows) || d.rows.length > 100) throw new HttpError(400, 'each day needs a date and rows');
+    for (const r of d.rows) {
+      if (!r || typeof r.model !== 'string' || r.model.length > 200) throw new HttpError(400, `${d.date}: each row needs a model`);
+      if (!Array.isArray(r.from) || !Array.isArray(r.to) || !r.from.every(place) || !r.to.every(place)) throw new HttpError(400, `${d.date}: from and to must be places`);
+    }
+  }
+  const data = JSON.stringify(b);
+  if (data.length > MAX_BODY_BYTES) throw new HttpError(413, 'strike map too large');
+  await env.DB.batch([
+    env.DB.prepare('INSERT INTO strike_maps (date, data) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET data = excluded.data').bind(b.date, data),
+    env.DB.prepare("DELETE FROM strike_maps WHERE date < date('now', '-14 days')"),
+  ]);
+  return json({ ok: true });
+}
 
 async function ingestForces(request, env) {
   const b = await readJson(request);

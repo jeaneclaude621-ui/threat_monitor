@@ -5,7 +5,7 @@ import {
   store, onChange, isAdmin, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
-  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities, loadCourses, loadForces,
+  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
 
@@ -152,7 +152,7 @@ async function route({ keepScroll = false } = {}) {
     case 'narrativ': case 'trender': tab = 'narrativ'; view = () => viewTrends(q); break;
     case 'myndigheter': view = () => viewAuthorities(q); break;
     case 'handlingsalternativ': view = () => viewCourses(); break;
-    case 'styrkor': tab = 'styrkor'; view = () => viewForces(); break;
+    case 'styrkor': tab = 'styrkor'; view = () => (q.get('s') === 'anfall' ? viewStrikes() : viewForces()); break;
     case 'bedom': tab = 'bedom'; view = () => viewAssess(q); break;
     case 'mina': tab = 'bedom'; view = () => viewMine(); break;
     case 'kalla': view = () => viewSource(rest.join('/')); break;
@@ -1771,9 +1771,28 @@ async function loadForcesView() {
   if (!data) return null;
   for (const b of data.bases) {
     b.x = FX(b.lon); b.y = FY(b.lat);
-    b.hay = [b.name, b.name_ru, FORCE_BRANCH[b.branch]?.[0], ...b.units, ...b.equipment].map(fnorm);
+    const sv = b.survey || {};
+    b.hay = [b.name, b.name_ru, FORCE_BRANCH[b.branch]?.[0], ...b.units, ...b.equipment, ...(sv.units || []), ...(sv.equipment || [])].map(fnorm);
   }
   return { land: land.countries, bases: data.bases, byId: new Map(data.bases.map((b) => [b.id, b])), data };
+}
+
+// The weekly Wikipedia survey of a base (src/forces_survey.py).
+function surveyBlock(sv) {
+  if (!sv || sv.none || !(sv.summary_sv || (sv.units || []).length || (sv.equipment || []).length)) return null;
+  return h('div', { class: 'fsurvey' },
+    h('h3', { class: 'fsub' }, 'Om basen'),
+    sv.summary_sv ? h('p', { class: 'body-sm' }, sv.summary_sv) : null,
+    (sv.units || []).length ? h('p', { class: 'body-sm' }, h('b', null, 'Förband enligt Wikipedia: '), sv.units.join(', ')) : null,
+    (sv.equipment || []).length ? h('p', { class: 'body-sm' }, h('b', null, 'Materiel enligt Wikipedia: '), sv.equipment.join(', ')) : null,
+    h('p', { class: 'small muted' }, `Veckosökning ${dateShort(sv.date)}`, sv.as_of ? `, uppgifterna avser ${sv.as_of}` : '', '. ',
+      sv.source ? externalButton(sv.source.url, { outlet: sv.source.outlet }, sv.source.outlet) : null));
+}
+
+function forcesSeg(strikes) {
+  return h('div', { class: 'seg', role: 'group', 'aria-label': 'Visa' },
+    h('button', { type: 'button', 'aria-pressed': String(!strikes), onclick: () => { location.hash = '#/styrkor'; } }, 'Ryska baser'),
+    h('button', { type: 'button', 'aria-pressed': String(strikes), onclick: () => { location.hash = '#/styrkor?s=anfall'; } }, 'Anfall mot Ukraina'));
 }
 
 function forceSources(list) {
@@ -1784,7 +1803,7 @@ async function viewForces() {
   const loaded = await loadForcesView();
   if (!loaded) {
     return frag(h('header', { class: 'page-head' }, h('div', null, h('h1', { class: 'title-xl' }, 'Styrkor'))),
-      emptyState('Ingen lägesbild ännu. Den görs varje natt efter morgonrapporten kl. 04.'));
+      forcesSeg(false), emptyState('Ingen lägesbild ännu. Den görs varje natt efter morgonrapporten kl. 04.'));
   }
   const { land, bases, byId, data } = loaded;
   let vb = forcesUi.vb || { ...FULL };
@@ -1913,7 +1932,9 @@ async function viewForces() {
         h('ul', { class: 'coa-signs' }, events.map((e) => h('li', { class: `coa-sign ${e.kind === 'anfallen' ? 'obs' : 'part'}` },
           h('i'), h('span', null, h('b', null, `${dateShort(e.date)} ${e.date.slice(0, 4)}${e.kind === 'uppföljning' ? ', uppföljning' : ''}: `), e.text_sv,
             ' ', forceSources(e.sources)))))) : null,
-      !b.curated && !b.units.length && !b.equipment.length ? h('p', { class: 'small muted' }, 'Bara position och typ är kända (Wikidata). Förband saknas än.') : null,
+      surveyBlock(b.survey),
+      !b.curated && !b.units.length && !b.equipment.length && !(b.survey && b.survey.summary_sv)
+        ? h('p', { class: 'small muted' }, b.survey ? 'Bara position och typ är kända: Wikipedia har ingen artikel om basen.' : 'Bara position och typ är kända än. Veckosökningen läser basens Wikipedia-artikel inom en vecka.') : null,
       b.source ? externalButton(b.source, { outlet: 'Wikidata' }, 'Wikidata') : null));
     if (zoom) detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
@@ -1984,6 +2005,7 @@ async function viewForces() {
     h('header', { class: 'page-head' }, h('div', null,
       h('div', { class: 'kicker' }, `Lägesbild ${dateShort(data.date)}`),
       h('h1', { class: 'title-xl' }, 'Ryska styrkor'))),
+    forcesSeg(false),
     night ? h('section', { class: 'card card-pad' },
       h('h2', { class: 'fsub' }, `Senaste dygnet (natten till ${dateShort(night.date)})`),
       night.summary_sv ? h('p', { class: 'body-sm' }, night.summary_sv) : null,
@@ -1997,6 +2019,99 @@ async function viewForces() {
     info, detail, list,
     h('p', { class: 'notice' }, 'Uppdateras varje natt efter morgonrapporten. AI läser senaste dygnets öppna rapportering (inte rysk statsmedia) och noterar anfall mot baser, uppföljningar och ändringar i förband och materiel, alltid med källa. ',
       'Baspositioner från Wikidata; förband och materiel utgår från ett handskrivet underlag. Inte verifierat. Påverkar inte index.'));
+}
+
+// ---------------------------------------------------------------- strike map (Version 3.13)
+// Russia's air attacks on Ukraine, night by night, from the Kaggle dataset
+// built on the Ukrainian Air Force's reports (src/strikes.py). Schematic:
+// a curved trail from each launch area to each target region, coloured by
+// weapon kind and as wide as the number launched. The real flight paths
+// are not in the data.
+const STRIKE_KIND = { 'drönare': ['Drönare', '#C2410C'], kryssningsrobot: ['Kryssningsrobotar', '#7C3AED'], 'ballistisk robot': ['Ballistiska robotar', '#B91C1C'], 'övrigt': ['Övrigt', '#6B7280'] };
+const strikesUi = { date: null, kind: null };
+
+async function viewStrikes() {
+  const [land, data] = await Promise.all([
+    forcesLand || fetch('/forces/countries.json').then((r) => { if (!r.ok) throw new Error(`countries: ${r.status}`); return r.json(); }),
+    loadStrikes()]);
+  forcesLand = land;
+  const head = h('header', { class: 'page-head' }, h('div', null,
+    h('div', { class: 'kicker' }, data ? `Uppdaterad ${dateShort(data.date)}` : 'Anfall mot Ukraina'),
+    h('h1', { class: 'title-xl' }, 'Ryska styrkor')));
+  if (!data || !data.days.length) return frag(head, forcesSeg(true), emptyState('Inga anfallsdata ännu. De hämtas varje morgon efter rapporten kl. 04.'));
+
+  let day = data.days.find((d) => d.date === strikesUi.date) || data.days[0];
+  let kind = strikesUi.kind;
+  const view = { x: FX(21), y: FY(57.5), w: FX(50) - FX(21), h: FY(42.5) - FY(57.5) };
+  const svg = svgEl('svg', { class: 'fmap smap', role: 'img', 'aria-label': 'Karta över nattens anfall', viewBox: `${view.x} ${view.y} ${view.w} ${view.h}` });
+  const landG = svgEl('g');
+  for (const c of land.countries) {
+    const enemy = c.name === 'Russia' || c.name === 'Belarus';
+    const d = c.rings.map((r) => `M${r.map(([lon, lat]) => `${FX(lon).toFixed(1)} ${FY(lat).toFixed(1)}`).join('L')}Z`).join('');
+    landG.appendChild(svgEl('path', { d, class: `fland${enemy ? ' ru' : ''}${c.name === 'Ukraine' ? ' ua' : ''}` }));
+  }
+  const trailsG = svgEl('g');
+  svg.append(landG, trailsG);
+  const u = view.w / 100;
+  const nights = h('div', { class: 'chips seg-tight' });
+  const kinds = h('div', { class: 'chips' });
+  const totals = h('div', { class: 'stotals' });
+  const list = h('div');
+
+  function draw() {
+    Object.assign(strikesUi, { date: day.date, kind });
+    trailsG.replaceChildren();
+    const rows = day.rows.filter((r) => !kind || r.kind === kind);
+    const launches = new Map(); const targets = new Map();
+    rows.forEach((r, i) => {
+      const colour = (STRIKE_KIND[r.kind] || STRIKE_KIND['övrigt'])[1];
+      const width = u * (0.15 + Math.min(0.7, Math.sqrt((r.launched || 1) / Math.max(1, r.from.length * r.to.length)) * 0.06));
+      for (const a of r.from) {
+        launches.set(a.name, a);
+        for (const b of r.to) {
+          targets.set(b.name, b);
+          const [x1, y1, x2, y2] = [FX(a.lon), FY(a.lat), FX(b.lon), FY(b.lat)];
+          const len = Math.hypot(x2 - x1, y2 - y1);
+          const bend = (i % 2 ? 1 : -1) * len * 0.18;
+          const cx = (x1 + x2) / 2 - (y2 - y1) / len * bend; const cy = (y1 + y2) / 2 + (x2 - x1) / len * bend;
+          const d = `M${x1} ${y1}Q${cx} ${cy} ${x2} ${y2}`;
+          trailsG.append(svgEl('path', { d, class: 'strail-bg', stroke: colour, 'stroke-width': width * 2.4 }),
+            svgEl('path', { d, class: 'strail', stroke: colour, 'stroke-width': width, style: `animation-delay:${(i % 6) * 0.35}s` }));
+        }
+      }
+    });
+    for (const b of targets.values()) trailsG.append(svgEl('circle', { class: 'starget', cx: FX(b.lon), cy: FY(b.lat), r: u * 1.1 }));
+    for (const a of launches.values()) {
+      const [x, y] = [FX(a.lon), FY(a.lat)];
+      trailsG.append(svgEl('path', { class: 'slaunch', d: `M${x} ${y - u * 1.2}L${x + u} ${y + u * 0.7}L${x - u} ${y + u * 0.7}Z` }),
+        svgEl('text', { class: 'flab', x: x + u * 1.4, y: y + u * 0.4, 'font-size': u * 1.6 }, a.name));
+    }
+    nights.replaceChildren(...data.days.slice(0, 14).map((d) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(d === day),
+      onclick: () => { day = d; draw(); } }, dateShort(d.date))));
+    kinds.replaceChildren(...Object.entries(STRIKE_KIND).filter(([k]) => day.totals[k]).map(([k, [label, colour]]) =>
+      h('button', { class: 'chip', type: 'button', 'aria-pressed': String(kind === k), onclick: () => { kind = kind === k ? null : k; draw(); } },
+        h('b', { class: 'fdot', style: `background:${colour}` }), ` ${label}`)));
+    totals.replaceChildren(...Object.entries(day.totals).map(([k, t]) => h('div', { class: 'stotal' },
+      h('div', { class: 'stotal-n', style: `color:${(STRIKE_KIND[k] || STRIKE_KIND['övrigt'])[1]}` }, String(t.launched)),
+      h('div', { class: 'small' }, (STRIKE_KIND[k] || STRIKE_KIND['övrigt'])[0]),
+      h('div', { class: 'small muted' }, t.launched ? `${t.destroyed} nedskjutna (${Math.round(100 * t.destroyed / t.launched)} %)` : ''))));
+    list.replaceChildren(h('div', { class: 'card list' }, rows.map((r) => h('div', { class: 'row' },
+      h('b', { class: 'fdot', style: `background:${(STRIKE_KIND[r.kind] || STRIKE_KIND['övrigt'])[1]}` }),
+      h('span', { class: 'row-main' },
+        h('span', { class: 'row-title' }, `${r.launched ?? '?'} × ${r.model}`, r.destroyed != null ? h('span', { class: 'muted' }, ` · ${r.destroyed} nedskjutna`) : ''),
+        h('span', { class: 'row-sub' }, `Från ${r.launch_place || 'okänt'}${r.carrier ? ` (${r.carrier})` : ''} → ${r.target || 'okänt'}`))))));
+  }
+  draw();
+
+  return frag(head, forcesSeg(true),
+    h('p', { class: 'hint' }, 'Natt för natt: vad Ryssland avfyrade mot Ukraina, varifrån och mot vilka regioner. Spåren är schematiska.'),
+    nights, totals, kinds,
+    h('div', { class: 'fmap-wrap card' }, svg),
+    h('div', { class: 'flegend small muted' }, h('span', null, h('b', { class: 'slegend-launch' }), 'Avfyrningsområde'),
+      h('span', null, h('b', { class: 'fdot starget-dot' }), 'Målregion')),
+    list,
+    h('p', { class: 'notice' }, 'Källa: ukrainska flygvapnets dagliga rapporter, sammanställda i ', externalButton(data.source.url, { outlet: 'Kaggle' }, 'Kaggle-datasetet'),
+      '. Uppdateras varje morgon. Siffrorna är Ukrainas egna och inte oberoende verifierade. Platserna är ungefärliga och spåren visar riktning, inte verklig flygväg. Påverkar inte index.'));
 }
 
 // ---------------------------------------------------------------- Karta

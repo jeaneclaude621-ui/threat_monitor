@@ -315,6 +315,10 @@ export function loadCourses() {
 
 // --- The forces map (Version 3.12) ----------------------------------------------
 
+export function loadStrikes() {
+  return getJSON('/api/strikes', { cache: 'no-store' });
+}
+
 export function loadForces() {
   return getJSON('/api/forces', { cache: 'no-store' });
 }

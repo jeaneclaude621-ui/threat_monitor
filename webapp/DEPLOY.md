@@ -339,3 +339,13 @@ npx wrangler deploy
 npx wrangler d1 migrations apply hotmonitor --remote   # 0012_forces.sql
 npx wrangler deploy
 ```
+
+## Version 3.13: the bases' weekly survey and the strike map
+
+```sh
+npx wrangler d1 migrations apply hotmonitor --remote   # 0013_strikes.sql
+npx wrangler deploy
+```
+
+The strike map needs a Kaggle account: GitHub secrets `KAGGLE_USERNAME`
+and `KAGGLE_KEY` (Kaggle > Settings > API > Create New Token).

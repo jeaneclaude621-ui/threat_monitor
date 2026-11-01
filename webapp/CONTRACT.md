@@ -520,3 +520,24 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
 - The app's tab Styrkor (`#/styrkor`). The land outlines are static
   (/forces/countries.json, Natural Earth).
 - Migration 0012_forces.sql.
+
+# Version 3.13 (1 Nov 2026) - the bases' weekly survey and the strike map
+
+- src/forces_survey.py, run by forces.py each night: the bases surveyed
+  longest ago (3 calls of 15 a night, all bases in a week) get their
+  Wikipedia article read by a flash-lite model (its own free quota;
+  repo variable FORCES_SURVEY_MODEL overrides). Each base gains `survey:
+  { date, summary_sv, units, equipment, as_of, source: { url, outlet } }`
+  or `{ date, none: true }`. A full round now: the `forces_survey` job.
+- src/strikes.py, run by daily_report.py after the forces map, or as the
+  `strikes` job: Russia's air attacks on Ukraine from the Kaggle dataset
+  piterfm/massive-missile-attacks-on-ukraine (secrets KAGGLE_USERNAME,
+  KAGGLE_KEY). No model call.
+- `PUT /api/ingest/strikes` (machine): `{ date, generated_at, source: { url,
+  outlet }, days: [{ date, totals: { <kind>: { launched, destroyed } },
+  rows: [{ model, kind, launched, destroyed, carrier, launch_place, target,
+  from: [{ name, lat, lon }], to: [...], time_start, time_end }] }] }`.
+  D1 `strike_maps`, kept 14 days.
+- `GET /api/strikes` (user): the newest, or null.
+- The Styrkor tab gains "Anfall mot Ukraina" (`#/styrkor?s=anfall`).
+- Migration 0013_strikes.sql.

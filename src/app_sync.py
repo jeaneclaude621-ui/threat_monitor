@@ -179,6 +179,20 @@ def push_forces(data: dict) -> bool:
         return False
 
 
+def push_strikes(data: dict) -> bool:
+    """Russia's air attacks on Ukraine, per night (src/strikes.py)."""
+    if not _config():
+        print("  App upload skipped - HOTMONITOR_URL / CF_ACCESS_CLIENT_* not set")
+        return False
+    try:
+        _request("PUT", "/api/ingest/strikes", data)
+        print("  Uploaded the strike map to web app")
+        return True
+    except Exception as e:
+        print(f"  ! Strikes upload failed: {e}")
+        return False
+
+
 def push_authorities(brief: dict) -> bool:
     """The Swedish authorities' brief (src/authorities.py)."""
     if not _config():

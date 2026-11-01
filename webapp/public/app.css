@@ -767,3 +767,20 @@ button.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 
   .fmap { background: #13203A; } .fland { fill: #1E2B4E; stroke: #3A4A78; } .fland.ru { fill: #4A2A26; stroke: #6B3A2E; }
   .fpt text.flab { stroke: #0F1526; }
 }
+
+/* Strike map (Version 3.13) */
+.fsurvey { margin-top: 6px; }
+.smap { cursor: default; touch-action: auto; }
+.fland.ua { fill: #F3EBC8; stroke: #B9A86A; }
+.strail { fill: none; stroke-linecap: round; opacity: .9; vector-effect: none; stroke-dasharray: 2 3; animation: strail 2.4s linear infinite; }
+.strail-bg { fill: none; stroke-linecap: round; opacity: .13; }
+@keyframes strail { to { stroke-dashoffset: -25; } }
+@media (prefers-reduced-motion: reduce) { .strail { animation: none; stroke-dasharray: none; } }
+.slaunch { fill: #15203B; stroke: #fff; stroke-width: .3; }
+.starget { fill: rgba(215,38,30,.18); stroke: #D7261E; stroke-width: .35; }
+.starget-dot { background: rgba(215,38,30,.25); border: 2px solid #D7261E; width: 12px; height: 12px; }
+.slegend-launch { display: inline-block; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 12px solid #15203B; }
+.stotals { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; }
+.stotal { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+.stotal-n { font-size: 24px; font-weight: 700; }
+@media (prefers-color-scheme: dark) { .fland.ua { fill: #3A3620; stroke: #6B6235; } .slaunch { fill: #E8ECF5; stroke: #0F1526; } }

@@ -161,7 +161,7 @@ def get_client():
                         http_options=types.HttpOptions(timeout=REQUEST_TIMEOUT_MS))
 
 
-def ask_model(prompt: str, system: str = None, max_tokens: int = 2000) -> str:
+def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, model: str = None) -> str:
     """Send a prompt to Gemini and return the text of the response. The
     model does not search (the free tier has no search grounding): the
     articles it should read go in the prompt (news_sources.py)."""
@@ -173,7 +173,7 @@ def ask_model(prompt: str, system: str = None, max_tokens: int = 2000) -> str:
         max_output_tokens=max_tokens + THINKING_BUDGET,
         thinking_config=types.ThinkingConfig(thinking_budget=THINKING_BUDGET),
     )
-    response = _generate_with_retry(get_client(), prompt, config)
+    response = _generate_with_retry(get_client(), prompt, config, model)
 
     candidate = (response.candidates or [None])[0]
     finish = getattr(candidate, "finish_reason", None)
@@ -183,7 +183,7 @@ def ask_model(prompt: str, system: str = None, max_tokens: int = 2000) -> str:
     return (response.text or "").strip()
 
 
-def _generate_with_retry(client, prompt, config):
+def _generate_with_retry(client, prompt, config, model=None):
     """client.models.generate_content, retried with long waits when the
     network is down or the API is overloaded (5xx). A 429 is retried only
     when Google says when to (retryDelay: the per-minute limit); without
@@ -195,7 +195,7 @@ def _generate_with_retry(client, prompt, config):
     import httpx
     for delay in NETWORK_RETRY_DELAYS + [None]:
         try:
-            return client.models.generate_content(model=MODEL, contents=prompt, config=config)
+            return client.models.generate_content(model=model or MODEL, contents=prompt, config=config)
         except (errors.ServerError, errors.ClientError, httpx.TransportError) as e:
             code = getattr(e, "code", None)
             if isinstance(e, errors.ClientError) and (code != 429 or "retryDelay" not in str(e)
@@ -207,12 +207,12 @@ def _generate_with_retry(client, prompt, config):
             time.sleep(delay)
 
 
-def ask_model_json(prompt: str, system: str = None, max_tokens: int = 2000) -> dict:
+def ask_model_json(prompt: str, system: str = None, max_tokens: int = 2000, model: str = None) -> dict:
     """ask_model + extract_json, with one recovery attempt. The model
     sometimes spends the whole token budget on narrative analysis and
     gets cut off before the JSON. Rather than discard that work, hand the
     partial response back and ask for just the JSON object."""
-    raw = ask_model(prompt, system=system, max_tokens=max_tokens)
+    raw = ask_model(prompt, system=system, max_tokens=max_tokens, model=model)
     try:
         return extract_json(raw)
     except ValueError as first_err:
@@ -226,7 +226,7 @@ Your previous answer was cut off or was not valid JSON. Here it is:
 </previous_answer>
 
 Using ONLY the information in that previous answer, respond with the strict JSON object requested above and nothing else."""
-        raw2 = ask_model(recovery_prompt, system=system, max_tokens=max_tokens)
+        raw2 = ask_model(recovery_prompt, system=system, max_tokens=max_tokens, model=model)
         return extract_json(raw2)
 
 

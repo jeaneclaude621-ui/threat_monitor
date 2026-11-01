@@ -6,6 +6,7 @@ after the 04:00 report, shown in the app's Styrkor tab.
     python3 src/forces.py               # the nightly update (one Gemini call)
     python3 src/forces.py --dry-run    # print the material, no call
     python3 src/forces.py catalogue OUT.json   # the base list only, no call
+    python3 src/forces.py survey --batches 18  # a Wikipedia survey round (forces_survey.py)
 
 The base list: every base Wikidata has in Russia and Belarus with a
 position (air, naval and military bases), merged with the hand-kept detail
@@ -165,6 +166,8 @@ def merge(state: dict, listed: list) -> dict:
         base["original"] = {"units": list(b.get("units") or []), "equipment": list(b.get("equipment") or [])}
         if prev:
             base.update({k: list(prev.get(k, [])) for k in ("units", "equipment", "changes")})
+            if prev.get("survey"):
+                base["survey"] = prev["survey"]
             # An edit to the hand-kept list reaches the current holdings too:
             # what was added there is added, what was taken out is taken out.
             was = prev.get("original") or {"units": [], "equipment": []}
@@ -191,7 +194,8 @@ def status(base: dict, today: date) -> dict:
     attacks = sorted((e["date"] for e in base["events"] if e["kind"] == "anfallen"), reverse=True)
     dates = sorted([e["date"] for e in base["events"]] + [c["date"] for c in base["changes"]], reverse=True)
     recent = attacks and attacks[0] >= (today - timedelta(days=ATTACKED_DAYS)).isoformat()
-    known = base["curated"] or base["units"] or base["equipment"]
+    survey = base.get("survey") or {}
+    known = base["curated"] or base["units"] or base["equipment"] or survey.get("units") or survey.get("equipment")
     return {"status": "anfallen" if recent else "aktiv" if known else "okänd",
             "last_attack": attacks[0] if attacks else None, "updated": dates[0] if dates else None}
 
@@ -249,8 +253,11 @@ def base_lines(state: dict, today: date) -> str:
     out = []
     for b in state["bases"]:
         line = f"{b['id']} | {b['name']}" + (f" ({b['name_ru']})" if b.get("name_ru") else "") + f" | {b['branch']} | {b['country']}"
-        if b["units"] or b["equipment"]:
-            line += f" | units: {', '.join(b['units']) or '-'} | equipment: {', '.join(b['equipment']) or '-'}"
+        sv = b.get("survey") or {}
+        units = b["units"] + [u for u in sv.get("units", []) if u not in b["units"]]
+        equipment = b["equipment"] + [e for e in sv.get("equipment", []) if e not in b["equipment"]]
+        if units or equipment:
+            line += f" | units: {', '.join(units) or '-'} | equipment: {', '.join(equipment) or '-'}"
         recent = [e for e in b["events"] if e["date"] >= since] + [c for c in b["changes"] if c["date"] >= since]
         if recent:
             line += " | already recorded: " + "; ".join(f"{e['date']} {e['kind']}: {e['text_sv'][:120]}" for e in recent)
@@ -426,6 +433,28 @@ def run(report: dict = None, pool=None, dry_run: bool = False):
         json.dump(state, f, ensure_ascii=False, indent=1)
     print(f"  Forces: {len(night['attacks'])} attacks, {len(night['follow_ups'])} follow-ups, "
           f"{len(night['changes'])} changes, {len(night['other'])} elsewhere")
+    survey(state)
+    from app_sync import push_forces
+    push_forces(payload(state))
+
+
+def survey(state: dict, batches: int = None):
+    """The rolling Wikipedia survey (forces_survey.py), saved with the state.
+    A failure there costs only the survey."""
+    import forces_survey
+    try:
+        forces_survey.run(state, batches or forces_survey.NIGHTLY_BATCHES)
+    except Exception as e:
+        print(f"  ! Survey failed ({type(e).__name__}: {e})")
+    with open(STATE_PATH, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=1)
+
+
+def survey_only(batches: int):
+    """A survey round without the night's update (no call on the main model)."""
+    state = load()
+    merge(state, listed_bases(state))
+    survey(state, batches)
     from app_sync import push_forces
     push_forces(payload(state))
 
@@ -443,6 +472,11 @@ if __name__ == "__main__":
         data = catalogue()
         Path(sys.argv[2]).write_text(json.dumps({"bases": data}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
         print(f"{len(data)} bases, {sum(1 for b in data if b.get('curated'))} with detail")
+    elif len(sys.argv) >= 2 and sys.argv[1] == "survey":
+        ap = argparse.ArgumentParser()
+        ap.add_argument("cmd")
+        ap.add_argument("--batches", type=int, default=18)
+        survey_only(ap.parse_args().batches)
     else:
         ap = argparse.ArgumentParser()
         ap.add_argument("--dry-run", action="store_true")

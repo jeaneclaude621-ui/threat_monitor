@@ -672,6 +672,9 @@ def run_daily_report():
     # forces there (one call, same terms).
     import forces
     forces.run_safe(report_data, pool)
+    # Russia's air attacks on Ukraine, from the Kaggle dataset (no call).
+    import strikes
+    strikes.run_safe()
 
     archive_and_clear_log(today - timedelta(days=1))
     save_state(state)
