@@ -37,6 +37,10 @@ produces a consolidated PowerPoint status report every morning at 04:00.
   about the security situation, from their own feeds and from Swedish media
   ("via"), and in the same call what NATO itself says, in Swedish. A row
   on the app's Idag page, "Sverige och Nato", leads to it.
+- **After the 04:00 report: Russia's courses of action** (`src/courses.py`):
+  the most likely, a possible and the most dangerous, each with a
+  likelihood that moves at most one step a day, signs to watch and a
+  schematic map; one Gemini call, never from the Russian side of the trends.
 - Persists everything in `data/state.json`: source-tier methodology,
   outlet transparency scores, author track records (evidence-based
   only \u2014 corrections and contradictions, never subjective judgments),

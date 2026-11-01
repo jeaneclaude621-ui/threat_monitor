@@ -719,3 +719,17 @@ button.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 
 .coa-toc .row { gap: 10px; }
 .coa-toc .coa-badge { flex-shrink: 0; min-width: 92px; text-align: center; }
 .coa-card { scroll-margin-top: 12px; }
+.coa-level { font-size: 12px; font-weight: 600; margin-left: auto; padding: 2px 8px; border-radius: 6px; background: var(--chip); }
+.coa-level.l1 { background: var(--amber-soft); color: var(--neg-fg); }
+.coa-level.l2 { background: #8A1F12; color: #fff; }
+.coa-was { font-weight: 400; opacity: .85; }
+.coa-hist { display: flex; gap: 2px; align-items: flex-end; height: 18px; }
+.coa-hist i { flex: 1; max-width: 8px; border-radius: 2px; background: var(--chip); height: 6px; }
+.coa-hist i.l1 { background: var(--amber-mid); height: 12px; }
+.coa-hist i.l2 { background: #8A1F12; height: 18px; }
+.coa-signs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.coa-sign { display: flex; gap: 8px; align-items: flex-start; line-height: 1.35; }
+.coa-sign > i { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; background: var(--chip); border: 1px solid var(--line); }
+.coa-sign.part > i { background: var(--amber-mid); border-color: var(--amber-mid); }
+.coa-sign.obs > i { background: #8A1F12; border-color: #8A1F12; }
+.coa-sign-sub { color: var(--muted); font-size: 12px; }

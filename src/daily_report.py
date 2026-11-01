@@ -664,6 +664,10 @@ def run_daily_report():
     send_daily_email(report_data, str(pptx_path), executive)
     push_report(report_data)
     backup_app()
+    # Russia's courses of action, from the finished report (one call; a
+    # failure there stops nothing here).
+    import courses
+    courses.run_safe(report_data, hourly_entries)
 
     archive_and_clear_log(today - timedelta(days=1))
     save_state(state)

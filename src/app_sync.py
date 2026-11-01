@@ -151,6 +151,20 @@ def push_trends(payload: dict) -> bool:
         return False
 
 
+def push_courses(assessment: dict) -> bool:
+    """Russia's courses of action (src/courses.py)."""
+    if not _config():
+        print("  App upload skipped - HOTMONITOR_URL / CF_ACCESS_CLIENT_* not set")
+        return False
+    try:
+        _request("PUT", "/api/ingest/courses", assessment)
+        print("  Uploaded the courses of action to web app")
+        return True
+    except Exception as e:
+        print(f"  ! Courses of action upload failed: {e}")
+        return False
+
+
 def push_authorities(brief: dict) -> bool:
     """The Swedish authorities' brief (src/authorities.py)."""
     if not _config():

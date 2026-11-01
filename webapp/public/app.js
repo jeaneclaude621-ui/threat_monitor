@@ -5,7 +5,7 @@ import {
   store, onChange, isAdmin, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
-  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities,
+  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities, loadCourses,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
 
@@ -664,8 +664,8 @@ async function viewReport(date, q) {
   const latest = index[0].date;
   const d = date || latest;
   const archived = d !== latest;
-  const [r, reports, brief] = await Promise.all([loadReport(d), loadAllReports(),
-    archived ? null : loadAuthorities().catch(() => null)]);
+  const [r, reports, brief, courses] = await Promise.all([loadReport(d), loadAllReports(),
+    archived ? null : loadAuthorities().catch(() => null), archived ? null : loadCourses().catch(() => null)]);
   const top = (r.executive_sv && r.executive_sv.top) || r.top_development;
   const selected = parseFacets(q);
   const windowStart = addDays(d, -(FACET_DAYS - 1));
@@ -700,7 +700,7 @@ async function viewReport(date, q) {
       h('div', { class: 'kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
       h('p', { class: 'lead' }, top)) : null,
     archived ? null : authoritiesRow(brief),
-    archived ? null : coursesRow(),
+    archived ? null : coursesRow(courses),
     archived ? null : newBox(latest, r),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Dygnets händelser'),
@@ -1434,10 +1434,11 @@ async function viewTopics(q) {
     results);
 }
 
-// ---------------------------------------------------------------- courses of action (PROTOTYPE)
+// ---------------------------------------------------------------- courses of action (Version 3.11)
 // Russia's most likely, possible and most dangerous course of action, with
-// a schematic map. Prototype: written by hand from the week's material
-// (25 Oct-1 Nov 2026), to be adjusted before any model writes it.
+// a schematic map, signs to watch and the likelihood over time. Written by
+// src/courses.py after the 04:00 report, from the report, the thread checks
+// and the authorities' and NATO brief - never from the Russian side.
 const COA_TILES = {
   // col, row, width, height on a 6 x 7 grid; sea areas drawn lighter.
   NO: [0, 0, 1, 1, 'Norge'], SE: [1, 0, 1, 1, 'Sverige'], FI: [2, 0, 1, 1, 'Finland'], RU: [3, 0, 3, 3, 'Ryssland', 'ru'],
@@ -1455,50 +1456,11 @@ const COA_SYMBOL_SV = {
 };
 const COA_ARROW_SV = { military: 'Militärt', hybrid: 'Hybrid', political: 'Politiskt' };
 
-const COURSES = [
-  {
-    id: 'troligast', label: 'Troligast', sub: 'Pågår redan', tone: 'likely',
-    title: 'Fortsatt påtryckning under tröskeln mot Europas sammanhållning',
-    text: [
-      'Ryssland fortsätter sabotage, drönarintrång och spionage i Tyskland, Polen, Rumänien och Moldavien, som ensamma är för små för att utlösa ett gemensamt Natosvar.',
-      'Samtidigt förstärks splittringen inom EU: Polens konstitutionella kris och protesterna i Frankrike blåses upp av ryska kanaler, och USA:s uppmaning till Europa att tona ner varningarna utnyttjas som en kil mellan USA och Europa.',
-      'Moldavien och Belarus hålls som buffertzoner genom politiska ombud, och Dodik och Balkan används för att visa att Europa inte styr sin egen bakgård.',
-      'Skuggflottan och sanktionskryphålen fortsätter att finansiera kriget.',
-      'Målet är ett splittrat Europa som förhandlar med Ryssland land för land.',
-    ],
-    signs: ['Fler sabotage per vecka', 'Drönare över Moldavien och Rumänien', 'Rysk desinformation om Polen', 'Sanktionslättnader'],
-    arrows: [['RU', 'PL', 'political'], ['RU', 'DE', 'hybrid'], ['BY', 'LT', 'hybrid'], ['RU', 'MD', 'political'], ['UA', 'RO', 'hybrid']],
-    marks: [['DE', 'sabotage'], ['PL', 'info'], ['MD', 'proxy'], ['RO', 'drone'], ['BY', 'proxy']],
-  },
-  {
-    id: 'mojligt', label: 'Möjligt', sub: 'Tecken finns', tone: 'possible',
-    title: 'Maritim hybridkampanj i Östersjön som prövar kuststaterna',
-    text: [
-      'Ryssland gör Putins "Hormuz i Östersjön" till verklighet med eskorterade skuggflottefartyg, militärtransporter med rorofartyg mellan Baltijsk och Ryssland, GPS-störning och incidenter kring kablar.',
-      'Konvojen förbi Bornholm mot Öresund och räden mot det rysskopplade fartyget vid Gotland visar att mönstret redan prövas.',
-      'Varje svensk, dansk eller finsk åtgärd mot ett fartyg framställs som en "blockad", vilket ger Ryssland förevändning för marin eskort.',
-      'Målet är att visa att Nato inte kan skydda sjöfarten och att kuststaterna agerar olika.',
-      'Risken för en olycka eller väpnad incident till sjöss ökar.',
-    ],
-    signs: ['Örlogseskort av handelsfartyg', 'Kabel- eller rörledningsskador', 'Rysk "blockad"-retorik', 'Fler rorotransporter från Baltijsk'],
-    arrows: [['KG', 'BALT', 'military'], ['BALT', 'DK', 'hybrid'], ['RU', 'BALT', 'hybrid'], ['BALT', 'SE', 'hybrid']],
-    marks: [['BALT', 'naval'], ['SE', 'cable'], ['KG', 'military'], ['DK', 'naval']],
-  },
-  {
-    id: 'farligast', label: 'Farligast', sub: 'Låg sannolikhet, hög konsekvens', tone: 'dangerous',
-    title: 'Begränsat militärt fait accompli i Baltikum under kärnvapenhot',
-    text: [
-      'Med en sjöincident eller en påstådd "blockad" av Kaliningrad som förevändning genomför Ryssland en snabb, begränsad operation, till exempel mot Narva i Estland eller Suwałkikorridoren mellan Belarus och Kaliningrad.',
-      'Operationen förbereds med styrkor och materiel som redan flyttats via Belarus, Kaliningrad och sjövägen.',
-      'Samtidigt används kärnvapensignalering för att få enskilda Natoländer att tveka inför artikel 5, i ett läge där USA uppmanar Europa till återhållsamhet.',
-      'Försvarsmakten har varnat för att Ryssland kan vilja testa Natos sammanhållning också på svensk mark, till exempel på Gotland.',
-      'Målet är att visa att alliansens garanti inte håller och skapa en ny buffertzon.',
-    ],
-    signs: ['Rysk mobilisering vid Narva eller i Belarus', 'Stängd flygtrafik över Kaliningrad', 'Kärnvapenövningar', 'Störningar av Gotlands kommunikationer'],
-    arrows: [['RU', 'EE', 'military'], ['BY', 'LT', 'military'], ['KG', 'LT', 'military'], ['KG', 'BALT', 'military']],
-    marks: [['EE', 'military'], ['LT', 'military'], ['RU', 'nuclear'], ['BALT', 'naval'], ['SE', 'military']],
-  },
-];
+// The courses come from src/courses.py (GET /api/courses), updated after
+// the 04:00 report; these are only their colours and the likelihood scale.
+const COA_TONE = { troligast: 'likely', mojligt: 'possible', farligast: 'dangerous' };
+const COA_LEVELS = ['låg', 'måttlig', 'hög'];
+const COA_STATUS = { observerat: 'obs', delvis: 'part', 'inte observerat': 'none' };
 
 function svgEl(tag, attrs, text) {
   const el = document.createElementNS(SVG_NS, tag);
@@ -1551,42 +1513,77 @@ function coaLegend(c) {
     syms.map((sname) => h('span', null, h('b', { class: `coa-dot ${sname}` }, COA_SYMBOLS[sname]), COA_SYMBOL_SV[sname])));
 }
 
-function coursesRow() {
+function coursesRow(a) {
+  if (!a || !Array.isArray(a.courses)) return null;
+  const moved = a.courses.filter((c) => c.previous_likelihood && c.previous_likelihood !== c.likelihood).length;
   return h('a', { class: 'menurow coa-row', href: '#/handlingsalternativ' },
     h('span', { class: 'coa-row-icon', 'aria-hidden': 'true' }, '▲'),
     h('span', { class: 'row-main' },
       h('span', { class: 'row-title' }, 'Rysslands handlingsalternativ'),
-      h('span', { class: 'row-sub' }, 'Troligast, möjligt och farligast · prototyp')),
+      h('span', { class: 'row-sub' }, a.courses.map((c) => `${c.label} ${c.likelihood}`).join(' · '))),
+    moved ? h('span', { class: 'nbadge' }, `${moved} ändrad${moved === 1 ? '' : 'e'}`) : null,
     chevRight());
 }
 
-// All three under headings of their own, with a contents list on top.
-function coaSection(c, i) {
-  return h('section', { class: `card card-pad coa-card ${c.tone}`, id: `coa-${c.id}` },
+function coaLevel(c) {
+  const up = c.previous_likelihood && COA_LEVELS.indexOf(c.likelihood) > COA_LEVELS.indexOf(c.previous_likelihood);
+  const down = c.previous_likelihood && COA_LEVELS.indexOf(c.likelihood) < COA_LEVELS.indexOf(c.previous_likelihood);
+  return h('span', { class: `coa-level l${COA_LEVELS.indexOf(c.likelihood)}` },
+    `Sannolikhet: ${c.likelihood}`, up ? ' ↑' : down ? ' ↓' : '',
+    up || down ? h('span', { class: 'coa-was' }, ` (${c.previous_likelihood} i går)`) : null);
+}
+
+// The last 30 days' likelihood of one course, as small bars.
+function coaHistory(history, id) {
+  const days = history.slice(-30);
+  if (days.length < 2) return null;
+  return h('div', { class: 'coa-hist', role: 'img', 'aria-label': `Sannolikheten de senaste ${days.length} dagarna` },
+    days.map((d) => h('i', { class: `l${COA_LEVELS.indexOf(d.likelihood[id])}`, title: `${dateShort(d.date)}: ${d.likelihood[id]}` })));
+}
+
+function coaSign(s) {
+  const ev = (s.refs || []).find((r) => r.kind === 'event');
+  return h('li', { class: `coa-sign ${COA_STATUS[s.status] || 'none'}` },
+    h('i', { 'aria-hidden': 'true' }),
+    h('span', null, s.text,
+      h('span', { class: 'coa-sign-sub' }, ` · ${s.status}${s.first_seen ? `, först ${dateShort(s.first_seen)}` : ''}`),
+      ev ? frag(' ', h('a', { href: eventHref(ev.date, ev.id) }, 'händelsen')) : null));
+}
+
+function coaSection(c, i, history) {
+  const tone = COA_TONE[c.id];
+  return h('section', { class: `card card-pad coa-card ${tone}`, id: `coa-${c.id}` },
     h('div', { class: 'coa-head-row' },
-      h('span', { class: `coa-badge ${c.tone}` }, `${i + 1}. ${c.label}`), h('span', { class: 'small muted' }, c.sub)),
+      h('span', { class: `coa-badge ${tone}` }, `${i + 1}. ${c.label}`), coaLevel(c)),
     h('h2', { class: 'coa-title' }, c.title),
+    c.likelihood_reason_sv ? h('p', { class: 'small muted' }, c.likelihood_reason_sv) : null,
+    coaHistory(history, c.id),
     coaMap(c),
     coaLegend(c),
     h('p', { class: 'body-sm' }, c.text.join(' ')),
     h('div', { class: 'kicker' }, 'Tecken att bevaka'),
-    h('div', { class: 'chips' }, c.signs.map((t) => h('span', { class: 'chip' }, t))));
+    h('ul', { class: 'coa-signs' }, c.signs.map(coaSign)));
 }
 
 async function viewCourses() {
+  const a = await loadCourses();
+  const back = backLink('#/', 'Idag');
+  if (!a) return frag(back, emptyState('Ingen bedömning ännu. Den görs efter morgonrapporten kl. 04.'));
   const jump = (id) => (ev) => { ev.preventDefault(); document.getElementById(`coa-${id}`).scrollIntoView({ behavior: 'smooth', block: 'start' }); };
-  return frag(backLink('#/', 'Idag'),
+  return frag(back,
     h('header', { class: 'page-head' }, h('div', null,
-      h('div', { class: 'kicker' }, 'Prototyp · underlag 25 okt–1 nov'),
+      h('div', { class: 'kicker' }, `Bedömt ${dateShort(a.date)}`),
       h('h1', { class: 'title-l' }, 'Rysslands handlingsalternativ'))),
     h('p', { class: 'hint' }, 'Hur Ryssland kan flytta fram sina positioner, splittra Europa och skapa buffertzoner – med våld, hot eller ombud.'),
-    h('nav', { class: 'card list coa-toc', 'aria-label': 'Alternativen' }, COURSES.map((c, i) =>
+    a.changed_sv ? h('p', { class: 'newline' }, h('span', null, h('b', null, 'Sedan i går: '), a.changed_sv)) : null,
+    h('nav', { class: 'card list coa-toc', 'aria-label': 'Alternativen' }, a.courses.map((c, i) =>
       h('a', { class: 'row', href: `#coa-${c.id}`, onclick: jump(c.id) },
-        h('span', { class: `coa-badge ${c.tone}` }, `${i + 1}. ${c.label}`),
-        h('span', { class: 'row-main' }, h('span', { class: 'row-title' }, c.title)),
+        h('span', { class: `coa-badge ${COA_TONE[c.id]}` }, `${i + 1}. ${c.label}`),
+        h('span', { class: 'row-main' }, h('span', { class: 'row-title' }, c.title),
+          h('span', { class: 'row-sub' }, `Sannolikhet: ${c.likelihood}`)),
         chevDown()))),
-    COURSES.map(coaSection),
-    h('p', { class: 'notice' }, 'Prototyp. Bedömningen är skriven för hand utifrån veckans insamlade material (rapporter, myndigheter, Nato, Narrativ och Cornucopia), inte av modellen, och påverkar inte index. Kartan är schematisk.'));
+    a.courses.map((c, i) => coaSection(c, i, a.history || [])),
+    h('p', { class: 'notice' }, 'AI-bedömning som uppdateras varje dag efter morgonrapporten, utifrån rapporten, trådbevakningen och sammanställningen Sverige och Nato. Den ryska sidan i Narrativ används inte. Sannolikheten ändras högst ett steg per dygn. Påverkar inte index. Kartan är schematisk.'));
 }
 
 // ---------------------------------------------------------------- authorities (Version 3.10)

@@ -5,6 +5,19 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 
 ## Att följa upp
 
+### Kolla den första dagliga bedömningen av Rysslands handlingsalternativ
+*Lagt till 2026-11-01.* Den första körs efter den första morgonrapporten
+efter driftsättningen.
+
+Kontrollera:
+- att tecknen markeras rimligt, att observerat betyder att något faktiskt
+  har hänt och inte bara att det skulle kunna hända;
+- att sannolikheterna inte står still eller flyter iväg;
+- att kartan stämmer med texten.
+
+Kvoten: ungefär 15 av 20 anrop per dygn.
+
+
 ### Skärp filtret för ryska Telegram-inlägg om för mycket kommer igenom
 *Lagt till 2026-11-01. Kolla vid nästa session.*
 

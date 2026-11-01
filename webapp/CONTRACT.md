@@ -480,3 +480,24 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   kommandon, Östersjön och östflanken, Ukraina, EU och partner, Övrigt),
   translated into Swedish. The Idag row is "Sverige och Nato"; the page has
   two tabs (`#/myndigheter`, `?s=nato`). Service worker hm-v3.19.
+
+# Version 3.11 (1 Nov 2026) - Russia's courses of action
+
+- src/courses.py, run by daily_report.py after the report is out (one
+  Gemini call; a failure there stops nothing): the most likely, a possible
+  and the most dangerous course of action, from the report, the thread
+  checks and the authorities' and NATO brief - never the Russian side of
+  the trends feed. Fixed roles (`troligast`, `mojligt`, `farligast`), at
+  most five sentences each, a likelihood (låg, måttlig, hög) that code
+  moves at most one step a day, a fixed list of signs whose status the
+  model sets (with refs to events), and map arrows and symbols from the
+  app's tiles only. Starting point config/courses_seed.json.
+- `PUT /api/ingest/courses` (machine): `{ date, generated_at, changed_sv,
+  courses: [...], history: [{ date, likelihood: { id: level } }] }`, one
+  row per day in `course_assessments` (120 days kept).
+- `GET /api/courses` (user): the newest assessment, or null.
+- App: a row on Idag (each course's likelihood, and how many changed) and
+  `#/handlingsalternativ`: a contents list, then each course under its
+  heading with its likelihood and trend, the last 30 days as bars, the map,
+  the text and the signs.
+- Migration 0011_courses.sql. Service worker hm-v3.20.

@@ -325,3 +325,10 @@ npx wrangler deploy                                     # adds 06/07 UTC to the 
 npx wrangler d1 migrations apply hotmonitor --remote   # 0010_authorities.sql
 npx wrangler deploy                                     # adds 05 and 16 UTC to the dispatch cron
 ```
+
+## Version 3.11: Russia's courses of action
+
+```sh
+npx wrangler d1 migrations apply hotmonitor --remote   # 0011_courses.sql
+npx wrangler deploy
+```

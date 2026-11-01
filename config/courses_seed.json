@@ -1,0 +1,270 @@
+{
+ "note": "The starting point of src/courses.py: the hand-written prototype of 1 Nov 2026 (most likely, possible, most dangerous course of action). Read only when data/courses.json does not exist yet.",
+ "courses": [
+  {
+   "id": "troligast",
+   "label": "Troligast",
+   "tone": "likely",
+   "title": "Fortsatt påtryckning under tröskeln mot Europas sammanhållning",
+   "text": [
+    "Ryssland fortsätter sabotage, drönarintrång och spionage i Tyskland, Polen, Rumänien och Moldavien, som ensamma är för små för att utlösa ett gemensamt Natosvar.",
+    "Samtidigt förstärks splittringen inom EU: Polens konstitutionella kris och protesterna i Frankrike blåses upp av ryska kanaler, och USA:s uppmaning till Europa att tona ner varningarna utnyttjas som en kil mellan USA och Europa.",
+    "Moldavien och Belarus hålls som buffertzoner genom politiska ombud, och Dodik och Balkan används för att visa att Europa inte styr sin egen bakgård.",
+    "Skuggflottan och sanktionskryphålen fortsätter att finansiera kriget.",
+    "Målet är ett splittrat Europa som förhandlar med Ryssland land för land."
+   ],
+   "likelihood": "hög",
+   "signs": [
+    {
+     "id": "t1",
+     "text": "Fler sabotage per vecka",
+     "status": "inte observerat",
+     "refs": [],
+     "first_seen": null
+    },
+    {
+     "id": "t2",
+     "text": "Drönare över Moldavien och Rumänien",
+     "status": "inte observerat",
+     "refs": [],
+     "first_seen": null
+    },
+    {
+     "id": "t3",
+     "text": "Rysk desinformation om Polen",
+     "status": "inte observerat",
+     "refs": [],
+     "first_seen": null
+    },
+    {
+     "id": "t4",
+     "text": "Sanktionslättnader",
+     "status": "inte observerat",
+     "refs": [],
+     "first_seen": null
+    }
+   ],
+   "arrows": [
+    [
+     "RU",
+     "PL",
+     "political"
+    ],
+    [
+     "RU",
+     "DE",
+     "hybrid"
+    ],
+    [
+     "BY",
+     "LT",
+     "hybrid"
+    ],
+    [
+     "RU",
+     "MD",
+     "political"
+    ],
+    [
+     "UA",
+     "RO",
+     "hybrid"
+    ]
+   ],
+   "marks": [
+    [
+     "DE",
+     "sabotage"
+    ],
+    [
+     "PL",
+     "info"
+    ],
+    [
+     "MD",
+     "proxy"
+    ],
+    [
+     "RO",
+     "drone"
+    ],
+    [
+     "BY",
+     "proxy"
+    ]
+   ]
+  },
+  {
+   "id": "mojligt",
+   "label": "Möjligt",
+   "tone": "possible",
+   "title": "Maritim hybridkampanj i Östersjön som prövar kuststaterna",
+   "text": [
+    "Ryssland gör Putins \"Hormuz i Östersjön\" till verklighet med eskorterade skuggflottefartyg, militärtransporter med rorofartyg mellan Baltijsk och Ryssland, GPS-störning och incidenter kring kablar.",
+    "Konvojen förbi Bornholm mot Öresund och räden mot det rysskopplade fartyget vid Gotland visar att mönstret redan prövas.",
+    "Varje svensk, dansk eller finsk åtgärd mot ett fartyg framställs som en \"blockad\", vilket ger Ryssland förevändning för marin eskort.",
+    "Målet är att visa att Nato inte kan skydda sjöfarten och att kuststaterna agerar olika.",
+    "Risken för en olycka eller väpnad incident till sjöss ökar."
+   ],
+   "likelihood": "måttlig",
+   "signs": [
+    {
+     "id": "m1",
+     "text": "Örlogseskort av handelsfartyg",
+     "status": "inte observerat",
+     "refs": [],
+     "first_seen": null
+    },
+    {
+     "id": "m2",
+     "text": "Kabel- eller rörledningsskador",
+     "status": "inte observerat",
+     "refs": [],
+     "first_seen": null
+    },
+    {
+     "id": "m3",
+     "text": "Rysk \"blockad\"-retorik",
+     "status": "inte observerat",
+     "refs": [],
+     "first_seen": null
+    },
+    {
+     "id": "m4",
+     "text": "Fler rorotransporter från Baltijsk",
+     "status": "inte observerat",
+     "refs": [],
+     "first_seen": null
+    }
+   ],
+   "arrows": [
+    [
+     "KG",
+     "BALT",
+     "military"
+    ],
+    [
+     "BALT",
+     "DK",
+     "hybrid"
+    ],
+    [
+     "RU",
+     "BALT",
+     "hybrid"
+    ],
+    [
+     "BALT",
+     "SE",
+     "hybrid"
+    ]
+   ],
+   "marks": [
+    [
+     "BALT",
+     "naval"
+    ],
+    [
+     "SE",
+     "cable"
+    ],
+    [
+     "KG",
+     "military"
+    ],
+    [
+     "DK",
+     "naval"
+    ]
+   ]
+  },
+  {
+   "id": "farligast",
+   "label": "Farligast",
+   "tone": "dangerous",
+   "title": "Begränsat militärt fait accompli i Baltikum under kärnvapenhot",
+   "text": [
+    "Med en sjöincident eller en påstådd \"blockad\" av Kaliningrad som förevändning genomför Ryssland en snabb, begränsad operation, till exempel mot Narva i Estland eller Suwałkikorridoren mellan Belarus och Kaliningrad.",
+    "Operationen förbereds med styrkor och materiel som redan flyttats via Belarus, Kaliningrad och sjövägen.",
+    "Samtidigt används kärnvapensignalering för att få enskilda Natoländer att tveka inför artikel 5, i ett läge där USA uppmanar Europa till återhållsamhet.",
+    "Försvarsmakten har varnat för att Ryssland kan vilja testa Natos sammanhållning också på svensk mark, till exempel på Gotland.",
+    "Målet är att visa att alliansens garanti inte håller och skapa en ny buffertzon."
+   ],
+   "likelihood": "låg",
+   "signs": [
+    {
+     "id": "f1",
+     "text": "Rysk mobilisering vid Narva eller i Belarus",
+     "status": "inte observerat",
+     "refs": [],
+     "first_seen": null
+    },
+    {
+     "id": "f2",
+     "text": "Stängd flygtrafik över Kaliningrad",
+     "status": "inte observerat",
+     "refs": [],
+     "first_seen": null
+    },
+    {
+     "id": "f3",
+     "text": "Kärnvapenövningar",
+     "status": "inte observerat",
+     "refs": [],
+     "first_seen": null
+    },
+    {
+     "id": "f4",
+     "text": "Störningar av Gotlands kommunikationer",
+     "status": "inte observerat",
+     "refs": [],
+     "first_seen": null
+    }
+   ],
+   "arrows": [
+    [
+     "RU",
+     "EE",
+     "military"
+    ],
+    [
+     "BY",
+     "LT",
+     "military"
+    ],
+    [
+     "KG",
+     "LT",
+     "military"
+    ],
+    [
+     "KG",
+     "BALT",
+     "military"
+    ]
+   ],
+   "marks": [
+    [
+     "EE",
+     "military"
+    ],
+    [
+     "LT",
+     "military"
+    ],
+    [
+     "RU",
+     "nuclear"
+    ],
+    [
+     "BALT",
+     "naval"
+    ],
+    [
+     "SE",
+     "military"
+    ]
+   ]
+  }
+ ]
+}

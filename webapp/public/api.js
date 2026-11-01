@@ -307,6 +307,12 @@ export async function loadUpdates() {
   return store.updates;
 }
 
+// --- Russia's courses of action (Version 3.11) ----------------------------------
+
+export function loadCourses() {
+  return getJSON('/api/courses', { cache: 'no-store' });
+}
+
 // --- The Swedish authorities' brief (Version 3.10) ------------------------------
 
 export function loadAuthorities() {

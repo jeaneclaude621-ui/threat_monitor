@@ -23,6 +23,7 @@
  * Version 3.9: the trends feed - what spreads, from open sources and,
  * apart, from the Russian side - which nothing else here reads.
  * Version 3.10: the Swedish authorities' brief, also read by nothing else.
+ * Version 3.11: Russia's courses of action, updated daily after the report.
  */
 
 import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
@@ -246,6 +247,13 @@ async function route(req) {
     return listUpdates(env, url);
   }
 
+  if (path === '/api/courses') {
+    allow(method, 'GET');
+    requireUser(who);
+    const row = await env.DB.prepare('SELECT data FROM course_assessments ORDER BY date DESC LIMIT 1').first();
+    return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
+  }
+
   if (path === '/api/authorities') {
     allow(method, 'GET');
     requireUser(who);
@@ -283,6 +291,12 @@ async function route(req) {
     allow(method, 'PUT');
     requireMachine(who);
     return ingestUpdates(request, env);
+  }
+
+  if (path === '/api/ingest/courses') {
+    allow(method, 'PUT');
+    requireMachine(who);
+    return ingestCourses(request, env);
   }
 
   if (path === '/api/ingest/authorities') {
@@ -1064,6 +1078,36 @@ async function ingestTrends(request, env) {
     await setMeta(env, 'trend_sources', JSON.stringify(body.sources).slice(0, 4000));
   }
   return json({ ok: true, count: body.items.length });
+}
+
+// ---------------------------------------------------------------------------
+// Russia's courses of action (Version 3.11)
+// ---------------------------------------------------------------------------
+const COURSE_IDS = ['troligast', 'mojligt', 'farligast'];
+const COURSE_LEVELS = new Set(['låg', 'måttlig', 'hög']);
+const SIGN_STATUSES = new Set(['inte observerat', 'delvis', 'observerat']);
+
+async function ingestCourses(request, env) {
+  const b = await readJson(request);
+  if (!b || typeof b !== 'object' || !DATE_RE.test(b.date || '')) throw new HttpError(400, 'body must be an assessment with a date');
+  if (!Array.isArray(b.courses) || b.courses.map((c) => c && c.id).join() !== COURSE_IDS.join()) {
+    throw new HttpError(400, `courses must be ${COURSE_IDS.join(', ')}, in that order`);
+  }
+  const str = (v, max) => typeof v === 'string' && v.length <= max;
+  for (const c of b.courses) {
+    if (!str(c.title, 300) || !Array.isArray(c.text) || c.text.length > 5 || !c.text.every((t) => str(t, 600))) throw new HttpError(400, `${c.id}: title and text (at most 5 sentences)`);
+    if (!COURSE_LEVELS.has(c.likelihood)) throw new HttpError(400, `${c.id}: likelihood must be låg, måttlig or hög`);
+    if (!Array.isArray(c.signs) || c.signs.length > 10 || !c.signs.every((sg) => sg && str(sg.text, 300) && SIGN_STATUSES.has(sg.status))) throw new HttpError(400, `${c.id}: signs`);
+    if (!Array.isArray(c.arrows) || c.arrows.length > 10 || !Array.isArray(c.marks) || c.marks.length > 10) throw new HttpError(400, `${c.id}: arrows and marks`);
+  }
+  if (!Array.isArray(b.history) || b.history.length > 90) throw new HttpError(400, 'history must be an array');
+  const data = JSON.stringify(b);
+  if (data.length > 200000) throw new HttpError(413, 'assessment too large');
+  await env.DB.batch([
+    env.DB.prepare('INSERT INTO course_assessments (date, data) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET data = excluded.data').bind(b.date, data),
+    env.DB.prepare("DELETE FROM course_assessments WHERE date < date('now', '-120 days')"),
+  ]);
+  return json({ ok: true });
 }
 
 // ---------------------------------------------------------------------------
