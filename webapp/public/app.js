@@ -699,6 +699,9 @@ async function viewReport(date, q) {
     archived ? null : newBox(latest, r),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Dygnets händelser'),
+      // Into the Narrativ tab's Russian side, which still asks first.
+      archived ? null : h('a', { class: 'ru-link', href: '#/narrativ?s=ru' },
+        h('span', { class: 'ru-label' }, 'Rysk sida'), ' Visa det ryska narrativet', chevRight()),
       filterBar(topFacets(facetEvents, selected), selected, setFacets),
       events.length
         ? h('div', { class: 'card list' }, events.map((e) => eventRow(r.date, e)))
@@ -707,9 +710,6 @@ async function viewReport(date, q) {
             h('p', { class: 'small' }, `Inga händelser ${archived ? 'den dagen' : 'i dag'} för ${selected.map(facetLabel).join(' + ')}.`),
             h('a', { class: 'btn', href: `#/arkiv?f=${encodeURIComponent(selected.join(','))}&r=30` }, 'Visa i arkivet'))
           : h('p', { class: 'muted' }, 'Inga händelser registrerade.')),
-    // Into the Narrativ tab's Russian side, which still asks first.
-    archived ? null : h('a', { class: 'ru-link', href: '#/narrativ?s=ru' },
-      h('span', { class: 'ru-label' }, 'Rysk sida'), ' Visa det ryska narrativet', chevRight()),
     feed.length || !archived ? h('section', { class: 'section' },
       h('div', { class: 'sec-head' },
         h('h2', { class: 'kicker' }, feedTitle),
