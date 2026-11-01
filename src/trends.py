@@ -114,10 +114,16 @@ def wikipedia(now: datetime) -> list:
     """Pages on the subject among each language's most read yesterday,
     kept when read at least WIKI_SPIKE times their usual level."""
     day = now - timedelta(days=1)
-    out = []
+    out, failed = [], []
     for lang in WIKI_LANGS:
-        top = json.loads(_get(f"https://wikimedia.org/api/rest_v1/metrics/pageviews/top/"
-                              f"{lang}.wikipedia/all-access/{day:%Y/%m/%d}"))
+        # A small wiki's list for yesterday can still be missing (404): skip
+        # that language, not the whole source.
+        try:
+            top = json.loads(_get(f"https://wikimedia.org/api/rest_v1/metrics/pageviews/top/"
+                                  f"{lang}.wikipedia/all-access/{day:%Y/%m/%d}"))
+        except Exception as e:
+            failed.append(f"{lang}: {e}")
+            continue
         for a in top["items"][0]["articles"]:
             title = a["article"].replace("_", " ")
             if ":" in title or not RELEVANT.search(title):
@@ -140,6 +146,8 @@ def wikipedia(now: datetime) -> list:
                 "metric_sv": f"{_count(views[-1])} visningar i går, {_times(spike)} det normala",
                 "published": f"{day:%Y-%m-%d}",
             })
+    if len(failed) == len(WIKI_LANGS):
+        raise RuntimeError(failed[0])
     return out
 
 
