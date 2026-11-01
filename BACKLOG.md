@@ -25,6 +25,13 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 - Behörighetsspärren stoppar `wrangler deploy` om inte användaren har sagt
   till uttryckligen i samma meddelande.
 
+**Anfallskartan v2 (1 nov, pushad, väntar på `wrangler deploy`):** målen tas
+ur `target_main` (72 av 112 rader har målregioner, nu spritt över hela
+Ukraina). Rader utan mål ritas som korta, blekande spår. Vapenkort med bild
+och prestanda läses från `webapp/public/forces/systems.json`, som
+molnjobbet tar fram med id:n enligt `SYSTEM_IDS` i `src/strikes.py`. Tills
+den filen finns visar korten bara text.
+
 **Kaggle: klart 1 nov.** Hemligheterna är satta, och jobbet `strikes` hämtade
 4306 rader och 30 nätter (senast 31 okt, 134 Shahed varav 105 nedskjutna).
 Saknade
