@@ -1,67 +1,1397 @@
 {
- "note": "Hand-kept detail for well-known Russian (and Belarusian) bases: units, equipment and reported attacks, from open sources as of mid-2026. NOT VERIFIED - a starting point for the forces map (src/forces.py), which merges it with Wikidata's base list. Coordinates approximate. Events: reported in open sources; the daily update adds new ones from the monitor's own material.",
+ "note": "Hand-kept detail for well-known Russian (and Belarusian) bases: units, equipment and reported attacks, from open sources as of mid-2026, widened 1 Nov 2026. NOT VERIFIED - a starting point for the forces map (src/forces.py), which merges it with Wikidata's base list. Coordinates approximate. Events: reported in open sources; the daily update adds new ones from the monitor's own material.",
  "bases": [
-  {"name": "Engels-2", "name_ru": "Энгельс-2", "lat": 51.48, "lon": 46.21, "branch": "flyg",
-   "units": ["22:a gardes tunga bombflygdivisionen"], "equipment": ["Tu-160", "Tu-95MS"],
-   "events": [{"date": "2022-12-05", "kind": "anfallen", "text_sv": "Ukrainska drönare träffade basen, flera bombplan uppgavs skadade."},
-              {"date": "2025-01-08", "kind": "anfallen", "text_sv": "Drönarattack mot ett bränsledepå som försörjer basen."}]},
-  {"name": "Olenja", "name_ru": "Оленья", "lat": 68.15, "lon": 33.46, "branch": "flyg",
-   "units": ["Långdistansflyg"], "equipment": ["Tu-22M3", "Tu-95MS"],
-   "events": [{"date": "2025-06-01", "kind": "anfallen", "text_sv": "Operation Spiderweb: ukrainska drönare från lastbilar träffade flera bombplan."}]},
-  {"name": "Belaja", "name_ru": "Белая", "lat": 52.92, "lon": 103.58, "branch": "flyg",
-   "units": ["Långdistansflyg"], "equipment": ["Tu-22M3"],
-   "events": [{"date": "2025-06-01", "kind": "anfallen", "text_sv": "Operation Spiderweb: bombplan träffades av drönare."}]},
-  {"name": "Sjajkovka", "name_ru": "Шайковка", "lat": 54.23, "lon": 34.37, "branch": "flyg",
-   "units": ["52:a gardes tunga bombflygregementet"], "equipment": ["Tu-22M3", "Kh-22"],
-   "events": [{"date": "2024-07-01", "kind": "anfallen", "text_sv": "Rapporterade ukrainska drönarattacker mot basen."}]},
-  {"name": "Morozovsk", "name_ru": "Морозовск", "lat": 48.31, "lon": 41.79, "branch": "flyg",
-   "units": ["559:e bombflygregementet"], "equipment": ["Su-34", "FAB-glidbomber"],
-   "events": [{"date": "2024-04-05", "kind": "anfallen", "text_sv": "Omfattande drönarattack mot basen enligt ukrainska uppgifter."}]},
-  {"name": "Millerovo", "name_ru": "Миллерово", "lat": 48.95, "lon": 40.30, "branch": "flyg",
-   "units": ["31:a jaktflygregementet"], "equipment": ["Su-30SM"],
-   "events": [{"date": "2022-02-25", "kind": "anfallen", "text_sv": "Robotanfall mot basen i krigets första dagar."}]},
-  {"name": "Lipetsk-2", "name_ru": "Липецк-2", "lat": 52.63, "lon": 39.45, "branch": "flyg",
-   "units": ["Flygvapnets stridsträningscentrum"], "equipment": ["Su-34", "Su-35S", "Su-30SM"],
-   "events": [{"date": "2024-08-09", "kind": "anfallen", "text_sv": "Drönarattack som enligt ukrainska uppgifter träffade förråd av glidbomber."}]},
-  {"name": "Marinovka", "name_ru": "Мариновка", "lat": 48.64, "lon": 43.79, "branch": "flyg",
-   "units": ["Bomb- och attackflyg"], "equipment": ["Su-34", "Su-24M"],
-   "events": [{"date": "2024-08-03", "kind": "anfallen", "text_sv": "Drönarattack mot basen enligt ukrainska uppgifter."}]},
-  {"name": "Primorsko-Achtarsk", "name_ru": "Приморско-Ахтарск", "lat": 46.04, "lon": 38.17, "branch": "flyg",
-   "units": ["960:e attackflygregementet"], "equipment": ["Su-25"],
-   "events": [{"date": "2024-05-17", "kind": "anfallen", "text_sv": "Drönarattack mot basen enligt ukrainska uppgifter."}]},
-  {"name": "Kursk-Chalino", "name_ru": "Курск-Халино", "lat": 51.75, "lon": 36.30, "branch": "flyg",
-   "units": ["14:e jaktflygregementet"], "equipment": ["Su-30SM2"],
-   "events": [{"date": "2024-08-01", "kind": "anfallen", "text_sv": "Rapporterade anfall mot basen under Kursk-offensiven."}]},
-  {"name": "Saky", "name_ru": "Саки", "lat": 45.09, "lon": 33.60, "branch": "flyg",
-   "units": ["Svartahavsflottans marinflyg"], "equipment": ["Su-24M", "Su-30SM"],
-   "events": [{"date": "2022-08-09", "kind": "anfallen", "text_sv": "Explosioner förstörde flera flygplan på basen (ockuperade Krim)."}]},
-  {"name": "Belbek", "name_ru": "Бельбек", "lat": 44.69, "lon": 33.57, "branch": "flyg",
-   "units": ["38:e jaktflygregementet"], "equipment": ["Su-27", "Su-30", "MiG-31"],
-   "events": [{"date": "2024-05-15", "kind": "anfallen", "text_sv": "Robotanfall mot basen enligt ukrainska uppgifter (ockuperade Krim)."}]},
-  {"name": "Tjkalovsk (Kaliningrad)", "name_ru": "Чкаловск", "lat": 54.77, "lon": 20.40, "branch": "flyg",
-   "units": ["Östersjöflottans marinflyg"], "equipment": ["Su-27", "Su-30SM", "Su-24M"], "events": []},
-  {"name": "Baltijsk", "name_ru": "Балтийск", "lat": 54.65, "lon": 19.90, "branch": "marin",
-   "units": ["Östersjöflottans huvudbas"], "equipment": ["Korvetter", "Landstigningsfartyg", "Kalibr"], "events": []},
-  {"name": "Kronstadt", "name_ru": "Кронштадт", "lat": 59.99, "lon": 29.77, "branch": "marin",
-   "units": ["Östersjöflottan"], "equipment": ["Korvetter", "Ubåtar"], "events": []},
-  {"name": "Severomorsk", "name_ru": "Североморск", "lat": 69.07, "lon": 33.42, "branch": "marin",
-   "units": ["Norra flottans högkvarter"], "equipment": ["Kryssare", "Jagare", "Ubåtar", "Kalibr"], "events": []},
-  {"name": "Novorossijsk", "name_ru": "Новороссийск", "lat": 44.72, "lon": 37.79, "branch": "marin",
-   "units": ["Svartahavsflottan"], "equipment": ["Fregatter", "Ubåtar", "Kalibr"],
-   "events": [{"date": "2023-08-04", "kind": "anfallen", "text_sv": "Marina drönare träffade ett landstigningsfartyg vid basen."}]},
-  {"name": "Sevastopol", "name_ru": "Севастополь", "lat": 44.62, "lon": 33.53, "branch": "marin",
-   "units": ["Svartahavsflottans högkvarter"], "equipment": ["Fartyg", "Ubåtar"],
-   "events": [{"date": "2023-09-22", "kind": "anfallen", "text_sv": "Robotanfall mot flottans högkvarter (ockuperade Krim)."}]},
-  {"name": "Pskov", "name_ru": "Псков", "lat": 57.81, "lon": 28.33, "branch": "fallskärm",
-   "units": ["76:e gardes luftlandsättningsdivisionen"], "equipment": ["BMD-4M", "Il-76"], "events": []},
-  {"name": "Tjernjachovsk", "name_ru": "Черняховск", "lat": 54.63, "lon": 21.80, "branch": "robot",
-   "units": ["152:a gardes robotbrigaden"], "equipment": ["Iskander-M"], "events": []},
-  {"name": "Kaliningrad (luftvärn)", "name_ru": "Калининград", "lat": 54.71, "lon": 20.51, "branch": "luftvärn",
-   "units": ["Luftvärnsförband i exklaven"], "equipment": ["S-400", "Pantsir-S1", "Bastion-P"], "events": []},
-  {"name": "Luga", "name_ru": "Луга", "lat": 58.73, "lon": 29.83, "branch": "robot",
-   "units": ["26:e robotbrigaden"], "equipment": ["Iskander-M"], "events": []},
-  {"name": "Matjulisjtjy (Belarus)", "name_ru": "Мачулищи", "lat": 53.77, "lon": 27.58, "branch": "flyg",
-   "units": ["Belarusiska flygvapnet, rysk närvaro"], "equipment": ["A-50", "Su-30SM"],
-   "events": [{"date": "2023-02-26", "kind": "anfallen", "text_sv": "Ett ryskt A-50-spaningsplan skadades enligt belarusiska partisaner."}]}
+  {
+   "name": "Engels-2",
+   "name_ru": "Энгельс-2",
+   "lat": 51.48,
+   "lon": 46.21,
+   "branch": "flyg",
+   "units": [
+    "22:a gardes tunga bombflygdivisionen"
+   ],
+   "equipment": [
+    "Tu-160",
+    "Tu-95MS"
+   ],
+   "events": [
+    {
+     "date": "2022-12-05",
+     "kind": "anfallen",
+     "text_sv": "Ukrainska drönare träffade basen, flera bombplan uppgavs skadade."
+    },
+    {
+     "date": "2025-01-08",
+     "kind": "anfallen",
+     "text_sv": "Drönarattack mot ett bränsledepå som försörjer basen."
+    }
+   ]
+  },
+  {
+   "name": "Olenja",
+   "name_ru": "Оленья",
+   "lat": 68.15,
+   "lon": 33.46,
+   "branch": "flyg",
+   "units": [
+    "Långdistansflyg"
+   ],
+   "equipment": [
+    "Tu-22M3",
+    "Tu-95MS"
+   ],
+   "events": [
+    {
+     "date": "2025-06-01",
+     "kind": "anfallen",
+     "text_sv": "Operation Spiderweb: ukrainska drönare från lastbilar träffade flera bombplan."
+    }
+   ]
+  },
+  {
+   "name": "Belaja",
+   "name_ru": "Белая",
+   "lat": 52.92,
+   "lon": 103.58,
+   "branch": "flyg",
+   "units": [
+    "Långdistansflyg"
+   ],
+   "equipment": [
+    "Tu-22M3"
+   ],
+   "events": [
+    {
+     "date": "2025-06-01",
+     "kind": "anfallen",
+     "text_sv": "Operation Spiderweb: bombplan träffades av drönare."
+    }
+   ]
+  },
+  {
+   "name": "Sjajkovka",
+   "name_ru": "Шайковка",
+   "lat": 54.23,
+   "lon": 34.37,
+   "branch": "flyg",
+   "units": [
+    "52:a gardes tunga bombflygregementet"
+   ],
+   "equipment": [
+    "Tu-22M3",
+    "Kh-22"
+   ],
+   "events": [
+    {
+     "date": "2024-07-01",
+     "kind": "anfallen",
+     "text_sv": "Rapporterade ukrainska drönarattacker mot basen."
+    }
+   ]
+  },
+  {
+   "name": "Morozovsk",
+   "name_ru": "Морозовск",
+   "lat": 48.31,
+   "lon": 41.79,
+   "branch": "flyg",
+   "units": [
+    "559:e bombflygregementet"
+   ],
+   "equipment": [
+    "Su-34",
+    "FAB-glidbomber"
+   ],
+   "events": [
+    {
+     "date": "2024-04-05",
+     "kind": "anfallen",
+     "text_sv": "Omfattande drönarattack mot basen enligt ukrainska uppgifter."
+    }
+   ]
+  },
+  {
+   "name": "Millerovo",
+   "name_ru": "Миллерово",
+   "lat": 48.95,
+   "lon": 40.3,
+   "branch": "flyg",
+   "units": [
+    "31:a jaktflygregementet"
+   ],
+   "equipment": [
+    "Su-30SM"
+   ],
+   "events": [
+    {
+     "date": "2022-02-25",
+     "kind": "anfallen",
+     "text_sv": "Robotanfall mot basen i krigets första dagar."
+    }
+   ]
+  },
+  {
+   "name": "Lipetsk-2",
+   "name_ru": "Липецк-2",
+   "lat": 52.63,
+   "lon": 39.45,
+   "branch": "flyg",
+   "units": [
+    "Flygvapnets stridsträningscentrum"
+   ],
+   "equipment": [
+    "Su-34",
+    "Su-35S",
+    "Su-30SM"
+   ],
+   "events": [
+    {
+     "date": "2024-08-09",
+     "kind": "anfallen",
+     "text_sv": "Drönarattack som enligt ukrainska uppgifter träffade förråd av glidbomber."
+    }
+   ]
+  },
+  {
+   "name": "Marinovka",
+   "name_ru": "Мариновка",
+   "lat": 48.64,
+   "lon": 43.79,
+   "branch": "flyg",
+   "units": [
+    "Bomb- och attackflyg"
+   ],
+   "equipment": [
+    "Su-34",
+    "Su-24M"
+   ],
+   "events": [
+    {
+     "date": "2024-08-03",
+     "kind": "anfallen",
+     "text_sv": "Drönarattack mot basen enligt ukrainska uppgifter."
+    }
+   ]
+  },
+  {
+   "name": "Primorsko-Achtarsk",
+   "name_ru": "Приморско-Ахтарск",
+   "lat": 46.04,
+   "lon": 38.17,
+   "branch": "flyg",
+   "units": [
+    "960:e attackflygregementet"
+   ],
+   "equipment": [
+    "Su-25"
+   ],
+   "events": [
+    {
+     "date": "2024-05-17",
+     "kind": "anfallen",
+     "text_sv": "Drönarattack mot basen enligt ukrainska uppgifter."
+    }
+   ]
+  },
+  {
+   "name": "Kursk-Chalino",
+   "name_ru": "Курск-Халино",
+   "lat": 51.75,
+   "lon": 36.3,
+   "branch": "flyg",
+   "units": [
+    "14:e jaktflygregementet"
+   ],
+   "equipment": [
+    "Su-30SM2"
+   ],
+   "events": [
+    {
+     "date": "2024-08-01",
+     "kind": "anfallen",
+     "text_sv": "Rapporterade anfall mot basen under Kursk-offensiven."
+    }
+   ]
+  },
+  {
+   "name": "Saky",
+   "name_ru": "Саки",
+   "lat": 45.09,
+   "lon": 33.6,
+   "branch": "flyg",
+   "units": [
+    "Svartahavsflottans marinflyg"
+   ],
+   "equipment": [
+    "Su-24M",
+    "Su-30SM"
+   ],
+   "events": [
+    {
+     "date": "2022-08-09",
+     "kind": "anfallen",
+     "text_sv": "Explosioner förstörde flera flygplan på basen (ockuperade Krim)."
+    }
+   ]
+  },
+  {
+   "name": "Belbek",
+   "name_ru": "Бельбек",
+   "lat": 44.69,
+   "lon": 33.57,
+   "branch": "flyg",
+   "units": [
+    "38:e jaktflygregementet"
+   ],
+   "equipment": [
+    "Su-27",
+    "Su-30",
+    "MiG-31"
+   ],
+   "events": [
+    {
+     "date": "2024-05-15",
+     "kind": "anfallen",
+     "text_sv": "Robotanfall mot basen enligt ukrainska uppgifter (ockuperade Krim)."
+    }
+   ]
+  },
+  {
+   "name": "Tjkalovsk (Kaliningrad)",
+   "name_ru": "Чкаловск",
+   "lat": 54.77,
+   "lon": 20.4,
+   "branch": "flyg",
+   "units": [
+    "Östersjöflottans marinflyg"
+   ],
+   "equipment": [
+    "Su-27",
+    "Su-30SM",
+    "Su-24M"
+   ],
+   "events": []
+  },
+  {
+   "name": "Baltijsk",
+   "name_ru": "Балтийск",
+   "lat": 54.65,
+   "lon": 19.9,
+   "branch": "marin",
+   "units": [
+    "Östersjöflottans huvudbas"
+   ],
+   "equipment": [
+    "Korvetter",
+    "Landstigningsfartyg",
+    "Kalibr"
+   ],
+   "events": []
+  },
+  {
+   "name": "Kronstadt",
+   "name_ru": "Кронштадт",
+   "lat": 59.99,
+   "lon": 29.77,
+   "branch": "marin",
+   "units": [
+    "Östersjöflottan"
+   ],
+   "equipment": [
+    "Korvetter",
+    "Ubåtar"
+   ],
+   "events": []
+  },
+  {
+   "name": "Severomorsk",
+   "name_ru": "Североморск",
+   "lat": 69.07,
+   "lon": 33.42,
+   "branch": "marin",
+   "units": [
+    "Norra flottans högkvarter"
+   ],
+   "equipment": [
+    "Kryssare",
+    "Jagare",
+    "Ubåtar",
+    "Kalibr"
+   ],
+   "events": []
+  },
+  {
+   "name": "Novorossijsk",
+   "name_ru": "Новороссийск",
+   "lat": 44.72,
+   "lon": 37.79,
+   "branch": "marin",
+   "units": [
+    "Svartahavsflottan"
+   ],
+   "equipment": [
+    "Fregatter",
+    "Ubåtar",
+    "Kalibr"
+   ],
+   "events": [
+    {
+     "date": "2023-08-04",
+     "kind": "anfallen",
+     "text_sv": "Marina drönare träffade ett landstigningsfartyg vid basen."
+    }
+   ]
+  },
+  {
+   "name": "Sevastopol",
+   "name_ru": "Севастополь",
+   "lat": 44.62,
+   "lon": 33.53,
+   "branch": "marin",
+   "units": [
+    "Svartahavsflottans högkvarter"
+   ],
+   "equipment": [
+    "Fartyg",
+    "Ubåtar"
+   ],
+   "events": [
+    {
+     "date": "2023-09-22",
+     "kind": "anfallen",
+     "text_sv": "Robotanfall mot flottans högkvarter (ockuperade Krim)."
+    }
+   ]
+  },
+  {
+   "name": "Pskov",
+   "name_ru": "Псков",
+   "lat": 57.81,
+   "lon": 28.33,
+   "branch": "fallskärm",
+   "units": [
+    "76:e gardes luftlandsättningsdivisionen"
+   ],
+   "equipment": [
+    "BMD-4M",
+    "Il-76"
+   ],
+   "events": []
+  },
+  {
+   "name": "Tjernjachovsk",
+   "name_ru": "Черняховск",
+   "lat": 54.63,
+   "lon": 21.8,
+   "branch": "robot",
+   "units": [
+    "152:a gardes robotbrigaden"
+   ],
+   "equipment": [
+    "Iskander-M"
+   ],
+   "events": []
+  },
+  {
+   "name": "Kaliningrad (luftvärn)",
+   "name_ru": "Калининград",
+   "lat": 54.71,
+   "lon": 20.51,
+   "branch": "luftvärn",
+   "units": [
+    "Luftvärnsförband i exklaven"
+   ],
+   "equipment": [
+    "S-400",
+    "Pantsir-S1",
+    "Bastion-P"
+   ],
+   "events": []
+  },
+  {
+   "name": "Luga",
+   "name_ru": "Луга",
+   "lat": 58.73,
+   "lon": 29.83,
+   "branch": "robot",
+   "units": [
+    "26:e robotbrigaden",
+    "9:e gardes artilleribrigaden"
+   ],
+   "equipment": [
+    "Iskander-M"
+   ],
+   "events": []
+  },
+  {
+   "name": "Matjulisjtjy (Belarus)",
+   "name_ru": "Мачулищи",
+   "lat": 53.77,
+   "lon": 27.58,
+   "branch": "flyg",
+   "units": [
+    "Belarusiska flygvapnet, rysk närvaro"
+   ],
+   "equipment": [
+    "A-50",
+    "Su-30SM"
+   ],
+   "events": [
+    {
+     "date": "2023-02-26",
+     "kind": "anfallen",
+     "text_sv": "Ett ryskt A-50-spaningsplan skadades enligt belarusiska partisaner."
+    }
+   ]
+  },
+  {
+   "name": "Djagilevo (Rjazan)",
+   "name_ru": "Дягилево",
+   "lat": 54.64,
+   "lon": 39.57,
+   "branch": "flyg",
+   "units": [
+    "43:e centret för långdistansflygets stridsanvändning"
+   ],
+   "equipment": [
+    "Tu-22M3",
+    "Tu-95MS",
+    "Il-78"
+   ],
+   "events": [
+    {
+     "date": "2022-12-05",
+     "kind": "anfallen",
+     "text_sv": "Drönarattack mot basen samma dag som Engels-2."
+    },
+    {
+     "date": "2025-06-01",
+     "kind": "anfallen",
+     "text_sv": "Operation Spiderweb: basen var bland målen för drönare från lastbilar."
+    }
+   ]
+  },
+  {
+   "name": "Soltsy-2",
+   "name_ru": "Сольцы-2",
+   "lat": 58.14,
+   "lon": 30.33,
+   "branch": "flyg",
+   "units": [
+    "Långdistansflyg"
+   ],
+   "equipment": [
+    "Tu-22M3"
+   ],
+   "events": [
+    {
+     "date": "2023-08-19",
+     "kind": "anfallen",
+     "text_sv": "Drönare träffade ett Tu-22M3 som förstördes enligt bilder."
+    }
+   ]
+  },
+  {
+   "name": "Ukrainka",
+   "name_ru": "Украинка",
+   "lat": 51.17,
+   "lon": 128.45,
+   "branch": "flyg",
+   "units": [
+    "Långdistansflyg, tunga bombflygregementen"
+   ],
+   "equipment": [
+    "Tu-95MS"
+   ],
+   "events": []
+  },
+  {
+   "name": "Mozdok",
+   "name_ru": "Моздок",
+   "lat": 43.79,
+   "lon": 44.6,
+   "branch": "flyg",
+   "units": [
+    "Framskjuten bas för långdistansflyg"
+   ],
+   "equipment": [
+    "Tu-22M3"
+   ],
+   "events": []
+  },
+  {
+   "name": "Ivanovo Severnyj",
+   "name_ru": "Иваново-Северный",
+   "lat": 57.06,
+   "lon": 40.98,
+   "branch": "flyg",
+   "units": [
+    "Luftburen radar och ledning"
+   ],
+   "equipment": [
+    "A-50U",
+    "Il-76MD"
+   ],
+   "events": [
+    {
+     "date": "2025-06-01",
+     "kind": "anfallen",
+     "text_sv": "Operation Spiderweb: basen uppges ha attackerats med drönare."
+    }
+   ]
+  },
+  {
+   "name": "Sjagol (Tjeljabinsk)",
+   "name_ru": "Шагол",
+   "lat": 55.26,
+   "lon": 61.3,
+   "branch": "flyg",
+   "units": [
+    "2:a gardes bombflygregementet"
+   ],
+   "equipment": [
+    "Su-34"
+   ],
+   "events": []
+  },
+  {
+   "name": "Baltimor (Voronezj)",
+   "name_ru": "Балтимор",
+   "lat": 51.62,
+   "lon": 39.13,
+   "branch": "flyg",
+   "units": [
+    "47:e gardes bombflygregementet"
+   ],
+   "equipment": [
+    "Su-34"
+   ],
+   "events": []
+  },
+  {
+   "name": "Achtubinsk",
+   "name_ru": "Ахтубинск",
+   "lat": 48.31,
+   "lon": 46.2,
+   "branch": "flyg",
+   "units": [
+    "929:e statliga flygprovcentret"
+   ],
+   "equipment": [
+    "Su-57",
+    "Su-34",
+    "Su-35S",
+    "MiG-31"
+   ],
+   "events": [
+    {
+     "date": "2024-06-08",
+     "kind": "anfallen",
+     "text_sv": "Ukrainska drönare uppges ha skadat ett Su-57 enligt satellitbilder."
+    }
+   ]
+  },
+  {
+   "name": "Borisoglebsk",
+   "name_ru": "Борисоглебск",
+   "lat": 51.37,
+   "lon": 42.18,
+   "branch": "flyg",
+   "units": [
+    "Utbildningscenter och bombflyg"
+   ],
+   "equipment": [
+    "Su-34",
+    "Su-25",
+    "Jak-130"
+   ],
+   "events": []
+  },
+  {
+   "name": "Krymsk",
+   "name_ru": "Крымск",
+   "lat": 44.96,
+   "lon": 38.0,
+   "branch": "flyg",
+   "units": [
+    "3:e gardes jaktflygregementet"
+   ],
+   "equipment": [
+    "Su-27SM3",
+    "Su-30M2"
+   ],
+   "events": []
+  },
+  {
+   "name": "Savasleika",
+   "name_ru": "Саваслейка",
+   "lat": 55.44,
+   "lon": 42.31,
+   "branch": "flyg",
+   "units": [
+    "Stridsträningscenter för jaktflyg"
+   ],
+   "equipment": [
+    "MiG-31BM",
+    "MiG-31K",
+    "Kh-47M2 Kinzjal"
+   ],
+   "events": []
+  },
+  {
+   "name": "Chotilovo",
+   "name_ru": "Хотилово",
+   "lat": 57.65,
+   "lon": 34.1,
+   "branch": "flyg",
+   "units": [
+    "790:e jaktflygregementet"
+   ],
+   "equipment": [
+    "MiG-31BM",
+    "Su-35S"
+   ],
+   "events": []
+  },
+  {
+   "name": "Besovets (Petrozavodsk)",
+   "name_ru": "Бесовец",
+   "lat": 61.88,
+   "lon": 34.15,
+   "branch": "flyg",
+   "units": [
+    "159:e jaktflygregementet"
+   ],
+   "equipment": [
+    "Su-35S"
+   ],
+   "events": []
+  },
+  {
+   "name": "Kubinka",
+   "name_ru": "Кубинка",
+   "lat": 55.61,
+   "lon": 36.65,
+   "branch": "flyg",
+   "units": [
+    "Uppvisningsgrupper och testflyg"
+   ],
+   "equipment": [
+    "Su-30SM",
+    "MiG-29",
+    "Su-35S"
+   ],
+   "events": []
+  },
+  {
+   "name": "Domna",
+   "name_ru": "Домна",
+   "lat": 51.92,
+   "lon": 113.58,
+   "branch": "flyg",
+   "units": [
+    "120:e jaktflygregementet"
+   ],
+   "equipment": [
+    "Su-30SM"
+   ],
+   "events": []
+  },
+  {
+   "name": "Dzemgi (Komsomolsk-na-Amure)",
+   "name_ru": "Дзёмги",
+   "lat": 50.6,
+   "lon": 137.08,
+   "branch": "flyg",
+   "units": [
+    "23:e jaktflygregementet",
+    "Suchojs flygplansfabrik"
+   ],
+   "equipment": [
+    "Su-35S",
+    "Su-57"
+   ],
+   "events": []
+  },
+  {
+   "name": "Churba",
+   "name_ru": "Хурба",
+   "lat": 50.41,
+   "lon": 136.98,
+   "branch": "flyg",
+   "units": [
+    "277:e bombflygregementet"
+   ],
+   "equipment": [
+    "Su-34"
+   ],
+   "events": []
+  },
+  {
+   "name": "Jelizovo (Kamtjatka)",
+   "name_ru": "Елизово",
+   "lat": 53.17,
+   "lon": 158.45,
+   "branch": "flyg",
+   "units": [
+    "317:e blandade flygregementet"
+   ],
+   "equipment": [
+    "MiG-31BM"
+   ],
+   "events": []
+  },
+  {
+   "name": "Kansk",
+   "name_ru": "Канск",
+   "lat": 56.13,
+   "lon": 95.66,
+   "branch": "flyg",
+   "units": [
+    "712:e gardes jaktflygregementet"
+   ],
+   "equipment": [
+    "MiG-31BM"
+   ],
+   "events": []
+  },
+  {
+   "name": "Bolsjoje Savino (Perm)",
+   "name_ru": "Большое Савино",
+   "lat": 57.91,
+   "lon": 56.02,
+   "branch": "flyg",
+   "units": [
+    "764:e jaktflygregementet"
+   ],
+   "equipment": [
+    "MiG-31BM"
+   ],
+   "events": []
+  },
+  {
+   "name": "Donskoje (Kaliningrad)",
+   "name_ru": "Донское",
+   "lat": 54.94,
+   "lon": 19.97,
+   "branch": "flyg",
+   "units": [
+    "4:e gardes marinattackflygregementet"
+   ],
+   "equipment": [
+    "Su-30SM",
+    "Su-24M"
+   ],
+   "events": []
+  },
+  {
+   "name": "Severomorsk-1",
+   "name_ru": "Североморск-1",
+   "lat": 69.03,
+   "lon": 33.42,
+   "branch": "flyg",
+   "units": [
+    "279:e marinjaktflygregementet",
+    "Norra flottans marinflyg"
+   ],
+   "equipment": [
+    "Su-33",
+    "MiG-29K",
+    "Il-38"
+   ],
+   "events": []
+  },
+  {
+   "name": "Nagurskoje (Frans Josefs land)",
+   "name_ru": "Нагурское",
+   "lat": 80.8,
+   "lon": 47.66,
+   "branch": "flyg",
+   "units": [
+    "Arktisk bas, Norra flottan"
+   ],
+   "equipment": [
+    "Bastion-P",
+    "Pantsir-SA"
+   ],
+   "events": []
+  },
+  {
+   "name": "Taganrog Tsentralnyj",
+   "name_ru": "Таганрог-Центральный",
+   "lat": 47.2,
+   "lon": 38.85,
+   "branch": "flyg",
+   "units": [
+    "Berijev-fabriken, transportflyg"
+   ],
+   "equipment": [
+    "Il-76",
+    "A-50",
+    "Be-12"
+   ],
+   "events": []
+  },
+  {
+   "name": "Jejsk",
+   "name_ru": "Ейск",
+   "lat": 46.68,
+   "lon": 38.21,
+   "branch": "flyg",
+   "units": [
+    "Marinflygets utbildningscenter"
+   ],
+   "equipment": [
+    "Su-25UTG",
+    "Su-30SM"
+   ],
+   "events": []
+  },
+  {
+   "name": "Gvardejskoje (Krim)",
+   "name_ru": "Гвардейское",
+   "lat": 45.12,
+   "lon": 33.98,
+   "branch": "flyg",
+   "units": [
+    "37:e blandade flygregementet"
+   ],
+   "equipment": [
+    "Su-24M",
+    "Su-25SM"
+   ],
+   "events": []
+  },
+  {
+   "name": "Dzjankoj (Krim)",
+   "name_ru": "Джанкой",
+   "lat": 45.7,
+   "lon": 34.42,
+   "branch": "flyg",
+   "units": [
+    "Arméflyg (helikoptrar)"
+   ],
+   "equipment": [
+    "Ka-52",
+    "Mi-28N",
+    "Mi-8",
+    "S-400"
+   ],
+   "events": [
+    {
+     "date": "2024-04-17",
+     "kind": "anfallen",
+     "text_sv": "Robotanfall mot flygfältet; bilder visade skadade helikoptrar och luftvärnsutrustning."
+    }
+   ]
+  },
+  {
+   "name": "Kirovskoje (Krim)",
+   "name_ru": "Кировское",
+   "lat": 45.16,
+   "lon": 35.18,
+   "branch": "flyg",
+   "units": [
+    "Attackflyg och drönare"
+   ],
+   "equipment": [
+    "Su-25",
+    "Orion-drönare"
+   ],
+   "events": []
+  },
+  {
+   "name": "Ostrov",
+   "name_ru": "Остров",
+   "lat": 57.3,
+   "lon": 28.43,
+   "branch": "flyg",
+   "units": [
+    "15:e arméflygbrigaden"
+   ],
+   "equipment": [
+    "Ka-52",
+    "Mi-28N",
+    "Mi-8AMTSj"
+   ],
+   "events": []
+  },
+  {
+   "name": "Sesjtja",
+   "name_ru": "Сеща",
+   "lat": 53.72,
+   "lon": 33.34,
+   "branch": "flyg",
+   "units": [
+    "566:e militära transportflygregementet"
+   ],
+   "equipment": [
+    "Il-76MD",
+    "An-124"
+   ],
+   "events": []
+  },
+  {
+   "name": "Migalovo (Tver)",
+   "name_ru": "Мигалово",
+   "lat": 56.82,
+   "lon": 35.76,
+   "branch": "flyg",
+   "units": [
+    "Militärt transportflyg"
+   ],
+   "equipment": [
+    "Il-76MD"
+   ],
+   "events": []
+  },
+  {
+   "name": "Tjkalovskij (Moskva)",
+   "name_ru": "Чкаловский",
+   "lat": 55.88,
+   "lon": 38.06,
+   "branch": "flyg",
+   "units": [
+    "Statligt specialflyg och transport"
+   ],
+   "equipment": [
+    "Il-62",
+    "Tu-214",
+    "Il-76"
+   ],
+   "events": []
+  },
+  {
+   "name": "Gadzjijevo",
+   "name_ru": "Гаджиево",
+   "lat": 69.25,
+   "lon": 33.33,
+   "branch": "marin",
+   "units": [
+    "31:a ubåtsdivisionen (strategiska ubåtar)"
+   ],
+   "equipment": [
+    "Borej-klass",
+    "Delta IV-klass",
+    "Bulava",
+    "Sineva"
+   ],
+   "events": []
+  },
+  {
+   "name": "Vidjajevo",
+   "name_ru": "Видяево",
+   "lat": 69.32,
+   "lon": 32.81,
+   "branch": "marin",
+   "units": [
+    "7:e ubåtsdivisionen"
+   ],
+   "equipment": [
+    "Oscar II-klass",
+    "Granit"
+   ],
+   "events": []
+  },
+  {
+   "name": "Zapadnaja Litsa",
+   "name_ru": "Западная Лица",
+   "lat": 69.42,
+   "lon": 32.43,
+   "branch": "marin",
+   "units": [
+    "11:e ubåtsdivisionen"
+   ],
+   "equipment": [
+    "Jasen-M-klass",
+    "Kalibr",
+    "Onyx",
+    "Tsirkon"
+   ],
+   "events": []
+  },
+  {
+   "name": "Poljarnyj",
+   "name_ru": "Полярный",
+   "lat": 69.2,
+   "lon": 33.47,
+   "branch": "marin",
+   "units": [
+    "Norra flottans dieselubåtar"
+   ],
+   "equipment": [
+    "Kilo-klass",
+    "Lada-klass"
+   ],
+   "events": []
+  },
+  {
+   "name": "Severodvinsk",
+   "name_ru": "Северодвинск",
+   "lat": 64.57,
+   "lon": 39.83,
+   "branch": "marin",
+   "units": [
+    "Sevmash-varvet"
+   ],
+   "equipment": [
+    "Borej-klass",
+    "Jasen-M-klass"
+   ],
+   "events": []
+  },
+  {
+   "name": "Viljutjinsk",
+   "name_ru": "Вилючинск",
+   "lat": 52.93,
+   "lon": 158.41,
+   "branch": "marin",
+   "units": [
+    "Stillahavsflottans ubåtsstyrkor"
+   ],
+   "equipment": [
+    "Borej-klass",
+    "Oscar II-klass"
+   ],
+   "events": []
+  },
+  {
+   "name": "Vladivostok",
+   "name_ru": "Владивосток",
+   "lat": 43.11,
+   "lon": 131.88,
+   "branch": "marin",
+   "units": [
+    "Stillahavsflottans högkvarter"
+   ],
+   "equipment": [
+    "Kryssare",
+    "Jagare",
+    "Korvetter"
+   ],
+   "events": []
+  },
+  {
+   "name": "Kaspijsk",
+   "name_ru": "Каспийск",
+   "lat": 42.88,
+   "lon": 47.64,
+   "branch": "marin",
+   "units": [
+    "Kaspiska flottiljen"
+   ],
+   "equipment": [
+    "Bujan-M-klass",
+    "Gepard-klass",
+    "Kalibr"
+   ],
+   "events": []
+  },
+  {
+   "name": "Feodosija",
+   "name_ru": "Феодосия",
+   "lat": 45.03,
+   "lon": 35.38,
+   "branch": "marin",
+   "units": [
+    "Svartahavsflottan, landstigningsfartyg"
+   ],
+   "equipment": [
+    "Landstigningsfartyg"
+   ],
+   "events": [
+    {
+     "date": "2023-12-26",
+     "kind": "anfallen",
+     "text_sv": "Landstigningsfartyget Novotjerkassk förstördes i hamnen av ett robotanfall."
+    }
+   ]
+  },
+  {
+   "name": "Alakurtti",
+   "name_ru": "Алакуртти",
+   "lat": 66.96,
+   "lon": 30.34,
+   "branch": "armé",
+   "units": [
+    "80:e arktiska motoriserade skyttebrigaden"
+   ],
+   "equipment": [
+    "MT-LB",
+    "BTR-82A"
+   ],
+   "events": []
+  },
+  {
+   "name": "Petjenga",
+   "name_ru": "Печенга",
+   "lat": 69.53,
+   "lon": 31.2,
+   "branch": "armé",
+   "units": [
+    "200:e motoriserade skyttebrigaden",
+    "14:e armékåren"
+   ],
+   "equipment": [
+    "T-80BVM",
+    "MT-LB",
+    "BTR-82A"
+   ],
+   "events": []
+  },
+  {
+   "name": "Kamenka (Viborg)",
+   "name_ru": "Каменка",
+   "lat": 60.6,
+   "lon": 29.0,
+   "branch": "armé",
+   "units": [
+    "138:e gardes motoriserade skyttebrigaden"
+   ],
+   "equipment": [
+    "T-72B3",
+    "BMP-2"
+   ],
+   "events": []
+  },
+  {
+   "name": "Petrozavodsk",
+   "name_ru": "Петрозаводск",
+   "lat": 61.79,
+   "lon": 34.36,
+   "branch": "armé",
+   "units": [
+    "44:e armékåren (ny 2024)"
+   ],
+   "equipment": [],
+   "events": []
+  },
+  {
+   "name": "Naro-Fominsk",
+   "name_ru": "Наро-Фоминск",
+   "lat": 55.38,
+   "lon": 36.73,
+   "branch": "armé",
+   "units": [
+    "4:e gardes stridsvagnsdivisionen (Kantemirovskaja)"
+   ],
+   "equipment": [
+    "T-80BVM",
+    "T-90M",
+    "BMP-2"
+   ],
+   "events": []
+  },
+  {
+   "name": "Kalininets (Alabino)",
+   "name_ru": "Калининец",
+   "lat": 55.56,
+   "lon": 36.92,
+   "branch": "armé",
+   "units": [
+    "2:a gardes motoriserade skyttedivisionen (Tamanskaja)"
+   ],
+   "equipment": [
+    "T-72B3",
+    "T-90M",
+    "BMP-3"
+   ],
+   "events": []
+  },
+  {
+   "name": "Jelnja",
+   "name_ru": "Ельня",
+   "lat": 54.57,
+   "lon": 33.17,
+   "branch": "armé",
+   "units": [
+    "144:e gardes motoriserade skyttedivisionen"
+   ],
+   "equipment": [
+    "T-72B3",
+    "BMP-2"
+   ],
+   "events": []
+  },
+  {
+   "name": "Bogutjar",
+   "name_ru": "Богучар",
+   "lat": 50.17,
+   "lon": 40.56,
+   "branch": "armé",
+   "units": [
+    "3:e motoriserade skyttedivisionen"
+   ],
+   "equipment": [
+    "T-72B3",
+    "BMP-2"
+   ],
+   "events": []
+  },
+  {
+   "name": "Gusev",
+   "name_ru": "Гусев",
+   "lat": 54.59,
+   "lon": 22.2,
+   "branch": "armé",
+   "units": [
+    "79:e gardes motoriserade skyttebrigaden",
+    "11:e armékåren"
+   ],
+   "equipment": [
+    "BTR-82A",
+    "T-72B3"
+   ],
+   "events": []
+  },
+  {
+   "name": "Ivanovo",
+   "name_ru": "Иваново",
+   "lat": 56.99,
+   "lon": 40.97,
+   "branch": "fallskärm",
+   "units": [
+    "98:e gardes luftlandsättningsdivisionen"
+   ],
+   "equipment": [
+    "BMD-2",
+    "BMD-4M",
+    "BTR-MDM"
+   ],
+   "events": []
+  },
+  {
+   "name": "Tula",
+   "name_ru": "Тула",
+   "lat": 54.19,
+   "lon": 37.62,
+   "branch": "fallskärm",
+   "units": [
+    "106:e gardes luftlandsättningsdivisionen"
+   ],
+   "equipment": [
+    "BMD-2",
+    "BMD-4M",
+    "BTR-MDM"
+   ],
+   "events": []
+  },
+  {
+   "name": "Sjuja",
+   "name_ru": "Шуя",
+   "lat": 56.85,
+   "lon": 41.38,
+   "branch": "robot",
+   "units": [
+    "112:e gardes robotbrigaden"
+   ],
+   "equipment": [
+    "Iskander-M"
+   ],
+   "events": []
+  },
+  {
+   "name": "Kozelsk",
+   "name_ru": "Козельск",
+   "lat": 54.03,
+   "lon": 35.78,
+   "branch": "robot",
+   "units": [
+    "28:e gardes robotdivisionen (strategiska robotstyrkorna)"
+   ],
+   "equipment": [
+    "RS-24 Jars"
+   ],
+   "events": []
+  },
+  {
+   "name": "Tejkovo",
+   "name_ru": "Тейково",
+   "lat": 56.86,
+   "lon": 40.54,
+   "branch": "robot",
+   "units": [
+    "54:e gardes robotdivisionen (strategiska robotstyrkorna)"
+   ],
+   "equipment": [
+    "RS-24 Jars"
+   ],
+   "events": []
+  },
+  {
+   "name": "Plesetsk",
+   "name_ru": "Плесецк",
+   "lat": 62.93,
+   "lon": 40.57,
+   "branch": "robot",
+   "units": [
+    "Kosmodrom och provskjutningar av interkontinentala robotar"
+   ],
+   "equipment": [
+    "Jars",
+    "Sarmat"
+   ],
+   "events": []
+  },
+  {
+   "name": "Kapustin Jar",
+   "name_ru": "Капустин Яр",
+   "lat": 48.58,
+   "lon": 45.78,
+   "branch": "robot",
+   "units": [
+    "Provskjutningsfält"
+   ],
+   "equipment": [
+    "Oresjnik",
+    "Iskander"
+   ],
+   "events": []
+  },
+  {
+   "name": "Baranavitjy (Belarus)",
+   "name_ru": "Барановичи",
+   "lat": 53.1,
+   "lon": 26.04,
+   "branch": "flyg",
+   "units": [
+    "61:a jaktflygbasen"
+   ],
+   "equipment": [
+    "Su-30SM",
+    "MiG-29"
+   ],
+   "events": []
+  },
+  {
+   "name": "Lida (Belarus)",
+   "name_ru": "Лида",
+   "lat": 53.88,
+   "lon": 25.36,
+   "branch": "flyg",
+   "units": [
+    "116:e attackflygbasen"
+   ],
+   "equipment": [
+    "Su-25",
+    "Jak-130"
+   ],
+   "events": []
+  },
+  {
+   "name": "Asipovitjy (Belarus)",
+   "name_ru": "Осиповичи",
+   "lat": 53.3,
+   "lon": 28.64,
+   "branch": "robot",
+   "units": [
+    "465:e robotbrigaden"
+   ],
+   "equipment": [
+    "Iskander-M",
+    "Polonez"
+   ],
+   "events": []
+  }
  ]
 }

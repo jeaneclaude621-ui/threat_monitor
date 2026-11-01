@@ -164,7 +164,14 @@ def merge(state: dict, listed: list) -> dict:
         base["curated"] = bool(b.get("curated"))
         base["original"] = {"units": list(b.get("units") or []), "equipment": list(b.get("equipment") or [])}
         if prev:
-            base.update({k: prev.get(k, []) for k in ("units", "equipment", "changes")})
+            base.update({k: list(prev.get(k, [])) for k in ("units", "equipment", "changes")})
+            # An edit to the hand-kept list reaches the current holdings too:
+            # what was added there is added, what was taken out is taken out.
+            was = prev.get("original") or {"units": [], "equipment": []}
+            for k in ("units", "equipment"):
+                added = [x for x in base["original"][k] if x not in was.get(k, [])]
+                dropped = {x for x in was.get(k, []) if x not in base["original"][k]}
+                base[k] = [x for x in base[k] if x not in dropped] + [x for x in added if x not in base[k]]
             # Hand-kept events (the list's history) plus what the nights added.
             night = [e for e in prev.get("events", []) if e.get("night")]
             base["events"] = [e for e in b.get("events") or []] + night
