@@ -129,16 +129,51 @@ def parse_feed(data: bytes) -> list:
             "link": (fields.get("link") or fields.get("guid") or "").strip(),
             "published": _published(fields.get("pubDate") or fields.get("published")
                                     or fields.get("updated") or fields.get("date")),
+            # The full text (RSS content:encoded, Atom content), for live blogs.
+            "content": fields.get("encoded") or fields.get("content") or "",
         })
     return items
+
+
+# A live blog's update: a time of day opening a paragraph ("17:14 De ryska ...").
+LIVE_UPDATE = re.compile(r"(?:^|\n)\s*(\d{1,2})[:.](\d{2})\s+(?=\S)")
+
+
+def live_updates(item: dict) -> list:
+    """The time-stamped updates of a live blog post, each as an article of
+    its own: the news in them comes hours after the post's date, deep in
+    a text whose opening is all a summary shows (31 Oct: Cornucopia's
+    17:14 update on Russian ro-ro ships leaving Baltiysk)."""
+    text = html.unescape(TAG.sub("\n", re.sub(r"<br\s*/?>|</p>", "\n", item.get("content") or "")))
+    marks = list(LIVE_UPDATE.finditer(text))
+    out = []
+    for m, nxt in zip(marks, marks[1:] + [None]):
+        hour, minute = int(m.group(1)), int(m.group(2))
+        if hour > 23 or minute > 59:
+            continue
+        body = re.sub(r"\s+", " ", text[m.end():nxt.start() if nxt else len(text)]).strip()
+        if len(body) < 40:
+            continue
+        when = item["published"].replace(hour=hour, minute=minute, second=0) if item.get("published") else None
+        out.append({
+            "title": f"{item['title']} – {hour:02d}:{minute:02d}: {body[:90]}",
+            "summary": body[:600],
+            "link": f"{item['link']}#{hour:02d}{minute:02d}",
+            "published": when,
+            "content": "",
+        })
+    return out
 
 
 def fetch_feed(feed: dict) -> list:
     req = urllib.request.Request(feed["url"], headers={"User-Agent": "Mozilla/5.0 threat-monitor"})
     with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
         items = parse_feed(resp.read())
+    if feed.get("liveblog"):
+        items += [u for item in items for u in live_updates(item)]
     for item in items:
         item["source"] = feed["name"]
+        item.pop("content", None)
     return items
 
 

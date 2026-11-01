@@ -534,11 +534,14 @@ def drop_repeated_articles(events: list, recent: list):
     """Takes out of today's events the articles an earlier report in
     `recent` already cited, unless that would leave an event with none.
     They stay in the reports that cited them first."""
-    cited = {_norm_url(a["url"]) for _, r in recent for e in r.get("events", [])
+    # With the #fragment: each update of a live blog post is its own article.
+    def key(url):
+        return _norm_url(url) + ("#" + url.split("#", 1)[1] if "#" in url else "")
+    cited = {key(a["url"]) for _, r in recent for e in r.get("events", [])
              for a in e.get("articles", []) if a.get("url")}
     dropped = 0
     for ev in events:
-        fresh = [a for a in ev.get("articles", []) if not (a.get("url") and _norm_url(a["url"]) in cited)]
+        fresh = [a for a in ev.get("articles", []) if not (a.get("url") and key(a["url"]) in cited)]
         if fresh and len(fresh) < len(ev.get("articles", [])):
             dropped += len(ev["articles"]) - len(fresh)
             ev["articles"] = fresh

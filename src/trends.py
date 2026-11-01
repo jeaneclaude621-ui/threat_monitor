@@ -3,8 +3,9 @@ Trends: what is spreading right now, as a feed of its own beside the
 analysis. Runs at 08:00, 12:00, 16:00 and 21:00 Stockholm.
 
 Two sides, kept apart all the way to the app:
-- "open": Wikipedia page views, Google Trends' daily searches, Reddit,
-  Mastodon and Bluesky - what people in Europe read, search and share;
+- "open": Wikipedia page views, Google Trends' daily searches, Mastodon
+  and Bluesky - what people in Europe read, search and share (Reddit
+  answers 429 to GitHub's and most other addresses, so it is left out);
 - "ru": public Telegram channels of Russian state media, the defence
   ministry and pro-Kremlin war bloggers - what the Russian side pushes.
   They are the excluded tier of config/methodology.json: shown so the
@@ -52,7 +53,6 @@ UA = "threat-monitor/1 (https://github.com/jeaneclaude621-ui/threat_monitor)"
 
 WIKI_LANGS = ["en", "sv", "fi", "no", "da", "de", "pl", "et", "lv", "lt"]
 GOOGLE_GEOS = ["SE", "FI", "NO", "DK", "DE", "PL", "EE", "LV", "LT", "GB", "US"]
-REDDIT = ["europe/rising", "worldnews/rising", "sweden/hot", "ukraine/rising"]
 MASTODON = "https://mastodon.social/api/v1/trends/links?limit=40"
 BLUESKY = "https://public.api.bsky.app/xrpc/app.bsky.unspecced.getTrendingTopics"
 # Russian state media, the defence ministry and pro-Kremlin war bloggers
@@ -164,28 +164,6 @@ def google_trends(now: datetime) -> list:
     return out
 
 
-def reddit(now: datetime) -> list:
-    atom = "{http://www.w3.org/2005/Atom}"
-    out = []
-    for sub in REDDIT:
-        root = ET.fromstring(_get(f"https://www.reddit.com/r/{sub}/.rss"))
-        for e in root.iter(f"{atom}entry"):
-            title = _text(e, f"{atom}title")
-            if not RELEVANT.search(title):
-                continue
-            link = e.find(f"{atom}link")
-            name, kind = sub.split("/")
-            out.append({
-                "id": _id("reddit", link.get("href") if link is not None else title), "side": "open",
-                "source": "reddit", "where": f"r/{name}", "title": title,
-                "url": link.get("href") if link is not None else None,
-                "metric": None, "spike": None,
-                "metric_sv": f"{'Stiger' if kind == 'rising' else 'Populärt'} på r/{name}",
-                "published": _text(e, f"{atom}updated") or None,
-            })
-    return out
-
-
 def mastodon(now: datetime) -> list:
     out = []
     for link in json.loads(_get(MASTODON)):
@@ -268,7 +246,7 @@ def telegram(now: datetime) -> list:
     return out
 
 
-SOURCES = {"wikipedia": wikipedia, "google_trends": google_trends, "reddit": reddit,
+SOURCES = {"wikipedia": wikipedia, "google_trends": google_trends,
            "mastodon": mastodon, "bluesky": bluesky, "telegram": telegram}
 
 
@@ -306,7 +284,7 @@ def summarise(items: list, date: str) -> dict:
 and Ukraine, from two sides kept apart:
 
 - "open": what people in Europe read on Wikipedia, searched on Google,
-  and shared on Reddit, Mastodon and Bluesky;
+  and shared on Mastodon and Bluesky;
 - "ru": posts of Russian state media, the Russian defence ministry and
   pro-Kremlin war bloggers on Telegram (in Russian).
 

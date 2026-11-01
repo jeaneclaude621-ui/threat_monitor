@@ -27,7 +27,7 @@ produces a consolidated PowerPoint status report every morning at 04:00.
   the `MAIL_TO` recipients as an iPhone-friendly HTML digest with the deck attached.
 - **At 08:00, 12:00, 16:00 and 21:00: trends** (`src/trends.py`), a feed of
   its own that nothing else reads: what spreads on the subject on
-  Wikipedia, Google searches, Reddit, Mastodon and Bluesky, and, kept
+  Wikipedia, Google searches, Mastodon and Bluesky, and, kept
   apart, what Russian state and pro-Kremlin Telegram channels push. Growth
   counts, not size. One Gemini summary a day. The app's "Trender" tab
   shows the Russian side only when the reader chooses to see it.

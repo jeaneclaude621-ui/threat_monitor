@@ -432,8 +432,8 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   spreads at 08:00, 12:00, 16:00 and 21:00 Stockholm (`RUN_JOBS.trends`,
   workflow trends.yml, which takes `{ test, at }` and no `job`) and the
   first run from 20:00 adds one Gemini summary a day.
-- Two sides: `open` (Wikipedia page views, Google Trends, Reddit, Mastodon,
-  Bluesky) and `ru` (Russian state and pro-Kremlin Telegram channels, the
+- Two sides: `open` (Wikipedia page views, Google Trends, Mastodon,
+  Bluesky; Reddit was tried and refuses GitHub's addresses) and `ru` (Russian state and pro-Kremlin Telegram channels, the
   excluded tier).
 - `PUT /api/ingest/trends` (machine): `{ items, summaries, sources }`.
   Items `{ id, side, source, where, title, title_sv?, url?, detail?,
