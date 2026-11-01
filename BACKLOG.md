@@ -15,21 +15,19 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 - Handskrivet underlag: 83 baser med förband och materiel
   (`config/forces_curated.json`), totalt 265 baser med Wikidata.
 
-**Pushat till main men väntar på driftsättning av Workern (v3.13):**
+**Driftsatt 1 nov 23:21 (v3.13, migration 0013):**
 - Veckosökningen (`src/forces_survey.py`): Wikipedia-artikeln för varje
-  bas, läst av en flash-lite-modell med egen kvot, 3 anrop per natt
-  (15 baser per anrop). Datan laddas upp redan nu, men rutan "Om basen"
-  syns först efter driftsättning.
+  bas, läst av `gemini-3.5-flash-lite` med egen kvot, 3 anrop per natt
+  (15 baser per anrop). Visas som rutan "Om basen".
 - Anfallskartan över Ukraina (`src/strikes.py`, fliken "Anfall mot
   Ukraina", `#/styrkor?s=anfall`) från Kaggle-datasetet. Ingen modell.
-- Driftsättning stoppades två gånger av behörighetsspärren. Kör från
-  `webapp/`:
-  `env -u CLOUDFLARE_API_TOKEN npx wrangler d1 migrations apply hotmonitor --remote`
-  (0013_strikes.sql) och `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`.
+  Första uppladdningen gick bra. Körs dagligen efter 04:00-rapporten.
+- Behörighetsspärren stoppar `wrangler deploy` om inte användaren har sagt
+  till uttryckligen i samma meddelande.
 
 **Kaggle: klart 1 nov.** Hemligheterna är satta, och jobbet `strikes` hämtade
 4306 rader och 30 nätter (senast 31 okt, 134 Shahed varav 105 nedskjutna).
-Uppladdningen ger 404 tills Workern är driftsatt (v3.13). Saknade
+Saknade
 platsnamn läggs till i `LAUNCH` och `TARGET` i `src/strikes.py` (loggraden
 "places not on the map").
 
