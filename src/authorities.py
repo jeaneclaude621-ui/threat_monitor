@@ -88,6 +88,15 @@ AGENCIES = [
 ]
 
 
+def _outlet(article: dict) -> str:
+    """A short outlet name: "Omni – Alla nyheter. Alla perspektiv." is Omni,
+    a bare address its domain."""
+    name = (article.get("source") or "").strip()
+    if not name or name.startswith("http"):
+        return _domain(name or article.get("link"))
+    return re.split(r"\s[–|-]\s", name)[0].strip()
+
+
 def _domain(url: str) -> str:
     try:
         return urlsplit(url or "").netloc.lower().removeprefix("www.")
@@ -136,7 +145,7 @@ def summarise(material: dict, now: datetime) -> dict:
         for a in items:
             ref = f"A{len(refs) + 1}"
             refs[ref] = (name, a)
-            source = name if a["own"] else (a.get("source") or _domain(a.get("link")))
+            source = name if a["own"] else _outlet(a)
             lines.append(f"[{ref}] {a['published']:%Y-%m-%d %H:%M} · {source} · {a['title']}"
                          + (f" - {a['summary'][:300]}" if a.get("summary") and a["summary"] != a["title"] else ""))
         blocks.append(f"=== {name}\n" + ("\n".join(lines) or "(nothing found)"))
@@ -157,6 +166,10 @@ sabotage, preparedness, the Baltic Sea:
   it rests on), "text_sv" (one or two sentences, max ~40 words: who said or
   did what). Write what the authority says or does; when it rests on media,
   write it as reported ("enligt TV4"), never stronger than the source.
+  Give a person's title or role only as the items state it, never from
+  your own knowledge; when unsure, give the name alone. Put an item under
+  the authority it is really about, not under the query that found it.
+  Prefer established Swedish media over aggregator and content-farm sites.
 
 Leave out: job ads, routine and local matters unrelated to security,
 items about other countries' authorities, and anything that is an old
@@ -174,13 +187,14 @@ Respond as strict JSON:
         if it.get("agency") not in names or not cited or not isinstance(it.get("text_sv"), str):
             continue
         newest = max(a["published"] for _, a in cited)
-        media = sorted({a.get("source") or _domain(a.get("link")) for _, a in cited if not a["own"]})
+        media = sorted({_outlet(a) for _, a in cited if not a["own"]})
         link = next((a.get("link") for _, a in cited if a["own"]), None) or cited[0][1].get("link")
         if link and "news.google.com/rss/articles/" in link:
             link = news_sources.decode_google_link(link)
         items.append({
             "agency": it["agency"], "text_sv": it["text_sv"].strip(),
-            "via": " och ".join(media) if media and not any(a["own"] for _, a in cited) else None,
+            "via": (", ".join(media[:-1]) + " och " + media[-1] if len(media) > 1 else media[0])
+                   if media and not any(a["own"] for _, a in cited) else None,
             "date": f"{newest:%Y-%m-%d}", "url": link if link and link.startswith("https://") else None,
             "fresh": newest >= now - timedelta(hours=FRESH_HOURS),
         })
