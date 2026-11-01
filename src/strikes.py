@@ -53,7 +53,7 @@ LAUNCH = {
     "engels": (51.48, 46.21), "volgograd oblast": (49.5, 44.0), "astrakhan oblast": (47.0, 47.5),
     "caspian sea": (44.5, 49.5), "black sea": (43.8, 34.5), "sea of azov": (46.0, 36.5), "azov sea": (46.0, 36.5),
     "crimea": (45.3, 34.3), "cape chauda": (45.0, 35.83), "hvardiiske": (45.12, 33.98), "gvardeyskoye": (45.12, 33.98),
-    "saky": (45.09, 33.6), "dzhankoi": (45.7, 34.42), "donetsk oblast": (48.0, 37.8), "luhansk oblast": (48.6, 39.3),
+    "saky": (45.09, 33.6), "chauda": (45.0, 35.83), "vologda oblast": (59.9, 40.0), "dzhankoi": (45.7, 34.42), "donetsk oblast": (48.0, 37.8), "luhansk oblast": (48.6, 39.3),
     "zaporizhzhia oblast": (47.3, 35.5), "kherson oblast": (46.6, 33.4), "mozdok": (43.79, 44.6),
     "murmansk oblast": (68.5, 33.0), "olenya": (68.15, 33.46), "shaykovka": (54.23, 34.37),
     "soltsy": (58.14, 30.33), "belarus": (53.7, 27.9), "kaliningrad": (54.7, 20.5),
