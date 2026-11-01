@@ -17,6 +17,16 @@ Kontrollera:
 Kvoten: ungefär 15 av 20 anrop per dygn.
 
 
+### Kolla den första nattliga lägesbilden för styrkekartan
+*Lagt till 2026-11-01.* Körs efter morgonrapporten, efter handlingsalternativen.
+
+Kontrollera i fliken Styrkor:
+- att anfallen hamnar på rätt bas och inte är gamla händelser som tas upp igen;
+- att flyttade eller tillförda förband har stöd i källan;
+- att "Övrigt" fångar anfall på platser som inte finns i baslistan (raffinaderier, fabriker).
+
+Kvoten: ungefär 16 av 20 anrop per dygn.
+
 ### Skärp filtret för ryska Telegram-inlägg om för mycket kommer igenom
 *Lagt till 2026-11-01. Kolla vid nästa session.*
 
