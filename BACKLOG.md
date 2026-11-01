@@ -32,6 +32,26 @@ och prestanda läses från `webapp/public/forces/systems.json`, som
 molnjobbet tar fram med id:n enligt `SYSTEM_IDS` i `src/strikes.py`. Tills
 den filen finns visar korten bara text.
 
+**Anfallskartan v3 (driftsatt 1 nov, hm-v3.24):** spåren kopplas ihop per natt
+och vapentyp när rapporten delar upp ett anfall på flera rader: en rad med
+avfyrningsplatser och målet "Ukraine", och regionala rader med mål men utan
+avfyrningsplats. De härledda spåren är streckade. Nätter där ingen rad har
+mål (t.ex. 31 okt) får fortfarande korta spår. Testat bara på 31 okt; kontrollera
+en natt med mål (t.ex. 30 okt) i appen.
+
+**Tillfällig vapenkatalog** `webapp/public/forces/systems.json` (33 vapen,
+beskrivning och nyckeltal, 22 Commons-bilder i `webapp/public/forces/img/`).
+Byggd med ett engångsskript från Wikipedias huvudbild, bara fritt
+licensierade Commons-filer. Saknar bild: geran-3/4/5, gerbera, kn-23, kh-22,
+banderol, supercam, zala, merlin-vr, forpost. Molnjobbets katalog ska ersätta
+den vid sammanslagningen; behåll de här posterna för id som molnjobbet saknar.
+Id:na följer `SYSTEM_IDS` i `src/strikes.py`.
+
+**Driftsättning:** användaren har lagt in behörighetsregler (via
+`/permissions`) för `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy` och
+`... d1 migrations apply hotmonitor --remote`. Kör dem som egna kommandon
+med arbetsmappen `webapp/`, inte ihopkedjade med `cd`.
+
 **Kaggle: klart 1 nov.** Hemligheterna är satta, och jobbet `strikes` hämtade
 4306 rader och 30 nätter (senast 31 okt, 134 Shahed varav 105 nedskjutna).
 Saknade
