@@ -31,6 +31,11 @@ produces a consolidated PowerPoint status report every morning at 04:00.
   apart, what Russian state and pro-Kremlin Telegram channels push. Growth
   counts, not size. One Gemini summary a day. The app's "Trender" tab
   shows the Russian side only when the reader chooses to see it.
+- **At 07:00 and 17:00: the Swedish authorities** (`src/authorities.py`),
+  also read by nothing else: one Gemini summary of what Försvarsmakten, MUST,
+  MCF, the Government, the Police, Säpo, Tullverket and Kustbevakningen say
+  about the security situation, from their own feeds and from Swedish media
+  ("via"). A row on the app's Idag page leads to it.
 - Persists everything in `data/state.json`: source-tier methodology,
   outlet transparency scores, author track records (evidence-based
   only \u2014 corrections and contradictions, never subjective judgments),

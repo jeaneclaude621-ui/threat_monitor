@@ -22,6 +22,7 @@
  * own schedule starts them hours late or not at all.
  * Version 3.9: the trends feed - what spreads, from open sources and,
  * apart, from the Russian side - which nothing else here reads.
+ * Version 3.10: the Swedish authorities' brief, also read by nothing else.
  */
 
 import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
@@ -61,6 +62,7 @@ const RUN_JOBS = {
   daily: { label: 'Morgonrapport', hours: [4], maxMinutes: 45, workflow: 'scheduled-jobs.yml' },
   hourly: { label: 'Trådbevakning', hours: [12, 16, 21], maxMinutes: 20, workflow: 'scheduled-jobs.yml' },
   trends: { label: 'Narrativ', hours: [8, 12, 16, 21], maxMinutes: 15, workflow: 'trends.yml' },
+  authorities: { label: 'Myndigheter', hours: [7, 17], maxMinutes: 15, workflow: 'authorities.yml' },
 };
 const RUN_START_GRACE_MIN = 75;   // GitHub's own cron, the fallback, can lag
 const RUN_ID_RE = /^[0-9a-f]{32}$/;
@@ -70,7 +72,7 @@ const MAC_QUIET_MIN = 30;
 // Version 3.8: the cron that starts the runs (wrangler.jsonc). It fires at
 // both UTC hours that can be each Stockholm hour in RUN_JOBS, summer and
 // winter time; startDueRuns starts only the jobs due at the Stockholm hour.
-const DISPATCH_CRON = '0 2,3,6,7,10,11,14,15,19,20 * * *';          // the invitation job (GitHub Actions) polls every 5 min; its cron can lag
+const DISPATCH_CRON = '0 2,3,5,6,7,10,11,14,15,16,19,20 * * *';          // the invitation job (GitHub Actions) polls every 5 min; its cron can lag
 
 // Reasons written to security_log (CONTRACT.md, Version 2).
 const R = {
@@ -244,6 +246,13 @@ async function route(req) {
     return listUpdates(env, url);
   }
 
+  if (path === '/api/authorities') {
+    allow(method, 'GET');
+    requireUser(who);
+    const row = await env.DB.prepare('SELECT data FROM authority_briefs ORDER BY generated_at DESC LIMIT 1').first();
+    return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
+  }
+
   if (path === '/api/trends') {
     allow(method, 'GET');
     requireUser(who);
@@ -274,6 +283,12 @@ async function route(req) {
     allow(method, 'PUT');
     requireMachine(who);
     return ingestUpdates(request, env);
+  }
+
+  if (path === '/api/ingest/authorities') {
+    allow(method, 'PUT');
+    requireMachine(who);
+    return ingestAuthorities(request, env);
   }
 
   if (path === '/api/ingest/trends') {
@@ -1049,6 +1064,37 @@ async function ingestTrends(request, env) {
     await setMeta(env, 'trend_sources', JSON.stringify(body.sources).slice(0, 4000));
   }
   return json({ ok: true, count: body.items.length });
+}
+
+// ---------------------------------------------------------------------------
+// The Swedish authorities' brief (Version 3.10), read by nothing else here
+// ---------------------------------------------------------------------------
+const AUTHORITIES = new Set(['Försvarsmakten', 'MUST', 'MCF', 'Regeringen', 'Polisen', 'Säpo', 'Tullverket', 'Kustbevakningen']);
+const AUTHORITY_BRIEFS_KEEP = 60;
+
+async function ingestAuthorities(request, env) {
+  const b = await readJson(request);
+  if (!b || typeof b !== 'object' || Array.isArray(b)) throw new HttpError(400, 'body must be a brief object');
+  if (typeof b.generated_at !== 'string' || !TS_RE.test(b.generated_at)) throw new HttpError(400, 'generated_at must be ISO 8601');
+  if (typeof b.overall_sv !== 'string' || b.overall_sv.length > 3000) throw new HttpError(400, 'overall_sv must be a string');
+  if (!Array.isArray(b.items) || b.items.length > 40) throw new HttpError(400, 'items must be an array of at most 40');
+  const items = b.items.map((it) => {
+    if (!it || !AUTHORITIES.has(it.agency)) throw new HttpError(400, 'each item needs a known agency');
+    if (typeof it.text_sv !== 'string' || it.text_sv.length > 1000) throw new HttpError(400, `${it.agency}: text_sv must be a string`);
+    if (it.url != null && (typeof it.url !== 'string' || !/^https:\/\//.test(it.url) || it.url.length > 2000)) throw new HttpError(400, `${it.agency}: url must be https`);
+    if (it.via != null && (typeof it.via !== 'string' || it.via.length > 300)) throw new HttpError(400, `${it.agency}: via must be a string`);
+    if (typeof it.date !== 'string' || !DATE_RE.test(it.date)) throw new HttpError(400, `${it.agency}: date must be YYYY-MM-DD`);
+    return { agency: it.agency, text_sv: it.text_sv, via: it.via ?? null, url: it.url ?? null, date: it.date, fresh: it.fresh === true };
+  });
+  const quiet = Array.isArray(b.quiet) ? b.quiet.filter((a) => AUTHORITIES.has(a)) : [];
+  const data = JSON.stringify({ generated_at: b.generated_at, overall_sv: b.overall_sv, items, quiet });
+  await env.DB.batch([
+    env.DB.prepare('INSERT INTO authority_briefs (generated_at, data) VALUES (?, ?) ON CONFLICT(generated_at) DO UPDATE SET data = excluded.data')
+      .bind(b.generated_at, data),
+    env.DB.prepare(`DELETE FROM authority_briefs WHERE generated_at NOT IN
+      (SELECT generated_at FROM authority_briefs ORDER BY generated_at DESC LIMIT ${AUTHORITY_BRIEFS_KEEP})`),
+  ]);
+  return json({ ok: true, items: items.length });
 }
 
 /** One side at a time: the app asks for 'ru' only when the reader chose to see it. */

@@ -667,3 +667,13 @@ button.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 
   border: 1px solid #D9A89B; background: var(--card); color: #8A1F12; font-size: 14px; font-weight: 600; text-decoration: none; }
 .ru-link .chev { margin-left: auto; }
 @media (prefers-color-scheme: dark) { .ru-link { border-color: #6B3A2E; color: #F4A28C; } }
+
+/* The Swedish authorities (Version 3.10) */
+.menurow { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 14px; text-decoration: none; color: var(--ink); box-shadow: inset 4px 0 0 var(--link); }
+.se-flag { width: 30px; height: 22px; border-radius: 4px; flex-shrink: 0; background:
+  linear-gradient(to right, transparent 9px, #FECC02 9px, #FECC02 14px, transparent 14px),
+  linear-gradient(to bottom, transparent 8.5px, #FECC02 8.5px, #FECC02 13.5px, transparent 13.5px), #006AA7; }
+.auth-row { align-items: flex-start; }
+.auth-row .row-main { gap: 4px; }
+.auth-row .btn { min-height: 34px; margin-top: 4px; }

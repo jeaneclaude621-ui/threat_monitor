@@ -307,6 +307,12 @@ export async function loadUpdates() {
   return store.updates;
 }
 
+// --- The Swedish authorities' brief (Version 3.10) ------------------------------
+
+export function loadAuthorities() {
+  return getJSON('/api/authorities', { cache: 'no-store' });
+}
+
 // --- Trends (Version 3.9) ------------------------------------------------------
 
 // One side at a time; 'ru' is asked for only when the reader chose to see it.

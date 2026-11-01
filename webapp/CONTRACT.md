@@ -457,3 +457,21 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   0009_trend_summary_sv.sql). Each run puts new Russian posts, and open
   items not in Swedish or English, into Swedish; the app shows the Swedish
   and folds the original away. Service worker hm-v3.16.
+
+# Version 3.10 (1 Nov 2026) - the Swedish authorities
+
+- src/authorities.py briefs at 07:00 and 17:00 Stockholm (`RUN_JOBS.authorities`,
+  workflow authorities.yml, `{ test, at }`) on what Försvarsmakten, MUST, MCF,
+  the Government, the Police, Säpo, Tullverket and Kustbevakningen say about
+  the security situation: one Gemini call a run. Read by nothing else.
+- `PUT /api/ingest/authorities` (machine): `{ generated_at, overall_sv,
+  items: [{ agency, text_sv, via|null, url|null, date, fresh }], quiet }`;
+  one row per run in `authority_briefs`, the newest 60 kept.
+- `GET /api/authorities` (user): the newest brief, or null. Read only, so a
+  later guest access can serve it as it is.
+- App: on Idag, a row "Svenska myndigheter" under the top development, with
+  the count of items from the last 24 h; `#/myndigheter` shows the brief,
+  marked as an AI summary, "via" naming the media when the word is not the
+  agency's own.
+- Migration 0010_authorities.sql; the dispatch cron gains 05 and 16 UTC.
+  Service worker hm-v3.17.

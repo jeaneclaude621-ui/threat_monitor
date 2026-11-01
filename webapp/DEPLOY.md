@@ -318,3 +318,10 @@ No new secrets or vars. People already in the list get no mail; use
 npx wrangler d1 migrations apply hotmonitor --remote   # 0008_trends.sql
 npx wrangler deploy                                     # adds 06/07 UTC to the dispatch cron
 ```
+
+## Version 3.10: the Swedish authorities
+
+```sh
+npx wrangler d1 migrations apply hotmonitor --remote   # 0010_authorities.sql
+npx wrangler deploy                                     # adds 05 and 16 UTC to the dispatch cron
+```

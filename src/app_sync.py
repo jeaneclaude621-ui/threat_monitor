@@ -151,6 +151,20 @@ def push_trends(payload: dict) -> bool:
         return False
 
 
+def push_authorities(brief: dict) -> bool:
+    """The Swedish authorities' brief (src/authorities.py)."""
+    if not _config():
+        print("  App upload skipped - HOTMONITOR_URL / CF_ACCESS_CLIENT_* not set")
+        return False
+    try:
+        _request("PUT", "/api/ingest/authorities", brief)
+        print("  Uploaded the authorities brief to web app")
+        return True
+    except Exception as e:
+        print(f"  ! Authorities upload failed: {e}")
+        return False
+
+
 def short_label(label: str, limit: int = 120) -> str:
     """Watchlist labels have grown into paragraph-long descriptions; the
     app's live feed needs a name. First clause, else cut at a word."""

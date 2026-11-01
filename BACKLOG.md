@@ -52,6 +52,24 @@ Fliken Källor är den enda vägen för Telegram eller rysk statsmedia in i
 analysen: en länk som läggs in där läses av rapporten. Förslaget är att
 Workern vägrar sådana länkar (t.me, tass, rt.com, ria.ru, sputnik).
 
+### Gäståtkomst med länk, utan mejl (NÄSTA STEG)
+*Beslutat 2026-11-01 att detta är nästa steg. Detaljerna bestäms när vi tar upp det.*
+
+Den som har en länk ska kunna läsa appen utan att logga in och utan att
+uppge e-post. En enkel lösning:
+- En hemlig gästlänk, till exempel `.../?g=<token>`. Workern känner igen
+  token och ger läsbehörighet.
+- Länken kan dras tillbaka genom att token byts ut.
+- Hela läsdelen visas för gäster: Idag, Arkiv, Ämnen, Karta, Narrativ och
+  Myndigheter. Bedöm och admin kräver fortfarande inloggning.
+- Gästläsningen får inte räknas mot Cloudflare Access gratisnivå på 50
+  användare. Läsvägarna måste därför gå förbi Access (bypass) för den som
+  har en giltig token.
+
+Allt som byggts sedan 1 nov är rena läsanrop och klara för detta. Följande
+i punkten nedan gäller även här: e-postadresser bort ur rapportdatan,
+gästläge i appen, cachning, AI-märkning.
+
 ### Gör appen öppen för alla, gratis
 *Föreslaget 2026-11-01.*
 
@@ -66,27 +84,8 @@ Förutsättningar:
 
 Öppen fråga: ska Narrativ vara publikt eller bara för inloggade?
 
-### Svenska myndigheter: ny rad och sida i appen
-*Föreslaget 2026-11-01.* Mockup och kostnad: https://claude.ai/artifact/FMnaHUVGGBjyWZDTiD3rnd
-
-En sammanfattning av vad Försvarsmakten, MUST, MCF, regeringen, Polisen,
-Säpo, Tullverket och Kustbevakningen säger om läget, både överlag och det
-senaste dygnet.
-
-Källorna testade 1 nov:
-- Egna flöden: MCF (`mcf.se/sv/rss-floden/...`), regeringens
-  pressmeddelanden och Polisens nyheter.
-- Google News för forsvarsmakten.se och regeringen.se.
-- Övriga via svenska medier: Säpo, Tullverket, Kustbevakningen och MUST.
-
-Kostnad: 1 Gemini-anrop per uppdatering. Förslag: kl. 07 och 17, alltså +2
-anrop och totalt ungefär 14 av 20 per dygn.
-
-Måste filtreras bort:
-- Försvarsmaktens platsannonser.
-- Utländska "kustbevakningar".
-- Gamla klipp som återpubliceras, till exempel TV4 2022.
-
-Väntar på beslut: hur ofta, och var raden ska ligga.
-
 ## Klart
+
+- 2026-11-01: Svenska myndigheter. En rad på Idag och en egen sida, uppdateras
+  kl. 07 och 17 (alternativ B). Mockupen finns på
+  https://claude.ai/artifact/FMnaHUVGGBjyWZDTiD3rnd.

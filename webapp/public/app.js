@@ -5,7 +5,7 @@ import {
   store, onChange, isAdmin, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
-  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends,
+  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
 
@@ -150,6 +150,7 @@ async function route({ keepScroll = false } = {}) {
     case 'karta': tab = 'karta'; view = () => viewMap(q); break;
     // #/trender is the tab's first name; links to it still work.
     case 'narrativ': case 'trender': tab = 'narrativ'; view = () => viewTrends(q); break;
+    case 'myndigheter': view = () => viewAuthorities(); break;
     case 'bedom': tab = 'bedom'; view = () => viewAssess(q); break;
     case 'mina': tab = 'bedom'; view = () => viewMine(); break;
     case 'kalla': view = () => viewSource(rest.join('/')); break;
@@ -661,8 +662,9 @@ async function viewReport(date, q) {
   ensureScope(index);
   const latest = index[0].date;
   const d = date || latest;
-  const [r, reports] = await Promise.all([loadReport(d), loadAllReports()]);
   const archived = d !== latest;
+  const [r, reports, brief] = await Promise.all([loadReport(d), loadAllReports(),
+    archived ? null : loadAuthorities().catch(() => null)]);
   const top = (r.executive_sv && r.executive_sv.top) || r.top_development;
   const selected = parseFacets(q);
   const windowStart = addDays(d, -(FACET_DAYS - 1));
@@ -696,6 +698,7 @@ async function viewReport(date, q) {
     top ? h('section', { class: 'section' },
       h('div', { class: 'kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
       h('p', { class: 'lead' }, top)) : null,
+    archived ? null : authoritiesRow(brief),
     archived ? null : newBox(latest, r),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Dygnets händelser'),
@@ -1427,6 +1430,58 @@ async function viewTopics(q) {
       h('div', { class: 'search' }, searchIcon(), input)),
     barHolder,
     results);
+}
+
+// ---------------------------------------------------------------- authorities (Version 3.10)
+// What Swedish authorities say: a row on Idag and a page of its own. Read
+// by nothing else; marked as an AI summary, and "via" when the word comes
+// from media rather than the authority itself.
+function authoritiesRow(brief) {
+  if (!brief || !Array.isArray(brief.items)) return null;
+  const fresh = brief.items.filter((i) => i.fresh).length;
+  return h('a', { class: 'menurow', href: '#/myndigheter' },
+    h('span', { class: 'se-flag', 'aria-hidden': 'true' }),
+    h('span', { class: 'row-main' },
+      h('span', { class: 'row-title' }, 'Svenska myndigheter'),
+      h('span', { class: 'row-sub' }, 'Vad de säger om läget · senaste dygnet')),
+    fresh ? h('span', { class: 'nbadge' }, `${fresh} ${fresh === 1 ? 'ny' : 'nya'}`) : null,
+    chevRight());
+}
+
+function authorityRow(it) {
+  return h('div', { class: 'row auth-row' },
+    h('span', { class: 'row-main' },
+      h('span', { class: 'row-title' }, it.agency),
+      h('span', { class: 'body-sm' }, it.text_sv),
+      h('span', { class: 'row-sub' }, `${it.via ? `Via ${it.via}` : 'Myndighetens egen kanal'} · ${dateShort(it.date)}`),
+      it.url ? h('span', null, externalButton(it.url, { outlet: it.via || it.agency }, 'Källan')) : null),
+    it.fresh ? h('span', { class: 'nbadge' }, '24 h') : null);
+}
+
+async function viewAuthorities() {
+  const brief = await loadAuthorities();
+  const back = backLink('#/', 'Idag');
+  if (!brief) return frag(back, emptyState('Ingen sammanställning ännu. Den görs kl. 07 och 17.'));
+  const at = new Date(brief.generated_at);
+  const fresh = brief.items.filter((i) => i.fresh);
+  const older = brief.items.filter((i) => !i.fresh);
+  return frag(back,
+    h('header', { class: 'page-head' }, h('div', null,
+      h('div', { class: 'kicker' }, `Sammanställt ${tsFmt(at)}`),
+      h('h1', { class: 'title-l' }, 'Svenska myndigheter'))),
+    brief.overall_sv ? h('section', { class: 'card card-pad' },
+      h('div', { class: 'kicker amber' }, 'Läget överlag'),
+      h('p', { class: 'body-sm' }, brief.overall_sv)) : null,
+    h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, 'Senaste dygnet'),
+      fresh.length ? h('div', { class: 'card list' }, fresh.map(authorityRow))
+        : h('p', { class: 'small muted' }, 'Inget nytt från myndigheterna det senaste dygnet.')),
+    older.length ? h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, 'Senaste veckan'),
+      h('div', { class: 'card list' }, older.map(authorityRow))) : null,
+    brief.quiet && brief.quiet.length ? h('p', { class: 'small muted' }, h('b', null, 'Inget nytt hittat: '), brief.quiet.join(', ')) : null,
+    h('p', { class: 'notice' }, 'AI-sammanfattning av myndigheternas egna kanaler och svensk nyhetsrapportering. ',
+      '"Via" betyder att uppgiften kommer från medier, inte direkt från myndigheten. Påverkar inte index eller rapportens bedömningar. Uppdateras kl. 07 och 17.'));
 }
 
 // ---------------------------------------------------------------- trends (Version 3.9)
