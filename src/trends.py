@@ -436,6 +436,7 @@ def run(dry_run: bool = False, force_summary: bool = False):
     if hidden:
         print(f"  {hidden} Russian post(s) off the subject, not shown")
     push_trends({"items": [i for i in data["items"].values() if not i.get("off_topic")],
+                 "remove": [i["id"] for i in data["items"].values() if i.get("off_topic")],
                  "summaries": list(data["summaries"].values())[-7:], "sources": data["sources"]})
     print("Trends done.\n")
 
