@@ -286,6 +286,7 @@ def rank(item: dict) -> float:
 
 # Open items already in Swedish or English need no translation.
 NATIVE_PLACES = {"sv.wikipedia", "en.wikipedia", "SE", "GB", "US"}
+MAX_TRANSLATE = 60
 
 
 def needs_swedish(item: dict) -> bool:
@@ -339,9 +340,18 @@ Write, in natural Swedish:
 
 Respond as strict JSON with just those keys:
 {{"items": {{"<id>": {{"title_sv": "...", "summary_sv": "...", "on_topic": true}}}}, "open_sv": "...", "ru_sv": "..."}}"""
-    return ask_model_json(prompt, system="You translate and summarise social-media and search trends for a "
-                          "Swedish security analysis team. Strict JSON only.",
-                          max_tokens=1500 + 150 * len(to_translate))
+    system = "You translate and summarise social-media and search trends for a Swedish security analysis team. Strict JSON only."
+    tokens = 1500 + 150 * len(to_translate)
+    # The light model, with its own daily quota: the reports' model ran out
+    # on most runs on 2 Nov and left half the Russian posts untranslated.
+    from common import lite_model
+    lite = lite_model()
+    if lite:
+        try:
+            return ask_model_json(prompt, system=system, max_tokens=tokens, model=lite)
+        except Exception as e:
+            print(f"  ! Trends on {lite} failed ({str(e)[:120]}); trying the main model")
+    return ask_model_json(prompt, system=system, max_tokens=tokens)
 
 
 # --------------------------------------------------------------------------
@@ -385,7 +395,10 @@ def run(dry_run: bool = False, force_summary: bool = False):
     todays = [i for i in data["items"].values() if i["last_seen"][:10] >= f"{now:%Y-%m-%d}" and not i.get("off_topic")]
     summary_due = (force_summary or local.hour >= SUMMARY_FROM_HOUR) and bool(todays) \
         and (force_summary or today not in data["summaries"])
-    to_translate = [i for i in data["items"].values() if needs_swedish(i)]
+    # Newest first and at most MAX_TRANSLATE a call, so a backlog after
+    # failed runs is worked off over the next runs without cutting answers.
+    to_translate = sorted((i for i in data["items"].values() if needs_swedish(i)),
+                          key=lambda i: i.get("last_seen", ""), reverse=True)[:MAX_TRANSLATE]
     if dry_run:
         print(f"  Would put {len(to_translate)} item(s) into Swedish"
               + (f" and summarise {len(todays)}" if summary_due else ""))

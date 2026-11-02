@@ -1772,6 +1772,7 @@ async function loadForcesView() {
   if (!data) return null;
   for (const b of data.bases) {
     b.x = FX(b.lon); b.y = FY(b.lat);
+    if (/[\u0400-\u04FF]/.test(b.name)) { b.name_ru = b.name_ru || b.name; b.name = latin(b.name); }
     const sv = b.survey || {};
     const names = [...(b.system_ids || []).map((id) => cat.systems.get(id)?.name), ...(b.unit_ids || []).map((id) => cat.units.get(id)?.name_sv)];
     b.hay = [b.name, b.name_ru, FORCE_BRANCH[b.branch]?.[0], ...b.units, ...b.equipment, ...(sv.units || []), ...(sv.equipment || []), ...names]
@@ -1845,8 +1846,8 @@ async function viewForceSystem(id) {
     forceHead(x.category_sv, x.name, [x.name_ru, x.role_sv].filter(Boolean).join(' · ')),
     h('section', { class: 'card card-pad fsys' },
       img ? h('figure', { class: 'ffig' },
-        zoomableImg({ class: 'fimg', src: `/forces/img/${img.file}`, alt: x.name, loading: 'lazy' }, `${x.name} · Bild: ${img.author} · ${img.license}`),
-        h('figcaption', { class: 'small muted' }, `Bild: ${img.author} · ${img.license} · `,
+        zoomableImg({ class: 'fimg', src: `/forces/img/${img.file}`, alt: x.name, loading: 'lazy' }, `${x.name} · Bild: ${latin(img.author)} · ${img.license}`),
+        h('figcaption', { class: 'small muted' }, `Bild: ${latin(img.author)} · ${img.license} · `,
           externalButton(img.source_url, { outlet: 'Wikimedia Commons' }, 'Wikimedia Commons'))) : null,
       h('p', { class: 'body-sm' }, x.description_sv),
       Object.keys(x.key_figures || {}).length ? h('dl', { class: 'fkv' },
@@ -1901,8 +1902,25 @@ function forcesSeg(strikes) {
     h('button', { type: 'button', 'aria-pressed': String(strikes), onclick: () => { location.hash = '#/styrkor?s=anfall'; } }, 'Anfall mot Ukraina'));
 }
 
+// Cyrillic names (Russian or Ukrainian) in Latin letters, Swedish-style
+// (Sjojgu, Tjeljabinsk), so nothing in Styrkor shows untranslated; the
+// Russian original stays beside a base's name. No model call.
+const CYR = { а: 'a', б: 'b', в: 'v', г: 'g', ґ: 'g', д: 'd', е: 'e', ё: 'jo', є: 'je', ж: 'zj', з: 'z', и: 'i', і: 'i', ї: 'ji', й: 'j',
+  к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'ch', ц: 'ts', ч: 'tj', ш: 'sj', щ: 'sjtj',
+  ъ: '', ы: 'y', ь: '', э: 'e', ю: 'ju', я: 'ja' };
+const CYR_WORDS = [[/Министерство обороны Российской Федерации|Минобороны России|Минобороны РФ/gi, 'Rysslands försvarsministerium']];
+function latin(t) {
+  if (!t || !/[\u0400-\u04FF]/.test(t)) return t;
+  let out = String(t);
+  for (const [re, sv] of CYR_WORDS) out = out.replace(re, sv);
+  return out.replace(/[\u0400-\u04FF]/g, (ch) => {
+    const lo = ch.toLowerCase(); const l = CYR[lo] ?? ch;
+    return ch === lo ? l : l.charAt(0).toUpperCase() + l.slice(1);
+  });
+}
+
 function forceSources(list) {
-  return (list || []).length ? h('span', { class: 'fsrc' }, list.map((s) => externalButton(s.url, { outlet: s.outlet }, s.outlet || 'Källa'))) : null;
+  return (list || []).length ? h('span', { class: 'fsrc' }, list.map((s) => externalButton(s.url, { outlet: latin(s.outlet) }, latin(s.outlet) || 'Källa'))) : null;
 }
 
 // ---------------------------------------------------------------- shared map helpers (Version 3.15)
@@ -2297,8 +2315,8 @@ async function viewForces() {
       h('p', { class: 'small muted' }, [FORCE_BRANCH[b.branch]?.[0], COUNTRY_FORCES[b.country] || countryName(b.country), b.military_district,
         `${b.lat.toFixed(2)}° N, ${b.lon.toFixed(2)}° E`].filter(Boolean).join(' · ')),
       b.image?.file ? h('figure', { class: 'ffig' }, zoomableImg({ class: 'fimg', src: `/forces/img/${b.image.file}`, alt: b.name, loading: 'lazy' },
-        `${b.name} · Bild: ${b.image.author || 'okänd'} · ${b.image.license || ''}`),
-        h('figcaption', { class: 'small muted' }, `Bild: ${b.image.author || 'okänd'} · ${b.image.license || ''} · `,
+        `${b.name} · Bild: ${latin(b.image.author) || 'okänd'} · ${b.image.license || ''}`),
+        h('figcaption', { class: 'small muted' }, `Bild: ${latin(b.image.author) || 'okänd'} · ${b.image.license || ''} · `,
           b.image.source_url ? externalButton(b.image.source_url, { outlet: 'Wikimedia Commons' }, 'Wikimedia Commons') : null)) : null,
       b.description_sv ? h('p', { class: 'body-sm' }, b.description_sv) : null,
       b.units.length ? h('div', null, h('h3', { class: 'fsub' }, 'Förband nu'), h('div', { class: 'chips' }, b.units.map((t) => {
@@ -2405,11 +2423,11 @@ function weaponCard(id, sys, rows) {
   const more = h('div', { class: 'swmore', hidden: true },
     sys?.description_sv ? h('p', { class: 'body-sm' }, sys.description_sv) : h('p', { class: 'small muted' }, 'Ingen beskrivning än.'),
     figures.length ? h('dl', { class: 'swfig' }, figures.flatMap(([k, v]) => [h('dt', null, k), h('dd', null, v)])) : null,
-    sys?.image ? h('p', { class: 'small muted' }, `Bild: ${sys.image.author || 'okänd'}, ${sys.image.license || ''}. `,
+    sys?.image ? h('p', { class: 'small muted' }, `Bild: ${latin(sys.image.author) || 'okänd'}, ${sys.image.license || ''}. `,
       sys.image.source_url ? externalButton(sys.image.source_url, { outlet: 'Wikimedia Commons' }, 'Commons') : null) : null);
   const toggle = () => { more.hidden = !more.hidden; };
   return h('div', { class: 'swcard card', role: 'button', tabindex: '0', onclick: toggle, onkeydown: (ev) => { if (ev.key === 'Enter') toggle(); } },
-    img ? zoomableImg({ src: img, alt: name, loading: 'lazy' }, sys?.image ? `${name} · Bild: ${sys.image.author || 'okänd'} · ${sys.image.license || ''}` : name) : h('div', { class: 'swnoimg' }, name.slice(0, 2)),
+    img ? zoomableImg({ src: img, alt: name, loading: 'lazy' }, sys?.image ? `${name} · Bild: ${latin(sys.image.author) || 'okänd'} · ${sys.image.license || ''}` : name) : h('div', { class: 'swnoimg' }, name.slice(0, 2)),
     h('div', { class: 'swbody' },
       h('div', { class: 'row-title' }, name),
       h('div', { class: 'small muted' }, [sys?.category_sv, launched ? `${launched} avfyrade` : null].filter(Boolean).join(' · ')),
