@@ -178,8 +178,8 @@
    "equipment": [
     "kuznetsov"
    ],
-   "status_sv": "återbildad 2014, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "delar flyttade från Kupjansk- till Lyman-riktningen enligt ISW (1 nov 2026)",
+   "as_of": "2026-11-01",
    "description_sv": "1:a gardes stridsvagnsarmén är en armé i Rysslands markstridskrafter. Garnison: Odintsovo. Källan nämner Admiral Kuznetsov. Status: återbildad 2014, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -192,6 +192,11 @@
      "url": "https://en.wikipedia.org/wiki/1st_Guards_Tank_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-november-1-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -334,8 +339,8 @@
    "parent": null,
    "garrison": [],
    "equipment": [],
-   "status_sv": "nybildad 2024",
-   "as_of": "2026-11",
+   "status_sv": "flygstridskrafternas skytteregemente, uppdelat på flera avsnitt av fronten i norra Ukraina (Sumy) enligt ISW (16 sep 2026)",
+   "as_of": "2026-09-16",
    "description_sv": "1:a motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2024.",
    "image": null,
    "sources": [
@@ -348,6 +353,11 @@
      "url": "https://en.wikipedia.org/wiki/Motor_Rifle_Regiment_of_the_Aerospace_Forces",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-september-16-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ],
    "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
@@ -365,8 +375,8 @@
     "molkino"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "brigadens bas i Molkino träffad av ukrainskt anfall 31 juli 2026 enligt satellitbilder som ISW återgav (12 aug 2026)",
+   "as_of": "2026-08-12",
    "description_sv": "10:e gardes specialförbandsbrigaden (Spetsnaz) är en brigad i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -379,6 +389,11 @@
      "url": "https://en.wikipedia.org/wiki/10th_Spetsnaz_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-august-12-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -562,8 +577,8 @@
     "t-72b3",
     "bmp-3"
    ],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid nordväst om Kostjantynivka (Petrivka) enligt ISW (13 aug 2026)",
+   "as_of": "2026-08-13",
    "description_sv": "102:a gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 150:e gardes motoriserade skyttedivisionen. Källan nämner T-72B3, BMP-3. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -571,6 +586,11 @@
      "url": "https://ru.wikipedia.org/wiki/102-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-august-13-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -799,8 +819,8 @@
     "tula-fallskarm"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "delar (119:e regementet) i strid vid Stepnohirsk väster om Orichiv enligt ISW (23 okt 2026)",
+   "as_of": "2026-10-23",
    "description_sv": "106:e gardes luftlandsättningsdivisionen är en division i Rysslands luftlandsättningstrupper (VDV). Garnison: Tula. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -813,6 +833,11 @@
      "url": "https://en.wikipedia.org/wiki/106th_Guards_Airborne_Division",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-23-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -945,8 +970,8 @@
     "gusev"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Sumy oblast och vid gränsen enligt ISW (28 okt 2026)",
+   "as_of": "2026-10-28",
    "description_sv": "11:e armékåren är en armékår i Rysslands markstridskrafter. Garnison: Gusev. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -959,6 +984,11 @@
      "url": "https://en.wikipedia.org/wiki/11th_Army_Corps_%28Russian_Federation%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-28-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -1120,8 +1150,8 @@
     "donetsk"
    ],
    "equipment": [],
-   "status_sv": "aktiv enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid vid Dobropillja enligt ISW (16 okt 2026)",
+   "as_of": "2026-10-16",
    "description_sv": "110:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Garnison: Donetsk. Status: aktiv enligt källan.",
    "image": null,
    "sources": [
@@ -1134,6 +1164,11 @@
      "url": "https://en.wikipedia.org/wiki/110th_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-16-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -1177,8 +1212,8 @@
    "equipment": [
     "iskander-m"
    ],
-   "status_sv": "aktiv enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "enligt ukrainska HUR ska en nordkoreansk robotenhet knytas till brigaden, rapporterade ISW (11 aug 2026)",
+   "as_of": "2026-08-11",
    "description_sv": "112:e gardes robotbrigaden är en brigad i Rysslands robotstyrkor. Den ingår i 1:a gardes stridsvagnsarmén. Garnison: Sjuja. Källan nämner Iskander-M. Status: aktiv enligt källan.",
    "image": null,
    "sources": [
@@ -1186,6 +1221,11 @@
      "url": "https://ru.wikipedia.org/wiki/112-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-august-11-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -1264,8 +1304,8 @@
     "donetsk"
    ],
    "equipment": [],
-   "status_sv": "aktiv enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid vid Dobropillja enligt ISW (16 okt 2026)",
+   "as_of": "2026-10-16",
    "description_sv": "114:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Garnison: Donetsk. Status: aktiv enligt källan.",
    "image": null,
    "sources": [
@@ -1278,6 +1318,11 @@
      "url": "https://en.wikipedia.org/wiki/114th_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-16-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -1294,8 +1339,8 @@
     "ussurijsk"
    ],
    "equipment": [],
-   "status_sv": "aktiv enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Huljajpole-riktningen (Tymosjivka) enligt ISW (20 okt 2026)",
+   "as_of": "2026-10-20",
    "description_sv": "114:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Garnison: Ussurijsk. Status: aktiv enligt källan.",
    "image": null,
    "sources": [
@@ -1303,6 +1348,11 @@
      "url": "https://ru.wikipedia.org/wiki/114-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-20-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -1660,8 +1710,8 @@
     "baltijskaja-vojenno-morskaja-baza"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "försvarar i Oleksandrivka-riktningen sedan mars 2026 enligt ISW (25 okt 2026)",
+   "as_of": "2026-10-25",
    "description_sv": "120:e gardes marininfanteridivisionen är en division i Rysslands marin. Den ingår i Östersjöflottan. Garnison: Baltijsk. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -1674,6 +1724,11 @@
      "url": "https://en.wikipedia.org/wiki/120th_Guards_Naval_Infantry_Division",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-25-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -1720,8 +1775,8 @@
     "lugansk"
    ],
    "equipment": [],
-   "status_sv": "aktiv enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "flyttad från Siversk till anfallet mot Slovjansk enligt ISW (1 sep 2026)",
+   "as_of": "2026-09-01",
    "description_sv": "123:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 3:e gardes armén. Garnison: Lugansk. Status: aktiv enligt källan.",
    "image": null,
    "sources": [
@@ -1734,6 +1789,11 @@
      "url": "https://en.wikipedia.org/wiki/123rd_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-september-1-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -1782,8 +1842,8 @@
     "sergejevka"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Zaporizjzja- och Huljajpole-riktningen enligt ISW (20 okt 2026)",
+   "as_of": "2026-10-20",
    "description_sv": "127:e gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 5:e gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -1796,6 +1856,11 @@
      "url": "https://en.wikipedia.org/wiki/127th_Motor_Rifle_Division_%28Russia%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-20-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -1810,8 +1875,8 @@
    "parent": "44-armekaren",
    "garrison": [],
    "equipment": [],
-   "status_sv": "nybildad 2024, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Sumy oblast vid gränsen mot Belgorod enligt ISW (8 okt 2026)",
+   "as_of": "2026-10-08",
    "description_sv": "128:e motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 44:e armékåren. Status: nybildad 2024, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -1819,6 +1884,11 @@
      "url": "https://ru.wikipedia.org/wiki/128-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-8-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ],
    "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
@@ -2075,8 +2145,8 @@
     "petjenga"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Sumy oblast enligt ISW (15 okt 2026)",
+   "as_of": "2026-10-15",
    "description_sv": "14:e armékåren är en armékår i Rysslands markstridskrafter. Garnison: Petjenga. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -2089,6 +2159,11 @@
      "url": "https://en.wikipedia.org/wiki/14th_Army_Corps_%28Russian_Federation%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-15-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -2348,8 +2423,8 @@
     "jelnja"
    ],
    "equipment": [],
-   "status_sv": "återbildad 2016, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "svårt försvagad i Lyman-riktningen och behöver återuppbyggas enligt ISW (20 okt 2026)",
+   "as_of": "2026-10-20",
    "description_sv": "144:e gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 20:e gardes armén. Garnison: Smolensk, Jelnja. Status: återbildad 2016, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -2362,6 +2437,11 @@
      "url": "https://en.wikipedia.org/wiki/144th_Guards_Motor_Rifle_Division",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-20-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -2606,8 +2686,8 @@
     "novotjerkassk"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid vid Kostjantynivka och Druzjkivka enligt ISW (13 aug 2026)",
+   "as_of": "2026-08-13",
    "description_sv": "150:e gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 8:e gardes armén. Garnison: Novotjerkassk. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -2620,6 +2700,11 @@
      "url": "https://en.wikipedia.org/wiki/150th_Guards_Motor_Rifle_Division",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-august-13-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -2693,8 +2778,8 @@
    "equipment": [
     "t-72b3"
    ],
-   "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid vid Kupjansk enligt ISW (4 okt 2026)",
+   "as_of": "2026-10-04",
    "description_sv": "153:e stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Den ingår i 47:e stridsvagnsdivisionen. Källan nämner T-72B3. Status: nybildad 2023, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -2702,6 +2787,11 @@
      "url": "https://ru.wikipedia.org/wiki/153-%D0%B9_%D1%82%D0%B0%D0%BD%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-4-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ],
    "garrison_note_sv": "Förläggningen anges inte i förbandets egen artikel; här följer den 47:e stridsvagnsdivisionen, som förbandet ingår i."
@@ -3024,8 +3114,8 @@
     "orlan-10",
     "btr-82a"
    ],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid vid Dobropillja enligt ISW (16 okt 2026)",
+   "as_of": "2026-10-16",
    "description_sv": "177:e gardes marininfanteriregementet är en regemente i Rysslands marin. Garnison: Kaspijsk. Källan nämner Orlan-10, BTR-82A. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -3033,6 +3123,11 @@
      "url": "https://ru.wikipedia.org/wiki/177-%D0%B9_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA_%D0%BC%D0%BE%D1%80%D1%81%D0%BA%D0%BE%D0%B9_%D0%BF%D0%B5%D1%85%D0%BE%D1%82%D1%8B",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-16-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -3047,8 +3142,8 @@
    "parent": null,
    "garrison": [],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i Cherson oblast; dess drönarskola i Chorly träffades av ukrainskt anfall enligt ISW (15 okt 2026)",
+   "as_of": "2026-10-15",
    "description_sv": "18:e armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -3061,6 +3156,11 @@
      "url": "https://en.wikipedia.org/wiki/18th_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-15-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ],
    "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
@@ -3282,8 +3382,8 @@
     "samara"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "anfaller mot Dobropillja från söder enligt ISW (21 okt 2026)",
+   "as_of": "2026-10-21",
    "description_sv": "2:a gardes armén är en armé i Rysslands markstridskrafter. Garnison: Samara. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -3296,6 +3396,11 @@
      "url": "https://en.wikipedia.org/wiki/2nd_Guards_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-21-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -3403,8 +3508,8 @@
     "mi-8",
     "btr-82a"
    ],
-   "status_sv": "aktiv enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "svårt försvagad av ukrainska motanfall i Lyman-riktningen enligt ISW (1 nov 2026)",
+   "as_of": "2026-11-01",
    "description_sv": "20:e gardes armén är en armé i Belarus markstridskrafter. Garnison: Voronezj. Källan nämner Mi-24 / Mi-35M, Mi-8 / Mi-8AMTSj, BTR-82A. Status: aktiv enligt källan.",
    "image": null,
    "sources": [
@@ -3417,6 +3522,11 @@
      "url": "https://en.wikipedia.org/wiki/20th_Guards_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-november-1-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -3845,8 +3955,8 @@
    "parent": "72-motoriserade-skyttedivisionen",
    "garrison": [],
    "equipment": [],
-   "status_sv": "nybildad 2024, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid nordost om Sumy enligt ISW (30 aug 2026)",
+   "as_of": "2026-08-30",
    "description_sv": "22:a motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 72:a motoriserade skyttedivisionen. Status: nybildad 2024, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -3854,6 +3964,11 @@
      "url": "https://ru.wikipedia.org/wiki/22-%D0%B9_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-august-30-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ],
    "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
@@ -4186,8 +4301,8 @@
     "tjebarkul"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid öster om Dobropillja (Sjachove) enligt ISW (11 sep 2026)",
+   "as_of": "2026-09-11",
    "description_sv": "239:e gardes stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Garnison: Tjebarkul. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -4200,6 +4315,11 @@
      "url": "https://en.wikipedia.org/wiki/239th_Guards_Tank_Regiment_%28Russia%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-september-11-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -4332,8 +4452,8 @@
    "parent": "3-motoriserade-skyttedivisionen",
    "garrison": [],
    "equipment": [],
-   "status_sv": "nybildad 2023",
-   "as_of": "2026-11",
+   "status_sv": "i strid vid Kozatja Lopan i Charkiv oblast enligt ISW (9 okt 2026)",
+   "as_of": "2026-10-09",
    "description_sv": "245:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 3:e motoriserade skyttedivisionen. Status: nybildad 2023.",
    "image": null,
    "sources": [
@@ -4341,6 +4461,11 @@
      "url": "https://ru.wikipedia.org/wiki/245-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-9-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ],
    "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
@@ -4386,8 +4511,8 @@
    "parent": null,
    "garrison": [],
    "equipment": [],
-   "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "svårt försvagad av ukrainska motanfall i Lyman-riktningen enligt ISW (1 nov 2026)",
+   "as_of": "2026-11-01",
    "description_sv": "25:e armén är en armé i Rysslands markstridskrafter. Status: nybildad 2023, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -4400,6 +4525,11 @@
      "url": "https://en.wikipedia.org/wiki/25th_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-november-1-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ],
    "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
@@ -4610,8 +4740,8 @@
     "mulino"
    ],
    "equipment": [],
-   "status_sv": "återbildad 2021, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Kupjansk-riktningen; staben träffad av HIMARS enligt ISW (29 okt 2026)",
+   "as_of": "2026-10-29",
    "description_sv": "26:e stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Den ingår i 47:e stridsvagnsdivisionen. Status: återbildad 2021, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -4624,6 +4754,11 @@
      "url": "https://en.wikipedia.org/wiki/26th_Tank_Regiment",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-29-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -5040,8 +5175,8 @@
     "tjita"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid sydväst om Oleksandrivka och nordväst om Huljajpole enligt ISW (6 okt 2026)",
+   "as_of": "2026-10-06",
    "description_sv": "29:e gardes armén är en armé i Rysslands markstridskrafter. Garnison: Tjita. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -5054,6 +5189,11 @@
      "url": "https://en.wikipedia.org/wiki/29th_Guards_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-6-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -5319,8 +5459,8 @@
     "lugansk"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "anfaller mot Slovjansk, Kramatorsk och Druzjkivka från öster enligt ISW (1 nov 2026)",
+   "as_of": "2026-11-01",
    "description_sv": "3:e gardes armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -5333,6 +5473,11 @@
      "url": "https://en.wikipedia.org/wiki/3rd_Guards_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-november-1-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -5379,8 +5524,8 @@
     "bogutjar"
    ],
    "equipment": [],
-   "status_sv": "återbildad 2016, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Lyman-riktningen enligt ISW (16 sep 2026)",
+   "as_of": "2026-09-16",
    "description_sv": "3:e motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 20:e gardes armén. Garnison: Bogutjar. Status: återbildad 2016, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -5393,6 +5538,11 @@
      "url": "https://en.wikipedia.org/wiki/3rd_Motor_Rifle_Division",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-september-16-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -6145,8 +6295,8 @@
     "mt-lb",
     "2s3-akatsija"
    ],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Sumy oblast under Norra styrkegruppen enligt ISW (11 okt 2026)",
+   "as_of": "2026-10-11",
    "description_sv": "34:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 49:e armén. Källan nämner BTR-82A, MT-LB, 2S3 Akatsija. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -6159,6 +6309,11 @@
      "url": "https://en.wikipedia.org/wiki/34th_Separate_Guards_Mountain_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-11-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -6301,8 +6456,8 @@
    "parent": null,
    "garrison": [],
    "equipment": [],
-   "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Oleksandrivka-riktningen enligt ISW (21 sep 2026)",
+   "as_of": "2026-09-21",
    "description_sv": "348:e motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -6310,6 +6465,11 @@
      "url": "https://ru.wikipedia.org/wiki/348-%D0%B9_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-september-21-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ],
    "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
@@ -6327,8 +6487,8 @@
     "belogorsk"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Huljajpole-riktningen enligt ISW (30 okt 2026)",
+   "as_of": "2026-10-30",
    "description_sv": "35:e gardes armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -6341,6 +6501,11 @@
      "url": "https://en.wikipedia.org/wiki/35th_Guards_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-30-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -6411,8 +6576,8 @@
    "equipment": [
     "t-72b3"
    ],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Donetsk oblast under 41:a armén enligt ISW (18 sep 2026)",
+   "as_of": "2026-09-18",
    "description_sv": "35:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 41:a gardes armén. Garnison: Alejsk. Källan nämner T-72B3. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -6425,6 +6590,11 @@
      "url": "https://en.wikipedia.org/wiki/35th_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-september-18-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -6499,8 +6669,8 @@
     "ulan-ude"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Huljajpole-riktningen enligt ISW (22 okt 2026)",
+   "as_of": "2026-10-22",
    "description_sv": "36:e gardes armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -6513,6 +6683,11 @@
      "url": "https://en.wikipedia.org/wiki/36th_Guards_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-22-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -6535,8 +6710,8 @@
     "2s3-akatsija",
     "bm-21-grad"
    ],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid sydväst om Oleksandrivka (Holubkove) enligt ISW (6 okt 2026)",
+   "as_of": "2026-10-06",
    "description_sv": "36:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 29:e gardes armén. Källan nämner Buk-M2 / M3, T-72B3, BMP-2, 2S3 Akatsija, BM-21 Grad. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -6549,6 +6724,11 @@
      "url": "https://en.wikipedia.org/wiki/36th_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-6-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -6565,8 +6745,8 @@
     "kjachta"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Huljajpole-riktningen enligt ISW (22 okt 2026)",
+   "as_of": "2026-10-22",
    "description_sv": "37:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Garnison: Kjachta. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -6579,6 +6759,11 @@
      "url": "https://en.wikipedia.org/wiki/37th_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-22-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -6648,8 +6833,8 @@
    "equipment": [
     "t-80bvm"
    ],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid nordost om Orichiv enligt ISW (19 okt 2026)",
+   "as_of": "2026-10-19",
    "description_sv": "38:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 35:e gardes armén. Källan nämner T-80BVM. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -6662,6 +6847,11 @@
      "url": "https://en.wikipedia.org/wiki/38th_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-19-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -6796,8 +6986,8 @@
     "juzjno-sachalinsk"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Zaporizjzja oblast under 68:e armékåren enligt ISW (26 okt 2026)",
+   "as_of": "2026-10-26",
    "description_sv": "39:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Garnison: Juzjno-Sachalinsk. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -6810,6 +7000,11 @@
      "url": "https://en.wikipedia.org/wiki/39th_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-26-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -7101,8 +7296,8 @@
     "petropavlovsk-kamtjatskij-marin"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "försvarar i Oleksandrivka-riktningen sedan mars 2026 enligt ISW (25 okt 2026)",
+   "as_of": "2026-10-25",
    "description_sv": "40:e gardes marininfanteribrigaden är en brigad i Rysslands marin. Garnison: Petropavlovsk-Kamtjatskij. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -7115,6 +7310,11 @@
      "url": "https://en.wikipedia.org/wiki/40th_Separate_Guards_Naval_Infantry_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-25-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -7159,8 +7359,8 @@
     "novosibirsk"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "huvuddelen insatt mot Dobropillja enligt ISW (1 nov 2026)",
+   "as_of": "2026-11-01",
    "description_sv": "41:a gardes armén är en armé i Rysslands markstridskrafter. Garnison: Novosibirsk. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -7173,6 +7373,11 @@
      "url": "https://en.wikipedia.org/wiki/41st_Guards_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-november-1-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -7217,8 +7422,8 @@
     "sjali"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "delar i strid söder om Orichiv och i norra Ukraina enligt ISW (30 sep 2026)",
+   "as_of": "2026-09-30",
    "description_sv": "42:a gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 58:e gardes armén. Garnison: Sjali. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -7231,6 +7436,11 @@
      "url": "https://en.wikipedia.org/wiki/42nd_Guards_Motor_Rifle_Division",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-september-30-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -7418,8 +7628,8 @@
     "petrozavodsk"
    ],
    "equipment": [],
-   "status_sv": "nybildad 2024, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Sumy oblast enligt ISW (28 okt 2026)",
+   "as_of": "2026-10-28",
    "description_sv": "44:e armékåren är en armékår i Rysslands markstridskrafter. Garnison: Petrozavodsk. Status: nybildad 2024, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -7432,6 +7642,11 @@
      "url": "https://en.wikipedia.org/wiki/44th_Army_Corps_%28Russian_Federation%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-28-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -7729,8 +7944,8 @@
     "mulino"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Kupjansk-riktningen och i Charkiv oblast enligt ISW (29 okt 2026)",
+   "as_of": "2026-10-29",
    "description_sv": "47:e stridsvagnsdivisionen är en division i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -7743,6 +7958,11 @@
      "url": "https://en.wikipedia.org/wiki/47th_Tank_Division_%28Russia%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-29-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -7850,8 +8070,8 @@
     "stavropol"
    ],
    "equipment": [],
-   "status_sv": "återbildad 2010",
-   "as_of": "2026-11",
+   "status_sv": "delar (34:e brigaden) i strid i norra Ukraina under Norra styrkegruppen enligt ISW (11 okt 2026)",
+   "as_of": "2026-10-11",
    "description_sv": "49:e armén är en armé i Rysslands markstridskrafter. Status: återbildad 2010.",
    "image": null,
    "sources": [
@@ -7864,6 +8084,11 @@
      "url": "https://en.wikipedia.org/wiki/49th_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-11-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -7912,8 +8137,8 @@
     "ussurijsk"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Zaporizjzja oblast och förstärkt med strategiska reserver enligt ISW (1 nov 2026)",
+   "as_of": "2026-11-01",
    "description_sv": "5:e gardes armén är en armé i Rysslands markstridskrafter. Garnison: Ussurijsk. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -7926,6 +8151,11 @@
      "url": "https://en.wikipedia.org/wiki/5th_Guards_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-november-1-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -7942,8 +8172,8 @@
     "donetsk"
    ],
    "equipment": [],
-   "status_sv": "aktiv enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid vid Dobropillja enligt ISW (16 okt 2026)",
+   "as_of": "2026-10-16",
    "description_sv": "5:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Status: aktiv enligt källan.",
    "image": null,
    "sources": [
@@ -7956,6 +8186,11 @@
      "url": "https://en.wikipedia.org/wiki/5th_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-16-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -7972,8 +8207,8 @@
     "ulan-ude"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "samlas i Huljajpole-riktningen enligt ISW (21 okt 2026)",
+   "as_of": "2026-10-21",
    "description_sv": "5:e gardes stridsvagnsbrigaden är en brigad i Rysslands markstridskrafter. Garnison: Ulan-Ude. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -7986,6 +8221,11 @@
      "url": "https://en.wikipedia.org/wiki/5th_Guards_Tank_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-21-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -8218,8 +8458,8 @@
     "donetsk"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "anfaller vid Dobropillja och Pokrovsk väster om Kazennyj Torets enligt ISW (1 nov 2026)",
+   "as_of": "2026-11-01",
    "description_sv": "51:a gardes armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -8232,6 +8472,11 @@
      "url": "https://en.wikipedia.org/wiki/51st_Guards_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-november-1-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -8687,8 +8932,8 @@
     "bikin"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "dragen från fronten i Zaporizjzja oblast för återhämtning enligt ISW (31 okt 2026)",
+   "as_of": "2026-10-31",
    "description_sv": "57:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 5:e gardes armén. Garnison: Bikin. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -8701,6 +8946,11 @@
      "url": "https://en.wikipedia.org/wiki/57th_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-31-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -8741,8 +8991,8 @@
     "vladikavkaz"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Zaporizjzja oblast och förstärkt med strategiska reserver enligt ISW (1 nov 2026)",
+   "as_of": "2026-11-01",
    "description_sv": "58:e gardes armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -8755,6 +9005,11 @@
      "url": "https://en.wikipedia.org/wiki/58th_Guards_Combined_Arms_Army",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-november-1-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -8821,8 +9076,8 @@
     "sankt-petersburg"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i norra Ukraina (Charkiv och Sumy) enligt ISW (11 okt 2026)",
+   "as_of": "2026-10-11",
    "description_sv": "6:e gardes armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -8830,6 +9085,11 @@
      "url": "https://ru.wikipedia.org/wiki/6-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BE%D0%B1%D1%89%D0%B5%D0%B2%D0%BE%D0%B9%D1%81%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B0%D1%80%D0%BC%D0%B8%D1%8F",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-11-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -9027,8 +9287,8 @@
     "kamen-rybolov"
    ],
    "equipment": [],
-   "status_sv": "aktiv enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "ersätter 57:e brigaden vid fronten i Zaporizjzja oblast enligt ISW (31 okt 2026)",
+   "as_of": "2026-10-31",
    "description_sv": "60:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 5:e gardes armén. Garnison: Kamen-Rybolov. Status: aktiv enligt källan.",
    "image": null,
    "sources": [
@@ -9041,6 +9301,11 @@
      "url": "https://en.wikipedia.org/wiki/60th_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-31-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -9145,8 +9410,8 @@
    "equipment": [
     "btr-82a"
    ],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid vid Dobropillja enligt ISW (16 okt 2026)",
+   "as_of": "2026-10-16",
    "description_sv": "61:a gardes marininfanteribrigaden är en brigad i Rysslands marin. Källan nämner BTR-82A. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -9159,6 +9424,11 @@
      "url": "https://en.wikipedia.org/wiki/61st_Separate_Guards_Naval_Infantry_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-16-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -9236,8 +9506,8 @@
     "knjaze-volkonskoje"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "samlas i Huljajpole-riktningen enligt ISW (21 okt 2026)",
+   "as_of": "2026-10-21",
    "description_sv": "64:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 35:e gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -9250,6 +9520,11 @@
      "url": "https://en.wikipedia.org/wiki/64th_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-21-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -9315,8 +9590,8 @@
     "juzjno-sachalinsk"
    ],
    "equipment": [],
-   "status_sv": "återbildad 2014, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Zaporizjzja oblast enligt ISW (26 okt 2026)",
+   "as_of": "2026-10-26",
    "description_sv": "68:e gardes armékåren är en armékår i Rysslands markstridskrafter. Status: återbildad 2014, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -9329,6 +9604,11 @@
      "url": "https://en.wikipedia.org/wiki/68th_Guards_Army_Corps_%28Russia%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-26-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -9429,8 +9709,8 @@
     "kamenka-viborg"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i norra Ukraina enligt ISW (11 okt 2026)",
+   "as_of": "2026-10-11",
    "description_sv": "69:e gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 6:e gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -9443,6 +9723,11 @@
      "url": "https://en.wikipedia.org/wiki/69th_Guards_Motor_Rifle_Division",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-11-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -9702,8 +9987,8 @@
    "parent": "18-armen",
    "garrison": [],
    "equipment": [],
-   "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid vid Tjasiv Jar mot Druzjkivka enligt ISW (21 sep 2026)",
+   "as_of": "2026-09-21",
    "description_sv": "70:e motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 18:e armén. Status: nybildad 2023, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -9716,6 +10001,11 @@
      "url": "https://en.wikipedia.org/wiki/70th_Motor_Rifle_Division",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-september-21-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ],
    "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
@@ -9766,8 +10056,8 @@
     "2s9-nona",
     "bm-21-grad"
    ],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Sumy oblast enligt ISW (15 okt 2026)",
+   "as_of": "2026-10-15",
    "description_sv": "71:a gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 14:e armékåren. Garnison: Petjenga. Källan nämner S-350 Vitjaz, Tor-M2, T-80BVM, MT-LB, 2S3 Akatsija. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -9780,6 +10070,11 @@
      "url": "https://en.wikipedia.org/wiki/71st_Guards_Motor_Rifle_Division",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-15-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -9850,8 +10145,8 @@
    "parent": "44-armekaren",
    "garrison": [],
    "equipment": [],
-   "status_sv": "nybildad 2024, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid i Sumy oblast enligt ISW (28 okt 2026)",
+   "as_of": "2026-10-28",
    "description_sv": "72:a motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 44:e armékåren. Status: nybildad 2024, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -9864,6 +10159,11 @@
      "url": "https://en.wikipedia.org/wiki/72nd_Motor_Rifle_Division",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-28-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ],
    "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
@@ -10061,8 +10361,8 @@
     "novotjerkassk"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "anfaller mot Kostjantynivka och Druzjkivka från söder enligt ISW (1 nov 2026)",
+   "as_of": "2026-11-01",
    "description_sv": "8:e gardes armén är en armé i Rysslands markstridskrafter. Garnison: Novotjerkassk. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -10075,6 +10375,11 @@
      "url": "https://en.wikipedia.org/wiki/8th_Guards_Combined_Arms_Army_%28Russia%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-november-1-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -10148,8 +10453,8 @@
     "tjebarkul"
    ],
    "equipment": [],
-   "status_sv": "återbildad 2016, i strid i Ukraina enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid vid Komar söder om Novopavlivka enligt ISW (11 sep 2026)",
+   "as_of": "2026-09-11",
    "description_sv": "80:e gardes stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Garnison: Tjebarkul. Status: återbildad 2016, i strid i Ukraina enligt källan.",
    "image": null,
    "sources": [
@@ -10157,6 +10462,11 @@
      "url": "https://ru.wikipedia.org/wiki/80-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D1%82%D0%B0%D0%BD%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-september-11-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -10296,8 +10606,8 @@
    "parent": "3-gardes-armen",
    "garrison": [],
    "equipment": [],
-   "status_sv": "aktiv enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "ombildad från 4:e brigaden till division under 3:e armén enligt ISW (18 okt 2026)",
+   "as_of": "2026-10-18",
    "description_sv": "84:e gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 3:e gardes armén. Status: aktiv enligt källan.",
    "image": null,
    "sources": [
@@ -10310,6 +10620,11 @@
      "url": "https://en.wikipedia.org/wiki/4th_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-18-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ],
    "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
@@ -10442,8 +10757,8 @@
     "donetsk"
    ],
    "equipment": [],
-   "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
-   "as_of": "2026-11",
+   "status_sv": "i strid öster om Dobropillja enligt ISW (10 aug 2026)",
+   "as_of": "2026-08-10",
    "description_sv": "9:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
    "image": null,
    "sources": [
@@ -10456,6 +10771,11 @@
      "url": "https://en.wikipedia.org/wiki/9th_Separate_Guards_Motor_Rifle_Brigade",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-august-10-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
