@@ -8,6 +8,7 @@ The patch is JSON:
      "bases": {"<id>": {"description_sv": ..., "status": {...}, "sources": [...]}},
      "units": {"<id>": {"description_sv": ..., "status_sv": ..., "as_of": ..., "sources": [...]}},
      "new_units": [{...full unit...}],
+     "new_bases": [{...full base...}],
      "systems": {"<id>": {...}}}
 Fields replace the old ones, except `sources`, which are added (no
 duplicate urls) and get the patch's `accessed` date when they lack one.
@@ -48,6 +49,23 @@ def main(path):
             if rid not in index[n]:
                 sys.exit(f"{n}: unknown id {rid}")
             merge(index[n][rid], fields, accessed)
+    for b in patch.get("new_bases") or []:
+        if b["id"] in index["bases"]:
+            sys.exit(f"new base {b['id']} exists")
+        for s in b.get("sources") or []:
+            s.setdefault("accessed", accessed)
+        b.setdefault("units", [])
+        b.setdefault("equipment", [])
+        b.setdefault("events", [])
+        files["bases"]["bases"].append(b)
+        index["bases"][b["id"]] = b
+        for uid in b["units"]:
+            u = index["units"].get(uid)
+            if u is None:
+                sys.exit(f"new base {b['id']}: unknown unit {uid}")
+            if b["id"] not in (u.get("garrison") or []):
+                u["garrison"] = (u.get("garrison") or []) + [b["id"]]
+                u.pop("garrison_note_sv", None)
     for u in patch.get("new_units") or []:
         if u["id"] in index["units"]:
             sys.exit(f"new unit {u['id']} exists")
@@ -63,7 +81,8 @@ def main(path):
                 b["units"].append(u["id"])
     for n in files:
         (DB / f"{n}.json").write_text(json.dumps(files[n], ensure_ascii=False, indent=1), encoding="utf-8")
-    print({n: len(patch.get(n) or {}) for n in ("bases", "units", "systems")}, "new units:", len(patch.get("new_units") or []))
+    print({n: len(patch.get(n) or {}) for n in ("bases", "units", "systems")}, "new units:", len(patch.get("new_units") or []),
+          "new bases:", len(patch.get("new_bases") or []))
 
 
 if __name__ == "__main__":

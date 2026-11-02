@@ -1199,7 +1199,7 @@
    "country": "RU",
    "parent": null,
    "garrison": [
-    "tjita"
+    "tjita-nordvast"
    ],
    "equipment": [
     "mi-28n",
@@ -1215,6 +1215,11 @@
      "url": "https://ru.wikipedia.org/wiki/112-%D0%B9_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%D0%B2%D0%B5%D1%80%D1%82%D0%BE%D0%BB%D1%91%D1%82%D0%BD%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Chita_Northwest_air_base",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
     }
    ]
   },
