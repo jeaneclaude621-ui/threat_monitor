@@ -8,12 +8,12 @@ kommer från öppna källor och är **inte verifierat**. Hämtat 1 november 2026
 
 | Fil | Innehåll | Antal |
 |---|---|---|
-| `bases.json` | baser: flygbaser, marinbaser, garnisoner för armé, robot, luftvärn och luftlandsättning, samt ryska baser utomlands | N_BASES |
-| `units.json` | förband: arméer, kårer, divisioner, brigader, regementen, flottor | N_UNITS |
-| `systems.json` | vapensystem och materiel: flyg, helikoptrar, drönare, robotar, luftvärn, fordon, artilleri, telekrig, ubåtar, fartyg | N_SYSTEMS |
+| `bases.json` | baser: flygbaser, marinbaser, garnisoner för armé, robot, luftvärn och luftlandsättning, samt ryska baser utomlands | 255 |
+| `units.json` | förband: arméer, kårer, divisioner, brigader, regementen, flottor | 383 |
+| `systems.json` | vapensystem och materiel: flyg, helikoptrar, drönare, robotar, luftvärn, fordon, artilleri, telekrig, ubåtar, fartyg | 132 (alla 33 vapen på anfallskartan ingår) |
 
-Bilder: N_IMAGES bilder i `webapp/public/forces/img/` (`sys-<id>.jpg`, cirka
-640 px breda, under 80 kB var, totalt IMG_SIZE).
+Bilder: 120 bilder i `webapp/public/forces/img/` (`sys-<id>.jpg`, cirka
+640 px breda, under 80 kB var, totalt 5,3 MB).
 
 ### Bas (`bases.json`)
 `id` (stabil slug), `name` (svensk translitterering), `name_ru`, `name_en`,

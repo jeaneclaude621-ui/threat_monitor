@@ -1341,74 +1341,6 @@
    ]
   },
   {
-   "id": "burjatija",
-   "name": "Burjatija",
-   "name_ru": "Бурятия",
-   "name_en": null,
-   "lat": 53.8,
-   "lon": 109.3333,
-   "branch": "armé",
-   "country": "RU",
-   "military_district": "Östra militärdistriktet",
-   "description_sv": "Burjatija är en garnison för markstridskrafterna i Ryssland (Östra militärdistriktet). Här finns enligt källorna 30:e gardes artilleribrigaden. Materiel som nämns: 2S19 Msta-S, BM-27 Uragan.",
-   "units": [
-    "30-gardes-artilleribrigaden"
-   ],
-   "equipment": [
-    "2s19-msta-s",
-    "uragan"
-   ],
-   "status": {
-    "status_sv": "i bruk enligt källorna",
-    "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
-   },
-   "events": [],
-   "sources": [
-    {
-     "url": "https://ru.wikipedia.org/wiki/30-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B0%D1%80%D1%82%D0%B8%D0%BB%D0%BB%D0%B5%D1%80%D0%B8%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
-     "outlet": "Wikipedia (ru)",
-     "accessed": "2026-11-01"
-    }
-   ]
-  },
-  {
-   "id": "burjatija-robot",
-   "name": "Burjatija (robotförband)",
-   "name_ru": "Бурятия",
-   "name_en": null,
-   "lat": 53.8,
-   "lon": 109.3333,
-   "branch": "robot",
-   "country": "RU",
-   "military_district": "Östra militärdistriktet",
-   "description_sv": "Burjatija (robotförband) är en robotgarnison i Ryssland (Östra militärdistriktet). Här finns enligt källorna 103:e robotbrigaden. Materiel som nämns: Iskander-M.",
-   "units": [
-    "103-robotbrigaden"
-   ],
-   "equipment": [
-    "iskander-m"
-   ],
-   "status": {
-    "status_sv": "i bruk enligt källorna",
-    "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
-   },
-   "events": [],
-   "sources": [
-    {
-     "url": "https://ru.wikipedia.org/wiki/103-%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
-     "outlet": "Wikipedia (ru)",
-     "accessed": "2026-11-01"
-    },
-    {
-     "url": "https://en.wikipedia.org/wiki/103rd_Rocket_Brigade",
-     "outlet": "Wikipedia (en)",
-     "accessed": "2026-11-01"
-    }
-   ]
-  },
-  {
    "id": "buturlinovka",
    "name": "Buturlinovka",
    "name_ru": "Бутурлиновка",
@@ -3745,37 +3677,6 @@
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D1%80%D0%B0%D0%B3%D0%BE%D0%B7_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
-     "outlet": "Wikipedia (ru)",
-     "accessed": "2026-11-01"
-    }
-   ]
-  },
-  {
-   "id": "karelija-flyg",
-   "name": "Karelija",
-   "name_ru": "Карелия",
-   "name_en": null,
-   "lat": 63.8167,
-   "lon": 33,
-   "branch": "flyg",
-   "country": "RU",
-   "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Karelija är en militär flygbas i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 159:e gardes jaktflygregementet. Materiel som nämns: Su-35S.",
-   "units": [
-    "159-gardes-jaktflygregementet"
-   ],
-   "equipment": [
-    "su-35s"
-   ],
-   "status": {
-    "status_sv": "i bruk enligt källorna",
-    "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
-   },
-   "events": [],
-   "sources": [
-    {
-     "url": "https://ru.wikipedia.org/wiki/159-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%B8%D1%81%D1%82%D1%80%D0%B5%D0%B1%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%D0%B0%D0%B2%D0%B8%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }

@@ -541,3 +541,22 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
 - `GET /api/strikes` (user): the newest, or null.
 - The Styrkor tab gains "Anfall mot Ukraina" (`#/styrkor?s=anfall`).
 - Migration 0013_strikes.sql.
+
+# Version 3.14 (2 Nov 2026) - the forces foundation database
+
+- config/forces_db/{bases,units,systems}.json (see its README): bases,
+  units and weapon systems from open sources, each with sources; system
+  images from Wikimedia Commons under free licences in
+  /forces/img/sys-<id>.jpg. src/forces_db_check.py validates them.
+- src/forces.py lays the database over Wikidata and the hand-kept list.
+  Bases keep their ids; in `PUT /api/ingest/forces` a base may now also
+  carry `db_id, military_district, description_sv, status_sv,
+  status_as_of, sources: [{ url, outlet, accessed }], unit_ids,
+  system_ids` (the Worker passes them through unchecked; `units` and
+  `equipment` stay display strings).
+- Static catalogues for the app, read once: /forces/systems.json
+  `{ systems: [...] }` and /forces/units.json `{ units: [...] }`, written
+  by `python3 src/forces.py export-db`.
+- App: in a base's detail units and equipment are tappable;
+  `#/styrkor?sys=<id>` and `#/styrkor?unit=<id>` show a system's or a
+  unit's card. Service worker hm-v3.25.
