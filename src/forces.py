@@ -7,12 +7,18 @@ after the 04:00 report, shown in the app's Styrkor tab.
     python3 src/forces.py --dry-run    # print the material, no call
     python3 src/forces.py catalogue OUT.json   # the base list only, no call
     python3 src/forces.py survey --batches 18  # a Wikipedia survey round (forces_survey.py)
+    python3 src/forces.py export-db           # the app's static catalogues from config/forces_db
 
 The base list: every base Wikidata has in Russia and Belarus with a
 position (air, naval and military bases), merged with the hand-kept detail
 in config/forces_curated.json - units, equipment, reported attacks - which
 wins where both have a base within 15 km. Wikidata is read again once a
-week; if it does not answer, the last list stands.
+week; if it does not answer, the last list stands. On top of both comes
+the foundation database config/forces_db/ (bases, units, weapon systems,
+from open sources, see its README): it wins where it describes the same
+base (within 15 km and the same branch, or the same name), the base keeps
+the app's id (Wikidata Q-id or c<n>) and gains `db_id`; bases only the
+database knows get its slug as id.
 
 The night's update reads the last day's reporting on Russian bases and
 forces (its own Google News searches, plus the morning report's articles
@@ -46,6 +52,8 @@ from common import DATA_DIR, OUTPUT_DIR
 
 ROOT = Path(__file__).resolve().parent.parent
 CURATED = ROOT / "config" / "forces_curated.json"
+DB_DIR = ROOT / "config" / "forces_db"
+PUBLIC_FORCES = ROOT / "webapp" / "public" / "forces"
 STATE_PATH = DATA_DIR / "forces.json"
 UA = "threat-monitor/1 (https://github.com/jeaneclaude621-ui/threat_monitor)"
 
@@ -60,7 +68,9 @@ CATEGORIES = {"förband", "materiel"}
 
 # Wikidata classes: air base, naval base, military base and two narrower
 # kinds; their branch on the map.
-TYPES = {"Q695850": "flyg", "Q1365179": "marin", "Q245016": "armé", "Q18691599": "flyg", "Q2001305": "armé"}
+# (Q1324633 naval base and Q21193688 missile base; until Nov 2026 two wrong
+# ids stood here, a mansion and a television channel.)
+TYPES = {"Q695850": "flyg", "Q1324633": "marin", "Q245016": "armé", "Q18691599": "flyg", "Q21193688": "robot"}
 QUERY = """SELECT ?item ?itemLabel ?ruLabel ?type ?country ?coord WHERE {
   VALUES ?type { %s }
   VALUES ?country { wd:Q159 wd:Q184 }
@@ -115,9 +125,74 @@ def km(a, b) -> float:
     return 6371 * 2 * math.asin(math.sqrt(d))
 
 
+def load_db() -> dict:
+    """The foundation database: {"bases": [...], "units": {id: unit}, "systems": {id: system}}.
+    Empty when the files are missing."""
+    out = {"bases": [], "units": {}, "systems": {}}
+    for name in ("bases", "units", "systems"):
+        path = DB_DIR / f"{name}.json"
+        if path.exists():
+            rows = json.load(open(path, encoding="utf-8"))[name]
+            out[name] = rows if name == "bases" else {r["id"]: r for r in rows}
+    return out
+
+
+def _fold(t) -> str:
+    return re.sub(r"[^a-z0-9а-яё]", "", str(t or "").lower())
+
+
+def _display(db_base: dict, db: dict) -> tuple:
+    """The base's units and equipment as display strings (the hand-kept
+    names first, then the database's), at most 60 of each."""
+    units = list(db_base.get("curated_units") or [])
+    equipment = list(db_base.get("curated_equipment") or [])
+    for uid in db_base.get("units") or []:
+        u = db["units"].get(uid)
+        if u and u["name_sv"] not in units:
+            units.append(u["name_sv"])
+    for sid in db_base.get("equipment") or []:
+        x = db["systems"].get(sid)
+        if x and not any(_fold(x["name"]).startswith(_fold(e)) or _fold(e).startswith(_fold(x["name"].split(" ")[0])) for e in equipment):
+            equipment.append(x["name"])
+    return [u[:200] for u in units[:60]], [e[:200] for e in equipment[:60]]
+
+
+def apply_db(bases: list, db: dict = None) -> list:
+    """Lay the foundation database over the list (Wikidata + hand-kept)."""
+    db = db if db is not None else load_db()
+    taken = set()
+    for d in db["bases"]:
+        hit = None
+        if d.get("curated_index") is not None:
+            hit = next((b for b in bases if b.get("curated_index") == d["curated_index"]), None)
+        if hit is None:
+            near = [b for b in bases if b["id"] not in taken and b.get("curated_index") is None]
+            same = [b for b in near if (b["branch"] == d["branch"] and km(b, d) < 15) or _fold(b["name"]) == _fold(d["name"]) or km(b, d) < 2]
+            hit = min(same, key=lambda b: km(b, d), default=None)
+        units, equipment = _display(d, db)
+        extra = {"db_id": d["id"], "name_ru": d.get("name_ru"), "lat": d["lat"], "lon": d["lon"], "branch": d["branch"],
+                 "country": d["country"], "military_district": d.get("military_district"),
+                 "description_sv": d.get("description_sv"), "status_sv": (d.get("status") or {}).get("status_sv"),
+                 "status_as_of": (d.get("status") or {}).get("as_of"), "sources": d.get("sources") or [],
+                 "units": units, "equipment": equipment, "unit_ids": list(d.get("units") or []),
+                 "system_ids": list(d.get("equipment") or []), "events": list(d.get("events") or [])}
+        if hit is not None:
+            if hit.get("curated"):
+                extra["name"] = hit["name"]
+            else:
+                extra["name"] = d["name"]
+            hit.update(extra)
+            hit["curated"] = True
+            taken.add(hit["id"])
+        else:
+            bases.append({"id": d["id"], "name": d["name"], "curated": True, "source": None, **extra})
+            taken.add(d["id"])
+    return sorted(bases, key=lambda b: (not b.get("curated"), b["name"]))
+
+
 def catalogue(bases: list = None) -> list:
     """Wikidata's bases (or `bases`, an earlier copy) merged with the
-    hand-kept list."""
+    hand-kept list and the foundation database."""
     bases = bases if bases is not None else wikidata()
     curated = json.load(open(CURATED, encoding="utf-8"))["bases"]
     for i, c in enumerate(curated):
@@ -125,13 +200,13 @@ def catalogue(bases: list = None) -> list:
         # (Sevastopol and Belbek).
         near = min((b for b in bases if not b.get("curated")), key=lambda b: km(b, c), default=None)
         close = near is not None and km(near, c) < 15
-        entry = {**c, "id": near["id"] if close else f"c{i + 1}", "curated": True,
+        entry = {**c, "id": near["id"] if close else f"c{i + 1}", "curated": True, "curated_index": i,
                  "country": "BY" if "Belarus" in c["name"] else "RU",
                  "source": near["source"] if close else None}
         if close:
             bases.remove(near)
         bases.append(entry)
-    return sorted(bases, key=lambda b: (not b.get("curated"), b["name"]))
+    return apply_db(bases)
 
 
 def listed_bases(state: dict) -> list:
@@ -153,6 +228,9 @@ def listed_bases(state: dict) -> list:
 # --------------------------------------------------------------------------
 # State
 # --------------------------------------------------------------------------
+DB_FIELDS = ("db_id", "military_district", "description_sv", "status_sv", "status_as_of", "sources", "unit_ids", "system_ids")
+
+
 def merge(state: dict, listed: list) -> dict:
     """Bring the base list into the state. The hand-kept units and
     equipment are each base's original holdings; what the nights have
@@ -163,6 +241,9 @@ def merge(state: dict, listed: list) -> dict:
         prev = old.pop(b["id"], None)
         base = {k: b.get(k) for k in ("id", "name", "name_ru", "lat", "lon", "branch", "country", "source")}
         base["curated"] = bool(b.get("curated"))
+        for k in DB_FIELDS:
+            if b.get(k) is not None:
+                base[k] = b[k]
         base["original"] = {"units": list(b.get("units") or []), "equipment": list(b.get("equipment") or [])}
         if prev:
             base.update({k: list(prev.get(k, [])) for k in ("units", "equipment", "changes")})
@@ -254,8 +335,9 @@ def base_lines(state: dict, today: date) -> str:
     for b in state["bases"]:
         line = f"{b['id']} | {b['name']}" + (f" ({b['name_ru']})" if b.get("name_ru") else "") + f" | {b['branch']} | {b['country']}"
         sv = b.get("survey") or {}
-        units = b["units"] + [u for u in sv.get("units", []) if u not in b["units"]]
-        equipment = b["equipment"] + [e for e in sv.get("equipment", []) if e not in b["equipment"]]
+        # Capped, so the prompt stays a reasonable size with several hundred described bases.
+        units = (b["units"] + [u for u in sv.get("units", []) if u not in b["units"]])[:6]
+        equipment = (b["equipment"] + [e for e in sv.get("equipment", []) if e not in b["equipment"]])[:8]
         if units or equipment:
             line += f" | units: {', '.join(units) or '-'} | equipment: {', '.join(equipment) or '-'}"
         recent = [e for e in b["events"] if e["date"] >= since] + [c for c in b["changes"] if c["date"] >= since]
@@ -401,7 +483,7 @@ def payload(state: dict) -> dict:
         out.update(status(b, today))
         bases.append(out)
     return {"date": state.get("date"), "generated_at": state.get("generated_at"),
-            "note": "Baspositioner från Wikidata (CC0). Förband, materiel och anfall från öppna källor, inte verifierat.",
+            "note": "Baspositioner från Wikidata (CC0) och grunddatabasen. Förband, materiel och anfall från öppna källor, inte verifierat.",
             "bases": bases, "nights": state.get("nights", [])[-30:]}
 
 
@@ -459,6 +541,19 @@ def survey_only(batches: int):
     push_forces(payload(state))
 
 
+def export_db():
+    """The app's static catalogues (/forces/systems.json, /forces/units.json),
+    read once by the Styrkor tab: compact copies of config/forces_db."""
+    db = load_db()
+    PUBLIC_FORCES.mkdir(parents=True, exist_ok=True)
+    note = "Grunddata från öppna källor (se config/forces_db/README.md). Inte verifierat."
+    for name in ("systems", "units"):
+        rows = sorted(db[name].values(), key=lambda r: r["id"])
+        data = {"note": note, name: rows}
+        (PUBLIC_FORCES / f"{name}.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"{len(db['systems'])} systems, {len(db['units'])} units -> {PUBLIC_FORCES}")
+
+
 def run_safe(report: dict = None, pool=None):
     """For daily_report.py: never let this stop the report run."""
     try:
@@ -472,6 +567,8 @@ if __name__ == "__main__":
         data = catalogue()
         Path(sys.argv[2]).write_text(json.dumps({"bases": data}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
         print(f"{len(data)} bases, {sum(1 for b in data if b.get('curated'))} with detail")
+    elif len(sys.argv) == 2 and sys.argv[1] == "export-db":
+        export_db()
     elif len(sys.argv) >= 2 and sys.argv[1] == "survey":
         ap = argparse.ArgumentParser()
         ap.add_argument("cmd")
