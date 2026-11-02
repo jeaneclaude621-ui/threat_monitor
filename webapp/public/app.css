@@ -784,3 +784,13 @@ button.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 
 .stotal { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
 .stotal-n { font-size: 24px; font-weight: 700; }
 @media (prefers-color-scheme: dark) { .fland.ua { fill: #3A3620; stroke: #6B6235; } .slaunch { fill: #E8ECF5; stroke: #0F1526; } }
+
+/* Forces catalogue: system and unit cards (grunddata) */
+.ffig { margin: 0 0 12px; }
+.fimg { display: block; width: 100%; height: auto; max-height: 360px; object-fit: cover; border-radius: 10px; background: var(--line); }
+.ffig figcaption { margin-top: 6px; }
+.fkv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 12px 0 0; font-size: 14px; }
+.fkv dt { font-weight: 600; }
+.fkv dd { margin: 0; }
+.chip.static { cursor: default; }
+a.chip { text-decoration: none; color: inherit; }

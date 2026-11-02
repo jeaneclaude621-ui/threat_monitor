@@ -152,7 +152,8 @@ async function route({ keepScroll = false } = {}) {
     case 'narrativ': case 'trender': tab = 'narrativ'; view = () => viewTrends(q); break;
     case 'myndigheter': view = () => viewAuthorities(q); break;
     case 'handlingsalternativ': view = () => viewCourses(); break;
-    case 'styrkor': tab = 'styrkor'; view = () => (q.get('s') === 'anfall' ? viewStrikes() : viewForces()); break;
+    case 'styrkor': tab = 'styrkor'; view = () => (q.get('s') === 'anfall' ? viewStrikes()
+      : q.get('sys') ? viewForceSystem(q.get('sys')) : q.get('unit') ? viewForceUnit(q.get('unit')) : viewForces()); break;
     case 'bedom': tab = 'bedom'; view = () => viewAssess(q); break;
     case 'mina': tab = 'bedom'; view = () => viewMine(); break;
     case 'kalla': view = () => viewSource(rest.join('/')); break;
@@ -1764,17 +1765,122 @@ let forcesLand = null;
 const forcesUi = { vb: null, query: '', branch: null, onlyHit: false, selected: null };
 
 async function loadForcesView() {
-  const [land, data] = await Promise.all([
+  const [land, data, cat] = await Promise.all([
     forcesLand || fetch('/forces/countries.json').then((r) => { if (!r.ok) throw new Error(`countries: ${r.status}`); return r.json(); }),
-    loadForces()]);
+    loadForces(), loadForceCatalogue()]);
   forcesLand = land;
   if (!data) return null;
   for (const b of data.bases) {
     b.x = FX(b.lon); b.y = FY(b.lat);
     const sv = b.survey || {};
-    b.hay = [b.name, b.name_ru, FORCE_BRANCH[b.branch]?.[0], ...b.units, ...b.equipment, ...(sv.units || []), ...(sv.equipment || [])].map(fnorm);
+    const names = [...(b.system_ids || []).map((id) => cat.systems.get(id)?.name), ...(b.unit_ids || []).map((id) => cat.units.get(id)?.name_sv)];
+    b.hay = [b.name, b.name_ru, FORCE_BRANCH[b.branch]?.[0], ...b.units, ...b.equipment, ...(sv.units || []), ...(sv.equipment || []), ...names]
+      .filter(Boolean).map(fnorm);
   }
-  return { land: land.countries, bases: data.bases, byId: new Map(data.bases.map((b) => [b.id, b])), data };
+  return { land: land.countries, bases: data.bases, byId: new Map(data.bases.map((b) => [b.id, b])), data, cat };
+}
+
+// ---------------------------------------------------------------- the forces catalogue (grunddata)
+// Weapon systems and units from config/forces_db, served as static files
+// (/forces/systems.json, /forces/units.json) and read once. A base's
+// equipment and units are display strings; these resolve them to entries.
+let forceCatalogue = null;
+async function loadForceCatalogue() {
+  if (forceCatalogue) return forceCatalogue;
+  const get = (name) => fetch(`/forces/${name}.json`).then((r) => (r.ok ? r.json() : { [name]: [] })).catch(() => ({ [name]: [] }));
+  const [sys, units] = await Promise.all([get('systems'), get('units')]);
+  const systems = new Map((sys.systems || []).map((x) => [x.id, x]));
+  const unitMap = new Map((units.units || []).map((x) => [x.id, x]));
+  const sysByName = new Map();
+  for (const x of systems.values()) {
+    for (const k of [x.id, x.name, x.name.split(' ')[0], ...x.name.split(' / ')]) if (!sysByName.has(fnorm(k))) sysByName.set(fnorm(k), x.id);
+  }
+  const unitByName = new Map([...unitMap.values()].map((u) => [fnorm(u.name_sv), u.id]));
+  const children = new Map();
+  for (const u of unitMap.values()) if (u.parent) { if (!children.has(u.parent)) children.set(u.parent, []); children.get(u.parent).push(u.id); }
+  forceCatalogue = { systems, units: unitMap, sysByName, unitByName, children };
+  return forceCatalogue;
+}
+// A display string ("Su-34", "Borej-klass", "Iskander") to a system id, or null.
+function systemFor(cat, text, ids = []) {
+  const t = fnorm(text);
+  if (cat.sysByName.has(t)) return cat.sysByName.get(t);
+  const hit = ids.find((id) => { const n = fnorm(cat.systems.get(id)?.name); return n && (n.startsWith(t) || t.startsWith(n.split(/[^a-z0-9а-я]/)[0] || n)); });
+  if (hit) return hit;
+  for (const [k, id] of cat.sysByName) if (k.length > 2 && t.startsWith(k)) return id;
+  return null;
+}
+function unitFor(cat, text) { return cat.unitByName.get(fnorm(text)) || null; }
+const COUNTRY_FORCES = { RU: 'Ryssland', BY: 'Belarus', UA: 'Ukraina (ockuperat)', SY: 'Syrien', AM: 'Armenien', TJ: 'Tadzjikistan',
+  KG: 'Kirgizistan', GE: 'Georgien (utbrytarregion)', MD: 'Moldavien (Transnistrien)' };
+// Open the map at a base (by app id or database id).
+function showBaseOnMap(b) {
+  const w = FULL.w / 8; const hh = w * FULL.h / FULL.w;
+  forcesUi.vb = { x: FX(b.lon) - w / 2, y: FY(b.lat) - hh / 2, w, h: hh };
+  forcesUi.selected = b.id; forcesUi.query = ''; forcesUi.branch = null; forcesUi.onlyHit = false;
+  location.hash = '#/styrkor';
+}
+function baseLink(b) { return h('button', { class: 'chip', type: 'button', onclick: () => showBaseOnMap(b) }, b.name); }
+function sysChip(cat, id) { const x = cat.systems.get(id); return x ? h('a', { class: 'chip', href: `#/styrkor?sys=${encodeURIComponent(id)}` }, x.name) : null; }
+function unitChip(cat, id) { const u = cat.units.get(id); return u ? h('a', { class: 'chip', href: `#/styrkor?unit=${encodeURIComponent(id)}` }, u.name_sv) : null; }
+function catSources(list) {
+  return (list || []).length ? h('div', null, h('h3', { class: 'fsub' }, 'Källor'), h('div', { class: 'chips' },
+    list.map((s) => externalButton(s.url, { outlet: s.outlet, date: s.accessed }, s.outlet || 'Källa')))) : null;
+}
+function forceHead(kicker, title, sub) {
+  return h('header', { class: 'page-head' }, h('div', null, backLink('#/styrkor', 'Styrkor'),
+    h('div', { class: 'kicker' }, kicker), h('h1', { class: 'title-xl' }, title), sub ? h('p', { class: 'small muted' }, sub) : null));
+}
+
+// A weapon system: image with attribution, figures, where it is based.
+async function viewForceSystem(id) {
+  const [cat, data] = await Promise.all([loadForceCatalogue(), loadForces().catch(() => null)]);
+  const x = cat.systems.get(id);
+  if (!x) return frag(forceHead('Vapensystem', 'Okänt system'), emptyState('Systemet finns inte i grunddatabasen.'));
+  const bases = (data?.bases || []).filter((b) => (b.system_ids || []).includes(id) || b.equipment.some((t) => systemFor(cat, t, b.system_ids) === id))
+    .sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+  const units = [...cat.units.values()].filter((u) => (u.equipment || []).includes(id)).sort((a, b) => a.name_sv.localeCompare(b.name_sv, 'sv'));
+  const img = x.image;
+  return frag(
+    forceHead(x.category_sv, x.name, [x.name_ru, x.role_sv].filter(Boolean).join(' · ')),
+    h('section', { class: 'card card-pad fsys' },
+      img ? h('figure', { class: 'ffig' },
+        h('img', { class: 'fimg', src: `/forces/img/${img.file}`, alt: x.name, loading: 'lazy' }),
+        h('figcaption', { class: 'small muted' }, `Bild: ${img.author} · ${img.license} · `,
+          externalButton(img.source_url, { outlet: 'Wikimedia Commons' }, 'Wikimedia Commons'))) : null,
+      h('p', { class: 'body-sm' }, x.description_sv),
+      Object.keys(x.key_figures || {}).length ? h('dl', { class: 'fkv' },
+        Object.entries(x.key_figures).map(([k, v]) => [h('dt', null, k), h('dd', null, v)])) : null),
+    h('section', { class: 'card card-pad' },
+      h('h2', { class: 'fsub' }, bases.length ? `Finns på ${plural(bases.length, 'bas', 'baser')}` : 'Baser'),
+      bases.length ? h('div', { class: 'chips' }, bases.map(baseLink)) : h('p', { class: 'small muted' }, 'Ingen bas i underlaget anger systemet.'),
+      units.length ? [h('h3', { class: 'fsub' }, 'Förband'), h('div', { class: 'chips' }, units.map((u) => unitChip(cat, u.id)))] : null,
+      catSources(x.sources)),
+    h('p', { class: 'notice' }, 'Uppgifterna kommer från öppna källor och anges som de publicerats. Prestandauppgifter är ofta osäkra.'));
+}
+
+// A unit: status, parent, garrisons, equipment.
+async function viewForceUnit(id) {
+  const [cat, data] = await Promise.all([loadForceCatalogue(), loadForces().catch(() => null)]);
+  const u = cat.units.get(id);
+  if (!u) return frag(forceHead('Förband', 'Okänt förband'), emptyState('Förbandet finns inte i grunddatabasen.'));
+  const all = data?.bases || [];
+  const garrisons = all.filter((b) => (b.unit_ids || []).includes(id) || (u.garrison || []).includes(b.db_id));
+  const parent = u.parent ? cat.units.get(u.parent) : null;
+  const kids = (cat.children.get(id) || []).map((k) => cat.units.get(k)).filter(Boolean);
+  return frag(
+    forceHead(`${u.type.charAt(0).toUpperCase()}${u.type.slice(1)} · ${FORCE_BRANCH[u.branch]?.[0] || u.branch}`, u.name_sv,
+      [u.name_ru, u.name_en].filter(Boolean).join(' · ')),
+    h('section', { class: 'card card-pad' },
+      h('p', { class: 'small' }, h('b', null, 'Status: '), u.status_sv, u.as_of ? ` (uppgifter per ${u.as_of})` : ''),
+      h('p', { class: 'body-sm' }, u.description_sv),
+      parent ? h('p', { class: 'body-sm' }, h('b', null, 'Ingår i: '), unitChip(cat, parent.id)) : null,
+      kids.length ? [h('h3', { class: 'fsub' }, 'Underställda förband'), h('div', { class: 'chips' }, kids.map((k) => unitChip(cat, k.id)))] : null,
+      h('h3', { class: 'fsub' }, 'Garnison'),
+      garrisons.length ? h('div', { class: 'chips' }, garrisons.map(baseLink)) : h('p', { class: 'small muted' }, 'Ingen bas i underlaget.'),
+      (u.equipment || []).length ? [h('h3', { class: 'fsub' }, 'Materiel som nämns i källorna'), h('div', { class: 'chips' }, u.equipment.map((s) => sysChip(cat, s)))] : null,
+      catSources(u.sources)),
+    h('p', { class: 'notice' }, 'Uppgifterna kommer från öppna källor (främst Wikipedia) och kan vara inaktuella. Inte verifierat.'));
 }
 
 // The weekly Wikipedia survey of a base (src/forces_survey.py).
@@ -1805,7 +1911,7 @@ async function viewForces() {
     return frag(h('header', { class: 'page-head' }, h('div', null, h('h1', { class: 'title-xl' }, 'Styrkor'))),
       forcesSeg(false), emptyState('Ingen lägesbild ännu. Den görs varje natt efter morgonrapporten kl. 04.'));
   }
-  const { land, bases, byId, data } = loaded;
+  const { land, bases, byId, data, cat } = loaded;
   let vb = forcesUi.vb || { ...FULL };
   let { query, branch, onlyHit } = forcesUi;
   // The chosen base by id: the bases are new objects after each load.
@@ -1916,11 +2022,18 @@ async function viewForces() {
         h('span', { class: `fstatus ${b.status}` }, FORCE_STATUS[b.status]),
         b.updated ? h('span', { class: 'small muted' }, `senast ändrad ${dateShort(b.updated)}`) : null),
       h('h2', { class: 'coa-title' }, b.name, b.name_ru ? h('span', { class: 'small muted' }, ` · ${b.name_ru}`) : null),
-      h('p', { class: 'small muted' }, [FORCE_BRANCH[b.branch]?.[0], b.country === 'BY' ? 'Belarus' : 'Ryssland',
-        `${b.lat.toFixed(2)}° N, ${b.lon.toFixed(2)}° E`].join(' · ')),
-      b.units.length ? h('p', { class: 'body-sm' }, h('b', null, 'Förband nu: '), b.units.join(', ')) : null,
-      b.equipment.length ? h('div', { class: 'chips' }, b.equipment.map((t) => h('button', { class: 'chip', type: 'button',
-        onclick: () => { query = t; search.value = t; draw(); } }, t))) : null,
+      h('p', { class: 'small muted' }, [FORCE_BRANCH[b.branch]?.[0], COUNTRY_FORCES[b.country] || countryName(b.country), b.military_district,
+        `${b.lat.toFixed(2)}° N, ${b.lon.toFixed(2)}° E`].filter(Boolean).join(' · ')),
+      b.description_sv ? h('p', { class: 'body-sm' }, b.description_sv) : null,
+      b.units.length ? h('div', null, h('h3', { class: 'fsub' }, 'Förband nu'), h('div', { class: 'chips' }, b.units.map((t) => {
+        const uid = unitFor(cat, t);
+        return uid ? h('a', { class: 'chip', href: `#/styrkor?unit=${encodeURIComponent(uid)}` }, t) : h('span', { class: 'chip static' }, t);
+      }))) : null,
+      b.equipment.length ? h('div', null, h('h3', { class: 'fsub' }, 'Materiel'), h('div', { class: 'chips' }, b.equipment.map((t) => {
+        const sid = systemFor(cat, t, b.system_ids || []);
+        return sid ? h('a', { class: 'chip', href: `#/styrkor?sys=${encodeURIComponent(sid)}` }, t)
+          : h('button', { class: 'chip', type: 'button', onclick: () => { query = t; search.value = t; draw(); } }, t);
+      }))) : null,
       changed ? h('p', { class: 'small muted' }, h('b', null, 'Ursprungligt underlag: '),
         [orig.units.join(', '), orig.equipment.join(', ')].filter(Boolean).join(' · ') || 'inget') : null,
       changes.length ? h('div', null, h('h3', { class: 'fsub' }, 'Ändringar i styrkan'),
@@ -1935,6 +2048,8 @@ async function viewForces() {
       surveyBlock(b.survey),
       !b.curated && !b.units.length && !b.equipment.length && !(b.survey && b.survey.summary_sv)
         ? h('p', { class: 'small muted' }, b.survey ? 'Bara position och typ är kända: Wikipedia har ingen artikel om basen.' : 'Bara position och typ är kända än. Veckosökningen läser basens Wikipedia-artikel inom en vecka.') : null,
+      b.status_sv ? h('p', { class: 'small muted' }, `Grunddata: ${b.status_sv}${b.status_as_of ? ` (${b.status_as_of})` : ''}. Från öppna källor, inte verifierat.`) : null,
+      (b.sources || []).length ? h('div', { class: 'chips' }, b.sources.map((s) => externalButton(s.url, { outlet: s.outlet, date: s.accessed }, s.outlet || 'Källa'))) : null,
       b.source ? externalButton(b.source, { outlet: 'Wikidata' }, 'Wikidata') : null));
     if (zoom) detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
@@ -2018,7 +2133,7 @@ async function viewForces() {
       h('span', null, h('b', { class: 'fdot anfallen' }), 'Anfallen senaste 30 dagarna')),
     info, detail, list,
     h('p', { class: 'notice' }, 'Uppdateras varje natt efter morgonrapporten. AI läser senaste dygnets öppna rapportering (inte rysk statsmedia) och noterar anfall mot baser, uppföljningar och ändringar i förband och materiel, alltid med källa. ',
-      'Baspositioner från Wikidata; förband och materiel utgår från ett handskrivet underlag. Inte verifierat. Påverkar inte index.'));
+      'Baspositioner från Wikidata och grunddatabasen; förband och materiel utgår från öppna källor (Wikipedia, ukrainska och västliga medier). Tryck på ett förband eller ett system för mer. Bilder från Wikimedia Commons under fri licens. Inte verifierat. Påverkar inte index.'));
 }
 
 // ---------------------------------------------------------------- strike map (Version 3.13)
