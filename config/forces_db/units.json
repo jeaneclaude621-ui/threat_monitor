@@ -11080,6 +11080,3446 @@
      "accessed": "2026-11-01"
     }
    ]
+  },
+  {
+   "id": "fartyg-verchoturje",
+   "name_sv": "Verchoturje",
+   "name_ru": null,
+   "name_en": "Verkhoturye",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "gadzjijevo"
+   ],
+   "equipment": [
+    "sineva"
+   ],
+   "class": "delta-iv",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Verchoturje är en strategisk robotubåt av Delta IV-klassen (projekt 667BDRM) i Norra flottan, i tjänst sedan 1984. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_K-51_Verkhoturye",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-tula",
+   "name_sv": "Tula",
+   "name_ru": null,
+   "name_en": "Tula",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "gadzjijevo"
+   ],
+   "equipment": [
+    "sineva"
+   ],
+   "class": "delta-iv",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Tula är en strategisk robotubåt av Delta IV-klassen (projekt 667BDRM) i Norra flottan, i tjänst sedan 1987. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_K-114_Tula",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-brjansk",
+   "name_sv": "Brjansk",
+   "name_ru": null,
+   "name_en": "Bryansk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "gadzjijevo"
+   ],
+   "equipment": [
+    "sineva"
+   ],
+   "class": "delta-iv",
+   "status_sv": "i tjänst efter översyn (2025)",
+   "as_of": "2025",
+   "description_sv": "Brjansk är en strategisk robotubåt av Delta IV-klassen (projekt 667BDRM) i Norra flottan, i tjänst sedan 1988. Status enligt Wikipedias fartygslista: i tjänst efter översyn (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_K-117_Bryansk",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-karelija",
+   "name_sv": "Karelija",
+   "name_ru": null,
+   "name_en": "Karelia",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "gadzjijevo"
+   ],
+   "equipment": [
+    "sineva"
+   ],
+   "class": "delta-iv",
+   "status_sv": "reparation klar 2026",
+   "as_of": "2026",
+   "description_sv": "Karelija är en strategisk robotubåt av Delta IV-klassen (projekt 667BDRM) i Norra flottan, i tjänst sedan 1989. Status enligt Wikipedias fartygslista: reparation klar 2026.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_K-18_Karelia",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-novomoskovsk",
+   "name_sv": "Novomoskovsk",
+   "name_ru": null,
+   "name_en": "Novomoskovsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "gadzjijevo"
+   ],
+   "equipment": [
+    "sineva"
+   ],
+   "class": "delta-iv",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Novomoskovsk är en strategisk robotubåt av Delta IV-klassen (projekt 667BDRM) i Norra flottan, i tjänst sedan 1990. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_K-407_Novomoskovsk",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-jurij-dolgorukij",
+   "name_sv": "Jurij Dolgorukij",
+   "name_ru": null,
+   "name_en": "Yuriy Dolgorukiy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "gadzjijevo"
+   ],
+   "equipment": [
+    "bulava"
+   ],
+   "class": "borej",
+   "status_sv": "under översyn till 2027",
+   "as_of": "2026",
+   "description_sv": "Jurij Dolgorukij är en strategisk robotubåt av Borej-klassen (projekt 955/955A) i Norra flottan, i tjänst sedan 2013. Klassens första båt. Status enligt Wikipedias fartygslista: under översyn till 2027.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Yury_Dolgorukiy",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-aleksandr-nevskij",
+   "name_sv": "Aleksandr Nevskij",
+   "name_ru": null,
+   "name_en": "Aleksandr Nevskiy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "viljutjinsk"
+   ],
+   "equipment": [
+    "bulava"
+   ],
+   "class": "borej",
+   "status_sv": "i tjänst (2021)",
+   "as_of": "2021",
+   "description_sv": "Aleksandr Nevskij är en strategisk robotubåt av Borej-klassen (projekt 955/955A) i Stillahavsflottan, i tjänst sedan 2013. Status enligt Wikipedias fartygslista: i tjänst (2021).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Alexander_Nevsky_%28K-550%29",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-vladimir-monomach",
+   "name_sv": "Vladimir Monomach",
+   "name_ru": null,
+   "name_en": "Vladimir Monomakh",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "viljutjinsk"
+   ],
+   "equipment": [
+    "bulava"
+   ],
+   "class": "borej",
+   "status_sv": "i tjänst (2020)",
+   "as_of": "2020",
+   "description_sv": "Vladimir Monomach är en strategisk robotubåt av Borej-klassen (projekt 955/955A) i Stillahavsflottan, i tjänst sedan 2014. Status enligt Wikipedias fartygslista: i tjänst (2020).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Vladimir_Monomakh",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-knjaz-vladimir",
+   "name_sv": "Knjaz Vladimir",
+   "name_ru": null,
+   "name_en": "Knyaz Vladimir",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "gadzjijevo"
+   ],
+   "equipment": [
+    "bulava"
+   ],
+   "class": "borej",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Knjaz Vladimir är en strategisk robotubåt av Borej-klassen (projekt 955/955A) i Norra flottan, i tjänst sedan 2020. Den första båten av den förbättrade versionen Borej-A. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Knyaz_Vladimir",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-knjaz-oleg",
+   "name_sv": "Knjaz Oleg",
+   "name_ru": null,
+   "name_en": "Knyaz Oleg",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "viljutjinsk"
+   ],
+   "equipment": [
+    "bulava"
+   ],
+   "class": "borej",
+   "status_sv": "i tjänst, kom till Stilla havet i september 2022",
+   "as_of": "2022",
+   "description_sv": "Knjaz Oleg är en strategisk robotubåt av Borej-klassen (projekt 955/955A) i Stillahavsflottan, i tjänst sedan 2021. Status enligt Wikipedias fartygslista: i tjänst, kom till Stilla havet i september 2022.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Knyaz_Oleg",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-generalissimus-suvorov",
+   "name_sv": "Generalissimus Suvorov",
+   "name_ru": null,
+   "name_en": "Generalissimus Suvorov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "viljutjinsk"
+   ],
+   "equipment": [
+    "bulava"
+   ],
+   "class": "borej",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Generalissimus Suvorov är en strategisk robotubåt av Borej-klassen (projekt 955/955A) i Stillahavsflottan, i tjänst sedan 2022. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Generalissimus_Suvorov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-imperator-aleksandr-iii",
+   "name_sv": "Imperator Aleksandr III",
+   "name_ru": null,
+   "name_en": "Imperator Aleksandr III",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "viljutjinsk"
+   ],
+   "equipment": [
+    "bulava"
+   ],
+   "class": "borej",
+   "status_sv": "i tjänst, kom till Stilla havet i september 2024",
+   "as_of": "2024",
+   "description_sv": "Imperator Aleksandr III är en strategisk robotubåt av Borej-klassen (projekt 955/955A) i Stillahavsflottan, i tjänst sedan 2023. Status enligt Wikipedias fartygslista: i tjänst, kom till Stilla havet i september 2024.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Imperator_Aleksandr_III",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-knjaz-pozjarskij",
+   "name_sv": "Knjaz Pozjarskij",
+   "name_ru": null,
+   "name_en": "Knyaz Pozharsky",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "gadzjijevo"
+   ],
+   "equipment": [
+    "bulava"
+   ],
+   "class": "borej",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Knjaz Pozjarskij är en strategisk robotubåt av Borej-klassen (projekt 955/955A) i Norra flottan, i tjänst sedan 2025. Togs i tjänst i juli 2025 som den åttonde båten i Borej-familjen. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Knyaz_Pozharskiy",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-tjeljabinsk",
+   "name_sv": "Tjeljabinsk",
+   "name_ru": null,
+   "name_en": "Chelyabinsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "viljutjinsk"
+   ],
+   "equipment": [
+    "granit"
+   ],
+   "class": "oscar-ii",
+   "status_sv": "under översyn; använt kärnbränsle lossades i april 2022",
+   "as_of": "2022",
+   "description_sv": "Tjeljabinsk är en kryssningsrobotubåt av Oscar II-klassen (projekt 949A) i Stillahavsflottan, i tjänst sedan 1990. Status enligt Wikipedias fartygslista: under översyn; använt kärnbränsle lossades i april 2022.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_K-442_Chelyabinsk",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-smolensk",
+   "name_sv": "Smolensk",
+   "name_ru": null,
+   "name_en": "Smolensk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "zapadnaja-litsa"
+   ],
+   "equipment": [
+    "granit"
+   ],
+   "class": "oscar-ii",
+   "status_sv": "i tjänst (2022)",
+   "as_of": "2022",
+   "description_sv": "Smolensk är en kryssningsrobotubåt av Oscar II-klassen (projekt 949A) i Norra flottan, i tjänst sedan 1990. Status enligt Wikipedias fartygslista: i tjänst (2022).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Smolensk",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-orjol",
+   "name_sv": "Orjol",
+   "name_ru": null,
+   "name_en": "Orel",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "zapadnaja-litsa"
+   ],
+   "equipment": [
+    "granit"
+   ],
+   "class": "oscar-ii",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Orjol är en kryssningsrobotubåt av Oscar II-klassen (projekt 949A) i Norra flottan, i tjänst sedan 1992. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Orel_%28K-266%29",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-tver-ex-viljutjinsk",
+   "name_sv": "Tver (ex Viljutjinsk)",
+   "name_ru": null,
+   "name_en": "Tver (ex.Vilyuchinsk)",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "viljutjinsk"
+   ],
+   "equipment": [
+    "granit"
+   ],
+   "class": "oscar-ii",
+   "status_sv": "i reserv",
+   "as_of": "2026",
+   "description_sv": "Tver (ex Viljutjinsk) är en kryssningsrobotubåt av Oscar II-klassen (projekt 949A) i Stillahavsflottan, i tjänst sedan 1992. Status enligt Wikipedias fartygslista: i reserv.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_K-456",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-omsk",
+   "name_sv": "Omsk",
+   "name_ru": null,
+   "name_en": "Omsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "viljutjinsk"
+   ],
+   "equipment": [
+    "granit"
+   ],
+   "class": "oscar-ii",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Omsk är en kryssningsrobotubåt av Oscar II-klassen (projekt 949A) i Stillahavsflottan, i tjänst sedan 1993. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Omsk",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-tomsk",
+   "name_sv": "Tomsk",
+   "name_ru": null,
+   "name_en": "Tomsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "viljutjinsk"
+   ],
+   "equipment": [
+    "granit"
+   ],
+   "class": "oscar-ii",
+   "status_sv": "i tjänst (2023)",
+   "as_of": "2023",
+   "description_sv": "Tomsk är en kryssningsrobotubåt av Oscar II-klassen (projekt 949A) i Stillahavsflottan, i tjänst sedan 1996. Status enligt Wikipedias fartygslista: i tjänst (2023).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Tomsk",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-severodvinsk",
+   "name_sv": "Severodvinsk",
+   "name_ru": null,
+   "name_en": "Severodvinsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "zapadnaja-litsa"
+   ],
+   "equipment": [
+    "kalibr",
+    "oniks"
+   ],
+   "class": "jasen",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Severodvinsk är en atomdriven attackubåt av Jasen-klassen (projekt 885/885M) i Norra flottan, i tjänst sedan 2014. Klassens första båt. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Severodvinsk",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-kazan",
+   "name_sv": "Kazan",
+   "name_ru": null,
+   "name_en": "Kazan",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "zapadnaja-litsa"
+   ],
+   "equipment": [
+    "kalibr",
+    "oniks"
+   ],
+   "class": "jasen",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Kazan är en atomdriven attackubåt av Jasen-klassen (projekt 885/885M) i Norra flottan, i tjänst sedan 2021. Den första båten av den förbättrade versionen Jasen-M. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Kazan_%28K-561%29",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-novosibirsk",
+   "name_sv": "Novosibirsk",
+   "name_ru": null,
+   "name_en": "Novosibirsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "viljutjinsk"
+   ],
+   "equipment": [
+    "kalibr",
+    "oniks"
+   ],
+   "class": "jasen",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Novosibirsk är en atomdriven attackubåt av Jasen-klassen (projekt 885/885M) i Stillahavsflottan, i tjänst sedan 2021. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Novosibirsk_%28K-573%29",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-krasnojarsk",
+   "name_sv": "Krasnojarsk",
+   "name_ru": null,
+   "name_en": "Krasnoyarsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "viljutjinsk"
+   ],
+   "equipment": [
+    "kalibr",
+    "oniks"
+   ],
+   "class": "jasen",
+   "status_sv": "i tjänst, kom till Stilla havet i september 2024",
+   "as_of": "2024",
+   "description_sv": "Krasnojarsk är en atomdriven attackubåt av Jasen-klassen (projekt 885/885M) i Stillahavsflottan, i tjänst sedan 2023. Status enligt Wikipedias fartygslista: i tjänst, kom till Stilla havet i september 2024.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Krasnoyarsk_%28K-571%29",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-archangelsk",
+   "name_sv": "Archangelsk",
+   "name_ru": null,
+   "name_en": "Arkhangelsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "zapadnaja-litsa"
+   ],
+   "equipment": [
+    "kalibr",
+    "oniks"
+   ],
+   "class": "jasen",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Archangelsk är en atomdriven attackubåt av Jasen-klassen (projekt 885/885M) i Norra flottan, i tjänst sedan 2024. Togs i tjänst i december 2024. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Arkhangelsk_%28K-564%29",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-vladikavkaz",
+   "name_sv": "Vladikavkaz",
+   "name_ru": null,
+   "name_en": "Vladikavkaz",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "poljarnyj"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst (2021)",
+   "as_of": "2021",
+   "description_sv": "Vladikavkaz är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Norra flottan, i tjänst sedan 1990. Status enligt Wikipedias fartygslista: i tjänst (2021).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-459",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-kaluga",
+   "name_sv": "Kaluga",
+   "name_ru": null,
+   "name_en": "Kaluga",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "poljarnyj"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Kaluga är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Norra flottan, i tjänst sedan 1989. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-800",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-komsomolsk-na-amure",
+   "name_sv": "Komsomolsk-na-Amure",
+   "name_ru": null,
+   "name_en": "Komsomolsk-na-Amure",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "petropavlovsk-kamtjatskij-marin"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst; kan tjänstgöra till 2030",
+   "as_of": "2026",
+   "description_sv": "Komsomolsk-na-Amure är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Stillahavsflottan, i tjänst sedan 1991. Status enligt Wikipedias fartygslista: i tjänst; kan tjänstgöra till 2030.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-187",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-dmitrov",
+   "name_sv": "Dmitrov",
+   "name_ru": null,
+   "name_en": "Dmitrov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst",
+   "as_of": "2026",
+   "description_sv": "Dmitrov är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Östersjöflottan, i tjänst sedan 1986. Status enligt Wikipedias fartygslista: i tjänst.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-806",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-alrosa",
+   "name_sv": "Alrosa",
+   "name_ru": null,
+   "name_en": "Alrosa",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst vid krigets början 2022",
+   "as_of": "2022",
+   "description_sv": "Alrosa är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Svartahavsflottan, i tjänst sedan 1990. Status enligt Wikipedias fartygslista: i tjänst vid krigets början 2022.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-871",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-novorossijsk",
+   "name_sv": "Novorossijsk",
+   "name_ru": null,
+   "name_en": "Novorossiysk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst; i Medelhavet och Östersjön sedan kriget började, rapporterat skadad av fel i bränslesystemet i Medelhavet i september 2025",
+   "as_of": "2025",
+   "description_sv": "Novorossijsk är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Svartahavsflottan, i tjänst sedan 2014. Status enligt Wikipedias fartygslista: i tjänst; i Medelhavet och Östersjön sedan kriget började, rapporterat skadad av fel i bränslesystemet i Medelhavet i september 2025.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Novorossiysk",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-krasnodar",
+   "name_sv": "Krasnodar",
+   "name_ru": null,
+   "name_en": "Krasnodar",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst (2026); i Medelhavet och Östersjön sedan kriget började",
+   "as_of": "2026",
+   "description_sv": "Krasnodar är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Svartahavsflottan, i tjänst sedan 2015. Status enligt Wikipedias fartygslista: i tjänst (2026); i Medelhavet och Östersjön sedan kriget började.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-265",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-velikij-novgorod",
+   "name_sv": "Velikij Novgorod",
+   "name_ru": null,
+   "name_en": "Velikiy Novgorod",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "troligen i tjänst i Svarta havet (slutet av 2025)",
+   "as_of": "2025",
+   "description_sv": "Velikij Novgorod är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Svartahavsflottan, i tjänst sedan 2016. En av Svartahavsflottans ubåtar som kan skjuta Kalibr-robotar mot Ukraina. Status enligt Wikipedias fartygslista: troligen i tjänst i Svarta havet (slutet av 2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Veliky_Novgorod",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-petropavlovsk-kamtjatskij",
+   "name_sv": "Petropavlovsk-Kamtjatskij",
+   "name_ru": null,
+   "name_en": "Petropavlovsk-Kamchatsky",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "petropavlovsk-kamtjatskij-marin"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Petropavlovsk-Kamtjatskij är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Stillahavsflottan, i tjänst sedan 2019. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-274",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-volchov",
+   "name_sv": "Volchov",
+   "name_ru": null,
+   "name_en": "Volkhov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "petropavlovsk-kamtjatskij-marin"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst, kom till Stilla havet i november 2021",
+   "as_of": "2021",
+   "description_sv": "Volchov är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Stillahavsflottan, i tjänst sedan 2020. Status enligt Wikipedias fartygslista: i tjänst, kom till Stilla havet i november 2021.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-603",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-magadan",
+   "name_sv": "Magadan",
+   "name_ru": null,
+   "name_en": "Magadan",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "petropavlovsk-kamtjatskij-marin"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst, kom till Stilla havet i oktober 2022",
+   "as_of": "2022",
+   "description_sv": "Magadan är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Stillahavsflottan, i tjänst sedan 2021. Status enligt Wikipedias fartygslista: i tjänst, kom till Stilla havet i oktober 2022.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-602",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-ufa",
+   "name_sv": "Ufa",
+   "name_ru": null,
+   "name_en": "Ufa",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "petropavlovsk-kamtjatskij-marin"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Ufa är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Stillahavsflottan, i tjänst sedan 2022. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Ufa",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-mozjajsk",
+   "name_sv": "Mozjajsk",
+   "name_ru": null,
+   "name_en": "Mozhaysk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "petropavlovsk-kamtjatskij-marin"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst; i Östersjön sedan mitten av 2025",
+   "as_of": "2025",
+   "description_sv": "Mozjajsk är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Stillahavsflottan, i tjänst sedan 2023. Status enligt Wikipedias fartygslista: i tjänst; i Östersjön sedan mitten av 2025.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-608",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-jakutsk",
+   "name_sv": "Jakutsk",
+   "name_ru": null,
+   "name_en": "Yakutsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "petropavlovsk-kamtjatskij-marin"
+   ],
+   "equipment": [],
+   "class": "kilo",
+   "status_sv": "i tjänst; i Östersjön sedan juni 2025",
+   "as_of": "2025",
+   "description_sv": "Jakutsk är en dieselelektrisk ubåt av Kilo-klassen (projekt 877/636) i Stillahavsflottan, i tjänst sedan 2025. Status enligt Wikipedias fartygslista: i tjänst; i Östersjön sedan juni 2025.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-kronsjtadt",
+   "name_sv": "Kronsjtadt",
+   "name_ru": null,
+   "name_en": "Kronshtadt",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "poljarnyj"
+   ],
+   "equipment": [],
+   "class": "lada",
+   "status_sv": "i tjänst",
+   "as_of": "2026",
+   "description_sv": "Kronsjtadt är en dieselelektrisk ubåt av Lada-klassen (projekt 677) i Norra flottan, i tjänst sedan 2024. Status enligt Wikipedias fartygslista: i tjänst.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Kronshtadt_%28B-586%29",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-admiral-nachimov",
+   "name_sv": "Admiral Nachimov",
+   "name_ru": null,
+   "name_en": "Admiral Nakhimov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [
+    "granit"
+   ],
+   "class": "kirov",
+   "status_sv": "provturer efter ombyggnad (2025), väntas åter i tjänst 2026",
+   "as_of": "2026",
+   "description_sv": "Admiral Nachimov är en atomdriven robotkryssare av Kirov-klassen (projekt 1144) i Norra flottan, i tjänst sedan 1988. Har byggts om sedan 1999 och väntas bli marinens kraftigast beväpnade ytfartyg. Status enligt Wikipedias fartygslista: provturer efter ombyggnad (2025), väntas åter i tjänst 2026.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_battlecruiser_Admiral_Nakhimov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-pjotr-velikij",
+   "name_sv": "Pjotr Velikij",
+   "name_ru": null,
+   "name_en": "Pyotr Velikiy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [
+    "granit"
+   ],
+   "class": "kirov",
+   "status_sv": "upplagd och ur tjänst; moderniseringen avbruten (nov 2026)",
+   "as_of": "2026-11",
+   "description_sv": "Pjotr Velikij är en atomdriven robotkryssare av Kirov-klassen (projekt 1144) i Norra flottan, i tjänst sedan 1998. Norra flottans tidigare flaggskepp. Status enligt Wikipedias fartygslista: upplagd och ur tjänst; moderniseringen avbruten (nov 2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_battlecruiser_Pyotr_Velikiy",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-marsjal-ustinov",
+   "name_sv": "Marsjal Ustinov",
+   "name_ru": null,
+   "name_en": "Marshal Ustinov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [],
+   "class": "slava",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Marsjal Ustinov är en robotkryssare av Slava-klassen (projekt 1164) i Norra flottan, i tjänst sedan 1986. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_cruiser_Marshal_Ustinov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-varjag",
+   "name_sv": "Varjag",
+   "name_ru": null,
+   "name_en": "Varyag",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "vladivostok-marin"
+   ],
+   "equipment": [],
+   "class": "slava",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Varjag är en robotkryssare av Slava-klassen (projekt 1164) i Stillahavsflottan, i tjänst sedan 1989. Stillahavsflottans flaggskepp. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_cruiser_Varyag",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-vitseadmiral-kulakov",
+   "name_sv": "Vitseadmiral Kulakov",
+   "name_ru": null,
+   "name_en": "Vice-Admiral Kulakov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [],
+   "class": "udaloj",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Vitseadmiral Kulakov är en ubåtsjaktjagare av Udaloj-klassen (projekt 1155) i Norra flottan, i tjänst sedan 1982. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_destroyer_Vice-Admiral_Kulakov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-marsjal-sjaposjnikov",
+   "name_sv": "Marsjal Sjaposjnikov",
+   "name_ru": null,
+   "name_en": "Marshal Shaposhnikov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "vladivostok-marin"
+   ],
+   "equipment": [],
+   "class": "udaloj",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Marsjal Sjaposjnikov är en ubåtsjaktjagare av Udaloj-klassen (projekt 1155) i Stillahavsflottan, i tjänst sedan 1985. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_destroyer_Marshal_Shaposhnikov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-admiral-tributs",
+   "name_sv": "Admiral Tributs",
+   "name_ru": null,
+   "name_en": "Admiral Tributs",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "vladivostok-marin"
+   ],
+   "equipment": [],
+   "class": "udaloj",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Admiral Tributs är en ubåtsjaktjagare av Udaloj-klassen (projekt 1155) i Stillahavsflottan, i tjänst sedan 1985. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_destroyer_Admiral_Tributs",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-severomorsk",
+   "name_sv": "Severomorsk",
+   "name_ru": null,
+   "name_en": "Severomorsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [],
+   "class": "udaloj",
+   "status_sv": "i tjänst; opererar ofta i Östersjön (2026)",
+   "as_of": "2026",
+   "description_sv": "Severomorsk är en ubåtsjaktjagare av Udaloj-klassen (projekt 1155) i Norra flottan, i tjänst sedan 1987. Status enligt Wikipedias fartygslista: i tjänst; opererar ofta i Östersjön (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_destroyer_Severomorsk",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-admiral-vinogradov",
+   "name_sv": "Admiral Vinogradov",
+   "name_ru": null,
+   "name_en": "Admiral Vinogradov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "vladivostok-marin"
+   ],
+   "equipment": [],
+   "class": "udaloj",
+   "status_sv": "under översyn, status oklar",
+   "as_of": "2026",
+   "description_sv": "Admiral Vinogradov är en ubåtsjaktjagare av Udaloj-klassen (projekt 1155) i Stillahavsflottan, i tjänst sedan 1988. Status enligt Wikipedias fartygslista: under översyn, status oklar.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_destroyer_Admiral_Vinogradov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-admiral-levtjenko",
+   "name_sv": "Admiral Levtjenko",
+   "name_ru": null,
+   "name_en": "Admiral Levchenko",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [],
+   "class": "udaloj",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Admiral Levtjenko är en ubåtsjaktjagare av Udaloj-klassen (projekt 1155) i Norra flottan, i tjänst sedan 1988. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_destroyer_Admiral_Levchenko",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-admiral-pantelejev",
+   "name_sv": "Admiral Pantelejev",
+   "name_ru": null,
+   "name_en": "Admiral Panteleyev",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "vladivostok-marin"
+   ],
+   "equipment": [],
+   "class": "udaloj",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Admiral Pantelejev är en ubåtsjaktjagare av Udaloj-klassen (projekt 1155) i Stillahavsflottan, i tjänst sedan 1991. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_destroyer_Admiral_Panteleyev",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-admiral-tjabanenko",
+   "name_sv": "Admiral Tjabanenko",
+   "name_ru": null,
+   "name_en": "Admiral Chabanenko",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [],
+   "class": "udaloj",
+   "status_sv": "ur tjänst, framtiden oklar",
+   "as_of": "2026",
+   "description_sv": "Admiral Tjabanenko är en ubåtsjaktjagare av Udaloj-klassen (projekt 1155) i Norra flottan, i tjänst sedan 1999. Status enligt Wikipedias fartygslista: ur tjänst, framtiden oklar.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_destroyer_Admiral_Chabanenko",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-admiral-grigorovitj",
+   "name_sv": "Admiral Grigorovitj",
+   "name_ru": null,
+   "name_en": "Admiral Grigorovich",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "sevastopolskaja-vojenno-morskaja-baza",
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "grigorovitj",
+   "status_sv": "i tjänst (2026); opererar i Östersjön och Medelhavet",
+   "as_of": "2026",
+   "description_sv": "Admiral Grigorovitj är en fregatt av Admiral Grigorovitj-klassen (projekt 11356R) i Svartahavsflottan, i tjänst sedan 2016. Har inte kunnat återvända till Svarta havet sedan Turkiet stängde sunden för krigsfartyg 2022. Status enligt Wikipedias fartygslista: i tjänst (2026); opererar i Östersjön och Medelhavet.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_frigate_Admiral_Grigorovich",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-admiral-makarov",
+   "name_sv": "Admiral Makarov",
+   "name_ru": null,
+   "name_en": "Admiral Makarov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "sevastopolskaja-vojenno-morskaja-baza",
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "grigorovitj",
+   "status_sv": "rapporterat skadad vid anfall mot Novorossijsk 2026",
+   "as_of": "2026",
+   "description_sv": "Admiral Makarov är en fregatt av Admiral Grigorovitj-klassen (projekt 11356R) i Svartahavsflottan, i tjänst sedan 2017. Svartahavsflottans flaggskepp efter att kryssaren Moskva sänktes i april 2022. Status enligt Wikipedias fartygslista: rapporterat skadad vid anfall mot Novorossijsk 2026.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_frigate_Admiral_Makarov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-tatarstan",
+   "name_sv": "Tatarstan",
+   "name_ru": null,
+   "name_en": "Tatarstan",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "kaspiska-flottiljen",
+   "garrison": [
+    "kaspijsk-marin"
+   ],
+   "equipment": [],
+   "class": "gepard",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Tatarstan är en fregatt av Gepard-klassen (projekt 11661) i Kaspiska flottiljen, i tjänst sedan 2003. Kaspiska flottiljens flaggskepp. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Tatarstan",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-dagestan",
+   "name_sv": "Dagestan",
+   "name_ru": null,
+   "name_en": "Dagestan",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "kaspiska-flottiljen",
+   "garrison": [
+    "kaspijsk-marin"
+   ],
+   "equipment": [],
+   "class": "gepard",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Dagestan är en fregatt av Gepard-klassen (projekt 11661) i Kaspiska flottiljen, i tjänst sedan 2012. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Dagestan",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-admiral-gorsjkov",
+   "name_sv": "Admiral Gorsjkov",
+   "name_ru": null,
+   "name_en": "Admiral Flota Sovetskogo Soyuza Gorshkov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [
+    "kalibr",
+    "oniks",
+    "tsirkon"
+   ],
+   "class": "gorsjkov",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Admiral Gorsjkov är en fregatt av Admiral Gorsjkov-klassen (projekt 22350) i Norra flottan, i tjänst sedan 2018. Klassens första fartyg, i tjänst sedan juli 2018; bär hypersonroboten Tsirkon. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_frigate_Admiral_Gorshkov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-admiral-kasatonov",
+   "name_sv": "Admiral Kasatonov",
+   "name_ru": null,
+   "name_en": "Admiral Flota Kasatonov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [
+    "kalibr",
+    "oniks",
+    "tsirkon"
+   ],
+   "class": "gorsjkov",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Admiral Kasatonov är en fregatt av Admiral Gorsjkov-klassen (projekt 22350) i Norra flottan, i tjänst sedan 2020. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_frigate_Admiral_Kasatonov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-admiral-golovko",
+   "name_sv": "Admiral Golovko",
+   "name_ru": null,
+   "name_en": "Admiral Golovko",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [
+    "kalibr",
+    "oniks",
+    "tsirkon"
+   ],
+   "class": "gorsjkov",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Admiral Golovko är en fregatt av Admiral Gorsjkov-klassen (projekt 22350) i Norra flottan, i tjänst sedan 2023. Togs i tjänst i december 2023. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_frigate_Admiral_Golovko",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "fartyg-steregusjtjij",
+   "name_sv": "Steregusjtjij",
+   "name_ru": null,
+   "name_en": "Steregushchiy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kh-35"
+   ],
+   "class": "steregusjtjij",
+   "status_sv": "under modernisering (2023)",
+   "as_of": "2023",
+   "description_sv": "Steregusjtjij är en korvett av Steregusjtjij-klassen (projekt 20380) i Östersjöflottan, i tjänst sedan 2008. Klassens första fartyg. Status enligt Wikipedias fartygslista: under modernisering (2023).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Steregushchiy",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-soobrazitelnyj",
+   "name_sv": "Soobrazitelnyj",
+   "name_ru": null,
+   "name_en": "Soobrazitelnyy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kh-35"
+   ],
+   "class": "steregusjtjij",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Soobrazitelnyj är en korvett av Steregusjtjij-klassen (projekt 20380) i Östersjöflottan, i tjänst sedan 2011. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Soobrazitelnyy",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-bojkij",
+   "name_sv": "Bojkij",
+   "name_ru": null,
+   "name_en": "Boikiy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kh-35"
+   ],
+   "class": "steregusjtjij",
+   "status_sv": "svårt skadad i torrdocka vid ett rapporterat ukrainskt drönaranfall i juni 2026",
+   "as_of": "2026-06",
+   "description_sv": "Bojkij är en korvett av Steregusjtjij-klassen (projekt 20380) i Östersjöflottan, i tjänst sedan 2013. Status enligt Wikipedias fartygslista: svårt skadad i torrdocka vid ett rapporterat ukrainskt drönaranfall i juni 2026.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Boikiy",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-stojkij",
+   "name_sv": "Stojkij",
+   "name_ru": null,
+   "name_en": "Stoikiy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kh-35"
+   ],
+   "class": "steregusjtjij",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Stojkij är en korvett av Steregusjtjij-klassen (projekt 20380) i Östersjöflottan, i tjänst sedan 2014. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Stoikiy",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-sovarsjennyj",
+   "name_sv": "Sovarsjennyj",
+   "name_ru": null,
+   "name_en": "Sovershennyy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "vladivostok-marin"
+   ],
+   "equipment": [
+    "kh-35"
+   ],
+   "class": "steregusjtjij",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Sovarsjennyj är en korvett av Steregusjtjij-klassen (projekt 20380) i Stillahavsflottan, i tjänst sedan 2017. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Sovershennyy",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-gromkij",
+   "name_sv": "Gromkij",
+   "name_ru": null,
+   "name_en": "Gromkiy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "vladivostok-marin"
+   ],
+   "equipment": [
+    "kh-35"
+   ],
+   "class": "steregusjtjij",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Gromkij är en korvett av Steregusjtjij-klassen (projekt 20380) i Stillahavsflottan, i tjänst sedan 2018. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Gromkiy",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-aldar-tsydenzjapov",
+   "name_sv": "Aldar Tsydenzjapov",
+   "name_ru": null,
+   "name_en": "Hero of the Russian Federation Aldar Tsydenzhapov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "vladivostok-marin"
+   ],
+   "equipment": [
+    "kh-35"
+   ],
+   "class": "steregusjtjij",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Aldar Tsydenzjapov är en korvett av Steregusjtjij-klassen (projekt 20380) i Stillahavsflottan, i tjänst sedan 2020. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Hero_of_the_Russian_Federation_Aldar_Tsydenzhapov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-merkurij",
+   "name_sv": "Merkurij",
+   "name_ru": null,
+   "name_en": "Merkuriy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kh-35"
+   ],
+   "class": "steregusjtjij",
+   "status_sv": "i tjänst; kan inte gå in i Svarta havet och opererar i Medelhavet och Östersjön",
+   "as_of": "2026",
+   "description_sv": "Merkurij är en korvett av Steregusjtjij-klassen (projekt 20380) i Svartahavsflottan, i tjänst sedan 2023. Status enligt Wikipedias fartygslista: i tjänst; kan inte gå in i Svarta havet och opererar i Medelhavet och Östersjön.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Merkury",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-rezkij",
+   "name_sv": "Rezkij",
+   "name_ru": null,
+   "name_en": "Rezkiy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "vladivostok-marin"
+   ],
+   "equipment": [
+    "kh-35"
+   ],
+   "class": "steregusjtjij",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Rezkij är en korvett av Steregusjtjij-klassen (projekt 20380) i Stillahavsflottan, i tjänst sedan 2023. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Rezkiy",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-grad-svijazjsk",
+   "name_sv": "Grad Svijazjsk",
+   "name_ru": null,
+   "name_en": "Grad Sviyazhsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "kaspiska-flottiljen",
+   "garrison": [
+    "kaspijsk-marin"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "bujan-m",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Grad Svijazjsk är en robotkorvett av Bujan-M-klassen (projekt 21631) i Kaspiska flottiljen, i tjänst sedan 2014. Sköt Kalibr-robotar mot Syrien från Kaspiska havet 2015. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Grad_Sviyazhsk",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-uglitj",
+   "name_sv": "Uglitj",
+   "name_ru": null,
+   "name_en": "Uglich",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "kaspiska-flottiljen",
+   "garrison": [
+    "kaspijsk-marin"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "bujan-m",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Uglitj är en robotkorvett av Bujan-M-klassen (projekt 21631) i Kaspiska flottiljen, i tjänst sedan 2014. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Uglich",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-velikij-ustjug",
+   "name_sv": "Velikij Ustjug",
+   "name_ru": null,
+   "name_en": "Velikiy Ustug",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "kaspiska-flottiljen",
+   "garrison": [
+    "kaspijsk-marin"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "bujan-m",
+   "status_sv": "i tjänst (2024)",
+   "as_of": "2024",
+   "description_sv": "Velikij Ustjug är en robotkorvett av Bujan-M-klassen (projekt 21631) i Kaspiska flottiljen, i tjänst sedan 2014. Status enligt Wikipedias fartygslista: i tjänst (2024).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Velikiy_Ustug",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-zelenyj-dol",
+   "name_sv": "Zelenyj Dol",
+   "name_ru": null,
+   "name_en": "Zelenyy Dol",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "bujan-m",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Zelenyj Dol är en robotkorvett av Bujan-M-klassen (projekt 21631) i Östersjöflottan, i tjänst sedan 2015. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Zelenyy_Dol",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-serpuchov",
+   "name_sv": "Serpuchov",
+   "name_ru": null,
+   "name_en": "Serpukhov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "bujan-m",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Serpuchov är en robotkorvett av Bujan-M-klassen (projekt 21631) i Östersjöflottan, i tjänst sedan 2015. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Serpukhov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-vysjnij-volotjok",
+   "name_sv": "Vysjnij Volotjok",
+   "name_ru": null,
+   "name_en": "Vyshniy Volochek",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "bujan-m",
+   "status_sv": "i tjänst; skadad i kollision med en tanker i augusti 2025 vid undanmanöver under drönaranfall",
+   "as_of": "2025-08",
+   "description_sv": "Vysjnij Volotjok är en robotkorvett av Bujan-M-klassen (projekt 21631) i Svartahavsflottan, i tjänst sedan 2018. Status enligt Wikipedias fartygslista: i tjänst; skadad i kollision med en tanker i augusti 2025 vid undanmanöver under drönaranfall.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Vyshniy_Volochek",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-orechovo-zujevo",
+   "name_sv": "Orechovo-Zujevo",
+   "name_ru": null,
+   "name_en": "Orekhovo-Zuyevo",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "bujan-m",
+   "status_sv": "i tjänst; i Medelhavet och Östersjön sedan kriget började",
+   "as_of": "2026",
+   "description_sv": "Orechovo-Zujevo är en robotkorvett av Bujan-M-klassen (projekt 21631) i Svartahavsflottan, i tjänst sedan 2018. Status enligt Wikipedias fartygslista: i tjänst; i Medelhavet och Östersjön sedan kriget började.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Orekhovo-Zuyevo",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-ingusjetija",
+   "name_sv": "Ingusjetija",
+   "name_ru": null,
+   "name_en": "Ingushetiya",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "bujan-m",
+   "status_sv": "i tjänst (mitten av 2023)",
+   "as_of": "2023",
+   "description_sv": "Ingusjetija är en robotkorvett av Bujan-M-klassen (projekt 21631) i Svartahavsflottan, i tjänst sedan 2019. Status enligt Wikipedias fartygslista: i tjänst (mitten av 2023).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Ingushetiya",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-grajvoron",
+   "name_sv": "Grajvoron",
+   "name_ru": null,
+   "name_en": "Grayvoron",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "bujan-m",
+   "status_sv": "i tjänst (mitten av 2023)",
+   "as_of": "2023",
+   "description_sv": "Grajvoron är en robotkorvett av Bujan-M-klassen (projekt 21631) i Svartahavsflottan, i tjänst sedan 2021. Status enligt Wikipedias fartygslista: i tjänst (mitten av 2023).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Grayvoron",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-grad",
+   "name_sv": "Grad",
+   "name_ru": null,
+   "name_en": "Grad",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "bujan-m",
+   "status_sv": "i tjänst igen (maj 2026) efter rapporterat ukrainskt anfall i oktober 2025",
+   "as_of": "2026-05",
+   "description_sv": "Grad är en robotkorvett av Bujan-M-klassen (projekt 21631) i Östersjöflottan, i tjänst sedan 2022. Status enligt Wikipedias fartygslista: i tjänst igen (maj 2026) efter rapporterat ukrainskt anfall i oktober 2025.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Grad",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-naro-fominsk",
+   "name_sv": "Naro-Fominsk",
+   "name_ru": null,
+   "name_en": "Naro-Fominsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "bujan-m",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Naro-Fominsk är en robotkorvett av Bujan-M-klassen (projekt 21631) i Östersjöflottan, i tjänst sedan 2023. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Naro-Fominsk",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-stavropol",
+   "name_sv": "Stavropol",
+   "name_ru": null,
+   "name_en": "Stavropol",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "bujan-m",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Stavropol är en robotkorvett av Bujan-M-klassen (projekt 21631) i Östersjöflottan, i tjänst sedan 2025. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Stavropol",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-mytisjtji",
+   "name_sv": "Mytisjtji",
+   "name_ru": null,
+   "name_en": "Mytischchi",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "karakurt",
+   "status_sv": "i tjänst (2024)",
+   "as_of": "2024",
+   "description_sv": "Mytisjtji är en robotkorvett av Karakurt-klassen (projekt 22800) i Östersjöflottan, i tjänst sedan 2018. Status enligt Wikipedias fartygslista: i tjänst (2024).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Mytischchi",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-sovetsk",
+   "name_sv": "Sovetsk",
+   "name_ru": null,
+   "name_en": "Sovetsk",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "karakurt",
+   "status_sv": "i tjänst (2024)",
+   "as_of": "2024",
+   "description_sv": "Sovetsk är en robotkorvett av Karakurt-klassen (projekt 22800) i Östersjöflottan, i tjänst sedan 2019. Status enligt Wikipedias fartygslista: i tjänst (2024).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Sovetsk",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-odintsovo",
+   "name_sv": "Odintsovo",
+   "name_ru": null,
+   "name_en": "Odintsovo",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "karakurt",
+   "status_sv": "i tjänst (2024)",
+   "as_of": "2024",
+   "description_sv": "Odintsovo är en robotkorvett av Karakurt-klassen (projekt 22800) i Östersjöflottan, i tjänst sedan 2020. Status enligt Wikipedias fartygslista: i tjänst (2024).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Odintsovo",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-amur",
+   "name_sv": "Amur",
+   "name_ru": null,
+   "name_en": "Amur",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "karakurt",
+   "status_sv": "flyttad från Kaspiska havet till Östersjön (okt 2025)",
+   "as_of": "2025-10",
+   "description_sv": "Amur är en robotkorvett av Karakurt-klassen (projekt 22800) i Östersjöflottan, i tjänst sedan 2024. Status enligt Wikipedias fartygslista: flyttad från Kaspiska havet till Östersjön (okt 2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Amur",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-tutja",
+   "name_sv": "Tutja",
+   "name_ru": null,
+   "name_en": "Tucha",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "karakurt",
+   "status_sv": "i Kaspiska havet och i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Tutja är en robotkorvett av Karakurt-klassen (projekt 22800) i Svartahavsflottan, i tjänst sedan 2024. Status enligt Wikipedias fartygslista: i Kaspiska havet och i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Tucha",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-tajfun",
+   "name_sv": "Tajfun",
+   "name_ru": null,
+   "name_en": "Typhoon",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "karakurt",
+   "status_sv": "i Kaspiska havet, rapporterat i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Tajfun är en robotkorvett av Karakurt-klassen (projekt 22800) i Svartahavsflottan, i tjänst sedan 2025. Status enligt Wikipedias fartygslista: i Kaspiska havet, rapporterat i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Typhoon",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-burja",
+   "name_sv": "Burja",
+   "name_ru": null,
+   "name_en": "Burya",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [
+    "kalibr"
+   ],
+   "class": "karakurt",
+   "status_sv": "i tjänst sedan 2026",
+   "as_of": "2026",
+   "description_sv": "Burja är en robotkorvett av Karakurt-klassen (projekt 22800) i Östersjöflottan, i tjänst sedan 2026. Status enligt Wikipedias fartygslista: i tjänst sedan 2026.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_corvette_Burya",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-olenegorskij-gornjak",
+   "name_sv": "Olenegorskij Gornjak",
+   "name_ru": null,
+   "name_en": "Olenegorsky Gornyak",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [],
+   "class": "ropucha",
+   "status_sv": "i Svarta havet och i kriget; rapporterat svårt skadad 2023",
+   "as_of": "2023",
+   "description_sv": "Olenegorskij Gornjak är en landstigningsfartyg av Ropucha-klassen (projekt 775) i Norra flottan, i tjänst sedan 1976. Träffades av en ukrainsk marindrönare vid Novorossijsk i augusti 2023. Status enligt Wikipedias fartygslista: i Svarta havet och i kriget; rapporterat svårt skadad 2023.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Olenegorsky_Gornyak",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-kondopoga",
+   "name_sv": "Kondopoga",
+   "name_ru": null,
+   "name_en": "Kondopoga",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [],
+   "class": "ropucha",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Kondopoga är en landstigningsfartyg av Ropucha-klassen (projekt 775) i Norra flottan, i tjänst sedan 1976. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Kondopoga",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-aleksandr-otrakovskij",
+   "name_sv": "Aleksandr Otrakovskij",
+   "name_ru": null,
+   "name_en": "Aleksandr Otrakovsky",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [],
+   "class": "ropucha",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Aleksandr Otrakovskij är en landstigningsfartyg av Ropucha-klassen (projekt 775) i Norra flottan, i tjänst sedan 1978. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Aleksandr_Otrakovsky",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-osljabja",
+   "name_sv": "Osljabja",
+   "name_ru": null,
+   "name_en": "Oslyabya",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "vladivostok-marin"
+   ],
+   "equipment": [],
+   "class": "ropucha",
+   "status_sv": "i tjänst (2026)",
+   "as_of": "2026",
+   "description_sv": "Osljabja är en landstigningsfartyg av Ropucha-klassen (projekt 775) i Stillahavsflottan, i tjänst sedan 1981. Status enligt Wikipedias fartygslista: i tjänst (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Oslyabya",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-admiral-nevelskoj",
+   "name_sv": "Admiral Nevelskoj",
+   "name_ru": null,
+   "name_en": "Admiral Nevelskoy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "vladivostok-marin"
+   ],
+   "equipment": [],
+   "class": "ropucha",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Admiral Nevelskoj är en landstigningsfartyg av Ropucha-klassen (projekt 775) i Stillahavsflottan, i tjänst sedan 1982. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Admiral_Nevelskoy",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-kaliningrad",
+   "name_sv": "Kaliningrad",
+   "name_ru": null,
+   "name_en": "Kaliningrad",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "ropucha",
+   "status_sv": "i Svarta havet och i kriget (2022)",
+   "as_of": "2022",
+   "description_sv": "Kaliningrad är en landstigningsfartyg av Ropucha-klassen (projekt 775) i Östersjöflottan, i tjänst sedan 1984. Status enligt Wikipedias fartygslista: i Svarta havet och i kriget (2022).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Kaliningrad",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-georgij-pobedonosets",
+   "name_sv": "Georgij Pobedonosets",
+   "name_ru": null,
+   "name_en": "Georgiy Pobedonosets",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [],
+   "class": "ropucha",
+   "status_sv": "i tjänst; i Svarta havet och i kriget",
+   "as_of": "2026",
+   "description_sv": "Georgij Pobedonosets är en landstigningsfartyg av Ropucha-klassen (projekt 775) i Norra flottan, i tjänst sedan 1985. Status enligt Wikipedias fartygslista: i tjänst; i Svarta havet och i kriget.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Georgiy_Pobedonosets",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-aleksandr-sjabalin",
+   "name_sv": "Aleksandr Sjabalin",
+   "name_ru": null,
+   "name_en": "Aleksandr Shabalin",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "ropucha",
+   "status_sv": "i tjänst (2026) efter översyn 2020–2024",
+   "as_of": "2026",
+   "description_sv": "Aleksandr Sjabalin är en landstigningsfartyg av Ropucha-klassen (projekt 775) i Östersjöflottan, i tjänst sedan 1985. Status enligt Wikipedias fartygslista: i tjänst (2026) efter översyn 2020–2024.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Aleksandr_Shabalin",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-jamal",
+   "name_sv": "Jamal",
+   "name_ru": null,
+   "name_en": "Yamal",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "ropucha",
+   "status_sv": "skadad 2024 och möjligen igen 2026",
+   "as_of": "2026",
+   "description_sv": "Jamal är en landstigningsfartyg av Ropucha-klassen (projekt 775) i Svartahavsflottan, i tjänst sedan 1988. Status enligt Wikipedias fartygslista: skadad 2024 och möjligen igen 2026.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Yamal",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-azov",
+   "name_sv": "Azov",
+   "name_ru": null,
+   "name_en": "Azov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "ropucha",
+   "status_sv": "skadad 2024; uppgifterna går isär om skadorna",
+   "as_of": "2024",
+   "description_sv": "Azov är en landstigningsfartyg av Ropucha-klassen (projekt 775) i Svartahavsflottan, i tjänst sedan 1990. Status enligt Wikipedias fartygslista: skadad 2024; uppgifterna går isär om skadorna.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Azov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-peresvet",
+   "name_sv": "Peresvet",
+   "name_ru": null,
+   "name_en": "Peresvet",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "stillahavsflottan",
+   "garrison": [
+    "vladivostok-marin"
+   ],
+   "equipment": [],
+   "class": "ropucha",
+   "status_sv": "i tjänst (2024)",
+   "as_of": "2024",
+   "description_sv": "Peresvet är en landstigningsfartyg av Ropucha-klassen (projekt 775) i Stillahavsflottan, i tjänst sedan 1991. Status enligt Wikipedias fartygslista: i tjänst (2024).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Peresvet",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-koroljov",
+   "name_sv": "Koroljov",
+   "name_ru": null,
+   "name_en": "Korolyov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "ostersjoflottan",
+   "garrison": [
+    "baltijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "ropucha",
+   "status_sv": "i Svarta havet och i kriget (2022)",
+   "as_of": "2022",
+   "description_sv": "Koroljov är en landstigningsfartyg av Ropucha-klassen (projekt 775) i Östersjöflottan, i tjänst sedan 1991. Status enligt Wikipedias fartygslista: i Svarta havet och i kriget (2022).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Korolyov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-ivan-gren",
+   "name_sv": "Ivan Gren",
+   "name_ru": null,
+   "name_en": "Ivan Gren",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [],
+   "class": "ivan-gren",
+   "status_sv": "i tjänst (2025)",
+   "as_of": "2025",
+   "description_sv": "Ivan Gren är en landstigningsfartyg av Ivan Gren-klassen (projekt 11711) i Norra flottan, i tjänst sedan 2018. Klassens första fartyg. Status enligt Wikipedias fartygslista: i tjänst (2025).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Ivan_Gren",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-pjotr-morgunov",
+   "name_sv": "Pjotr Morgunov",
+   "name_ru": null,
+   "name_en": "Pyotr Morgunov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "norra-flottan",
+   "garrison": [
+    "severomorsk"
+   ],
+   "equipment": [],
+   "class": "ivan-gren",
+   "status_sv": "i tjänst; i Svarta havet och i kriget",
+   "as_of": "2026",
+   "description_sv": "Pjotr Morgunov är en landstigningsfartyg av Ivan Gren-klassen (projekt 11711) i Norra flottan, i tjänst sedan 2020. Status enligt Wikipedias fartygslista: i tjänst; i Svarta havet och i kriget.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Pyotr_Morgunov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
+  },
+  {
+   "id": "fartyg-vasilij-bykov",
+   "name_sv": "Vasilij Bykov",
+   "name_ru": null,
+   "name_en": "Vasily Bykov",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "bykov",
+   "status_sv": "i tjänst (2023)",
+   "as_of": "2023",
+   "description_sv": "Vasilij Bykov är en patrullfartyg av Vasilij Bykov-klassen (projekt 22160) i Svartahavsflottan, i tjänst sedan 2018. Klassens första fartyg; Ukraina har flera gånger uppgett att det träffats. Status enligt Wikipedias fartygslista: i tjänst (2023).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_patrol_boat_Vasily_Bykov",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-dmitrij-rogatjov",
+   "name_sv": "Dmitrij Rogatjov",
+   "name_ru": null,
+   "name_en": "Dmitry Rogachev",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "bykov",
+   "status_sv": "i tjänst vid krigets början 2022",
+   "as_of": "2022",
+   "description_sv": "Dmitrij Rogatjov är en patrullfartyg av Vasilij Bykov-klassen (projekt 22160) i Svartahavsflottan, i tjänst sedan 2019. Status enligt Wikipedias fartygslista: i tjänst vid krigets början 2022.",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_ship_Dmitry_Rogachev",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-pavel-derzjavin",
+   "name_sv": "Pavel Derzjavin",
+   "name_ru": null,
+   "name_en": "Pavel Derzhavin",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "bykov",
+   "status_sv": "i tjänst (2024)",
+   "as_of": "2024",
+   "description_sv": "Pavel Derzjavin är en patrullfartyg av Vasilij Bykov-klassen (projekt 22160) i Svartahavsflottan, i tjänst sedan 2020. Status enligt Wikipedias fartygslista: i tjänst (2024).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_ship_Pavel_Derzhavin",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
+  },
+  {
+   "id": "fartyg-viktor-velikij",
+   "name_sv": "Viktor Velikij",
+   "name_ru": null,
+   "name_en": "Viktor Velikiy",
+   "type": "fartyg",
+   "branch": "marin",
+   "country": "RU",
+   "parent": "svartahavsflottan",
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
+   "equipment": [],
+   "class": "bykov",
+   "status_sv": "i tjänst; opererar i Östersjön och Medelhavet (2026)",
+   "as_of": "2026",
+   "description_sv": "Viktor Velikij är en patrullfartyg av Vasilij Bykov-klassen (projekt 22160) i Svartahavsflottan, i tjänst sedan 2025. Status enligt Wikipedias fartygslista: i tjänst; opererar i Östersjön och Medelhavet (2026).",
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_patrol_boat_Viktor_Velikiy",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ],
+   "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen. Svartahavsflottans större fartyg flyttades 2023–2024 från Sevastopol till Novorossijsk enligt ISW."
   }
  ]
 }

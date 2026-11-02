@@ -524,7 +524,25 @@
    "description_sv": "Baltijsk är en marinbas i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 120:e gardes marininfanteridivisionen, Baltijsks marinbas. Materiel som nämns: Kalibr.",
    "units": [
     "120-gardes-marininfanteridivisionen",
-    "baltijsks-marinbas"
+    "baltijsks-marinbas",
+    "fartyg-dmitrov",
+    "fartyg-steregusjtjij",
+    "fartyg-soobrazitelnyj",
+    "fartyg-bojkij",
+    "fartyg-stojkij",
+    "fartyg-zelenyj-dol",
+    "fartyg-serpuchov",
+    "fartyg-grad",
+    "fartyg-naro-fominsk",
+    "fartyg-stavropol",
+    "fartyg-mytisjtji",
+    "fartyg-sovetsk",
+    "fartyg-odintsovo",
+    "fartyg-amur",
+    "fartyg-burja",
+    "fartyg-kaliningrad",
+    "fartyg-aleksandr-sjabalin",
+    "fartyg-koroljov"
    ],
    "equipment": [
     "kalibr"
@@ -2540,7 +2558,15 @@
    "description_sv": "Gadzjijevo är en marinbas i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 31:a ubåtsdivisionen. Materiel som nämns: Bulava, Borej-klass (projekt 955), Delta IV-klass (projekt 667BDRM), Sineva / Lajner.",
    "units": [
     "31-ubatsdivisionen",
-    "24-ubatsdivisionen"
+    "24-ubatsdivisionen",
+    "fartyg-verchoturje",
+    "fartyg-tula",
+    "fartyg-brjansk",
+    "fartyg-karelija",
+    "fartyg-novomoskovsk",
+    "fartyg-jurij-dolgorukij",
+    "fartyg-knjaz-vladimir",
+    "fartyg-knjaz-pozjarskij"
    ],
    "equipment": [
     "bulava",
@@ -4074,7 +4100,12 @@
    "description_sv": "Kaspijsk är en marinbas i Ryssland (Södra militärdistriktet). Här finns enligt källorna 177:e gardes marininfanteriregementet, Kaspiska flottiljen. Materiel som nämns: Orlan-10, BTR-82A, Avangard, Kalibr, Bujan-M-klass (projekt 21631), Karakurt-klass (projekt 22800) med mera.",
    "units": [
     "177-gardes-marininfanteriregementet",
-    "kaspiska-flottiljen"
+    "kaspiska-flottiljen",
+    "fartyg-tatarstan",
+    "fartyg-dagestan",
+    "fartyg-grad-svijazjsk",
+    "fartyg-uglitj",
+    "fartyg-velikij-ustjug"
    ],
    "equipment": [
     "orlan-10",
@@ -6470,7 +6501,26 @@
    "units": [
     "novorossijsks-marinbas",
     "svartahavsflottan",
-    "4-ubatsbrigaden"
+    "4-ubatsbrigaden",
+    "fartyg-alrosa",
+    "fartyg-novorossijsk",
+    "fartyg-krasnodar",
+    "fartyg-velikij-novgorod",
+    "fartyg-admiral-grigorovitj",
+    "fartyg-admiral-makarov",
+    "fartyg-merkurij",
+    "fartyg-vysjnij-volotjok",
+    "fartyg-orechovo-zujevo",
+    "fartyg-ingusjetija",
+    "fartyg-grajvoron",
+    "fartyg-tutja",
+    "fartyg-tajfun",
+    "fartyg-jamal",
+    "fartyg-azov",
+    "fartyg-vasilij-bykov",
+    "fartyg-dmitrij-rogatjov",
+    "fartyg-pavel-derzjavin",
+    "fartyg-viktor-velikij"
    ],
    "equipment": [
     "kilo",
@@ -7157,7 +7207,14 @@
    "military_district": "Östra militärdistriktet",
    "description_sv": "Petropavlovsk-Kamtjatskij är en marinbas i Ryssland (Östra militärdistriktet). Här finns enligt källorna 40:e gardes marininfanteribrigaden.",
    "units": [
-    "40-gardes-marininfanteribrigaden"
+    "40-gardes-marininfanteribrigaden",
+    "fartyg-komsomolsk-na-amure",
+    "fartyg-petropavlovsk-kamtjatskij",
+    "fartyg-volchov",
+    "fartyg-magadan",
+    "fartyg-ufa",
+    "fartyg-mozjajsk",
+    "fartyg-jakutsk"
    ],
    "equipment": [],
    "status": {
@@ -7306,7 +7363,10 @@
    "description_sv": "Poljarnyj är en marinbas i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 161:a ubåtsbrigaden. Materiel som nämns: Kilo-klass (projekt 636.3), Lada-klass (projekt 677).",
    "units": [
     "161-ubatsbrigaden",
-    "29-ubatsdivisionen"
+    "29-ubatsdivisionen",
+    "fartyg-vladikavkaz",
+    "fartyg-kaluga",
+    "fartyg-kronsjtadt"
    ],
    "equipment": [
     "kilo",
@@ -8315,7 +8375,9 @@
    "units": [
     "30-ytstridsdivisionen",
     "svartahavsflottan",
-    "41-robotbatsbrigaden"
+    "41-robotbatsbrigaden",
+    "fartyg-admiral-grigorovitj",
+    "fartyg-admiral-makarov"
    ],
    "equipment": [
     "grigorovitj"
@@ -8600,7 +8662,23 @@
    "description_sv": "Severomorsk är en marinbas i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna Norra flottan. Materiel som nämns: Su-33, MiG-29K, Sineva / Lajner, Kalibr, P-800 Onyx, Borej-klass (projekt 955) med mera.",
    "units": [
     "norra-flottan",
-    "45-flyg-och-luftforsvarsarmen"
+    "45-flyg-och-luftforsvarsarmen",
+    "fartyg-admiral-nachimov",
+    "fartyg-pjotr-velikij",
+    "fartyg-marsjal-ustinov",
+    "fartyg-vitseadmiral-kulakov",
+    "fartyg-severomorsk",
+    "fartyg-admiral-levtjenko",
+    "fartyg-admiral-tjabanenko",
+    "fartyg-admiral-gorsjkov",
+    "fartyg-admiral-kasatonov",
+    "fartyg-admiral-golovko",
+    "fartyg-olenegorskij-gornjak",
+    "fartyg-kondopoga",
+    "fartyg-aleksandr-otrakovskij",
+    "fartyg-georgij-pobedonosets",
+    "fartyg-ivan-gren",
+    "fartyg-pjotr-morgunov"
    ],
    "equipment": [
     "su-33",
@@ -10628,7 +10706,18 @@
    "description_sv": "Viljutjinsk är en marinbas i Ryssland (Östra militärdistriktet). Materiel som nämns: Borej-klass (projekt 955), Oscar II-klass (projekt 949A).",
    "units": [
     "10-ubatsdivisionen",
-    "25-ubatsdivisionen"
+    "25-ubatsdivisionen",
+    "fartyg-aleksandr-nevskij",
+    "fartyg-vladimir-monomach",
+    "fartyg-knjaz-oleg",
+    "fartyg-generalissimus-suvorov",
+    "fartyg-imperator-aleksandr-iii",
+    "fartyg-tjeljabinsk",
+    "fartyg-tver-ex-viljutjinsk",
+    "fartyg-omsk",
+    "fartyg-tomsk",
+    "fartyg-novosibirsk",
+    "fartyg-krasnojarsk"
    ],
    "equipment": [
     "borej",
@@ -10707,7 +10796,19 @@
    "units": [
     "stillahavsflottan",
     "55-gardes-marininfanteridivisionen",
-    "93-luftvarnsdivisionen"
+    "93-luftvarnsdivisionen",
+    "fartyg-varjag",
+    "fartyg-marsjal-sjaposjnikov",
+    "fartyg-admiral-tributs",
+    "fartyg-admiral-vinogradov",
+    "fartyg-admiral-pantelejev",
+    "fartyg-sovarsjennyj",
+    "fartyg-gromkij",
+    "fartyg-aldar-tsydenzjapov",
+    "fartyg-rezkij",
+    "fartyg-osljabja",
+    "fartyg-admiral-nevelskoj",
+    "fartyg-peresvet"
    ],
    "equipment": [
     "forpost",
@@ -10885,7 +10986,12 @@
    "military_district": "Leningrads militärdistrikt",
    "description_sv": "Zapadnaja Litsa är en marinbas i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 11:e ubåtsdivisionen. Materiel som nämns: Jasen-M-klass (projekt 885M), Oscar II-klass (projekt 949A), P-700 Granit, Kalibr, P-800 Onyx, 3M22 Tsirkon.",
    "units": [
-    "11-ubatsdivisionen"
+    "11-ubatsdivisionen",
+    "fartyg-smolensk",
+    "fartyg-orjol",
+    "fartyg-severodvinsk",
+    "fartyg-kazan",
+    "fartyg-archangelsk"
    ],
    "equipment": [
     "jasen",
