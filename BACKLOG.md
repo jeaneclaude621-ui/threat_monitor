@@ -29,6 +29,14 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
   - Anfallskartan går också att panorera och zooma.
   - Gemensamma hjälpfunktioner i `app.js`: `attachPanZoom`, `mapLand`
     och `mapPlaces`.
+- **Kartan, version 2 (hm-v3.27):**
+  - Fina kustlinjer och gränser (Natural Earth 1:10m) laddas när man
+    zoomar in; bara länder i bild ritas.
+  - Sjöar, de stora floderna och regiongränserna i Ryssland, Belarus och
+    Ukraina.
+  - Minikarta nere till vänster när man har zoomat in. Den visar var man
+    är, och ett tryck flyttar dit.
+  - Underlag och skript finns i `webapp/scripts/map_data/`.
 - **Bilder** förstoras när man håller nere eller trycker på dem
   (`zoomableImg`), med upphovsperson och licens.
 - Nattjobbet ser nu tidigare nätters "Övrigt", så att samma händelse inte
