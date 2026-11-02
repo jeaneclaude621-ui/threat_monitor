@@ -339,7 +339,9 @@
    "country": "BY",
    "military_district": "Belarus",
    "description_sv": "Asipovitjy (Belarus) är en robotgarnison i Belarus. Materiel som nämns: Iskander-M, Polonez.",
-   "units": [],
+   "units": [
+    "51-gardes-artilleribrigaden-by"
+   ],
    "equipment": [
     "iskander-m",
     "polonez"
@@ -1287,7 +1289,10 @@
    "country": "RU",
    "military_district": "Södra militärdistriktet",
    "description_sv": "Budjonnovsk är en militär flygbas i Ryssland (Södra militärdistriktet).",
-   "units": [],
+   "units": [
+    "487-helikopterregementet",
+    "205-gardes-motoriserade-skyttebrigaden"
+   ],
    "equipment": [],
    "status": {
     "status_sv": "i bruk enligt källorna",
@@ -1383,7 +1388,9 @@
    "country": "RU",
    "military_district": "Östra militärdistriktet",
    "description_sv": "Chabarovsk-Tsentralnyj är en militär flygbas i Ryssland (Östra militärdistriktet).",
-   "units": [],
+   "units": [
+    "18-gardes-armeflygbrigaden"
+   ],
    "equipment": [],
    "status": {
     "status_sv": "i bruk enligt källorna",
@@ -1661,7 +1668,8 @@
    "military_district": "Östra militärdistriktet",
    "description_sv": "Domna är en militär flygbas i Ryssland (Östra militärdistriktet). Här finns enligt källorna 120:e gardes jaktflygregementet. Materiel som nämns: Su-30SM / SM2.",
    "units": [
-    "120-gardes-jaktflygregementet"
+    "120-gardes-jaktflygregementet",
+    "140-gardes-luftvarnsrobotbrigaden"
    ],
    "equipment": [
     "su-30sm"
@@ -1717,7 +1725,16 @@
     "110-gardes-motoriserade-skyttebrigaden",
     "114-gardes-motoriserade-skyttebrigaden",
     "14-gardes-artilleribrigaden",
-    "60-gardes-motoriserade-skyttebataljonen"
+    "60-gardes-motoriserade-skyttebataljonen",
+    "10-gardes-stridsvagnsbataljonen",
+    "5-gardes-motoriserade-skyttebrigaden",
+    "9-gardes-motoriserade-skyttebrigaden",
+    "132-gardes-motoriserade-skyttebrigaden",
+    "51-gardes-armen",
+    "109-skytteregementet",
+    "116-skytteregementet",
+    "95-skytteregementet",
+    "87-skytteregementet"
    ],
    "equipment": [
     "2a65-msta-b",
@@ -1785,7 +1802,9 @@
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
    "description_sv": "Donskoje (Kaliningrad) är en militär flygbas i Ryssland (Leningrads militärdistrikt). Materiel som nämns: Su-30SM / SM2, Su-24M.",
-   "units": [],
+   "units": [
+    "25-kustrobotbrigaden"
+   ],
    "equipment": [
     "su-30sm",
     "su-24m"
@@ -1855,7 +1874,9 @@
    "country": "TJ",
    "military_district": "Rysk bas utomlands",
    "description_sv": "Dusjanbe (201:a militärbasen) är en garnison för markstridskrafterna i Tadzjikistan. Rysslands största markbas utomlands, i Tadzjikistan.",
-   "units": [],
+   "units": [
+    "201-gardes-militarbasen"
+   ],
    "equipment": [],
    "status": {
     "status_sv": "i bruk enligt källorna",
@@ -2174,7 +2195,10 @@
    "country": "UA",
    "military_district": "Södra militärdistriktet (ockuperat område i Ukraina)",
    "description_sv": "Feodosija är en marinbas i ockuperade Ukraina (Södra militärdistriktet (ockuperat område i Ukraina)). Senast rapporterade anfall: 2023-12-26.",
-   "units": [],
+   "units": [
+    "18-gardes-luftvarnsrobotregementet",
+    "56-gardes-luftanfallsregementet"
+   ],
    "equipment": [],
    "status": {
     "status_sv": "anfallen 2023-12-26",
@@ -2249,7 +2273,8 @@
    "military_district": "Leningrads militärdistrikt",
    "description_sv": "Gadzjijevo är en marinbas i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 31:a ubåtsdivisionen. Materiel som nämns: Bulava, Borej-klass (projekt 955), Delta IV-klass (projekt 667BDRM), Sineva / Lajner.",
    "units": [
-    "31-ubatsdivisionen"
+    "31-ubatsdivisionen",
+    "24-ubatsdivisionen"
    ],
    "equipment": [
     "bulava",
@@ -2396,7 +2421,8 @@
    "military_district": "Södra militärdistriktet",
    "description_sv": "Gorjatjij Kljutj är en robotgarnison i Ryssland (Södra militärdistriktet). Här finns enligt källorna 1:a gardes robotbrigaden. Materiel som nämns: Iskander-M.",
    "units": [
-    "1-gardes-robotbrigaden"
+    "1-gardes-robotbrigaden",
+    "18-kulsprute-och-artilleridivisionen"
    ],
    "equipment": [
     "iskander-m"
@@ -2750,7 +2776,8 @@
    "description_sv": "Ivanovo är en garnison för luftlandsättningstrupperna i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 345:e gardes fallskärmsregementet, 98:e gardes luftlandsättningsdivisionen. Materiel som nämns: BMD-2, BMD-4M, BTR-MDM Rakusjka.",
    "units": [
     "345-gardes-fallskarmsregementet",
-    "98-gardes-luftlandsattningsdivisionen"
+    "98-gardes-luftlandsattningsdivisionen",
+    "217-gardes-fallskarmsregementet"
    ],
    "equipment": [
     "bmd-2",
@@ -2969,7 +2996,9 @@
    "military_district": "Centrala militärdistriktet",
    "description_sv": "Jekaterinburg är en garnison för markstridskrafterna i Ryssland (Centrala militärdistriktet). Här finns enligt källorna 228:e gardes motoriserade skytteregementet. Materiel som nämns: T-72B3, BTR-82A, 2A65 Msta-B.",
    "units": [
-    "228-gardes-motoriserade-skytteregementet"
+    "228-gardes-motoriserade-skytteregementet",
+    "29-gardes-cbrn-skyddsbrigaden",
+    "14-gardes-flyg-och-luftforsvarsarmen"
    ],
    "equipment": [
     "t-72b3",
@@ -3043,7 +3072,8 @@
    "military_district": "Moskvas militärdistrikt",
    "description_sv": "Jelnja är en garnison för markstridskrafterna i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 144:e gardes motoriserade skyttedivisionen. Materiel som nämns: T-72B3, BMP-2.",
    "units": [
-    "144-gardes-motoriserade-skyttedivisionen"
+    "144-gardes-motoriserade-skyttedivisionen",
+    "59-gardes-stridsvagnsregementet"
    ],
    "equipment": [
     "t-72b3",
@@ -3217,7 +3247,8 @@
    "military_district": "Östra militärdistriktet",
    "description_sv": "Juzjno-Sachalinsk är en garnison för markstridskrafterna i Ryssland (Östra militärdistriktet). Här finns enligt källorna 39:e gardes motoriserade skyttebrigaden.",
    "units": [
-    "39-gardes-motoriserade-skyttebrigaden"
+    "39-gardes-motoriserade-skyttebrigaden",
+    "68-gardes-armekaren"
    ],
    "equipment": [],
    "status": {
@@ -3310,7 +3341,8 @@
    "military_district": "Leningrads militärdistrikt",
    "description_sv": "Kaliningrad (luftvärn) är en garnison för markstridskrafterna i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 7:e gardes motoriserade skytteregementet. Materiel som nämns: S-400, Pantsir-S1, Bastion-P.",
    "units": [
-    "7-gardes-motoriserade-skytteregementet"
+    "7-gardes-motoriserade-skytteregementet",
+    "244-artilleribrigaden"
    ],
    "equipment": [
     "s-400",
@@ -3390,7 +3422,9 @@
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
    "description_sv": "Kamenka (Viborg) är en garnison för markstridskrafterna i Ryssland (Leningrads militärdistrikt). Materiel som nämns: T-72B3, BMP-2.",
-   "units": [],
+   "units": [
+    "69-gardes-motoriserade-skyttedivisionen"
+   ],
    "equipment": [
     "t-72b3",
     "bmp-2"
@@ -3491,7 +3525,9 @@
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
    "description_sv": "Kamensk-Uralskij är en militär flygbas i Ryssland (Centrala militärdistriktet).",
-   "units": [],
+   "units": [
+    "17-gardes-armeflygbrigaden"
+   ],
    "equipment": [],
    "status": {
     "status_sv": "i bruk enligt källorna",
@@ -3564,7 +3600,9 @@
    "country": "KG",
    "military_district": "Rysk bas utomlands",
    "description_sv": "Kant är en militär flygbas i Kirgizistan.",
-   "units": [],
+   "units": [
+    "999-gardes-flygbasen"
+   ],
    "equipment": [],
    "status": {
     "status_sv": "i bruk enligt källorna",
@@ -3628,7 +3666,9 @@
    "country": "RU",
    "military_district": "Södra militärdistriktet",
    "description_sv": "Kapustin Jar är en robotgarnison i Ryssland (Södra militärdistriktet). Materiel som nämns: Oresjnik, Iskander-M.",
-   "units": [],
+   "units": [
+    "439-gardes-raketartilleribrigaden"
+   ],
    "equipment": [
     "oresjnik",
     "iskander-m"
@@ -3935,7 +3975,8 @@
    "military_district": "Moskvas militärdistrikt",
    "description_sv": "Klintsy är en garnison för markstridskrafterna i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 488:e gardes motoriserade skytteregementet.",
    "units": [
-    "488-gardes-motoriserade-skytteregementet"
+    "488-gardes-motoriserade-skytteregementet",
+    "254-gardes-motoriserade-skytteregementet"
    ],
    "equipment": [],
    "status": {
@@ -4069,7 +4110,8 @@
    "military_district": "Södra militärdistriktet",
    "description_sv": "Korenovsk är en militär flygbas i Ryssland (Södra militärdistriktet). Här finns enligt källorna 55:e gardes helikopterregementet.",
    "units": [
-    "55-gardes-helikopterregementet"
+    "55-gardes-helikopterregementet",
+    "238-gardes-artilleribrigaden"
    ],
    "equipment": [],
    "status": {
@@ -4139,7 +4181,8 @@
    "military_district": "Moskvas militärdistrikt",
    "description_sv": "Kostroma är en garnison för markstridskrafterna i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 1065:e gardes artilleriregementet. Materiel som nämns: 2S9 Nona, 2S25 Sprut-SD, D-30.",
    "units": [
-    "1065-gardes-artilleriregementet"
+    "1065-gardes-artilleriregementet",
+    "331-gardes-fallskarmsregementet"
    ],
    "equipment": [
     "2s9-nona",
@@ -4910,7 +4953,10 @@
    "military_district": "Södra militärdistriktet (ockuperat område i Ukraina)",
    "description_sv": "Lugansk är en garnison för markstridskrafterna i ockuperade Ukraina (Södra militärdistriktet (ockuperat område i Ukraina)). Här finns enligt källorna 123:e gardes motoriserade skyttebrigaden.",
    "units": [
-    "123-gardes-motoriserade-skyttebrigaden"
+    "123-gardes-motoriserade-skyttebrigaden",
+    "3-gardes-armen",
+    "6-gardes-motoriserade-skyttebrigaden",
+    "7-gardes-motoriserade-skyttebrigaden"
    ],
    "equipment": [],
    "status": {
@@ -4944,7 +4990,8 @@
    "military_district": "Södra militärdistriktet",
    "description_sv": "Majkop är en robotgarnison i Ryssland (Södra militärdistriktet). Här finns enligt källorna 479:e robotregementet. Materiel som nämns: Topol-M.",
    "units": [
-    "479-robotregementet"
+    "479-robotregementet",
+    "227-gardes-artilleribrigaden"
    ],
    "equipment": [
     "topol-m"
@@ -5634,7 +5681,12 @@
    "units": [
     "13-gardes-stridsvagnsregementet",
     "423-gardes-motoriserade-skytteregementet",
-    "4-gardes-stridsvagnsdivisionen"
+    "4-gardes-stridsvagnsdivisionen",
+    "12-gardes-stridsvagnsregementet",
+    "275-sjalvgaende-artilleriregementet",
+    "538-gardes-luftvarnsrobotregementet",
+    "1182-gardes-artilleriregementet",
+    "202-luftvarnsrobotbrigaden"
    ],
    "equipment": [
     "t-72b3",
@@ -5825,7 +5877,8 @@
    "description_sv": "Novorossijsk är en marinbas i Ryssland (Södra militärdistriktet). Här finns enligt källorna Novorossijsks marinbas, Svartahavsflottan. Materiel som nämns: Kilo-klass (projekt 636.3), Kalibr. Senast rapporterade anfall: 2023-08-04.",
    "units": [
     "novorossijsks-marinbas",
-    "svartahavsflottan"
+    "svartahavsflottan",
+    "4-ubatsbrigaden"
    ],
    "equipment": [
     "kilo",
@@ -5884,7 +5937,8 @@
    "military_district": "Södra militärdistriktet",
    "description_sv": "Novorossijsk är en garnison för luftlandsättningstrupperna i Ryssland (Södra militärdistriktet). Här finns enligt källorna 7:e gardes luftanfallsdivisionen.",
    "units": [
-    "7-gardes-luftanfallsdivisionen"
+    "7-gardes-luftanfallsdivisionen",
+    "108-gardes-luftanfallsregementet"
    ],
    "equipment": [],
    "status": {
@@ -5991,7 +6045,9 @@
    "units": [
     "8-gardes-armen",
     "68-gardes-stridsvagnsregementet",
-    "150-gardes-motoriserade-skyttedivisionen"
+    "150-gardes-motoriserade-skyttedivisionen",
+    "102-gardes-motoriserade-skytteregementet",
+    "381-gardes-artilleriregementet"
    ],
    "equipment": [
     "t-72b3",
@@ -6082,7 +6138,8 @@
    "military_district": "Moskvas militärdistrikt",
    "description_sv": "Odintsovo är en garnison för markstridskrafterna i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 1:a gardes stridsvagnsarmén. Materiel som nämns: Admiral Kuznetsov.",
    "units": [
-    "1-gardes-stridsvagnsarmen"
+    "1-gardes-stridsvagnsarmen",
+    "20-gardes-cbrn-skyddsregementet"
    ],
    "equipment": [
     "kuznetsov"
@@ -6398,7 +6455,8 @@
    "description_sv": "Petjenga är en garnison för markstridskrafterna i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 71:a gardes motoriserade skyttedivisionen, 14:e armékåren. Materiel som nämns: S-350 Vitjaz, Tor-M2, T-80BVM, MT-LB, 2S3 Akatsija, 2S9 Nona med mera.",
    "units": [
     "71-gardes-motoriserade-skyttedivisionen",
-    "14-armekaren"
+    "14-armekaren",
+    "61-gardes-marininfanteribrigaden"
    ],
    "equipment": [
     "s-350",
@@ -6609,7 +6667,8 @@
    "military_district": "Leningrads militärdistrikt",
    "description_sv": "Poljarnyj är en marinbas i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 161:a ubåtsbrigaden. Materiel som nämns: Kilo-klass (projekt 636.3), Lada-klass (projekt 677).",
    "units": [
-    "161-ubatsbrigaden"
+    "161-ubatsbrigaden",
+    "29-ubatsdivisionen"
    ],
    "equipment": [
     "kilo",
@@ -6783,7 +6842,9 @@
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
    "description_sv": "Pribylovo är en militär flygbas i Ryssland (Leningrads militärdistrikt).",
-   "units": [],
+   "units": [
+    "332-gardes-helikopterregementet"
+   ],
    "equipment": [],
    "status": {
     "status_sv": "i bruk enligt källorna",
@@ -6959,7 +7020,10 @@
    "description_sv": "Pskov är en garnison för luftlandsättningstrupperna i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 234:e gardes luftanfallsregementet, 76:e gardes luftanfallsdivisionen. Materiel som nämns: BMD-4M, Il-76.",
    "units": [
     "234-gardes-luftanfallsregementet",
-    "76-gardes-luftanfallsdivisionen"
+    "76-gardes-luftanfallsdivisionen",
+    "104-gardes-luftanfallsregementet",
+    "237-gardes-luftanfallsregementet",
+    "1140-gardes-artilleriregementet"
    ],
    "equipment": [
     "bmd-4m",
@@ -7150,7 +7214,8 @@
    "military_district": "Södra militärdistriktet",
    "description_sv": "Rostov-na-Donu är en garnison för markstridskrafterna i Ryssland (Södra militärdistriktet). Här finns enligt källorna 103:e gardes motoriserade skytteregementet. Materiel som nämns: BTR-82A, 2A65 Msta-B.",
    "units": [
-    "103-gardes-motoriserade-skytteregementet"
+    "103-gardes-motoriserade-skytteregementet",
+    "4-gardes-flyg-och-luftforsvarsarmen"
    ],
    "equipment": [
     "btr-82a",
@@ -7491,7 +7556,9 @@
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
    "description_sv": "Sesjtja är en militär flygbas i Ryssland (Moskvas militärdistrikt). Materiel som nämns: Il-76, An-124.",
-   "units": [],
+   "units": [
+    "566-transportflygregementet"
+   ],
    "equipment": [
     "il-76",
     "an-124"
@@ -7536,7 +7603,8 @@
    "description_sv": "Sevastopol är en marinbas i ockuperade Ukraina (Södra militärdistriktet (ockuperat område i Ukraina)). Här finns enligt källorna 30:e ytstridsdivisionen, Svartahavsflottan. Materiel som nämns: Admiral Grigorovitj-klass (projekt 11356). Senast rapporterade anfall: 2023-09-22.",
    "units": [
     "30-ytstridsdivisionen",
-    "svartahavsflottan"
+    "svartahavsflottan",
+    "41-robotbatsbrigaden"
    ],
    "equipment": [
     "grigorovitj"
@@ -7603,7 +7671,10 @@
    "military_district": "Södra militärdistriktet (ockuperat område i Ukraina)",
    "description_sv": "Sevastopol är en garnison för markstridskrafterna i ockuperade Ukraina (Södra militärdistriktet (ockuperat område i Ukraina)). Här finns enligt källorna 22:a armékåren. Materiel som nämns: BTR-82A.",
    "units": [
-    "22-armekaren"
+    "22-armekaren",
+    "810-gardes-marininfanteribrigaden",
+    "31-luftvarnsdivisionen",
+    "12-luftvarnsrobotregementet"
    ],
    "equipment": [
     "btr-82a"
@@ -7712,7 +7783,8 @@
    "military_district": "Leningrads militärdistrikt",
    "description_sv": "Severomorsk är en marinbas i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna Norra flottan. Materiel som nämns: Su-33, MiG-29K, Sineva / Lajner, Kalibr, P-800 Onyx, Borej-klass (projekt 955) med mera.",
    "units": [
-    "norra-flottan"
+    "norra-flottan",
+    "45-flyg-och-luftforsvarsarmen"
    ],
    "equipment": [
     "su-33",
@@ -7954,7 +8026,10 @@
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
    "description_sv": "Sjagol (Tjeljabinsk) är en militär flygbas i Ryssland (Centrala militärdistriktet). Materiel som nämns: Su-34.",
-   "units": [],
+   "units": [
+    "21-blandade-flygdivisionen",
+    "2-gardes-blandade-flygregementet"
+   ],
    "equipment": [
     "su-34"
    ],
@@ -8363,7 +8438,9 @@
    "military_district": "Södra militärdistriktet",
    "description_sv": "Stavropol är en garnison för markstridskrafterna i Ryssland (Södra militärdistriktet). Här finns enligt källorna 25:e gardes specialförbandsregementet.",
    "units": [
-    "25-gardes-specialforbandsregementet"
+    "25-gardes-specialforbandsregementet",
+    "247-gardes-luftanfallsregementet",
+    "49-armen"
    ],
    "equipment": [],
    "status": {
@@ -8466,7 +8543,8 @@
    "military_district": "Moskvas militärdistrikt",
    "description_sv": "Tambov är en garnison för markstridskrafterna i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 16:e gardes specialförbandsbrigaden (Spetsnaz).",
    "units": [
-    "16-gardes-specialforbandsbrigaden-spetsnaz"
+    "16-gardes-specialforbandsbrigaden-spetsnaz",
+    "45-tunga-artilleribrigaden"
    ],
    "equipment": [],
    "status": {
@@ -8531,7 +8609,9 @@
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
    "description_sv": "Tatisjtjevo är en militär flygbas i Ryssland (Centrala militärdistriktet).",
-   "units": [],
+   "units": [
+    "60-robotdivisionen"
+   ],
    "equipment": [],
    "status": {
     "status_sv": "i bruk enligt källorna",
@@ -8672,7 +8752,8 @@
    "military_district": "Rysk bas utomlands",
    "description_sv": "Tiraspol (ryska styrkor i Transnistrien) är en garnison för markstridskrafterna i Moldavien (Transnistrien). Rysk truppstyrka i den moldaviska utbrytarregionen Transnistrien, bland annat för att bevaka det stora ammunitionsförrådet i Kolbasna. Här finns enligt källorna 82:a gardes motoriserade skyttebataljonen. Materiel som nämns: BMP-2.",
    "units": [
-    "82-gardes-motoriserade-skyttebataljonen"
+    "82-gardes-motoriserade-skyttebataljonen",
+    "113-gardes-motoriserade-skyttebataljonen"
    ],
    "equipment": [
     "bmp-2"
@@ -8711,7 +8792,8 @@
     "6-gardes-stridsvagnsregementet",
     "80-gardes-stridsvagnsregementet",
     "232-gardes-raketartilleribrigaden",
-    "239-gardes-stridsvagnsregementet"
+    "239-gardes-stridsvagnsregementet",
+    "400-gardes-sjalvgaende-artilleriregementet"
    ],
    "equipment": [
     "t-80bvm",
@@ -8866,7 +8948,8 @@
    "military_district": "Östra militärdistriktet",
    "description_sv": "Tjita är en garnison för markstridskrafterna i Ryssland (Östra militärdistriktet). Här finns enligt källorna 29:e gardes armén.",
    "units": [
-    "29-gardes-armen"
+    "29-gardes-armen",
+    "112-helikopterregementet"
    ],
    "equipment": [],
    "status": {
@@ -9123,7 +9206,9 @@
    "country": "RU",
    "military_district": "Östra militärdistriktet",
    "description_sv": "Tsentralnaja Uglovaja är en militär flygbas i Ryssland (Östra militärdistriktet).",
-   "units": [],
+   "units": [
+    "22-gardes-jaktflygregementet"
+   ],
    "equipment": [],
    "status": {
     "status_sv": "i bruk enligt källorna",
@@ -9234,7 +9319,9 @@
    "country": "RU",
    "military_district": "Östra militärdistriktet",
    "description_sv": "Ukrainka är en militär flygbas i Ryssland (Östra militärdistriktet). Materiel som nämns: Tu-95MS.",
-   "units": [],
+   "units": [
+    "326-tunga-bombflygdivisionen"
+   ],
    "equipment": [
     "tu-95ms"
    ],
@@ -9276,7 +9363,12 @@
    "military_district": "Östra militärdistriktet",
    "description_sv": "Ulan-Ude är en garnison för markstridskrafterna i Ryssland (Östra militärdistriktet). Här finns enligt källorna 5:e gardes stridsvagnsbrigaden.",
    "units": [
-    "5-gardes-stridsvagnsbrigaden"
+    "5-gardes-stridsvagnsbrigaden",
+    "103-robotbrigaden",
+    "11-gardes-luftanfallsbrigaden",
+    "30-gardes-artilleribrigaden",
+    "36-gardes-armen",
+    "35-gardes-luftvarnsrobotbrigaden"
    ],
    "equipment": [],
    "status": {
@@ -9310,7 +9402,8 @@
    "military_district": "Centrala militärdistriktet",
    "description_sv": "Uljanovsk är en garnison för luftlandsättningstrupperna i Ryssland (Centrala militärdistriktet). Här finns enligt källorna 104:e gardes luftanfallsdivisionen.",
    "units": [
-    "104-gardes-luftanfallsdivisionen"
+    "104-gardes-luftanfallsdivisionen",
+    "345-luftanfallsregementet"
    ],
    "equipment": [],
    "status": {
@@ -9608,7 +9701,10 @@
    "country": "RU",
    "military_district": "Östra militärdistriktet",
    "description_sv": "Viljutjinsk är en marinbas i Ryssland (Östra militärdistriktet). Materiel som nämns: Borej-klass (projekt 955), Oscar II-klass (projekt 949A).",
-   "units": [],
+   "units": [
+    "10-ubatsdivisionen",
+    "25-ubatsdivisionen"
+   ],
    "equipment": [
     "borej",
     "oscar-ii"
@@ -9684,7 +9780,9 @@
    "military_district": "Östra militärdistriktet",
    "description_sv": "Vladivostok är en marinbas i Ryssland (Östra militärdistriktet). Här finns enligt källorna Stillahavsflottan. Materiel som nämns: Forpost, Orlan-10, Bal, S-400, BM-27 Uragan, Tornado-S / Smertj med mera.",
    "units": [
-    "stillahavsflottan"
+    "stillahavsflottan",
+    "55-gardes-marininfanteridivisionen",
+    "93-luftvarnsdivisionen"
    ],
    "equipment": [
     "forpost",
@@ -9746,7 +9844,9 @@
    "units": [
     "20-gardes-motoriserade-skyttedivisionen",
     "242-gardes-motoriserade-skytteregementet",
-    "255-gardes-motoriserade-skytteregementet"
+    "255-gardes-motoriserade-skytteregementet",
+    "358-gardes-luftvarnsrobotregementet",
+    "944-gardes-sjalvgaende-artilleriregementet"
    ],
    "equipment": [],
    "status": {
@@ -9915,7 +10015,9 @@
    "country": "RU",
    "military_district": "Södra militärdistriktet",
    "description_sv": "Zernograd är en militär flygbas i Ryssland (Södra militärdistriktet).",
-   "units": [],
+   "units": [
+    "16-gardes-armeflygbrigaden"
+   ],
    "equipment": [],
    "status": {
     "status_sv": "i bruk enligt källorna",
@@ -9965,6 +10067,1701 @@
      "url": "https://en.wikipedia.org/wiki/Zyabrovka_%28air_base%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    }
+   ]
+  },
+  {
+   "id": "krasnodar-tsentralnyj",
+   "name": "Krasnodar-Tsentralnyj",
+   "name_ru": "Краснодар-Центральный",
+   "name_en": null,
+   "lat": 45.0825,
+   "lon": 38.9453,
+   "branch": "flyg",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Krasnodar-Tsentralnyj är en bas i Ryssland.",
+   "units": [
+    "1-gardes-blandade-flygdivisionen",
+    "39-jarnvagsbrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D1%80%D0%B0%D1%81%D0%BD%D0%BE%D0%B4%D0%B0%D1%80-%D0%A6%D0%B5%D0%BD%D1%82%D1%80%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_(%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/1-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D1%81%D0%BC%D0%B5%D1%88%D0%B0%D0%BD%D0%BD%D0%B0%D1%8F_%D0%B0%D0%B2%D0%B8%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F_%D0%B4%D0%B8%D0%B2%D0%B8%D0%B7%D0%B8%D1%8F_%28%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D1%8F%29",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "kalininets",
+   "name": "Kalininets",
+   "name_ru": "Калининец",
+   "name_en": null,
+   "lat": 55.5585,
+   "lon": 36.9749,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "Kalininets är en bas i Ryssland.",
+   "units": [
+    "1-gardes-motoriserade-skytteregementet",
+    "1-gardes-stridsvagnsregementet",
+    "15-gardes-motoriserade-skytteregementet",
+    "147-gardes-sjalvgaende-artilleriregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D0%BB%D0%B8%D0%BD%D0%B8%D0%BD%D0%B5%D1%86",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/1-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "molkino",
+   "name": "Molkino",
+   "name_ru": "Молькино",
+   "name_en": null,
+   "lat": 55.1681,
+   "lon": 40.5628,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Molkino är en bas i Ryssland.",
+   "units": [
+    "10-gardes-specialforbandsbrigaden-spetsnaz"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9C%D0%BE%D0%BB%D1%8C%D0%BA%D0%B8%D0%BD%D0%BE",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/10-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0_%D1%81%D0%BF%D0%B5%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE%D0%B3%D0%BE_%D0%BD%D0%B0%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "jelanskij",
+   "name": "Jelanskij",
+   "name_ru": "Еланский",
+   "name_en": null,
+   "lat": 56.8344,
+   "lon": 62.4975,
+   "branch": "robot",
+   "country": "RU",
+   "military_district": "Centrala militärdistriktet",
+   "description_sv": "Jelanskij är en bas i Ryssland.",
+   "units": [
+    "119-gardes-robotbrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%95%D0%BB%D0%B0%D0%BD%D1%81%D0%BA%D0%B8%D0%B9_(%D0%A1%D0%B2%D0%B5%D1%80%D0%B4%D0%BB%D0%BE%D0%B2%D1%81%D0%BA%D0%B0%D1%8F_%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/119-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "bolsjaja-kartel",
+   "name": "Bolsjaja Kartel",
+   "name_ru": "Большая Картель",
+   "name_en": null,
+   "lat": 50.3859,
+   "lon": 137.3843,
+   "branch": "luftvärn",
+   "country": "RU",
+   "military_district": "Östra militärdistriktet",
+   "description_sv": "Bolsjaja Kartel är en bas i Ryssland.",
+   "units": [
+    "1530-gardes-luftvarnsrobotregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%91%D0%BE%D0%BB%D1%8C%D1%88%D0%B0%D1%8F_%D0%9A%D0%B0%D1%80%D1%82%D0%B5%D0%BB%D1%8C",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/1530-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%B7%D0%B5%D0%BD%D0%B8%D1%82%D0%BD%D1%8B%D0%B9_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "belogorsk",
+   "name": "Belogorsk",
+   "name_ru": "Белогорск",
+   "name_en": null,
+   "lat": 50.9167,
+   "lon": 128.4833,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Östra militärdistriktet",
+   "description_sv": "Belogorsk är en bas i Ryssland.",
+   "units": [
+    "165-gardes-artilleribrigaden",
+    "71-gardes-luftvarnsrobotbrigaden",
+    "35-gardes-armen",
+    "35-gardes-cbrn-skyddsregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%91%D0%B5%D0%BB%D0%BE%D0%B3%D0%BE%D1%80%D1%81%D0%BA_(%D0%90%D0%BC%D1%83%D1%80%D1%81%D0%BA%D0%B0%D1%8F_%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/165-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B0%D1%80%D1%82%D0%B8%D0%BB%D0%BB%D0%B5%D1%80%D0%B8%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "chabarovsk",
+   "name": "Chabarovsk",
+   "name_ru": "Хабаровск",
+   "name_en": null,
+   "lat": 48.4833,
+   "lon": 135.0667,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Östra militärdistriktet",
+   "description_sv": "Chabarovsk är en bas i Ryssland.",
+   "units": [
+    "17-gardes-telekrigsbrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A5%D0%B0%D0%B1%D0%B0%D1%80%D0%BE%D0%B2%D1%81%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/17-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0_%D1%80%D0%B0%D0%B4%D0%B8%D0%BE%D1%8D%D0%BB%D0%B5%D0%BA%D1%82%D1%80%D0%BE%D0%BD%D0%BD%D0%BE%D0%B9_%D0%B1%D0%BE%D1%80%D1%8C%D0%B1%D1%8B",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "drovjanaja",
+   "name": "Drovjanaja (Gornyj)",
+   "name_ru": "Дровяная",
+   "name_en": null,
+   "lat": 51.55,
+   "lon": 113.0333,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Östra militärdistriktet",
+   "description_sv": "Drovjanaja (Gornyj) är en bas i Ryssland.",
+   "units": [
+    "200-gardes-artilleribrigaden",
+    "3-robotbrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%93%D0%BE%D1%80%D0%BD%D1%8B%D0%B9_(%D0%97%D0%B0%D0%B1%D0%B0%D0%B9%D0%BA%D0%B0%D0%BB%D1%8C%D1%81%D0%BA%D0%B8%D0%B9_%D0%BA%D1%80%D0%B0%D0%B9)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/200-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B0%D1%80%D1%82%D0%B8%D0%BB%D0%BB%D0%B5%D1%80%D0%B8%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "stepnoj",
+   "name": "Stepnoj",
+   "name_ru": "Степной",
+   "name_en": null,
+   "lat": 47.3485,
+   "lon": 39.8754,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Stepnoj är en bas i Ryssland.",
+   "units": [
+    "22-gardes-specialforbandsbrigaden-spetsnaz",
+    "19-telekrigsbrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D1%82%D0%B5%D0%BF%D0%BD%D0%BE%D0%B9_(%D0%90%D0%BA%D1%81%D0%B0%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D1%80%D0%B0%D0%B9%D0%BE%D0%BD)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/22-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0_%D1%81%D0%BF%D0%B5%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE%D0%B3%D0%BE_%D0%BD%D0%B0%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "soloti",
+   "name": "Soloti",
+   "name_ru": "Солоти",
+   "name_en": null,
+   "lat": 50.2817,
+   "lon": 38.0472,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "Soloti är en bas i Ryssland.",
+   "units": [
+    "237-stridsvagnsregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BE%D0%BB%D0%BE%D1%82%D0%B8",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/237-%D0%B9_%D1%82%D0%B0%D0%BD%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "kursk-garnison",
+   "name": "Kursk (garnison)",
+   "name_ru": "Курск",
+   "name_en": null,
+   "lat": 51.7167,
+   "lon": 36.1833,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "Kursk (garnison) är en bas i Ryssland.",
+   "units": [
+    "27-gardes-cbrn-skyddsbrigaden",
+    "16-telekrigsbrigaden",
+    "448-robotbrigaden",
+    "53-gardes-luftvarnsrobotbrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D1%83%D1%80%D1%81%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/27-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0_%D1%80%D0%B0%D0%B4%D0%B8%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%BE%D0%B9%2C_%D1%85%D0%B8%D0%BC%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B9_%D0%B8_%D0%B1%D0%B8%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B9_%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D1%8B",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "kamysjin",
+   "name": "Kamysjin",
+   "name_ru": "Камышин",
+   "name_en": null,
+   "lat": 50.0833,
+   "lon": 45.4,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Kamysjin är en bas i Ryssland.",
+   "units": [
+    "28-cbrn-skyddsbrigaden",
+    "33-gardes-motoriserade-skytteregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D0%BC%D1%8B%D1%88%D0%B8%D0%BD",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/28-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0_%D1%80%D0%B0%D0%B4%D0%B8%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%BE%D0%B9%2C_%D1%85%D0%B8%D0%BC%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B9_%D0%B8_%D0%B1%D0%B8%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B9_%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D1%8B",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "mirnyj-kirov",
+   "name": "Mirnyj (Kirov)",
+   "name_ru": "Мирный",
+   "name_en": null,
+   "lat": 58.3,
+   "lon": 48.6333,
+   "branch": "luftvärn",
+   "country": "RU",
+   "military_district": "Centrala militärdistriktet",
+   "description_sv": "Mirnyj (Kirov) är en bas i Ryssland.",
+   "units": [
+    "28-luftvarnsrobotbrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9C%D0%B8%D1%80%D0%BD%D1%8B%D0%B9_(%D0%9E%D1%80%D0%B8%D1%87%D0%B5%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D1%80%D0%B0%D0%B9%D0%BE%D0%BD)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/28-%D1%8F_%D0%B7%D0%B5%D0%BD%D0%B8%D1%82%D0%BD%D0%B0%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "mulino",
+   "name": "Mulino",
+   "name_ru": "Мулино",
+   "name_en": null,
+   "lat": 56.31,
+   "lon": 42.94,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "Mulino är en bas i Ryssland.",
+   "units": [
+    "288-gardes-artilleribrigaden",
+    "47-stridsvagnsdivisionen",
+    "26-stridsvagnsregementet",
+    "153-stridsvagnsregementet",
+    "272-motoriserade-skytteregementet",
+    "3-armekaren"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9C%D1%83%D0%BB%D0%B8%D0%BD%D0%BE_(%D0%BF%D0%BE%D1%81%D1%91%D0%BB%D0%BE%D0%BA,_%D0%9D%D0%B8%D0%B6%D0%B5%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%D1%81%D0%BA%D0%B0%D1%8F_%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/288-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B0%D1%80%D1%82%D0%B8%D0%BB%D0%BB%D0%B5%D1%80%D0%B8%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "nizjnij-novgorod",
+   "name": "Nizjnij Novgorod",
+   "name_ru": "Нижний Новгород",
+   "name_en": null,
+   "lat": 56.3269,
+   "lon": 44.0075,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "Nizjnij Novgorod är en bas i Ryssland.",
+   "units": [
+    "96-underrattelsebrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9D%D0%B8%D0%B6%D0%BD%D0%B8%D0%B9_%D0%9D%D0%BE%D0%B2%D0%B3%D0%BE%D1%80%D0%BE%D0%B4",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/96-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0_%D1%80%D0%B0%D0%B7%D0%B2%D0%B5%D0%B4%D0%BA%D0%B8",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "troitskaja",
+   "name": "Troitskaja",
+   "name_ru": "Троицкая",
+   "name_en": null,
+   "lat": 43.3047,
+   "lon": 45.0003,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Troitskaja är en bas i Ryssland.",
+   "units": [
+    "503-gardes-motoriserade-skytteregementet",
+    "291-gardes-artilleribrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A2%D1%80%D0%BE%D0%B8%D1%86%D0%BA%D0%B0%D1%8F_(%D0%98%D0%BD%D0%B3%D1%83%D1%88%D0%B5%D1%82%D0%B8%D1%8F)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/503-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "kalinovskaja",
+   "name": "Kalinovskaja",
+   "name_ru": "Калиновская",
+   "name_en": null,
+   "lat": 43.5708,
+   "lon": 45.5181,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Kalinovskaja är en bas i Ryssland.",
+   "units": [
+    "71-gardes-motoriserade-skytteregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D0%BB%D0%B8%D0%BD%D0%BE%D0%B2%D1%81%D0%BA%D0%B0%D1%8F_(%D0%A7%D0%B5%D1%87%D0%BD%D1%8F)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/71-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "leonidovka",
+   "name": "Leonidovka",
+   "name_ru": "Леонидовка",
+   "name_en": null,
+   "lat": 53.1506,
+   "lon": 45.2497,
+   "branch": "luftvärn",
+   "country": "RU",
+   "military_district": "Centrala militärdistriktet",
+   "description_sv": "Leonidovka är en bas i Ryssland.",
+   "units": [
+    "297-gardes-luftvarnsrobotbrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9B%D0%B5%D0%BE%D0%BD%D0%B8%D0%B4%D0%BE%D0%B2%D0%BA%D0%B0_(%D1%81%D0%B5%D0%BB%D0%BE,_%D0%9F%D0%B5%D0%BD%D0%B7%D0%B5%D0%BD%D1%81%D0%BA%D0%B0%D1%8F_%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/297-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B7%D0%B5%D0%BD%D0%B8%D1%82%D0%BD%D0%B0%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "tjernigovka",
+   "name": "Tjernigovka",
+   "name_ru": "Черниговка",
+   "name_en": null,
+   "lat": 44.3333,
+   "lon": 132.5667,
+   "branch": "flyg",
+   "country": "RU",
+   "military_district": "Östra militärdistriktet",
+   "description_sv": "Tjernigovka är en bas i Ryssland.",
+   "units": [
+    "319-helikopterregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A7%D0%B5%D1%80%D0%BD%D0%B8%D0%B3%D0%BE%D0%B2%D0%BA%D0%B0_(%D0%9F%D1%80%D0%B8%D0%BC%D0%BE%D1%80%D1%81%D0%BA%D0%B8%D0%B9_%D0%BA%D1%80%D0%B0%D0%B9)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/319-%D0%B9_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%D0%B2%D0%B5%D1%80%D1%82%D0%BE%D0%BB%D1%91%D1%82%D0%BD%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "pusjkin",
+   "name": "Pusjkin",
+   "name_ru": "Пушкин",
+   "name_en": null,
+   "lat": 59.6936,
+   "lon": 30.3497,
+   "branch": "flyg",
+   "country": "RU",
+   "military_district": "Leningrads militärdistrikt",
+   "description_sv": "Pusjkin är en bas i Ryssland.",
+   "units": [
+    "332-gardes-helikopterregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9F%D1%83%D1%88%D0%BA%D0%B8%D0%BD_(%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/332-%D0%B9_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%B2%D0%B5%D1%80%D1%82%D0%BE%D0%BB%D1%91%D1%82%D0%BD%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "temrjuk",
+   "name": "Temrjuk",
+   "name_ru": "Темрюк",
+   "name_en": null,
+   "lat": 45.2667,
+   "lon": 37.3833,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Temrjuk är en bas i Ryssland.",
+   "units": [
+    "382-marininfanteribataljonen"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A2%D0%B5%D0%BC%D1%80%D1%8E%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/382-%D0%B9_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%D0%B1%D0%B0%D1%82%D0%B0%D0%BB%D1%8C%D0%BE%D0%BD_%D0%BC%D0%BE%D1%80%D1%81%D0%BA%D0%BE%D0%B9_%D0%BF%D0%B5%D1%85%D0%BE%D1%82%D1%8B",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "totskoje",
+   "name": "Totskoje",
+   "name_ru": "Тоцкое",
+   "name_en": null,
+   "lat": 52.5253,
+   "lon": 52.7494,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Centrala militärdistriktet",
+   "description_sv": "Totskoje är en bas i Ryssland.",
+   "units": [
+    "385-gardes-artilleribrigaden",
+    "92-gardes-robotbrigaden",
+    "506-gardes-motoriserade-skytteregementet",
+    "27-gardes-motoriserade-skyttedivisionen",
+    "433-gardes-motoriserade-skytteregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A2%D0%BE%D1%86%D0%BA%D0%BE%D0%B5",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/385-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B0%D1%80%D1%82%D0%B8%D0%BB%D0%BB%D0%B5%D1%80%D0%B8%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "rosjtjinskij",
+   "name": "Rosjtjinskij",
+   "name_ru": "Рощинский",
+   "name_en": null,
+   "lat": 53.0511,
+   "lon": 50.4967,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Centrala militärdistriktet",
+   "description_sv": "Rosjtjinskij är en bas i Ryssland.",
+   "units": [
+    "589-gardes-motoriserade-skytteregementet",
+    "15-gardes-motoriserade-skyttebrigaden",
+    "30-gardes-motoriserade-skyttebrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A0%D0%BE%D1%89%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%D0%B9_(%D0%A1%D0%B0%D0%BC%D0%B0%D1%80%D1%81%D0%BA%D0%B0%D1%8F_%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/589-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "sankt-petersburg",
+   "name": "Sankt Petersburg",
+   "name_ru": "Санкт-Петербург",
+   "name_en": null,
+   "lat": 59.95,
+   "lon": 30.3167,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Leningrads militärdistrikt",
+   "description_sv": "Sankt Petersburg är en bas i Ryssland.",
+   "units": [
+    "6-gardes-flyg-och-luftforsvarsarmen",
+    "6-gardes-armen"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%B0%D0%BD%D0%BA%D1%82-%D0%9F%D0%B5%D1%82%D0%B5%D1%80%D0%B1%D1%83%D1%80%D0%B3",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/6-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B0%D1%80%D0%BC%D0%B8%D1%8F_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D0%BE-%D0%B2%D0%BE%D0%B7%D0%B4%D1%83%D1%88%D0%BD%D1%8B%D1%85_%D1%81%D0%B8%D0%BB_%D0%B8_%D0%BF%D1%80%D0%BE%D1%82%D0%B8%D0%B2%D0%BE%D0%B2%D0%BE%D0%B7%D0%B4%D1%83%D1%88%D0%BD%D0%BE%D0%B9_%D0%BE%D0%B1%D0%BE%D1%80%D0%BE%D0%BD%D1%8B",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "archonskaja",
+   "name": "Archonskaja",
+   "name_ru": "Архонская",
+   "name_en": null,
+   "lat": 43.1073,
+   "lon": 44.5115,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Archonskaja är en bas i Ryssland.",
+   "units": [
+    "40-cbrn-skyddsregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%90%D1%80%D1%85%D0%BE%D0%BD%D1%81%D0%BA%D0%B0%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/40-%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA_%D1%80%D0%B0%D0%B4%D0%B8%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%BE%D0%B9%2C_%D1%85%D0%B8%D0%BC%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B9_%D0%B8_%D0%B1%D0%B8%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B9_%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D1%8B",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "dvojevka",
+   "name": "Dvojevka (Vjazma)",
+   "name_ru": "Двоевка",
+   "name_en": null,
+   "lat": 55.1483,
+   "lon": 34.3833,
+   "branch": "flyg",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "Dvojevka (Vjazma) är en bas i Ryssland.",
+   "units": [
+    "440-gardes-helikopterregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%94%D0%B2%D0%BE%D0%B5%D0%B2%D0%BA%D0%B0_(%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/440-%D0%B9_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%B2%D0%B5%D1%80%D1%82%D0%BE%D0%BB%D1%91%D1%82%D0%BD%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "rajevskaja",
+   "name": "Rajevskaja",
+   "name_ru": "Раевская",
+   "name_en": null,
+   "lat": 44.8386,
+   "lon": 37.5547,
+   "branch": "fallskärm",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Rajevskaja är en bas i Ryssland.",
+   "units": [
+    "52-gardes-artilleribrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A0%D0%B0%D0%B5%D0%B2%D1%81%D0%BA%D0%B0%D1%8F_(%D1%81%D1%82%D0%B0%D0%BD%D0%B8%D1%86%D0%B0)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/52-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B0%D1%80%D1%82%D0%B8%D0%BB%D0%BB%D0%B5%D1%80%D0%B8%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "vladikavkaz",
+   "name": "Vladikavkaz",
+   "name_ru": "Владикавказ",
+   "name_en": null,
+   "lat": 43.0167,
+   "lon": 44.6833,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Vladikavkaz är en bas i Ryssland.",
+   "units": [
+    "67-luftvarnsrobotbrigaden",
+    "19-motoriserade-skyttedivisionen",
+    "58-gardes-armen"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BA%D0%B0%D0%B2%D0%BA%D0%B0%D0%B7",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/67-%D1%8F_%D0%B7%D0%B5%D0%BD%D0%B8%D1%82%D0%BD%D0%B0%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "babstovo",
+   "name": "Babstovo",
+   "name_ru": "Бабстово",
+   "name_en": null,
+   "lat": 48.1175,
+   "lon": 132.4817,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Östra militärdistriktet",
+   "description_sv": "Babstovo är en bas i Ryssland.",
+   "units": [
+    "69-skyddsbrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%91%D0%B0%D0%B1%D1%81%D1%82%D0%BE%D0%B2%D0%BE",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/69-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0_%D0%BF%D1%80%D0%B8%D0%BA%D1%80%D1%8B%D1%82%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "barano-orenburgskoje",
+   "name": "Barano-Orenburgskoje",
+   "name_ru": "Барано-Оренбургское",
+   "name_en": null,
+   "lat": 44.3704,
+   "lon": 131.4571,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Östra militärdistriktet",
+   "description_sv": "Barano-Orenburgskoje är en bas i Ryssland.",
+   "units": [
+    "872-sjalvgaende-artilleriregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%91%D0%B0%D1%80%D0%B0%D0%BD%D0%BE-%D0%9E%D1%80%D0%B5%D0%BD%D0%B1%D1%83%D1%80%D0%B3%D1%81%D0%BA%D0%BE%D0%B5",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/872-%D0%B9_%D1%81%D0%B0%D0%BC%D0%BE%D1%85%D0%BE%D0%B4%D0%BD%D1%8B%D0%B9_%D0%B0%D1%80%D1%82%D0%B8%D0%BB%D0%BB%D0%B5%D1%80%D0%B8%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "lomonosov",
+   "name": "Lomonosov",
+   "name_ru": "Ломоносов",
+   "name_en": null,
+   "lat": 59.9107,
+   "lon": 29.7765,
+   "branch": "luftvärn",
+   "country": "RU",
+   "military_district": "Leningrads militärdistrikt",
+   "description_sv": "Lomonosov är en bas i Ryssland.",
+   "units": [
+    "5-luftvarnsrobotbrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9B%D0%BE%D0%BC%D0%BE%D0%BD%D0%BE%D1%81%D0%BE%D0%B2_(%D0%B3%D0%BE%D1%80%D0%BE%D0%B4)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/5-%D1%8F_%D0%B7%D0%B5%D0%BD%D0%B8%D1%82%D0%BD%D0%B0%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "uljanovka",
+   "name": "Uljanovka",
+   "name_ru": "Ульяновка",
+   "name_en": null,
+   "lat": 59.6361,
+   "lon": 30.7581,
+   "branch": "luftvärn",
+   "country": "RU",
+   "military_district": "Leningrads militärdistrikt",
+   "description_sv": "Uljanovka är en bas i Ryssland.",
+   "units": [
+    "1490-gardes-luftvarnsrobotregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A3%D0%BB%D1%8C%D1%8F%D0%BD%D0%BE%D0%B2%D0%BA%D0%B0_(%D0%9B%D0%B5%D0%BD%D0%B8%D0%BD%D0%B3%D1%80%D0%B0%D0%B4%D1%81%D0%BA%D0%B0%D1%8F_%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/1490-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%B7%D0%B5%D0%BD%D0%B8%D1%82%D0%BD%D1%8B%D0%B9_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "perevalnoje",
+   "name": "Perevalnoje",
+   "name_ru": "Перевальное",
+   "name_en": null,
+   "lat": 44.8458,
+   "lon": 34.3236,
+   "branch": "armé",
+   "country": "UA",
+   "military_district": "Södra militärdistriktet (ockuperat område i Ukraina)",
+   "description_sv": "Perevalnoje är en bas i Ryssland.",
+   "units": [
+    "126-gardes-kustforsvarsbrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9F%D0%B5%D1%80%D0%B5%D0%B2%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE%D0%B5_(%D0%9A%D1%80%D1%8B%D0%BC)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/126-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0_%D0%B1%D0%B5%D1%80%D0%B5%D0%B3%D0%BE%D0%B2%D0%BE%D0%B9_%D0%BE%D0%B1%D0%BE%D1%80%D0%BE%D0%BD%D1%8B",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "sergejevka",
+   "name": "Sergejevka",
+   "name_ru": "Сергеевка",
+   "name_en": null,
+   "lat": 44.3328,
+   "lon": 131.6603,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Östra militärdistriktet",
+   "description_sv": "Sergejevka är en bas i Ryssland.",
+   "units": [
+    "127-gardes-motoriserade-skyttedivisionen"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%B5%D1%80%D0%B3%D0%B5%D0%B5%D0%B2%D0%BA%D0%B0_(%D0%9F%D0%BE%D0%B3%D1%80%D0%B0%D0%BD%D0%B8%D1%87%D0%BD%D1%8B%D0%B9_%D1%80%D0%B0%D0%B9%D0%BE%D0%BD)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/127-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B4%D0%B8%D0%B2%D0%B8%D0%B7%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "bujnaksk",
+   "name": "Bujnaksk",
+   "name_ru": "Буйнакск",
+   "name_en": null,
+   "lat": 42.8167,
+   "lon": 47.1167,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Bujnaksk är en bas i Ryssland.",
+   "units": [
+    "136-gardes-motoriserade-skyttebrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%91%D1%83%D0%B9%D0%BD%D0%B0%D0%BA%D1%81%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/136-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "josjkar-ola",
+   "name": "Josjkar-Ola",
+   "name_ru": "Йошкар-Ола",
+   "name_en": null,
+   "lat": 56.6328,
+   "lon": 47.8958,
+   "branch": "robot",
+   "country": "RU",
+   "military_district": "Centrala militärdistriktet",
+   "description_sv": "Josjkar-Ola är en bas i Ryssland.",
+   "units": [
+    "14-robotdivisionen"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%99%D0%BE%D1%88%D0%BA%D0%B0%D1%80-%D0%9E%D0%BB%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/14-%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B4%D0%B8%D0%B2%D0%B8%D0%B7%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "nizjnij-tagil",
+   "name": "Nizjnij Tagil (Svobodnyj)",
+   "name_ru": "Нижний Тагил",
+   "name_en": null,
+   "lat": 58.0439,
+   "lon": 60.3961,
+   "branch": "robot",
+   "country": "RU",
+   "military_district": "Centrala militärdistriktet",
+   "description_sv": "Nizjnij Tagil (Svobodnyj) är en bas i Ryssland.",
+   "units": [
+    "42-robotdivisionen"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%B2%D0%BE%D0%B1%D0%BE%D0%B4%D0%BD%D1%8B%D0%B9_(%D0%A1%D0%B2%D0%B5%D1%80%D0%B4%D0%BB%D0%BE%D0%B2%D1%81%D0%BA%D0%B0%D1%8F_%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/42-%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B4%D0%B8%D0%B2%D0%B8%D0%B7%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "uzjur",
+   "name": "Uzjur",
+   "name_ru": "Ужур",
+   "name_en": null,
+   "lat": 55.3167,
+   "lon": 89.8167,
+   "branch": "robot",
+   "country": "RU",
+   "military_district": "Centrala militärdistriktet",
+   "description_sv": "Uzjur är en bas i Ryssland.",
+   "units": [
+    "62-robotdivisionen"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A3%D0%B6%D1%83%D1%80",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/62-%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B4%D0%B8%D0%B2%D0%B8%D0%B7%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "vypolzovo",
+   "name": "Vypolzovo (Ozjornyj)",
+   "name_ru": "Выползово",
+   "name_en": null,
+   "lat": 57.8608,
+   "lon": 33.6756,
+   "branch": "robot",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "Vypolzovo (Ozjornyj) är en bas i Ryssland.",
+   "units": [
+    "7-gardes-robotdivisionen"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9E%D0%B7%D1%91%D1%80%D0%BD%D1%8B%D0%B9_(%D0%A2%D0%B2%D0%B5%D1%80%D1%81%D0%BA%D0%B0%D1%8F_%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/7-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B4%D0%B8%D0%B2%D0%B8%D0%B7%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "jurja",
+   "name": "Jurja",
+   "name_ru": "Юрья",
+   "name_en": null,
+   "lat": 59.0333,
+   "lon": 49.2833,
+   "branch": "robot",
+   "country": "RU",
+   "military_district": "Centrala militärdistriktet",
+   "description_sv": "Jurja är en bas i Ryssland.",
+   "units": [
+    "8-robotdivisionen"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%AE%D1%80%D1%8C%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/8-%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B4%D0%B8%D0%B2%D0%B8%D0%B7%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "nelsja",
+   "name": "Nelsja",
+   "name_ru": "Нельша",
+   "name_en": null,
+   "lat": 58.2874,
+   "lon": 43.9078,
+   "branch": "robot",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "Nelsja är en bas i Ryssland.",
+   "units": [
+    "235-robotregementet"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9D%D0%B5%D0%BB%D1%8C%D1%88%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/235-%D0%B9_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "storozjevaja",
+   "name": "Storozjevaja",
+   "name_ru": "Сторожевая",
+   "name_en": null,
+   "lat": 43.8867,
+   "lon": 41.4517,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Storozjevaja är en bas i Ryssland.",
+   "units": [
+    "34-gardes-motoriserade-skyttebrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D1%82%D0%BE%D1%80%D0%BE%D0%B6%D0%B5%D0%B2%D0%B0%D1%8F_(%D0%9A%D0%B0%D1%80%D0%B0%D1%87%D0%B0%D0%B5%D0%B2%D0%BE-%D0%A7%D0%B5%D1%80%D0%BA%D0%B5%D1%81%D0%B8%D1%8F)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/34-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "borzja",
+   "name": "Borzja",
+   "name_ru": "Борзя",
+   "name_en": null,
+   "lat": 50.3833,
+   "lon": 116.5333,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Östra militärdistriktet",
+   "description_sv": "Borzja är en bas i Ryssland.",
+   "units": [
+    "36-gardes-motoriserade-skyttebrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%91%D0%BE%D1%80%D0%B7%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/36-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "jekaterinoslavka",
+   "name": "Jekaterinoslavka",
+   "name_ru": "Екатеринославка",
+   "name_en": null,
+   "lat": 50.3792,
+   "lon": 129.1086,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Östra militärdistriktet",
+   "description_sv": "Jekaterinoslavka är en bas i Ryssland.",
+   "units": [
+    "38-gardes-motoriserade-skyttebrigaden",
+    "133-gardes-stridsvagnsbataljonen"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%95%D0%BA%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D0%BD%D0%BE%D1%81%D0%BB%D0%B0%D0%B2%D0%BA%D0%B0_(%D0%90%D0%BC%D1%83%D1%80%D1%81%D0%BA%D0%B0%D1%8F_%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/38-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "knjaze-volkonskoje",
+   "name": "Knjaze-Volkonskoje",
+   "name_ru": "Князе-Волконское",
+   "name_en": null,
+   "lat": 48.4667,
+   "lon": 135.4667,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Östra militärdistriktet",
+   "description_sv": "Knjaze-Volkonskoje är en bas i Ryssland.",
+   "units": [
+    "64-gardes-motoriserade-skyttebrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D0%BD%D1%8F%D0%B7%D0%B5-%D0%92%D0%BE%D0%BB%D0%BA%D0%BE%D0%BD%D1%81%D0%BA%D0%BE%D0%B5",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/64-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "vitebsk",
+   "name": "Vitebsk",
+   "name_ru": "Витебск",
+   "name_en": null,
+   "lat": 55.1833,
+   "lon": 30.1667,
+   "branch": "fallskärm",
+   "country": "BY",
+   "military_district": "Belarus",
+   "description_sv": "Vitebsk är en bas i Belarus.",
+   "units": [
+    "103-gardes-luftlandsattningsbrigaden-by"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%92%D0%B8%D1%82%D0%B5%D0%B1%D1%81%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/103-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B2%D0%BE%D0%B7%D0%B4%D1%83%D1%88%D0%BD%D0%BE-%D0%B4%D0%B5%D1%81%D0%B0%D0%BD%D1%82%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "zaslonava",
+   "name": "Zaslonava",
+   "name_ru": "Заслоново",
+   "name_en": null,
+   "lat": 54.8925,
+   "lon": 28.9164,
+   "branch": "armé",
+   "country": "BY",
+   "military_district": "Belarus",
+   "description_sv": "Zaslonava är en bas i Belarus.",
+   "units": [
+    "19-gardes-mekaniserade-brigaden-by"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%97%D0%B0%D1%81%D0%BB%D0%BE%D0%BD%D0%BE%D0%B2%D0%BE_(%D0%9B%D0%B5%D0%BF%D0%B5%D0%BB%D1%8C%D1%81%D0%BA%D0%B8%D0%B9_%D1%80%D0%B0%D0%B9%D0%BE%D0%BD)",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/19-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%B5%D1%85%D0%B0%D0%BD%D0%B8%D0%B7%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "tver",
+   "name": "Tver",
+   "name_ru": "Тверь",
+   "name_en": null,
+   "lat": 56.8578,
+   "lon": 35.9219,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "Tver är en bas i Ryssland.",
+   "units": [
+    "79-gardes-raketartilleribrigaden"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A2%D0%B2%D0%B5%D1%80%D1%8C",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/79-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D1%80%D0%B5%D0%B0%D0%BA%D1%82%D0%B8%D0%B2%D0%BD%D0%B0%D1%8F_%D0%B0%D1%80%D1%82%D0%B8%D0%BB%D0%BB%D0%B5%D1%80%D0%B8%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "senezj",
+   "name": "Senezj (Solnetjnogorsk)",
+   "name_ru": "Сенеж",
+   "name_en": null,
+   "lat": 56.1851,
+   "lon": 36.9776,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "Senezj (Solnetjnogorsk) är en bas i Ryssland.",
+   "units": [
+    "specialoperationsstyrkorna-ksso"
+   ],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BE%D0%BB%D0%BD%D0%B5%D1%87%D0%BD%D0%BE%D0%B3%D0%BE%D1%80%D1%81%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%B8%D0%BB%D1%8B_%D1%81%D0%BF%D0%B5%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D1%85_%D0%BE%D0%BF%D0%B5%D1%80%D0%B0%D1%86%D0%B8%D0%B9_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B9%D1%81%D0%BA%D0%BE%D0%B9_%D0%A4%D0%B5%D0%B4%D0%B5%D1%80%D0%B0%D1%86%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
     }
    ]
   }

@@ -11,7 +11,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "krasnodar-tsentralnyj"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -103,7 +105,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "2-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "kalininets"
+   ],
    "equipment": [
     "t-72b3",
     "btr-82a",
@@ -200,7 +204,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "2-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "kalininets"
+   ],
    "equipment": [
     "t-80bvm",
     "bmp-2",
@@ -343,7 +349,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "10-gardes-specialforbandsbrigaden-spetsnaz",
@@ -354,7 +361,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "molkino"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -382,7 +391,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "51-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "donetsk"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -422,7 +433,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "10-ubatsdivisionen",
@@ -433,7 +445,9 @@
    "branch": "marin",
    "country": "RU",
    "parent": "stillahavsflottan",
-   "garrison": [],
+   "garrison": [
+    "viljutjinsk"
+   ],
    "equipment": [
     "jasen",
     "oscar-ii",
@@ -505,7 +519,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "1009-motoriserade-skytteregementet",
@@ -528,7 +543,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "102-gardes-motoriserade-skytteregementet",
@@ -539,7 +555,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "150-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "novotjerkassk"
+   ],
    "equipment": [
     "t-72b3",
     "bmp-3"
@@ -595,7 +613,9 @@
    "branch": "fallskärm",
    "country": "BY",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "vitebsk"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -651,7 +671,9 @@
    "branch": "robot",
    "country": "RU",
    "parent": "36-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "ulan-ude"
+   ],
    "equipment": [
     "iskander-m"
    ],
@@ -711,7 +733,9 @@
    "branch": "fallskärm",
    "country": "RU",
    "parent": "76-gardes-luftanfallsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "pskov-fallskarm"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -862,7 +886,9 @@
    "branch": "fallskärm",
    "country": "RU",
    "parent": "7-gardes-luftanfallsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "novorossijsk-fallskarm"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -890,7 +916,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "donetsk"
+   ],
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
@@ -970,7 +998,9 @@
    "branch": "fallskärm",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "ulan-ude"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -1168,7 +1198,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "tjita"
+   ],
    "equipment": [
     "mi-28n",
     "mi-24",
@@ -1195,7 +1227,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "tiraspol-ogrv"
+   ],
    "equipment": [
     "bmp-2",
     "bm-21-grad"
@@ -1276,7 +1310,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "pskov-fallskarm"
+   ],
    "equipment": [
     "2s9-nona",
     "2s25-sprut",
@@ -1364,7 +1400,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "donetsk"
+   ],
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
@@ -1387,7 +1425,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "106-gardes-luftlandsattningsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "naro-fominsk"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -1410,7 +1450,9 @@
    "branch": "robot",
    "country": "RU",
    "parent": "41-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "jelanskij"
+   ],
    "equipment": [
     "iskander-m"
    ],
@@ -1487,7 +1529,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "4-gardes-stridsvagnsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "naro-fominsk"
+   ],
    "equipment": [
     "t-80bvm",
     "bmp-2",
@@ -1514,7 +1558,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": "31-luftvarnsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "sevastopol"
+   ],
    "equipment": [
     "s-400",
     "s-300"
@@ -1695,7 +1741,9 @@
    "branch": "marin",
    "country": "RU",
    "parent": "22-armekaren",
-   "garrison": [],
+   "garrison": [
+    "perevalnoje"
+   ],
    "equipment": [
     "t-72b3"
    ],
@@ -1725,7 +1773,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "5-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "sergejevka"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -1765,7 +1815,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "13-gardes-stridsvagnsregementet",
@@ -1855,7 +1906,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "132-gardes-motoriserade-skyttebrigaden",
@@ -1866,7 +1918,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "51-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "donetsk"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -1894,7 +1948,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "38-gardes-motoriserade-skyttebrigaden",
-   "garrison": [],
+   "garrison": [
+    "jekaterinoslavka"
+   ],
    "equipment": [
     "t-80bvm"
    ],
@@ -1908,7 +1964,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Förläggningen anges inte i förbandets egen artikel; här följer den 38:e gardes motoriserade skyttebrigaden, som förbandet ingår i."
   },
   {
    "id": "136-gardes-artilleriregementet",
@@ -1933,7 +1990,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "136-gardes-motoriserade-skyttebrigaden",
@@ -1944,7 +2002,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "bujnaksk"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -2071,7 +2131,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "jekaterinburg"
+   ],
    "equipment": [
     "su-24m",
     "su-25",
@@ -2166,7 +2228,9 @@
    "branch": "robot",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "josjkar-ola"
+   ],
    "equipment": [
     "topol-m"
    ],
@@ -2196,7 +2260,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": "29-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "domna"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -2236,7 +2302,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "1430-gardes-motoriserade-skytteregementet",
@@ -2259,7 +2326,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "144-gardes-motoriserade-skyttedivisionen",
@@ -2301,7 +2369,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "2-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "kalininets"
+   ],
    "equipment": [
     "2s19-msta-s",
     "tornado-g",
@@ -2340,7 +2410,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "1486-gardes-motoriserade-skytteregementet",
@@ -2363,7 +2434,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "1490-gardes-luftvarnsrobotregementet",
@@ -2374,7 +2446,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "uljanovka"
+   ],
    "equipment": [
     "s-400",
     "s-300"
@@ -2431,7 +2505,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "2-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "rosjtjinskij"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -2459,7 +2535,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "2-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "kalininets"
+   ],
    "equipment": [
     "t-72b3",
     "bmp-2",
@@ -2604,7 +2682,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "47-stridsvagnsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "mulino"
+   ],
    "equipment": [
     "t-72b3"
    ],
@@ -2618,7 +2698,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Förläggningen anges inte i förbandets egen artikel; här följer den 47:e stridsvagnsdivisionen, som förbandet ingår i."
   },
   {
    "id": "1530-gardes-luftvarnsrobotregementet",
@@ -2629,7 +2710,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": "5-luftvarnsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "bolsjaja-kartel"
+   ],
    "equipment": [
     "s-400",
     "pantsir-s1"
@@ -2682,7 +2765,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "zernograd"
+   ],
    "equipment": [
     "mi-28n",
     "mi-8"
@@ -2763,7 +2848,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "kursk-garnison"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -2814,7 +2901,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "35-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "belogorsk"
+   ],
    "equipment": [
     "orlan-10",
     "2s7-pion",
@@ -2842,7 +2931,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "kamensk-uralskij"
+   ],
    "equipment": [
     "mi-24",
     "mi-8",
@@ -2869,7 +2960,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "chabarovsk"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -2907,7 +3000,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "177-gardes-marininfanteriregementet",
@@ -2963,7 +3057,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "18-gardes-armeflygbrigaden",
@@ -2974,7 +3069,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "chabarovsk-tsentralnyj"
+   ],
    "equipment": [
     "ka-52",
     "mi-8",
@@ -3001,7 +3098,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": "31-luftvarnsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "feodosija"
+   ],
    "equipment": [
     "bastion-p",
     "s-400",
@@ -3059,7 +3158,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "68-gardes-armekaren",
-   "garrison": [],
+   "garrison": [
+    "gorjatjij-kljutj-robot"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -3087,7 +3188,9 @@
    "branch": "armé",
    "country": "BY",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "zaslonava"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -3115,7 +3218,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "58-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "vladikavkaz"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -3143,7 +3248,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "stepnoj"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -3196,7 +3303,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": "21-blandade-flygdivisionen",
-   "garrison": [],
+   "garrison": [
+    "sjagol"
+   ],
    "equipment": [
     "su-34"
    ],
@@ -3315,7 +3424,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "1-gardes-stridsvagnsarmen",
-   "garrison": [],
+   "garrison": [
+    "odintsovo"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -3327,7 +3438,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Förläggningen anges inte i förbandets egen artikel; här följer den 1:a gardes stridsvagnsarmén, som förbandet ingår i."
   },
   {
    "id": "20-gardes-motoriserade-skyttedivisionen",
@@ -3400,7 +3512,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "29-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "drovjanaja"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -3423,7 +3537,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "dusjanbe-201"
+   ],
    "equipment": [
     "mi-24",
     "mi-8",
@@ -3460,7 +3576,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "naro-fominsk"
+   ],
    "equipment": [
     "s-300"
    ],
@@ -3485,7 +3603,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "49-armen",
-   "garrison": [],
+   "garrison": [
+    "budjonnovsk"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -3513,7 +3633,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "sjagol"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -3536,7 +3658,9 @@
    "branch": "fallskärm",
    "country": "RU",
    "parent": "98-gardes-luftlandsattningsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "ivanovo-fallskarm"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -3576,7 +3700,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "22-armekaren",
@@ -3619,7 +3744,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "tsentralnaja-uglovaja"
+   ],
    "equipment": [
     "su-35s",
     "mig-31"
@@ -3645,7 +3772,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "stepnoj"
+   ],
    "equipment": [
     "tigr"
    ],
@@ -3721,7 +3850,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "227-gardes-artilleribrigaden",
@@ -3732,7 +3862,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "majkop-robot"
+   ],
    "equipment": [
     "2s19-msta-s",
     "2a65-msta-b",
@@ -3842,7 +3974,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "232-gardes-raketartilleribrigaden",
@@ -3910,7 +4043,9 @@
    "branch": "robot",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "nelsja"
+   ],
    "equipment": [
     "topol-m"
    ],
@@ -3963,7 +4098,9 @@
    "branch": "fallskärm",
    "country": "RU",
    "parent": "76-gardes-luftanfallsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "pskov-fallskarm"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -3986,7 +4123,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "soloti"
+   ],
    "equipment": [
     "t-72b3",
     "bmp-2",
@@ -4013,7 +4152,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "8-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "korenovsk"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -4096,7 +4237,9 @@
    "branch": "marin",
    "country": "RU",
    "parent": "norra-flottan",
-   "garrison": [],
+   "garrison": [
+    "gadzjijevo"
+   ],
    "equipment": [
     "tigr",
     "gepard"
@@ -4152,7 +4295,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "11-armekaren",
-   "garrison": [],
+   "garrison": [
+    "kaliningrad"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -4192,7 +4337,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "247-gardes-luftanfallsregementet",
@@ -4203,7 +4349,9 @@
    "branch": "fallskärm",
    "country": "RU",
    "parent": "7-gardes-luftanfallsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "stavropol"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -4248,7 +4396,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "25-gardes-specialforbandsregementet",
@@ -4284,7 +4433,9 @@
    "branch": "marin",
    "country": "RU",
    "parent": "ostersjoflottan",
-   "garrison": [],
+   "garrison": [
+    "donskoje-kaliningrad"
+   ],
    "equipment": [
     "bastion-p",
     "bal"
@@ -4310,7 +4461,9 @@
    "branch": "marin",
    "country": "RU",
    "parent": "stillahavsflottan",
-   "garrison": [],
+   "garrison": [
+    "viljutjinsk"
+   ],
    "equipment": [
     "borej"
    ],
@@ -4360,7 +4513,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "144-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "klintsy"
+   ],
    "equipment": [
     "t-72b3",
     "bmp-2",
@@ -4446,7 +4601,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "47-stridsvagnsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "mulino"
+   ],
    "equipment": [],
    "status_sv": "återbildad 2021, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
@@ -4474,7 +4631,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "kursk-garnison"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -4529,7 +4688,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "2-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "totskoje"
+   ],
    "equipment": [],
    "status_sv": "nybildad 2024, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
@@ -4590,7 +4751,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "47-stridsvagnsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "mulino"
+   ],
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
@@ -4643,7 +4806,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "4-gardes-stridsvagnsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "naro-fominsk"
+   ],
    "equipment": [
     "2s19-msta-s",
     "2s3-akatsija",
@@ -4672,7 +4837,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "kamysjin"
+   ],
    "equipment": [
     "tos-1a"
    ],
@@ -4754,7 +4921,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "mirnyj-kirov"
+   ],
    "equipment": [
     "s-300"
    ],
@@ -4816,7 +4985,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "288-gardes-artilleribrigaden",
@@ -4827,7 +4997,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "1-gardes-stridsvagnsarmen",
-   "garrison": [],
+   "garrison": [
+    "mulino"
+   ],
    "equipment": [
     "2s19-msta-s",
     "2a65-msta-b",
@@ -4889,7 +5061,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "jekaterinburg"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -4970,7 +5144,9 @@
    "branch": "marin",
    "country": "RU",
    "parent": "norra-flottan",
-   "garrison": [],
+   "garrison": [
+    "poljarnyj"
+   ],
    "equipment": [
     "delta-iv"
    ],
@@ -4995,7 +5171,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "troitskaja"
+   ],
    "equipment": [
     "2s19-msta-s",
     "2s7-pion",
@@ -5035,7 +5213,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "297-gardes-luftvarnsrobotbrigaden",
@@ -5046,7 +5225,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": "2-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "leonidovka"
+   ],
    "equipment": [
     "buk-m2"
    ],
@@ -5071,7 +5252,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "mulino"
+   ],
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
@@ -5127,7 +5310,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "lugansk"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -5227,7 +5412,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "3-robotbrigaden",
@@ -5238,7 +5424,9 @@
    "branch": "robot",
    "country": "RU",
    "parent": "29-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "drovjanaja"
+   ],
    "equipment": [
     "iskander-m"
    ],
@@ -5263,7 +5451,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "36-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "ulan-ude"
+   ],
    "equipment": [
     "2s19-msta-s",
     "uragan"
@@ -5289,7 +5479,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "2-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "rosjtjinskij"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -5403,7 +5595,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "sevastopol"
+   ],
    "equipment": [
     "pantsir-s1"
    ],
@@ -5440,7 +5634,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "31-robotarmen",
@@ -5510,7 +5705,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "tjernigovka"
+   ],
    "equipment": [
     "ka-52",
     "mi-8"
@@ -5561,7 +5758,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "ukrainka"
+   ],
    "equipment": [
     "tu-22m3",
     "tu-95ms"
@@ -5592,7 +5791,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "20-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "kamysjin"
+   ],
    "equipment": [
     "t-80bvm",
     "bmp-2",
@@ -5677,7 +5878,9 @@
    "branch": "fallskärm",
    "country": "RU",
    "parent": "98-gardes-luftlandsattningsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "kostroma"
+   ],
    "equipment": [
     "bmd-2"
    ],
@@ -5707,7 +5910,10 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "pusjkin",
+    "pribylovo"
+   ],
    "equipment": [
     "mi-28n",
     "mi-24",
@@ -5746,7 +5952,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "335-radarregementet",
@@ -5769,7 +5976,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "337-gardes-helikopterregementet",
@@ -5857,7 +6065,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "34-blandade-flygdivisionen",
@@ -5880,7 +6089,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "34-gardes-artilleridivisionen",
@@ -5910,7 +6120,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "34-gardes-motoriserade-skyttebrigaden",
@@ -5921,7 +6132,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "49-armen",
-   "garrison": [],
+   "garrison": [
+    "storozjevaja"
+   ],
    "equipment": [
     "btr-82a",
     "mt-lb",
@@ -6008,7 +6221,9 @@
    "branch": "fallskärm",
    "country": "RU",
    "parent": "104-gardes-luftanfallsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "uljanovsk-fallskarm"
+   ],
    "equipment": [],
    "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
@@ -6043,7 +6258,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "347-motoriserade-skytteregementet",
@@ -6066,7 +6282,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "348-motoriserade-skytteregementet",
@@ -6089,7 +6306,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "35-gardes-armen",
@@ -6100,7 +6318,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "belogorsk"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -6128,7 +6348,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "35-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "belogorsk"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -6151,7 +6373,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": "36-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "ulan-ude"
+   ],
    "equipment": [
     "buk-m2"
    ],
@@ -6241,7 +6465,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": "20-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "volgograd"
+   ],
    "equipment": [],
    "status_sv": "återbildad 2021",
    "as_of": "2026-11",
@@ -6264,7 +6490,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "ulan-ude"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -6292,7 +6520,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "29-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "borzja"
+   ],
    "equipment": [
     "buk-m2",
     "t-72b3",
@@ -6368,7 +6598,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "377-gardes-luftvarnsrobotregementet-by",
@@ -6406,7 +6637,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "35-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "jekaterinoslavka"
+   ],
    "equipment": [
     "t-80bvm"
    ],
@@ -6436,7 +6669,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "150-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "novotjerkassk"
+   ],
    "equipment": [
     "2s19-msta-s",
     "2a65-msta-b",
@@ -6452,7 +6687,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Förläggningen anges inte i förbandets egen artikel; här följer den 150:e gardes motoriserade skyttedivisionen, som förbandet ingår i."
   },
   {
    "id": "382-marininfanteribataljonen",
@@ -6463,7 +6699,9 @@
    "branch": "marin",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "temrjuk"
+   ],
    "equipment": [
     "bmp-2",
     "btr-82a",
@@ -6490,7 +6728,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "2-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "totskoje"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -6535,7 +6775,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "39-gardes-motoriserade-skyttebrigaden",
@@ -6609,7 +6850,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "krasnodar-tsentralnyj"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -6644,7 +6887,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "4-gardes-flyg-och-luftforsvarsarmen",
@@ -6655,7 +6899,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "rostov-na-donu"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -6757,7 +7003,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "4-ubatsbrigaden",
@@ -6768,7 +7015,9 @@
    "branch": "marin",
    "country": "RU",
    "parent": "svartahavsflottan",
-   "garrison": [],
+   "garrison": [
+    "novorossijskaja-vojenno-morskaja-baza"
+   ],
    "equipment": [
     "kilo"
    ],
@@ -6793,7 +7042,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "58-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "archonskaja"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -6871,7 +7122,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "tjebarkul"
+   ],
    "equipment": [
     "2s3-akatsija",
     "uragan"
@@ -6927,7 +7180,9 @@
    "branch": "marin",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "sevastopolskaja-vojenno-morskaja-baza"
+   ],
    "equipment": [
     "kalibr",
     "bujan-m"
@@ -6983,7 +7238,9 @@
    "branch": "robot",
    "country": "RU",
    "parent": "31-robotarmen",
-   "garrison": [],
+   "garrison": [
+    "nizjnij-tagil"
+   ],
    "equipment": [
     "rs-24-jars",
     "topol-m"
@@ -7062,7 +7319,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "430-gardes-motoriserade-skytteregementet",
@@ -7085,7 +7343,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "433-gardes-motoriserade-skytteregementet",
@@ -7096,7 +7355,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "27-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "totskoje"
+   ],
    "equipment": [
     "t-72b3"
    ],
@@ -7121,7 +7382,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "kapustin-jar-2"
+   ],
    "equipment": [
     "d-30"
    ],
@@ -7193,7 +7456,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "440-gardes-helikopterregementet",
@@ -7204,7 +7468,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "dvojevka"
+   ],
    "equipment": [
     "ka-52",
     "mi-8"
@@ -7230,7 +7496,9 @@
    "branch": "robot",
    "country": "RU",
    "parent": "20-gardes-armen-by",
-   "garrison": [],
+   "garrison": [
+    "kursk-garnison"
+   ],
    "equipment": [
     "iskander-m"
    ],
@@ -7260,7 +7528,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "severomorsk"
+   ],
    "equipment": [
     "mi-8",
     "s-400"
@@ -7348,7 +7618,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "tambov"
+   ],
    "equipment": [
     "2s4-tjulpan"
    ],
@@ -7385,7 +7657,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "47-gardes-bombflygregementet",
@@ -7435,7 +7708,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "47-stridsvagnsdivisionen",
@@ -7446,7 +7720,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "mulino"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -7501,7 +7777,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "budjonnovsk"
+   ],
    "equipment": [
     "mi-28n",
     "mi-24",
@@ -7563,7 +7841,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "stavropol"
+   ],
    "equipment": [],
    "status_sv": "återbildad 2010",
    "as_of": "2026-11",
@@ -7653,7 +7933,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "51-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "donetsk"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -7752,7 +8034,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "5-luftvarnsrobotbrigaden",
@@ -7763,7 +8046,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": "6-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "lomonosov"
+   ],
    "equipment": [
     "buk-m2"
    ],
@@ -7848,7 +8133,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "19-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "troitskaja"
+   ],
    "equipment": [
     "btr-82a"
    ],
@@ -7885,7 +8172,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "506-gardes-motoriserade-skytteregementet",
@@ -7896,7 +8184,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "27-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "totskoje"
+   ],
    "equipment": [],
    "status_sv": "nybildad 2024, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
@@ -7919,7 +8209,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "donetsk"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -7947,7 +8239,9 @@
    "branch": "armé",
    "country": "BY",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "asipovitjy-belarus"
+   ],
    "equipment": [
     "2a65-msta-b",
     "2s7-pion",
@@ -8041,7 +8335,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "rajevskaja"
+   ],
    "equipment": [
     "d-30",
     "uragan",
@@ -8096,7 +8392,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": "20-gardes-armen-by",
-   "garrison": [],
+   "garrison": [
+    "kursk-garnison"
+   ],
    "equipment": [
     "buk-m2"
    ],
@@ -8126,7 +8424,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": "4-gardes-stridsvagnsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "naro-fominsk"
+   ],
    "equipment": [
     "tor-m2"
    ],
@@ -8196,7 +8496,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "55-gardes-helikopterregementet",
@@ -8232,7 +8533,9 @@
    "branch": "marin",
    "country": "RU",
    "parent": "stillahavsflottan",
-   "garrison": [],
+   "garrison": [
+    "vladivostok-marin"
+   ],
    "equipment": [],
    "status_sv": "nybildad 2025",
    "as_of": "2026-11",
@@ -8317,7 +8620,9 @@
    "branch": "fallskärm",
    "country": "RU",
    "parent": "7-gardes-luftanfallsdivisionen",
-   "garrison": [],
+   "garrison": [
+    "feodosija"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -8345,7 +8650,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": "12-transportflygdivisionen",
-   "garrison": [],
+   "garrison": [
+    "sesjtja"
+   ],
    "equipment": [
     "su-27",
     "an-124"
@@ -8413,7 +8720,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "58-gardes-armen",
@@ -8424,7 +8732,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "vladikavkaz"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -8452,7 +8762,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "27-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "rosjtjinskij"
+   ],
    "equipment": [],
    "status_sv": "nybildad 2024",
    "as_of": "2026-11",
@@ -8475,7 +8787,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "jelnja"
+   ],
    "equipment": [],
    "status_sv": "återbildad 2018, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
@@ -8498,7 +8812,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "sankt-petersburg"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -8521,7 +8837,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "sankt-petersburg"
+   ],
    "equipment": [
     "su-30sm",
     "mi-26",
@@ -8583,7 +8901,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "3-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "lugansk"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -8656,7 +8976,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "60-gardes-motoriserade-skyttebataljonen",
@@ -8727,7 +9048,9 @@
    "branch": "robot",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "tatisjtjevo"
+   ],
    "equipment": [
     "topol-m"
    ],
@@ -8811,7 +9134,9 @@
    "branch": "marin",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "petjenga"
+   ],
    "equipment": [
     "btr-82a"
    ],
@@ -8869,7 +9194,9 @@
    "branch": "robot",
    "country": "RU",
    "parent": "33-gardes-robotarmen",
-   "garrison": [],
+   "garrison": [
+    "uzjur"
+   ],
    "equipment": [
     "sarmat",
     "r-36m2"
@@ -8900,7 +9227,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "35-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "knjaze-volkonskoje"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -8928,7 +9257,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": "58-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "vladikavkaz"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -8963,7 +9294,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "68-gardes-armekaren",
@@ -8974,7 +9306,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "juzjno-sachalinsk"
+   ],
    "equipment": [],
    "status_sv": "återbildad 2014, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
@@ -9086,7 +9420,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "6-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "kamenka-viborg"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -9114,7 +9450,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "35-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "babstovo"
+   ],
    "equipment": [
     "t-80bvm",
     "bmp-2",
@@ -9177,7 +9515,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "3-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "lugansk"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -9235,7 +9575,9 @@
    "branch": "robot",
    "country": "RU",
    "parent": "27-gardes-robotarmen",
-   "garrison": [],
+   "garrison": [
+    "vypolzovo"
+   ],
    "equipment": [
     "rs-24-jars",
     "topol-m"
@@ -9370,7 +9712,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "71-gardes-luftvarnsrobotbrigaden",
@@ -9381,7 +9724,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": "35-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "belogorsk"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -9442,7 +9787,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "42-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "kalinovskaja"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -9484,7 +9831,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "72-motoriserade-skyttedivisionen",
@@ -9512,7 +9860,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Bildat under kriget mot Ukraina; öppna källor anger ingen fast förläggning i Ryssland. Förbandet har i stället varit insatt i Ukraina."
   },
   {
    "id": "74-gardes-motoriserade-skyttebrigaden",
@@ -9673,7 +10022,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "tver"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -9758,7 +10109,9 @@
    "branch": "robot",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "jurja"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
@@ -9843,7 +10196,9 @@
    "branch": "marin",
    "country": "RU",
    "parent": "svartahavsflottan",
-   "garrison": [],
+   "garrison": [
+    "sevastopol"
+   ],
    "equipment": [
     "su-24m"
    ],
@@ -9951,7 +10306,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "856-gardes-sjalvgaende-artilleriregementet",
@@ -9989,7 +10345,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "51-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "donetsk"
+   ],
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
@@ -10017,7 +10375,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "127-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "barano-orenburgskoje"
+   ],
    "equipment": [],
    "status_sv": "återbildad 2018",
    "as_of": "2026-11",
@@ -10073,7 +10433,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "51-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "donetsk"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -10167,7 +10529,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "92-gardes-robotbrigaden",
@@ -10178,7 +10541,9 @@
    "branch": "robot",
    "country": "RU",
    "parent": "2-gardes-armen",
-   "garrison": [],
+   "garrison": [
+    "totskoje"
+   ],
    "equipment": [
     "iskander-m"
    ],
@@ -10203,7 +10568,9 @@
    "branch": "luftvärn",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "vladivostok-marin"
+   ],
    "equipment": [
     "s-400",
     "pantsir-s1"
@@ -10218,7 +10585,8 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Divisionens stab ligger i Vladivostok; förbanden är spridda i Primorje."
   },
   {
    "id": "933-luftvarnsrobotregementet",
@@ -10256,7 +10624,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "20-gardes-motoriserade-skyttedivisionen",
-   "garrison": [],
+   "garrison": [
+    "volgograd"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -10279,7 +10649,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "donetsk"
+   ],
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
@@ -10302,7 +10674,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": "1-gardes-stridsvagnsarmen",
-   "garrison": [],
+   "garrison": [
+    "nizjnij-novgorod"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
@@ -10360,7 +10734,9 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "kant"
+   ],
    "equipment": [
     "su-25",
     "mi-8",
@@ -10567,7 +10943,8 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
   },
   {
    "id": "specialoperationsstyrkorna-ksso",
@@ -10578,7 +10955,9 @@
    "branch": "armé",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "senezj"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",

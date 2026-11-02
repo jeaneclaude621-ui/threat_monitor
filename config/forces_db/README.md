@@ -115,3 +115,15 @@ Andra omgången (påbörjad 2 nov 2026, gren `grunddata-styrkor-2`).
   förband). Den kan därför inte användas för att kontrollera ryska förband
   och garnisoner. Lästes artigt (en förfrågan var fjärde sekund, med
   User-Agent som namnger repot).
+- **Garnisoner (steg 1).** En garnison sattes bara när orten nämns i
+  förbandets egen Wikipedia-artikel (ryska eller engelska); den artikeln är
+  källan. 158 förband fick garnison på det sättet, fyra till via det högre
+  förbandet (då står det i `garrison_note_sv`). 49 nya garnisonsbaser lades
+  till med position från ortens ryska Wikipedia-artikel. En ny garnison som
+  låg inom 5 km från en befintlig bas slogs ihop med den (till exempel
+  Maikop, Znamensk/Kapustin Jar, Olenja Guba/Poljarnyj), utom Kursk där
+  staden och flygbasen Chalino hålls isär. 51 förband har `garrison: []` och
+  en `garrison_note_sv`: mest regementen och divisioner som bildats under
+  kriget och aldrig haft fast förläggning i Ryssland.
+- Förband som strider i Ukraina behåller sin hemgarnison; var de strider
+  står i `status_sv`.
