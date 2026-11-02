@@ -829,3 +829,14 @@ img.zoomable { cursor: zoom-in; -webkit-touch-callout: none; -webkit-user-select
 }
 .flab { fill: var(--ink); font-family: var(--sans); font-weight: 600; paint-order: stroke; stroke: #fff; stroke-linejoin: round; pointer-events: none; }
 @media (prefers-color-scheme: dark) { .flab { stroke: #0F1526; } }
+
+/* Minimap and fine outlines (Version 3.16) */
+.fmini { position: absolute; left: 8px; bottom: 8px; width: 132px; height: 62px; background: rgba(220,230,240,.92); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.12); cursor: pointer; }
+.fmini-land { fill: #F5F2EC; stroke: none; } .fmini-land.ru { fill: #E2BFB6; }
+.fmini-view { fill: rgba(215,38,30,.12); stroke: #D7261E; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.fland { stroke-linejoin: round; }
+@media (prefers-color-scheme: dark) { .fmini { background: rgba(19,32,58,.92); } .fmini-land { fill: #1E2B4E; } .fmini-land.ru { fill: #4A2A26; } }
+.fregion { fill: none; stroke: rgba(150,90,80,.35); stroke-width: .7; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; pointer-events: none; }
+.flake { fill: #DCE6F0; stroke: #B5C6D8; stroke-width: .5; vector-effect: non-scaling-stroke; pointer-events: none; }
+.friver { fill: none; stroke: #A9C1DA; stroke-width: 1; vector-effect: non-scaling-stroke; stroke-linecap: round; pointer-events: none; }
+@media (prefers-color-scheme: dark) { .flake { fill: #13203A; stroke: #2C3E62; } .friver { stroke: #2F4A75; } .fregion { stroke: rgba(200,140,120,.3); } }

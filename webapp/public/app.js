@@ -1923,6 +1923,109 @@ const MAP_PLACES = [
   ['Tallinn', 24.75, 59.44, 'city'], ['Vilnius', 25.28, 54.69, 'city'], ['Warszawa', 21.01, 52.23, 'city'], ['Odesa', 30.72, 46.48, 'city'],
 ];
 
+// Fine coastlines and borders (Natural Earth 1:10m), fetched the first
+// time a map is zoomed in; until then, and when zoomed out, the light
+// 1:50m outlines serve.
+let detailLand = null;
+function loadDetailLand() {
+  if (!detailLand) {
+    detailLand = fetch('/forces/countries-10m.json').then((r) => (r.ok ? r.json() : null)).then((j) => j?.countries || null).catch(() => null);
+  }
+  return detailLand;
+}
+
+// Lakes, major rivers, and the regional borders of Russia, Belarus and
+// Ukraine (Natural Earth): orientation inside the large countries.
+let mapFeatures = null;
+function loadMapFeatures() {
+  if (!mapFeatures) mapFeatures = fetch('/forces/features.json').then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  return mapFeatures;
+}
+const linePath = (lines, close) => lines.map((l) => `M${l.map(([lon, lat]) => `${FX(lon).toFixed(2)} ${FY(lat).toFixed(2)}`).join('L')}${close ? 'Z' : ''}`).join('');
+
+// A land layer that switches to the fine outlines when zoomed in, and
+// shows only the countries in view. update(vb, px) after each draw.
+function landLayers(countries, cls, onReady) {
+  const coarse = mapLand(countries, cls);
+  const fine = svgEl('g', { class: 'fland-fine' });
+  fine.style.display = 'none';
+  let paths = null; let asked = false;
+  const g = svgEl('g');
+  const regions = svgEl('path', { class: 'fregion' });
+  const water = svgEl('g');
+  g.append(coarse, fine, regions, water);
+  loadMapFeatures().then((f) => {
+    if (!f) return;
+    regions.setAttribute('d', linePath(f.regions, false));
+    water.append(svgEl('path', { class: 'flake', d: linePath(f.lakes, true) }), svgEl('path', { class: 'friver', d: linePath(f.rivers, false) }));
+  });
+  return {
+    g,
+    update(vb, px) {
+      regions.style.display = px < 1.6 ? '' : 'none';
+      const near = px < 1.1;
+      if (near && !asked) {
+        asked = true;
+        loadDetailLand().then((list) => {
+          if (!list) return;
+          paths = list.map((c) => {
+            let x0 = Infinity; let y0 = Infinity; let x1 = -Infinity; let y1 = -Infinity;
+            const d = c.rings.map((r) => `M${r.map(([lon, lat]) => {
+              const x = FX(lon); const y = FY(lat);
+              if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+              return `${x.toFixed(2)} ${y.toFixed(2)}`;
+            }).join('L')}Z`).join('');
+            const el = svgEl('path', { d, class: `fland ${cls(c)}` });
+            fine.appendChild(el);
+            return { el, box: [x0, y0, x1, y1] };
+          });
+          onReady();
+        });
+      }
+      const useFine = near && paths;
+      fine.style.display = useFine ? '' : 'none';
+      coarse.style.display = useFine ? 'none' : '';
+      if (useFine) {
+        for (const { el, box } of paths) {
+          const inView = box[2] >= vb.x && box[0] <= vb.x + vb.w && box[3] >= vb.y && box[1] <= vb.y + vb.h;
+          el.style.display = inView ? '' : 'none';
+        }
+      }
+    },
+  };
+}
+
+// A small overview in the corner while zoomed in: where the view is, and a
+// tap moves there.
+function miniMap(countries, full, onJump) {
+  const svg = svgEl('svg', { class: 'fmini', viewBox: `${full.x} ${full.y} ${full.w} ${full.h}`, 'aria-hidden': 'true' });
+  const g = svgEl('g');
+  for (const c of countries) {
+    const d = c.rings.filter((r) => r.length > 12).map((r) => `M${r.filter((_, i) => i % 3 === 0).map(([lon, lat]) => `${FX(lon).toFixed(0)} ${FY(lat).toFixed(0)}`).join('L')}Z`).join('');
+    if (d) g.appendChild(svgEl('path', { d, class: `fmini-land${c.name === 'Russia' || c.name === 'Belarus' ? ' ru' : ''}` }));
+  }
+  const rect = svgEl('rect', { class: 'fmini-view' });
+  svg.append(g, rect);
+  svg.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    const r = svg.getBoundingClientRect();
+    onJump(full.x + (ev.clientX - r.left) / r.width * full.w, full.y + (ev.clientY - r.top) / r.height * full.h);
+  });
+  svg.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+  return {
+    svg,
+    update(vb) {
+      const show = vb.w < full.w * 0.55;
+      svg.style.display = show ? '' : 'none';
+      if (!show) return;
+      // At least a few map units, so a deep zoom still shows a mark.
+      const mw = Math.max(vb.w, full.w / 60); const mh = Math.max(vb.h, full.w / 90);
+      rect.setAttribute('x', vb.x + vb.w / 2 - mw / 2); rect.setAttribute('y', vb.y + vb.h / 2 - mh / 2);
+      rect.setAttribute('width', mw); rect.setAttribute('height', mh);
+    },
+  };
+}
+
 function mapLand(countries, cls = (c) => '') {
   const g = svgEl('g');
   const grid = [];
@@ -2066,7 +2169,8 @@ async function viewForces() {
   let selected = forcesUi.selected ? byId.get(forcesUi.selected) || null : null;
 
   const svg = svgEl('svg', { class: 'fmap', role: 'img', 'aria-label': 'Karta över ryska baser' });
-  const landG = mapLand(land, (c) => (c.name === 'Russia' || c.name === 'Belarus' ? 'ru' : c.name === 'Sweden' ? 'se' : ''));
+  const lands = landLayers(land, (c) => (c.name === 'Russia' || c.name === 'Belarus' ? 'ru' : c.name === 'Sweden' ? 'se' : ''), () => redraw());
+  const landG = lands.g;
   // Names under the bases, so a name never covers a base or takes its tap.
   const placesG = svgEl('g', { class: 'fplaces' });
   const labelsG = svgEl('g', { class: 'flabels' });
@@ -2099,6 +2203,7 @@ async function viewForces() {
   const redraw = frameThrottle(() => draw());
   const pz = attachPanZoom(svg, { get: () => vb, set: (v) => { vb = v; redraw(); }, full: FULL, minW: MIN_W });
   const zoomTo = (x, y, w) => { pz.zoomTo(x, y, w); };
+  const mini = miniMap(land, FULL, (x, y) => zoomTo(x, y, vb.w));
   const EUROPE = () => zoomTo(FX(36), FY(56), FX(68) - FX(4));
 
   function draw() {
@@ -2108,6 +2213,8 @@ async function viewForces() {
     const hit = matches();
     // Sizes in screen pixels: px is map units per pixel.
     const px = vb.w / (svg.clientWidth || 360);
+    lands.update(vb, px);
+    mini.update(vb);
     mapPlaces(placesG, px, vb);
     ptsG.replaceChildren(); labelsG.replaceChildren();
     // Bases closer than ~30 px on screen gather into a group; the groups
@@ -2258,7 +2365,7 @@ async function viewForces() {
       nightRows.length ? h('ul', { class: 'coa-signs' }, nightRows) : h('p', { class: 'small muted' }, 'Inget nytt rapporterat om baserna eller styrkorna.')) : null,
     h('p', { class: 'small muted' }, `${bases.length} baser: ${counts.anfallen} anfallna senaste 30 dagarna, ${counts.aktiv} med kända förband, ${counts['okänd']} bara position.`),
     search, sugg, chips,
-    h('div', { class: 'fmap-wrap card' }, svg, tools),
+    h('div', { class: 'fmap-wrap card' }, svg, tools, mini.svg),
     h('div', { class: 'flegend small muted' },
       Object.values(FORCE_BRANCH).map(([label, letter, colour]) => h('span', null, h('b', { class: 'fdot', style: `background:${colour}` }, letter), label)),
       h('span', null, h('b', { class: 'fdot anfallen' }), 'Anfallen senaste 30 dagarna')),
@@ -2324,7 +2431,8 @@ async function viewStrikes() {
   let kind = strikesUi.kind;
   const view = { x: FX(21), y: FY(57.5), w: FX(50) - FX(21), h: FY(42.5) - FY(57.5) };
   const svg = svgEl('svg', { class: 'fmap smap', role: 'img', 'aria-label': 'Karta över nattens anfall', viewBox: `${view.x} ${view.y} ${view.w} ${view.h}` });
-  const landG = mapLand(land.countries, (c) => (c.name === 'Russia' || c.name === 'Belarus' ? 'ru' : c.name === 'Ukraine' ? 'ua' : ''));
+  const lands = landLayers(land.countries, (c) => (c.name === 'Russia' || c.name === 'Belarus' ? 'ru' : c.name === 'Ukraine' ? 'ua' : ''), () => redraw());
+  const landG = lands.g;
   const placesG = svgEl('g', { class: 'fplaces' });
   const trailsG = svgEl('g');
   svg.append(landG, placesG, trailsG);
@@ -2343,6 +2451,7 @@ async function viewStrikes() {
     Object.assign(strikesUi, { date: day.date, kind, vb });
     svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
     u = vb.w / 100;
+    lands.update(vb, vb.w / (svg.clientWidth || 360));
     mapPlaces(placesG, vb.w / (svg.clientWidth || 360), vb);
     trailsG.replaceChildren();
     const rows = day.rows.filter((r) => !kind || r.kind === kind);
