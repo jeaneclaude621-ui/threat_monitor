@@ -936,7 +936,14 @@
     "Status": "ny variant, få publicerade uppgifter",
     "Källor": "främst ukrainsk underrättelsetjänst"
    },
-   "image": null,
+   "image": {
+    "file": "sys-geran-4.jpg",
+    "commons_file": "File:Geran-4 wreckage.jpg",
+    "author": "National Police of Ukraine",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AGeran-4_wreckage.jpg"
+   },
    "sources": [
     {
      "url": "https://www.kaggle.com/datasets/piterfm/massive-missile-attacks-on-ukraine",
@@ -956,7 +963,14 @@
     "Motor": "jetmotor enligt uppgifter",
     "Status": "ny variant, uppgifterna osäkra"
    },
-   "image": null,
+   "image": {
+    "file": "sys-geran-5.jpg",
+    "commons_file": "File:Geran-5 launch - 9 May 2026.png",
+    "author": "Office of the President of Russia",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AGeran-5_launch_-_9_May_2026.png"
+   },
    "sources": [
     {
      "url": "https://www.kaggle.com/datasets/piterfm/massive-missile-attacks-on-ukraine",
@@ -977,7 +991,14 @@
     "Syfte": "överbelasta luftvärnet",
     "Stridsdel": "oftast ingen eller liten"
    },
-   "image": null,
+   "image": {
+    "file": "sys-gerbera.jpg",
+    "commons_file": "File:Russian drone Gerbera, downed in Ukraine (2025-01-05).jpg",
+    "author": "State Border Guard Service of Ukraine",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ARussian_drone_Gerbera%2C_downed_in_Ukraine_%282025-01-05%29.jpg"
+   },
    "sources": [
     {
      "url": "https://en.wikipedia.org/wiki/HESA_Shahed_136",
@@ -1771,7 +1792,14 @@
     "Stridsdel": "upp till cirka 500 kg",
     "Ursprung": "Nordkorea"
    },
-   "image": null,
+   "image": {
+    "file": "sys-kn-23.jpg",
+    "commons_file": "File:Diagram of KN-23.svg",
+    "author": "Geoarchive",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ADiagram_of_KN-23.svg"
+   },
    "sources": [
     {
      "url": "https://en.wikipedia.org/wiki/KN-23",
@@ -1905,7 +1933,14 @@
     "Typ": "telekrigssystem med Orlan-10-drönare",
     "Användning": "störa mobiltelefoner och skicka sms"
    },
-   "image": null,
+   "image": {
+    "file": "sys-leer-3.jpg",
+    "commons_file": "File:TB2015ExhibitionP2-47.jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ATB2015ExhibitionP2-47.jpg"
+   },
    "sources": [
     {
      "url": "https://en.wikipedia.org/wiki/Leer-3",
@@ -1925,7 +1960,14 @@
     "Typ": "spaningsdrönare",
     "Användning": "målspaning före anfall enligt uppgifter"
    },
-   "image": null,
+   "image": {
+    "file": "sys-merlin-vr.jpg",
+    "commons_file": "File:Merlin-VR (1).png",
+    "author": "Okänd upphovsperson (enligt Wikimedia Commons)",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AMerlin-VR_%281%29.png"
+   },
    "sources": [
     {
      "url": "https://www.kaggle.com/datasets/piterfm/massive-missile-attacks-on-ukraine",
@@ -3021,7 +3063,14 @@
     "Uthållighet": "några timmar enligt tillverkaren",
     "Användning": "målutpekning för artilleri"
    },
-   "image": null,
+   "image": {
+    "file": "sys-supercam.jpg",
+    "commons_file": "File:Supercam S350.jpg",
+    "author": "Supercamaero",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ASupercam_S350.jpg"
+   },
    "sources": [
     {
      "url": "https://www.kaggle.com/datasets/piterfm/massive-missile-attacks-on-ukraine",
@@ -3207,7 +3256,14 @@
     "Kaliber": "122 mm",
     "Grund": "moderniserad Grad"
    },
-   "image": null,
+   "image": {
+    "file": "sys-tornado-g.jpg",
+    "commons_file": "File:Tornado-G MLRS.jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ATornado-G_MLRS.jpg"
+   },
    "sources": [
     {
      "url": "https://en.wikipedia.org/wiki/BM-21_Grad",
@@ -3365,7 +3421,14 @@
     "Typ": "tvåmotorigt passagerar- och specialplan",
     "Varianter": "Tu-214R (spaning), Tu-214ON (Open Skies), statliga versioner"
    },
-   "image": null,
+   "image": {
+    "file": "sys-tu-214.jpg",
+    "commons_file": "File:Tupolev Tu-214ON RF-64525 (29635728096).jpg",
+    "author": "Dmitry Terekhov from Odintsovo, Russian Federation",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ATupolev_Tu-214ON_RF-64525_%2829635728096%29.jpg"
+   },
    "sources": [
     {
      "url": "https://en.wikipedia.org/wiki/Tupolev_Tu-214",
@@ -3550,7 +3613,14 @@
     "Typ": "lätta spaningsdrönare",
     "Tillverkare": "ZALA Aero (Kalasjnikov-koncernen)"
    },
-   "image": null,
+   "image": {
+    "file": "sys-zala.jpg",
+    "commons_file": "File:ZALA 421-16 Engineering technologies international forum 2010.jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AZALA_421-16_Engineering_technologies_international_forum_2010.jpg"
+   },
    "sources": [
     {
      "url": "https://en.wikipedia.org/wiki/ZALA_Aero_Group",
