@@ -45,7 +45,17 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
   `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy` som ett eget
   kommando med arbetsmappen `webapp/`.
 
+**Viktigt om "molnjobb":** subagenter som startas med molnisolering härifrån
+kördes lokalt i `.claude/worktrees/` på användarens vanliga användningsgräns,
+inte i molnet. Den andra omgången stoppades av femtimmarsgränsen 2 nov kl. 06.
+Användaren vill använda molnkrediterna. Starta därför långa jobb som en egen
+session på claude.ai/code, och skriv instruktionen till en fil i grenen.
+
 **Pågår: andra omgången av grunddatabasen (molnjobb, gren `grunddata-styrkor-2`).**
+**Status 2 nov kl. 09:** steg 1 (garnisoner, 158 förband och 49 baser) och steg 5
+(72 anfall) är klara och pushade, och steg 6 är påbörjat (bilder för tio vapen).
+Användaren startar själv en molnsession på claude.ai/code som fortsätter enligt
+`config/forces_db/ANDRA_OMGANGEN.md` på grenen.
 Startad 2 nov förmiddag och får köra över dagen. Den ska inte fråga
 något, och den pushar efter varje steg. Steg:
 1. garnisoner för alla förband (212 av 383 saknade);
