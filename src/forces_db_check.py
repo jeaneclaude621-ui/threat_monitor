@@ -1,7 +1,9 @@
 """
 Checks the forces foundation database (config/forces_db): every id
-reference resolves, every entry has a source, every image file exists and
-carries author, licence and source, and the app's static copies match.
+reference resolves (and a unit's garrison lists the unit, and back), every
+entry has a source, every image file exists and carries author, licence
+and source, every ship has a class and a home base, no base text is the
+first pass's template, and the app's static copies match.
 Also: no Russian state media, Telegram or email addresses anywhere, the
 image folder within its limits (15 MB in all, 80 KB a file), and the
 nightly payload and base list within theirs.
@@ -25,6 +27,7 @@ STRIKE_IDS = ["geran-2", "shahed-131", "geran-3", "geran-4", "geran-5", "gerbera
 # Never a source: Russian state media and Telegram.
 BANNED = re.compile(r"(^|[/.])(tass\.(ru|com)|rt\.com|ria\.ru|sputniknews\.|sputnik\.|iz\.ru|tvzvezda\.ru|rg\.ru|t\.me|telegram\.(org|me))(/|$)", re.I)
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+TEMPLATE = re.compile(r"^\S.* är en (militär flygbas|garnison för|luftvärnsgarnison|marinbas|robotgarnison) .*militärdistrikt|Här finns enligt källorna|Materiel som nämns:")
 IMG_TOTAL = 15_000_000
 IMG_FILE = 80_000
 PAYLOAD_MAX = 1_500_000
@@ -85,6 +88,14 @@ def main() -> int:
             err(f"base {b['id']}: description or status")
         if b.get("image"):
             check_image(b["image"], f"base {b['id']}", err)
+    base_units = {b["id"]: set(b["units"]) for b in bases}
+    for b in bases:
+        for uid in b["units"]:
+            if uid in units and b["id"] not in (units[uid].get("garrison") or []):
+                err(f"base {b['id']}: unit {uid} does not have the base as garrison")
+        # The first pass wrote one template sentence per base; each now has its own text.
+        if TEMPLATE.search(b.get("description_sv") or ""):
+            err(f"base {b['id']}: description is still the template")
     for u in units.values():
         if u.get("parent") and u["parent"] not in units:
             err(f"unit {u['id']}: parent {u['parent']} missing")
@@ -104,6 +115,11 @@ def main() -> int:
             err(f"unit {u['id']}: status_sv or as_of")
         if u.get("type") == "fartyg" and u.get("class") not in systems:
             err(f"unit {u['id']}: ship class {u.get('class')} missing")
+        if u.get("type") == "fartyg" and not u.get("garrison"):
+            err(f"unit {u['id']}: ship without home base")
+        for g in u.get("garrison") or []:
+            if g in base_units and u["id"] not in base_units[g]:
+                err(f"unit {u['id']}: garrison {g} does not list the unit")
         if u.get("image"):
             check_image(u["image"], f"unit {u['id']}", err)
     images = 0
