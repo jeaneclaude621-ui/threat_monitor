@@ -7699,7 +7699,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Prochladnyj är en garnison för markstridskrafterna i Ryssland (Södra militärdistriktet). Här finns enligt källorna 31:a gardes ingenjörregementet.",
+   "description_sv": "Garnison i Prochladnyj i Kabardino-Balkarien för 31:a gardes ingenjörregementet i 58:e armén, bildat 2014.",
    "units": [
     "31-gardes-ingenjorregementet"
    ],
@@ -7728,7 +7728,7 @@
    "branch": "flyg",
    "country": "BY",
    "military_district": "Belarus",
-   "description_sv": "Pruzjany är en militär flygbas i Belarus.",
+   "description_sv": "Belarusiskt militärt flygfält (Zapadnyj) nordväst om Pruzjany i Brest oblast. Inget flygförband är fast stationerat här enligt källorna.",
    "units": [],
    "equipment": [],
    "status": {
@@ -7755,7 +7755,7 @@
    "branch": "fallskärm",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Pskov är en garnison för luftlandsättningstrupperna i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 234:e gardes luftanfallsregementet, 76:e gardes luftanfallsdivisionen. Materiel som nämns: BMD-4M, Il-76.",
+   "description_sv": "Pskov är stab för 76:e gardes luftanfallsdivisionen med 104:e, 234:e och 237:e regementena och 1140:e artilleriregementet, utrustade med BMD-4M. Divisionen har stridit i Ukraina sedan 2022 och strider enligt ISW i Huljajpole-riktningen (okt 2026).",
    "units": [
     "234-gardes-luftanfallsregementet",
     "76-gardes-luftanfallsdivisionen",
@@ -7814,7 +7814,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Pskov är en garnison för markstridskrafterna i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 2:a gardes specialförbandsbrigaden (Spetsnaz).",
+   "description_sv": "Garnison vid Promezjitsy utanför Pskov för 2:a gardes specialförbandsbrigaden (GRU:s Spetsnaz).",
    "units": [
     "2-gardes-specialforbandsbrigaden-spetsnaz"
    ],
@@ -7848,7 +7848,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Pugatjjov är en militär flygbas i Ryssland (Centrala militärdistriktet).",
+   "description_sv": "Litet militärt flygfält två kilometer norr om Pugatjov i Saratov oblast. 626:e skolhelikopterregementet upplöstes 2011; sedan 2016 flyger kadetter från flygvapenakademin helikopter här.",
    "units": [],
    "equipment": [],
    "status": {
@@ -7880,7 +7880,7 @@
    "branch": "fallskärm",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Rjazan är en garnison för luftlandsättningstrupperna i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 137:e gardes fallskärmsregementet. Materiel som nämns: Il-76, BMD-4M, BTR-MDM Rakusjka.",
+   "description_sv": "Rjazan är garnison för 137:e gardes fallskärmsregementet (Kubankosackerna) i 106:e luftlandsättningsdivisionen. Regementet deltog i den ryska interventionen i Ukraina 2014 enligt Wikipedia.",
    "units": [
     "137-gardes-fallskarmsregementet"
    ],
@@ -7918,7 +7918,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Rogatjjovo är en militär flygbas i Ryssland (Leningrads militärdistrikt).",
+   "description_sv": "Militär flygbas (Amderma-2) på Södra ön i Novaja Zemlja, nio kilometer från Belusjja Guba. Den byggdes som mellanlandningsplats för fjärrbombplan och var senare jaktflygbas mot amerikanska SR-71; sedan 2014 är den en av Norra flottans arktiska baser.",
    "units": [],
    "equipment": [],
    "status": {
@@ -7950,7 +7950,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Rostov-na-Donu är en garnison för markstridskrafterna i Ryssland (Södra militärdistriktet). Här finns enligt källorna 103:e gardes motoriserade skytteregementet. Materiel som nämns: BTR-82A, 2A65 Msta-B.",
+   "description_sv": "Rostov-na-Donu är stab för 4:e gardes flyg- och luftförsvarsarmén, och sedan 2019 garnison för 103:e gardes motoriserade skytteregementet i 150:e divisionen.",
    "units": [
     "103-gardes-motoriserade-skytteregementet",
     "4-gardes-flyg-och-luftforsvarsarmen"
@@ -7983,7 +7983,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Rtisjtjevo är en militär flygbas i Ryssland (Centrala militärdistriktet).",
+   "description_sv": "Skolflygbas sex kilometer nordväst om Rtisjtjevo i Saratov oblast, med 666:e skolflygregementet (L-410) i 786:e utbildningscentret.",
    "units": [],
    "equipment": [],
    "status": {
@@ -8015,7 +8015,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Rybnoje är en garnison för markstridskrafterna i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 34:e järnvägsbrigaden.",
+   "description_sv": "Garnison i Rjazan oblast för 34:e självständiga järnvägsbrigaden.",
    "units": [
     "34-jarnvagsbrigaden"
    ],
@@ -8044,7 +8044,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Rzjev är en militär flygbas i Ryssland (Moskvas militärdistrikt).",
+   "description_sv": "Militär flygbas fem kilometer öster om Rzjev i Tver oblast, med 2,5 kilometer lång rullbana som tar emot alla typer av flygplan. Fältet drivs av 514:e flygverkstaden, som reparerar militärflygplan.",
    "units": [],
    "equipment": [],
    "status": {
@@ -8076,7 +8076,7 @@
    "branch": "luftvärn",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Rzjev (luftvärnsförband) är en luftvärnsgarnison i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 32:a luftvärnsdivisionen.",
+   "description_sv": "Rzjev är stab för 32:a luftvärnsdivisionen i flyg- och rymdstridskrafterna, en del av luftförsvaret väster om Moskva.",
    "units": [
     "32-luftvarnsdivisionen"
    ],
@@ -8105,7 +8105,7 @@
    "branch": "flyg",
    "country": "UA",
    "military_district": "Södra militärdistriktet (ockuperat område i Ukraina)",
-   "description_sv": "Saky är en militär flygbas i ockuperade Ukraina (Södra militärdistriktet (ockuperat område i Ukraina)). Materiel som nämns: Su-24M, Su-30SM / SM2. Senast rapporterade anfall: 2022-08-09.",
+   "description_sv": "Marinflygbas vid Saky på västra Krim, med Su-24M och Su-30SM. Den 9 augusti 2022 förstördes enligt satellitbilder sju flygplan och tre skadades i kraftiga explosioner. I januari 2024 träffades en ledningscentral enligt Ukraina.",
    "units": [],
    "equipment": [
     "su-24m",
@@ -8170,7 +8170,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Samara är en garnison för markstridskrafterna i Ryssland (Centrala militärdistriktet). Här finns enligt källorna 2:a gardes armén.",
+   "description_sv": "Samara är stab för 2:a gardes armén i Centrala militärdistriktet. Armén anfaller mot Dobropillja från söder enligt ISW (okt 2026).",
    "units": [
     "2-gardes-armen"
    ],
@@ -8204,7 +8204,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Saratov-Sokol är en militär flygbas i Ryssland (Centrala militärdistriktet).",
+   "description_sv": "Skolflygbas (Sokol) väster om Saratov för helikopterutbildning: 339:e skolflygbasen i flygvapenakademins filial i Syzran med Ansat, Ka-226, Mi-2 och Mi-8.",
    "units": [],
    "equipment": [],
    "status": {
@@ -8236,7 +8236,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Savasleika är en militär flygbas i Ryssland (Leningrads militärdistrikt). Materiel som nämns: MiG-31 (BM, K), Kh-47M2 Kinzjal.",
+   "description_sv": "Flygbas mellan Vyksa och Kulebaki i Nizjnij Novgorod oblast, med MiG-31 och hypersonroboten Kinzjal enligt källorna. Enligt ukrainsk underrättelsetjänst förstördes i augusti 2024 tre flygplan, troligen ett MiG-31K och två Il-76, och i juni 2025 skadades ett MiG-31 enligt Ukraina.",
    "units": [],
    "equipment": [
     "mig-31",
@@ -8307,13 +8307,13 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Savvatija är en militär flygbas i Ryssland (Leningrads militärdistrikt).",
+   "description_sv": "Före detta jaktflygbas 29 kilometer söder om Kotlas i Arkhangelsk oblast, där 445:e och senare 458:e jaktflygregementena med Tu-128, MiG-25 och MiG-31 låg.",
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "nedlagd",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Basen är nedlagd eller används inte längre militärt enligt Wikipedia."
    },
    "events": [],
    "sources": [
@@ -8339,7 +8339,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Sesjtja är en militär flygbas i Ryssland (Moskvas militärdistrikt). Materiel som nämns: Il-76, An-124.",
+   "description_sv": "Transportflygbas vid Sesjtja i Brjansk oblast, hemmabas för 566:e transportflygregementet med An-124 och Il-76 i 12:e transportflygdivisionen sedan 1958.",
    "units": [
     "566-transportflygregementet"
    ],
@@ -8384,7 +8384,7 @@
    "branch": "marin",
    "country": "UA",
    "military_district": "Södra militärdistriktet (ockuperat område i Ukraina)",
-   "description_sv": "Sevastopol är en marinbas i ockuperade Ukraina (Södra militärdistriktet (ockuperat område i Ukraina)). Här finns enligt källorna 30:e ytstridsdivisionen, Svartahavsflottan. Materiel som nämns: Admiral Grigorovitj-klass (projekt 11356). Senast rapporterade anfall: 2023-09-22.",
+   "description_sv": "Sevastopol på det ockuperade Krim var Svartahavsflottans huvudbas; efter upprepade ukrainska anfall flyttades de flesta större fartyg 2023–2024 till Novorossijsk. Flottans högkvarter träffades av robotar den 22 september 2023, och samma månad förstördes landstigningsfartyget Minsk och ubåten Rostov-na-Donu skadades svårt i torrdocka. Fler fartyg har träffats sedan, bland annat landstigningsfartygen Jamal och Azov i mars 2024.",
    "units": [
     "30-ytstridsdivisionen",
     "svartahavsflottan",
@@ -8525,6 +8525,16 @@
      "url": "https://ru.wikipedia.org/wiki/%D0%A7%D0%B5%D1%80%D0%BD%D0%BE%D0%BC%D0%BE%D1%80%D1%81%D0%BA%D0%B8%D0%B9_%D1%84%D0%BB%D0%BE%D1%82_%D0%92%D0%9C%D0%A4_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.pravda.com.ua/eng/news/2023/10/5/7422697/",
+     "outlet": "Ukrainska Pravda",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ukrinform.net/rubric-ato/3770162-russia-transfers-part-of-black-sea-fleet-vessels-from-sevastopol-to-novorossiysk-isw.html",
+     "outlet": "Ukrinform (ISW)",
+     "accessed": "2026-11-02"
     }
    ],
    "curated_index": 17,
@@ -8546,7 +8556,7 @@
    "branch": "armé",
    "country": "UA",
    "military_district": "Södra militärdistriktet (ockuperat område i Ukraina)",
-   "description_sv": "Sevastopol är en garnison för markstridskrafterna i ockuperade Ukraina (Södra militärdistriktet (ockuperat område i Ukraina)). Här finns enligt källorna 22:a armékåren. Materiel som nämns: BTR-82A.",
+   "description_sv": "Sevastopol var stab för 22:a armékåren i Svartahavsflottans kusttrupper (bildad 2017) och är förläggning för 810:e gardes marininfanteribrigaden och 31:a luftvärnsdivisionen med 12:e luftvärnsrobotregementet.",
    "units": [
     "22-armekaren",
     "810-gardes-marininfanteribrigaden",
@@ -8599,7 +8609,7 @@
    "branch": "marin",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Severodvinsk är en marinbas i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna Vita havets marinbas. Materiel som nämns: Bulava, Borej-klass (projekt 955), Jasen-M-klass (projekt 885M).",
+   "description_sv": "Severodvinsk vid Vita havet är bas för Vita havets marinbas i Norra flottan, med Bulava och ubåtar av Borej- och Jasen-M-klassen enligt källorna.",
    "units": [
     "vita-havets-marinbas"
    ],
@@ -8640,7 +8650,7 @@
    "branch": "luftvärn",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Severodvinsk (luftvärnsförband) är en luftvärnsgarnison i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 1528:e luftvärnsrobotregementet. Materiel som nämns: S-400, S-300 (PS, PM, V4).",
+   "description_sv": "Garnison i Severodvinsk för 1528:e luftvärnsrobotregementet med S-400 och S-300, i 1:a luftvärnsdivisionen.",
    "units": [
     "1528-luftvarnsrobotregementet"
    ],
@@ -8672,7 +8682,7 @@
    "branch": "marin",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Severomorsk är en marinbas i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna Norra flottan. Materiel som nämns: Su-33, MiG-29K, Sineva / Lajner, Kalibr, P-800 Onyx, Borej-klass (projekt 955) med mera.",
+   "description_sv": "Severomorsk vid Kolafjorden, 25 kilometer nordost om Murmansk, är Norra flottans huvudbas och högkvarter. Här ligger 43:e robotfartygsdivisionen med kärnkraftskryssarna Pjotr Velikij och Admiral Nachimov, kryssaren Marsjal Ustinov och fregatterna av Admiral Gorsjkov-klassen, jagare av Udaloj-klassen och landstigningsfartyg. Staden är också stab för 45:e flyg- och luftförsvarsarmén.",
    "units": [
     "norra-flottan",
     "45-flyg-och-luftforsvarsarmen",
@@ -8754,7 +8764,7 @@
    "branch": "luftvärn",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Severomorsk (luftvärnsförband) är en luftvärnsgarnison i Ryssland (Leningrads militärdistrikt). Här finns enligt källorna 1:a luftvärnsdivisionen. Materiel som nämns: S-400.",
+   "description_sv": "Safonovo i Severomorsk är stab för 1:a luftvärnsdivisionen i 45:e flyg- och luftförsvarsarmén, med S-400.",
    "units": [
     "1-luftvarnsdivisionen"
    ],
@@ -8790,7 +8800,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Severomorsk-1 är en militär flygbas i Ryssland (Leningrads militärdistrikt). Materiel som nämns: Su-33, MiG-29K, Il-38 / Il-38N.",
+   "description_sv": "Marinflygbas vid Severomorsk, hemmabas för Norra flottans marinflyg med Su-33 och MiG-29K och ubåtsjaktplanet Il-38.",
    "units": [],
    "equipment": [
     "su-33",
@@ -8831,7 +8841,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Severomorsk-3 är en militär flygbas i Ryssland (Leningrads militärdistrikt).",
+   "description_sv": "Marinflygbas (Maljavr) 28 kilometer öster om Murmansk, hemmabas för 100:e självständiga fartygsbaserade jaktflygregementet med MiG-29KR/KUBR och 279:e fartygsbaserade jaktflygregementet.",
    "units": [],
    "equipment": [],
    "status": {
@@ -8863,7 +8873,7 @@
    "branch": "robot",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Sibirskij är en robotgarnison i Ryssland (Centrala militärdistriktet). Här finns enligt källorna 35:e robotdivisionen. Materiel som nämns: RS-24 Jars, Topol-M.",
+   "description_sv": "Den slutna staden Sibirskij i Altaj kraj är stab för 35:e robotdivisionen i 33:e robotarmén, med mobila interkontinentala robotar RS-24 Jars och Topol-M.",
    "units": [
     "35-robotdivisionen"
    ],
@@ -8900,7 +8910,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Siverskij är en militär flygbas i Ryssland (Leningrads militärdistrikt).",
+   "description_sv": "Militär flygbas två kilometer nordväst om Siverskij, 65 kilometer söder om Sankt Petersburg. Den har varit bas för 67:e bombflygregementet med Su-24 och har enligt NRDC tjänat som kärnvapenbas för bombflyg.",
    "units": [],
    "equipment": [],
    "status": {
@@ -8932,7 +8942,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Sjagol (Tjeljabinsk) är en militär flygbas i Ryssland (Centrala militärdistriktet). Materiel som nämns: Su-34.",
+   "description_sv": "Militär flygbas (Sjagol) nordväst om Tjeljabinsk, hemmabas för 2:a gardes blandade flygregementet med Su-34 och Su-24MR i 21:a blandade flygdivisionen och för 108:e skolflygregementet. Ett Su-34 brandskadades enligt HUR i januari 2024.",
    "units": [
     "21-blandade-flygdivisionen",
     "2-gardes-blandade-flygregementet"
@@ -8990,7 +9000,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Sjajkovka är en militär flygbas i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 52:a gardes tunga bombflygregementet. Materiel som nämns: Tu-22M3, Kh-22. Senast rapporterade anfall: 2023-08-21.",
+   "description_sv": "Bombflygbas 17 kilometer norr om Kirov i Kaluga oblast, hemmabas för 52:a gardes tunga bombflygregementet med Tu-22M3 och Ch-22-robotar. Ukraina har anfallit basen flera gånger sedan oktober 2022; uppgifter om förstörda bombplan är obekräftade.",
    "units": [
     "52-gardes-tunga-bombflygregementet"
    ],
@@ -9098,7 +9108,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Sjali är en garnison för markstridskrafterna i Ryssland (Centrala militärdistriktet). Här finns enligt källorna 42:a gardes motoriserade skyttedivisionen, 70:e gardes motoriserade skytteregementet.",
+   "description_sv": "Sjali i Tjetjenien är stab för 42:a gardes motoriserade skyttedivisionen i 58:e armén och garnison för dess 70:e regemente. Delar av divisionen strider söder om Orichiv och i norra Ukraina enligt ISW (sept 2026).",
    "units": [
     "42-gardes-motoriserade-skyttedivisionen",
     "70-gardes-motoriserade-skytteregementet"
@@ -9138,7 +9148,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Sjatalovo är en militär flygbas i Ryssland (Moskvas militärdistrikt).",
+   "description_sv": "Stor skyddad flygbas i Potjinok-distriktet i Smolensk oblast, med uppställningsplatser för 19 bombplan och 15 jaktplan; enligt NRDC tidigare kärnvapenbas för Su-24.",
    "units": [],
    "equipment": [],
    "status": {
@@ -9170,7 +9180,7 @@
    "branch": "robot",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Sjuja är en robotgarnison i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 112:e gardes robotbrigaden. Materiel som nämns: Iskander-M.",
+   "description_sv": "Garnison i Sjuja i Ivanovo oblast för 112:e gardes robotbrigaden i 1:a gardes stridsvagnsarmén, som fick Iskander-M 2014. Enligt ukrainska HUR ska en nordkoreansk robotenhet knytas till brigaden (aug 2026).",
    "units": [
     "112-gardes-robotbrigaden"
    ],
@@ -9208,7 +9218,7 @@
    "branch": "armé",
    "country": "BY",
    "military_district": "Belarus",
-   "description_sv": "Slonim är en garnison för markstridskrafterna i Belarus. Här finns enligt källorna 11:e gardes mekaniserade brigaden. Materiel som nämns: T-72B3, BMP-2, 2S3 Akatsija.",
+   "description_sv": "Garnison i Slonim i Hrodna oblast för Belarus 11:e gardes mekaniserade brigad, med T-72B3, BMP-2 och 2S3 Akatsija.",
    "units": [
     "11-gardes-mekaniserade-brigaden-by"
    ],
@@ -9246,7 +9256,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Smolensk är en garnison för markstridskrafterna i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 144:e gardes motoriserade skyttedivisionen.",
+   "description_sv": "Smolensk är förläggning för delar av 144:e gardes motoriserade skyttedivisionen i 20:e armén.",
    "units": [
     "144-gardes-motoriserade-skyttedivisionen"
    ],
@@ -9280,7 +9290,7 @@
    "branch": "luftvärn",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Sofrino är en luftvärnsgarnison i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 9:e robotförsvarsdivisionen. Materiel som nämns: A-135 / A-235.",
+   "description_sv": "Sofrino nordost om Moskva är stab för 9:e robotförsvarsdivisionen i 1:a luft- och robotförsvarsarmén, som sköter robotförsvarssystemet A-135/A-235 kring Moskva.",
    "units": [
     "9-robotforsvarsdivisionen"
    ],
@@ -9311,7 +9321,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Sokol är en militär flygbas i Ryssland (Östra militärdistriktet).",
+   "description_sv": "Reservflygbas för luftförsvaret åtta kilometer söder om Dolinsk på Sachalin, byggd av Japan 1942. Här låg 777:e jaktflygregementet med Su-15, MiG-23, Su-27 och senare MiG-31.",
    "units": [],
    "equipment": [],
    "status": {
@@ -9343,7 +9353,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Soltsy-2 är en militär flygbas i Ryssland (Leningrads militärdistrikt). Materiel som nämns: Tu-22M3. Senast rapporterade anfall: 2023-08-19.",
+   "description_sv": "Bombflygbas två kilometer norr om Soltsy i Novgorod oblast, hemmabas för 40:e blandade flygregementet med Tu-22M3 i 22:a gardes tunga bombflygdivisionen. I augusti 2023 brann ett Tu-22M3 ut på basen efter ett ukrainskt drönaranfall, enligt satellitbilder.",
    "units": [],
    "equipment": [
     "tu-22m3"
@@ -9398,7 +9408,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Stavropol är en garnison för markstridskrafterna i Ryssland (Södra militärdistriktet). Här finns enligt källorna 25:e gardes specialförbandsregementet.",
+   "description_sv": "Stavropol är stab för 49:e armén och garnison för 247:e gardes luftanfallsregementet i 7:e luftanfallsdivisionen och 25:e gardes specialförbandsregementet (GRU).",
    "units": [
     "25-gardes-specialforbandsregementet",
     "247-gardes-luftanfallsregementet",
@@ -9429,7 +9439,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Svobodnyj är en garnison för markstridskrafterna i Ryssland (Östra militärdistriktet). Här finns enligt källorna 50:e järnvägsbrigaden.",
+   "description_sv": "Garnison i Svobodnyj i Amur oblast för 50:e självständiga järnvägsbrigaden.",
    "units": [
     "50-jarnvagsbrigaden"
    ],
@@ -9458,7 +9468,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Taganrog Tsentralnyj är en militär flygbas i Ryssland (Södra militärdistriktet). Materiel som nämns: Il-76, A-50 / A-50U, Be-12.",
+   "description_sv": "Militär flygbas i Taganrog vid Azovska sjön, med 708:e transportflygregementet (Il-76) i 18:e transportflygdivisionen och 325:e flygverkstaden; A-50 och Be-12 har också setts här. Enligt Militarnyi träffades en Mi-35 och en Mi-8 på basen i september 2026.",
    "units": [],
    "equipment": [
     "il-76",
@@ -9530,7 +9540,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Tambov är en garnison för markstridskrafterna i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 16:e gardes specialförbandsbrigaden (Spetsnaz).",
+   "description_sv": "Garnison i Tambov för 16:e gardes specialförbandsbrigaden (GRU) och 45:e tunga artilleribrigaden.",
    "units": [
     "16-gardes-specialforbandsbrigaden-spetsnaz",
     "45-tunga-artilleribrigaden"
@@ -9565,7 +9575,7 @@
    "branch": "flyg",
    "country": "SY",
    "military_district": "Rysk bas utomlands",
-   "description_sv": "Tartus är en militär flygbas i Syrien.",
+   "description_sv": "Rysslands marina underhållspunkt i Tartus i Syrien, upprättad 1971 och utbyggd från 2009. Den ryska närvaron har minskat sedan den syriska oppositionens offensiv 2024.",
    "units": [],
    "equipment": [],
    "status": {
@@ -9597,7 +9607,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Tatisjtjevo är en militär flygbas i Ryssland (Centrala militärdistriktet).",
+   "description_sv": "Helikopterfält för strategiska robotstyrkorna två kilometer nordväst om Tatisjtjevo i Saratov oblast, med en självständig helikopterdivision (Mi-8) som betjänar 60:e robotdivisionen och dess silobaserade interkontinentala robotar (UR-100N och Topol-M).",
    "units": [
     "60-robotdivisionen"
    ],
@@ -9631,7 +9641,7 @@
    "branch": "robot",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Tejkovo är en robotgarnison i Ryssland (Moskvas militärdistrikt). Här finns enligt källorna 54:e gardes robotdivisionen. Materiel som nämns: RS-24 Jars, Topol-M.",
+   "description_sv": "Tejkovo i Ivanovo oblast är stab för 54:e gardes robotdivisionen i 27:e robotarmén, med mobila interkontinentala robotar RS-24 Jars och Topol-M.",
    "units": [
     "54-gardes-robotdivisionen"
    ],
@@ -9675,7 +9685,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Temp är en militär flygbas i Ryssland (Östra militärdistriktet).",
+   "description_sv": "Grusflygfält på västra Kotelnyjön i Nysibiriska öarna, anlagt 2013 för militärbasen Severnyj Klever (Norra klövern), som ett led i att säkra Rysslands arktiska områden; en kommandodel ur 182:a gardes tunga bombflygregementet finns här.",
    "units": [],
    "equipment": [],
    "status": {
@@ -9707,13 +9717,13 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Tiksi-Zapadnyj är en militär flygbas i Ryssland (Östra militärdistriktet).",
+   "description_sv": "Tidigare stor flygbas sju kilometer väster om Tiksi i Jakutien, med en rullbana på 4 100 meter under kalla kriget.",
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "nedlagd",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Basen är nedlagd eller används inte längre militärt enligt Wikipedia."
    },
    "events": [],
    "sources": [
@@ -9739,7 +9749,7 @@
    "branch": "armé",
    "country": "MD",
    "military_district": "Rysk bas utomlands",
-   "description_sv": "Tiraspol (ryska styrkor i Transnistrien) är en garnison för markstridskrafterna i Moldavien (Transnistrien). Rysk truppstyrka i den moldaviska utbrytarregionen Transnistrien, bland annat för att bevaka det stora ammunitionsförrådet i Kolbasna. Här finns enligt källorna 82:a gardes motoriserade skyttebataljonen. Materiel som nämns: BMP-2.",
+   "description_sv": "Den operativa gruppen ryska styrkor i Transnistrien, med 82:a och 113:e gardes motoriserade skyttebataljonerna i Tiraspol och Bender. Omkring 350 soldater ingår i fredsbevarande styrkor.",
    "units": [
     "82-gardes-motoriserade-skyttebataljonen",
     "113-gardes-motoriserade-skyttebataljonen"
@@ -9776,7 +9786,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Tjebarkul är en garnison för markstridskrafterna i Ryssland (Centrala militärdistriktet). Här finns enligt källorna 6:e gardes stridsvagnsregementet, 80:e gardes stridsvagnsregementet, 232:a gardes raketartilleribrigaden, 239:e gardes stridsvagnsregementet. Materiel som nämns: T-80BVM, BMP-2, BM-27 Uragan.",
+   "description_sv": "Tjebarkul i Tjeljabinsk oblast är förläggning för 90:e gardes stridsvagnsdivisionens 6:e, 80:e och 239:e stridsvagnsregementen och 400:e artilleriregementet, samt 232:a raketartilleribrigaden. Divisionen strider i Donetsk oblast; enligt ISW opererar 80:e regementet söder om Novopavlivka och 239:e öster om Dobropillja (sept 2026).",
    "units": [
     "6-gardes-stridsvagnsregementet",
     "80-gardes-stridsvagnsregementet",
@@ -9833,7 +9843,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Tjebenki är en militär flygbas i Ryssland (Centrala militärdistriktet).",
+   "description_sv": "Flygbas 38 kilometer nordost om Orenburg med en flygbas för helikoptrar (Mi-6, Mi-8); 118:e helikopterdivisionen, som letade efter landade rymdkapslar, låg här 1972–2007.",
    "units": [],
    "equipment": [],
    "status": {
