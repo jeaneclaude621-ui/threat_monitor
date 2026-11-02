@@ -10,7 +10,7 @@ The patch is JSON:
      "new_units": [{...full unit...}],
      "new_bases": [{...full base...}],
      "systems": {"<id>": {...}}}
-Fields replace the old ones, except `sources`, which are added (no
+Fields replace the old ones (null removes one), except `sources`, which are added (no
 duplicate urls) and get the patch's `accessed` date when they lack one.
 A new unit's garrison bases get the unit id in their `units` list.
 """
@@ -35,6 +35,8 @@ def merge(entry, fields, accessed):
     for k, v in fields.items():
         if k == "sources":
             add_sources(entry, v, accessed)
+        elif v is None:
+            entry.pop(k, None)
         else:
             entry[k] = v
 

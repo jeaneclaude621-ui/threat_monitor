@@ -17,7 +17,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1:a gardes blandade flygdivisionen är en division i Rysslands flygstridskrafter. Status: aktiv enligt källan.",
+   "description_sv": "Flygdivision i 4:e gardes flyg- och luftförsvarsarmén i Södra militärdistriktet, med stab i Krymsk. Dess regementen flyger Su-34, Su-30SM, Su-27SM3 och Su-25 från baser i Krasnodar kraj och Rostov oblast (bland andra Morozovsk, Krymsk och Primorsko-Achtarsk) och har deltagit i luftkriget mot Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -148,7 +148,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1:a gardes robotbrigaden är en brigad i Rysslands robotstyrkor. Den ingår i 49:e armén. Garnison: Gorjatjij Kljutj. Källan nämner Iskander-M. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Taktisk robotbrigad med Iskander-M i 49:e armén, förlagd i Gorjatjij Kljutj i Krasnodar kraj. Brigadens robotar har använts mot mål i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -175,12 +175,10 @@
    "garrison": [
     "odintsovo"
    ],
-   "equipment": [
-    "kuznetsov"
-   ],
+   "equipment": [],
    "status_sv": "delar flyttade från Kupjansk- till Lyman-riktningen enligt ISW (1 nov 2026)",
    "as_of": "2026-11-01",
-   "description_sv": "1:a gardes stridsvagnsarmén är en armé i Rysslands markstridskrafter. Garnison: Odintsovo. Källan nämner Admiral Kuznetsov. Status: återbildad 2014, i strid i Ukraina enligt källan.",
+   "description_sv": "Markstridskrafternas enda stridsvagnsarmé, återbildad 2014 i Moskvas militärdistrikt med stab i Odintsovo. Den omfattar bland andra 2:a gardes motoriserade skyttedivisionen, 4:e gardes stridsvagnsdivisionen och 47:e stridsvagnsdivisionen. Armén har stridit i Charkiv oblast och vid Kupjansk; enligt ISW flyttades delar till Lyman-riktningen hösten 2026.",
    "image": null,
    "sources": [
     {
@@ -254,7 +252,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1:a luft- och robotförsvarsarmén är en armé i Rysslands luftförsvar. Garnison: Balasjicha. Källan nämner S-400, S-300 (PS, PM, V4), Pantsir-S1. Status: aktiv enligt källan.",
+   "description_sv": "Armé för särskilda ändamål i flyg- och rymdstridskrafterna som försvarar Moskva och centrala Ryssland mot anfall från luften och rymden, med stab i Balasjicha. Den har S-400, S-300 och Pantsir-S1 i flera luftvärnsdivisioner och robotförsvarssystemet A-135/A-235 runt Moskva.",
    "image": null,
    "sources": [
     {
@@ -286,7 +284,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1:a luftvärnsdivisionen är en division i Rysslands luftförsvar. Garnison: Severomorsk (luftvärnsförband). Källan nämner S-400. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsdivision i Norra flottans 45:e flyg- och luftförsvarsarmé, med stab i Safonovo vid Severomorsk. Den skyddar Kolahalvöns flott- och ubåtsbaser och Novaja Zemlja med S-400 och S-300.",
    "image": null,
    "sources": [
     {
@@ -341,7 +339,7 @@
    "equipment": [],
    "status_sv": "flygstridskrafternas skytteregemente, uppdelat på flera avsnitt av fronten i norra Ukraina (Sumy) enligt ISW (16 sep 2026)",
    "as_of": "2026-09-16",
-   "description_sv": "1:a motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2024.",
+   "description_sv": "Motoriserat skytteregemente (för territoriell kontroll) som flyg- och rymdstridskrafterna bildade för kriget mot Ukraina. Det sattes in i Kursk oblast i juli 2024 och har enligt ISW varit uppdelat på flera avsnitt av fronten i norra Ukraina.",
    "image": null,
    "sources": [
     {
@@ -377,7 +375,7 @@
    "equipment": [],
    "status_sv": "brigadens bas i Molkino träffad av ukrainskt anfall 31 juli 2026 enligt satellitbilder som ISW återgav (12 aug 2026)",
    "as_of": "2026-08-12",
-   "description_sv": "10:e gardes specialförbandsbrigaden (Spetsnaz) är en brigad i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "GRU:s 10:e specialförbandsbrigad, förlagd i Molkino i Krasnodar kraj. I juli 2026 förstördes en hangar där vid ett ukrainskt anfall enligt satellitbilder.",
    "image": null,
    "sources": [
     {
@@ -470,7 +468,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "10:e ubåtsdivisionen är en division i Rysslands marin. Den ingår i Stillahavsflottan. Källan nämner Jasen-M-klass (projekt 885M), Oscar II-klass (projekt 949A), P-700 Granit. Status: aktiv enligt källan.",
+   "description_sv": "Stillahavsflottans ubåtsdivision i Krasjeninnikovviken vid Viljutjinsk på Kamtjatka, bildad 1967, med atomubåtar av tredje och fjärde generationen: kryssningsrobotubåtar av Oscar II-klassen och attackubåtar av Jasen-M-klassen.",
    "image": null,
    "sources": [
     {
@@ -579,7 +577,7 @@
    ],
    "status_sv": "i strid nordväst om Kostjantynivka (Petrivka) enligt ISW (13 aug 2026)",
    "as_of": "2026-08-13",
-   "description_sv": "102:a gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 150:e gardes motoriserade skyttedivisionen. Källan nämner T-72B3, BMP-3. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 150:e gardes motoriserade skyttedivisionen (8:e armén), förlagt i Persianovskij vid Novotjerkassk. Regementet strider vid Kostjantynivka; i augusti 2026 uppgavs det ha tagit Petrivka nordväst om staden.",
    "image": null,
    "sources": [
     {
@@ -609,7 +607,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "102:a militärbasen är en militärbas i Rysslands markstridskrafter. Garnison: Gjumri (102:a militärbasen). Status: aktiv enligt källan.",
+   "description_sv": "Rysslands militärbas i Armenien med garnisoner i Gjumri och Jerevan, under Södra militärdistriktet; kvar från den sovjetiska 127:e motoriserade skyttedivisionen. Omkring 4 000 personer ur militärfamiljerna bor i bostadsområdet intill basen.",
    "image": null,
    "sources": [
     {
@@ -699,7 +697,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "103:e robotbrigaden är en brigad i Rysslands robotstyrkor. Den ingår i 36:e gardes armén. Garnison: Burjatija (robotförband). Källan nämner Iskander-M. Status: aktiv enligt källan.",
+   "description_sv": "Taktisk robotbrigad med Iskander-M i 36:e armén, förlagd i Ulan-Ude i Burjatien.",
    "image": null,
    "sources": [
     {
@@ -729,7 +727,7 @@
    "equipment": [],
    "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "104:e gardes luftanfallsdivisionen är en division i Rysslands luftlandsättningstrupper (VDV). Garnison: Uljanovsk. Status: nybildad 2023, i strid i Ukraina enligt källan.",
+   "description_sv": "Luftanfallsdivision i luftlandsättningstrupperna, återbildad den 1 december 2023 ur 31:a gardes luftanfallsbrigaden i Uljanovsk. Divisionen strider i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -791,7 +789,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "105:e gardes blandade flygdivisionen är en division i Rysslands flygstridskrafter. Garnison: Baltimor (Voronezj). Källan nämner Su-34. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Flygdivision i 6:e flyg- och luftförsvarsarmén med stab vid flygbasen Baltimor i Voronezj. Den har Su-34 (47:e regementet) och Su-35S (159:e regementet i Besovets) och har deltagit i luftkriget mot Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -821,7 +819,7 @@
    "equipment": [],
    "status_sv": "delar (119:e regementet) i strid vid Stepnohirsk väster om Orichiv enligt ISW (23 okt 2026)",
    "as_of": "2026-10-23",
-   "description_sv": "106:e gardes luftlandsättningsdivisionen är en division i Rysslands luftlandsättningstrupper (VDV). Garnison: Tula. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "En av luftlandsättningstruppernas fyra divisioner, Tuladivisionen, med förband i Tula, Rjazan och Naro-Fominsk. Enligt ISW strider dess 119:e regemente vid Stepnohirsk väster om Orichiv (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -887,7 +885,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "107:e gardes robotbrigaden är en brigad i Rysslands robotstyrkor. Den ingår i 35:e gardes armén. Garnison: Birobidzjan. Källan nämner Iskander-M. Status: aktiv enligt källan.",
+   "description_sv": "Taktisk robotbrigad med Iskander-M i 35:e armén, förlagd i Birobidzjan; ursprungligen bildad 1953 med Scud-robotar.",
    "image": null,
    "sources": [
     {
@@ -972,7 +970,7 @@
    "equipment": [],
    "status_sv": "i strid i Sumy oblast och vid gränsen enligt ISW (28 okt 2026)",
    "as_of": "2026-10-28",
-   "description_sv": "11:e armékåren är en armékår i Rysslands markstridskrafter. Garnison: Gusev. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Armékår i Kaliningrad oblast, bildad 2016 ur Östersjöflottans kusttrupper och i dag under Leningrads militärdistrikt, med stab i Gusev. Kåren har förband som 18:e motoriserade skyttedivisionen och 7:e motoriserade skytteregementet; den har stridit i Ukraina sedan 2022 och strider enligt ISW i Sumy oblast (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -1034,7 +1032,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "11:e gardes luftanfallsbrigaden är en brigad i Rysslands luftlandsättningstrupper (VDV). Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftanfallsbrigad i luftlandsättningstrupperna, kallad Svarta vargarna, förlagd i Sosnovyj Bor vid Ulan-Ude. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -1127,7 +1125,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "11:e ubåtsdivisionen är en division i Rysslands marin. Den ingår i Norra flottan. Garnison: Zapadnaja Litsa. Källan nämner Jasen-M-klass (projekt 885M), Oscar II-klass (projekt 949A), P-700 Granit. Status: aktiv enligt källan.",
+   "description_sv": "En av de äldsta atomubåtsdivisionerna i Norra flottan, bildad 1963 och baserad i Zapadnaja Litsa. Divisionen har kryssningsrobotubåtar av Oscar II-klassen och attackubåtar av Jasen-M-klassen (Severodvinsk, Kazan, Archangelsk) med Kalibr, Oniks och Tsirkon.",
    "image": null,
    "sources": [
     {
@@ -1152,7 +1150,7 @@
    "equipment": [],
    "status_sv": "i strid vid Dobropillja enligt ISW (16 okt 2026)",
    "as_of": "2026-10-16",
-   "description_sv": "110:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Garnison: Donetsk. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 51:a gardes armén, bildad 2015 i Donetsks \"folkrepublik\" och från 1 januari 2023 en del av ryska markstridskrafterna. Den strider vid Dobropillja enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -1214,7 +1212,7 @@
    ],
    "status_sv": "enligt ukrainska HUR ska en nordkoreansk robotenhet knytas till brigaden, rapporterade ISW (11 aug 2026)",
    "as_of": "2026-08-11",
-   "description_sv": "112:e gardes robotbrigaden är en brigad i Rysslands robotstyrkor. Den ingår i 1:a gardes stridsvagnsarmén. Garnison: Sjuja. Källan nämner Iskander-M. Status: aktiv enligt källan.",
+   "description_sv": "Taktisk robotbrigad i 1:a gardes stridsvagnsarmén, förlagd i Sjuja i Ivanovo oblast och utrustad med Iskander-M sedan 2014. Enligt ukrainska HUR ska en nordkoreansk robotenhet knytas till brigaden (aug 2026).",
    "image": null,
    "sources": [
     {
@@ -1306,7 +1304,7 @@
    "equipment": [],
    "status_sv": "i strid vid Dobropillja enligt ISW (16 okt 2026)",
    "as_of": "2026-10-16",
-   "description_sv": "114:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Garnison: Donetsk. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 51:a gardes armén, med ursprung i bataljonen Vostok som Aleksandr Chodakovskij bildade i Donetsk 2014; del av ryska markstridskrafterna sedan 2023. Den strider vid Dobropillja enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -1341,7 +1339,7 @@
    "equipment": [],
    "status_sv": "i strid i Huljajpole-riktningen (Tymosjivka) enligt ISW (20 okt 2026)",
    "as_of": "2026-10-20",
-   "description_sv": "114:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Garnison: Ussurijsk. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 127:e motoriserade skyttedivisionen (5:e armén), förlagt i Ussurijsk. Det strider i Huljajpole-riktningen; i oktober 2026 tillskrevs det erövringen av Tymosjivka.",
    "image": null,
    "sources": [
     {
@@ -1513,7 +1511,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "119:e gardes robotbrigaden är en brigad i Rysslands robotstyrkor. Den ingår i 41:a gardes armén. Källan nämner Iskander-M. Status: aktiv enligt källan.",
+   "description_sv": "Taktisk robotbrigad med Iskander-M i 41:a armén, förlagd i Jelanskij i Sverdlovsk oblast.",
    "image": null,
    "sources": [
     {
@@ -1565,7 +1563,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "12:e gardes robotbrigaden är en brigad i Rysslands robotstyrkor. Den ingår i 58:e gardes armén. Garnison: Mozdok (robotförband). Källan nämner Iskander-M. Status: aktiv enligt källan.",
+   "description_sv": "Taktisk robotbrigad med Iskander-M i 58:e armén, förlagd i Mozdok i Nordossetien.",
    "image": null,
    "sources": [
     {
@@ -1650,7 +1648,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "12:e transportflygdivisionen är en division i Rysslands flygstridskrafter. Garnison: Migalovo (Tver). Källan nämner Il-76, An-124. Status: aktiv enligt källan.",
+   "description_sv": "Transportflygdivision i flygstridskrafternas 61:a flygarmé, med stab i Tver (Migalovo). Den har Il-76 och An-124 på baser som Migalovo, Sesjtja, Ivanovo och Klokovo.",
    "image": null,
    "sources": [
     {
@@ -1712,7 +1710,7 @@
    "equipment": [],
    "status_sv": "försvarar i Oleksandrivka-riktningen sedan mars 2026 enligt ISW (25 okt 2026)",
    "as_of": "2026-10-25",
-   "description_sv": "120:e gardes marininfanteridivisionen är en division i Rysslands marin. Den ingår i Östersjöflottan. Garnison: Baltijsk. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Östersjöflottans marininfanteridivision i Baltijsk, bildad i december 2025 ur 336:e gardes marininfanteribrigaden. Enligt ISW har den försvarat i Oleksandrivka-riktningen sedan mars 2026, efter att tidigare ha stridit vid Dobropillja.",
    "image": null,
    "sources": [
     {
@@ -1777,7 +1775,7 @@
    "equipment": [],
    "status_sv": "flyttad från Siversk till anfallet mot Slovjansk enligt ISW (1 sep 2026)",
    "as_of": "2026-09-01",
-   "description_sv": "123:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 3:e gardes armén. Garnison: Lugansk. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 3:e gardes armén, tidigare 2:a stormbrigaden i Luhansks \"folkrepubliks\" milis, en del av ryska markstridskrafterna sedan 2023. Enligt ISW flyttades den i september 2026 från Siversk till anfallet mot Slovjansk.",
    "image": null,
    "sources": [
     {
@@ -1844,7 +1842,7 @@
    "equipment": [],
    "status_sv": "i strid i Zaporizjzja- och Huljajpole-riktningen enligt ISW (20 okt 2026)",
    "as_of": "2026-10-20",
-   "description_sv": "127:e gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 5:e gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 5:e armén, bildad 2018 ur 59:e och 70:e brigaderna och förlagd i Sergejevka i Primorje. Den strider i Zaporizjzja oblast och Huljajpole-riktningen enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -1877,7 +1875,7 @@
    "equipment": [],
    "status_sv": "i strid i Sumy oblast vid gränsen mot Belgorod enligt ISW (8 okt 2026)",
    "as_of": "2026-10-08",
-   "description_sv": "128:e motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 44:e armékåren. Status: nybildad 2024, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 44:e armékåren, bildad 2024 när markstridskrafterna byggdes ut. Den strider i Sumy oblast vid gränsen mot Belgorod; i september 2026 träffades dess logistiknav och ammunitionsförråd i Novaja Tavolzjanka enligt ISW.",
    "image": null,
    "sources": [
     {
@@ -1941,11 +1939,12 @@
     "jasnyj-robot"
    ],
    "equipment": [
-    "r-36m2"
+    "r-36m2",
+    "avangard"
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "13:e robotdivisionen är en division i Rysslands robotstyrkor. Garnison: Jasnyj (robotförband). Källan nämner R-36M2 Vojevoda. Status: aktiv enligt källan.",
+   "description_sv": "Robotdivision i 31:a robotarmén i Jasnyj i Orenburg oblast, förlagd där sedan 1964 för de tunga silobaserade robotarna R-36. I dag har den även det hypersoniska glidfarkostsystemet Avangard.",
    "image": null,
    "sources": [
     {
@@ -4338,7 +4337,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "24:e gardes specialförbandsbrigaden (Spetsnaz) är en brigad i Rysslands markstridskrafter. Garnison: Kjachta. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "GRU:s 24:e specialförbandsbrigad, förlagd i Kjachta i Burjatien, med ursprung i ett specialförbandskompani under sovjettiden. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -4365,13 +4364,10 @@
    "garrison": [
     "gadzjijevo"
    ],
-   "equipment": [
-    "tigr",
-    "gepard"
-   ],
+   "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "24:e ubåtsdivisionen är en division i Rysslands marin. Den ingår i Norra flottan. Källan nämner Tigr, Gepard-klass (projekt 11661). Status: aktiv enligt källan.",
+   "description_sv": "Norra flottans division för atomdrivna attackubåtar i Gadzjijevo, bildad 1985 för att skydda de strategiska robotubåtarna.",
    "image": null,
    "sources": [
     {
@@ -4454,7 +4450,7 @@
    "equipment": [],
    "status_sv": "i strid vid Kozatja Lopan i Charkiv oblast enligt ISW (9 okt 2026)",
    "as_of": "2026-10-09",
-   "description_sv": "245:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 3:e motoriserade skyttedivisionen. Status: nybildad 2023.",
+   "description_sv": "Motoriserat skytteregemente som enligt ISW i dag hör till 47:e stridsvagnsdivisionen (1:a gardes stridsvagnsarmén). Det strider i Charkiv oblast, där det i oktober 2026 försökte ta Kozatja Lopan.",
    "image": null,
    "sources": [
     {
@@ -4513,7 +4509,7 @@
    "equipment": [],
    "status_sv": "svårt försvagad av ukrainska motanfall i Lyman-riktningen enligt ISW (1 nov 2026)",
    "as_of": "2026-11-01",
-   "description_sv": "25:e armén är en armé i Rysslands markstridskrafter. Status: nybildad 2023, i strid i Ukraina enligt källan.",
+   "description_sv": "Armé i markstridskrafterna som började bildas i maj 2023, under kriget. Den har stridit i Luhansk oblast och Lyman-riktningen och blev enligt ISW svårt försvagad av ukrainska motanfall där hösten 2026.",
    "image": null,
    "sources": [
     {
@@ -4549,7 +4545,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "25:e gardes specialförbandsregementet är en regemente i Rysslands markstridskrafter. Garnison: Stavropol. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "GRU:s 25:e specialförbandsregemente, förlagt i Stavropol i Södra militärdistriktet. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -4577,7 +4573,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "25:e kustrobotbrigaden är en brigad i Rysslands marin. Den ingår i Östersjöflottan. Källan nämner Bastion-P, Bal. Status: aktiv enligt källan.",
+   "description_sv": "Östersjöflottans kustrobotbrigad i Donskoje i Kaliningrad oblast, med kustrobotsystemen Bastion-P (Oniks) och Bal.",
    "image": null,
    "sources": [
     {
@@ -4600,11 +4596,12 @@
     "viljutjinsk"
    ],
    "equipment": [
-    "borej"
+    "borej",
+    "bulava"
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "25:e ubåtsdivisionen är en division i Rysslands marin. Den ingår i Stillahavsflottan. Källan nämner Borej-klass (projekt 955). Status: aktiv enligt källan.",
+   "description_sv": "Stillahavsflottans division för strategiska robotubåtar i Viljutjinsk, bildad 1973, med ubåtar av Borej-klassen (projekt 955/955A) som bär Bulava.",
    "image": null,
    "sources": [
     {
@@ -4712,7 +4709,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "26:e gardes robotbrigaden är en brigad i Rysslands robotstyrkor. Den ingår i 6:e gardes armén. Garnison: Luga. Källan nämner Iskander-M. Status: aktiv enligt källan.",
+   "description_sv": "Taktisk robotbrigad med Iskander-M i 6:e armén, förlagd i Luga i Leningrad oblast.",
    "image": null,
    "sources": [
     {
@@ -4742,7 +4739,7 @@
    "equipment": [],
    "status_sv": "i strid i Kupjansk-riktningen; staben träffad av HIMARS enligt ISW (29 okt 2026)",
    "as_of": "2026-10-29",
-   "description_sv": "26:e stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Den ingår i 47:e stridsvagnsdivisionen. Status: återbildad 2021, i strid i Ukraina enligt källan.",
+   "description_sv": "Stridsvagnsregemente i 47:e stridsvagnsdivisionen, bildat ur den upplösta 6:e stridsvagnsbrigaden och förlagt i Mulino. Det strider i Kupjansk-riktningen; i oktober 2026 träffades dess stab av en HIMARS-raket enligt en ukrainsk brigad.",
    "image": null,
    "sources": [
     {
@@ -4834,7 +4831,7 @@
    "equipment": [],
    "status_sv": "nybildad 2024, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "27:e gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 2:a gardes armén. Status: nybildad 2024, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 2:a armén, återbildad 2024 i Totskoje i Orenburg oblast. Den har stridit i Donetsk oblast.",
    "image": null,
    "sources": [
     {
@@ -4867,7 +4864,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "27:e gardes robotarmén är en armé i Rysslands robotstyrkor. Garnison: Vladimir. Källan nämner RS-24 Jars, Topol-M. Status: aktiv enligt källan.",
+   "description_sv": "En av strategiska robotstyrkornas tre arméer, med stab i Vladimir. Den har divisioner i Kozelsk, Tejkovo, Josjkar-Ola, Ozjornyj och Tatisjtjevo med silobaserade och mobila interkontinentala robotar (RS-24 Jars och Topol-M).",
    "image": null,
    "sources": [
     {
@@ -5037,7 +5034,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "28:e gardes robotdivisionen är en division i Rysslands robotstyrkor. Garnison: Kozelsk. Källan nämner RS-24 Jars. Status: aktiv enligt källan.",
+   "description_sv": "Robotdivision i 27:e robotarmén med stab i Kozelsk i Kaluga oblast, med silobaserade RS-24 Jars.",
    "image": null,
    "sources": [
     {
@@ -5069,7 +5066,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "28:e luftvärnsrobotbrigaden är en brigad i Rysslands luftförsvar. Källan nämner S-300 (PS, PM, V4). Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotbrigad i markstridskrafterna med S-300, förlagd i Mirnyj i Kirov oblast.",
    "image": null,
    "sources": [
     {
@@ -5177,7 +5174,7 @@
    "equipment": [],
    "status_sv": "i strid sydväst om Oleksandrivka och nordväst om Huljajpole enligt ISW (6 okt 2026)",
    "as_of": "2026-10-06",
-   "description_sv": "29:e gardes armén är en armé i Rysslands markstridskrafter. Garnison: Tjita. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Armé i Östra militärdistriktet med stab i Tjita. Den har stridit i Ukraina sedan 2022; enligt ISW strider dess 36:e brigad sydväst om Oleksandrivka och nordväst om Huljajpole (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -5240,7 +5237,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "29:e gardes robotdivisionen är en division i Rysslands robotstyrkor. Garnison: Irkutsk. Källan nämner RS-24 Jars, Topol-M. Status: aktiv enligt källan.",
+   "description_sv": "Robotdivision i 33:e robotarmén med stab i Irkutsk sedan 1986 (tidigare i Lettland och Litauen), med mobila interkontinentala robotar RS-24 Jars och Topol-M.",
    "image": null,
    "sources": [
     {
@@ -5292,12 +5289,10 @@
    "garrison": [
     "poljarnyj"
    ],
-   "equipment": [
-    "delta-iv"
-   ],
+   "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "29:e ubåtsdivisionen är en division i Rysslands marin. Den ingår i Norra flottan. Källan nämner Delta IV-klass (projekt 667BDRM). Status: aktiv enligt källan.",
+   "description_sv": "Norra flottans division för specialubåtar i Poljarnyj, bildad 1979. Den har atomdrivna djuphavsfarkoster för huvuddirektoratet för djuphavsforskning (GUGI) och deras moderubåtar.",
    "image": null,
    "sources": [
     {
@@ -5378,7 +5373,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "297:e gardes luftvärnsrobotbrigaden är en brigad i Rysslands luftförsvar. Den ingår i 2:a gardes armén. Källan nämner Buk-M2 / M3. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotbrigad med Buk-M2/M3 i 2:a armén, förlagd i Leonidovka i Penza oblast.",
    "image": null,
    "sources": [
     {
@@ -5403,7 +5398,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "3:e armékåren är en armékår i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Armékår som bildades sommaren 2022 i Mulino av frivilliga, före den partiella mobiliseringen, för att fylla förlusterna i Ukraina. Kåren strider i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -5461,7 +5456,7 @@
    "equipment": [],
    "status_sv": "anfaller mot Slovjansk, Kramatorsk och Druzjkivka från öster enligt ISW (1 nov 2026)",
    "as_of": "2026-11-01",
-   "description_sv": "3:e gardes armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Armé i Södra militärdistriktet, före den 31 december 2022 Luhansks \"folkrepubliks\" 2:a armékår, med förband i det ockuperade Luhansk oblast. Den anfaller enligt ISW mot Slovjansk, Kramatorsk och Druzjkivka från öster (nov 2026).",
    "image": null,
    "sources": [
     {
@@ -5496,7 +5491,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "3:e gardes specialförbandsbrigaden (Spetsnaz) är en brigad i Rysslands markstridskrafter. Garnison: Toljatti. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "GRU:s 3:e specialförbandsbrigad, förlagd i Toljatti sedan 2010. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -5526,7 +5521,7 @@
    "equipment": [],
    "status_sv": "i strid i Lyman-riktningen enligt ISW (16 sep 2026)",
    "as_of": "2026-09-16",
-   "description_sv": "3:e motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 20:e gardes armén. Garnison: Bogutjar. Status: återbildad 2016, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 20:e armén, bildad 2016 med stab i Bogutjar och förband i Voronezj och Belgorod oblast. Den strider i Lyman-riktningen enligt ISW (sept 2026).",
    "image": null,
    "sources": [
     {
@@ -5587,7 +5582,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "3:e robotbrigaden är en brigad i Rysslands robotstyrkor. Den ingår i 29:e gardes armén. Källan nämner Iskander-M. Status: aktiv enligt källan.",
+   "description_sv": "Taktisk robotbrigad med Iskander-M i 29:e armén, förlagd i Gornyj i Zabajkalje.",
    "image": null,
    "sources": [
     {
@@ -5672,7 +5667,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "30:e ytstridsdivisionen är en division i Rysslands marin. Den ingår i Svartahavsflottan. Garnison: Sevastopol. Källan nämner Admiral Grigorovitj-klass (projekt 11356). Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Svartahavsflottans division för ytstridsfartyg, med fregatterna av Admiral Grigorovitj-klassen. Den hade sin bas i Sevastopol men har till stor del flyttats till Novorossijsk; flera av dess fartyg har träffats av ukrainska anfall.",
    "image": null,
    "sources": [
     {
@@ -5758,7 +5753,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "31:a luftvärnsdivisionen är en division i Rysslands luftförsvar. Källan nämner Pantsir-S1. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsdivision i flyg- och rymdstridskrafterna med stab i Sevastopol, som försvarar det ockuperade Krim.",
    "image": null,
    "sources": [
     {
@@ -5807,7 +5802,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "31:a robotarmén är en armé i Rysslands robotstyrkor. Garnison: Orenburg. Status: aktiv enligt källan.",
+   "description_sv": "Robotarmé i strategiska robotstyrkorna med stab i Orenburg, bildad 1970. Den har tunga silobaserade robotar R-36M2 och Avangard i Jasnyj samt mobila robotar,.",
    "image": null,
    "sources": [
     {
@@ -5841,7 +5836,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "31:a ubåtsdivisionen är en division i Rysslands marin. Garnison: Gadzjijevo. Källan nämner Bulava, Borej-klass (projekt 955), Delta IV-klass (projekt 667BDRM). Status: aktiv enligt källan.",
+   "description_sv": "Norra flottans division för strategiska robotubåtar i Gadzjijevo, bildad 1961 som Sovjetunionens första. Den har Borej-ubåtar med Bulava och äldre Delta IV-ubåtar med Sineva.",
    "image": null,
    "sources": [
     {
@@ -5894,7 +5889,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "32:a luftvärnsdivisionen är en division i Rysslands luftförsvar. Garnison: Rzjev (luftvärnsförband). Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsdivision i flyg- och rymdstridskrafterna med stab i Rzjev i Tver oblast, en del av luftförsvaret väster om Moskva.",
    "image": null,
    "sources": [
     {
@@ -5922,7 +5917,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "326:e tunga bombflygdivisionen är en division i Rysslands flygstridskrafter. Källan nämner Tu-22M3, Tu-95MS. Status: aktiv enligt källan.",
+   "description_sv": "Fjärrflygets division i Fjärran Östern med stab vid Ukrainka i Amur oblast, med Tu-95MS (79:e och 182:a regementena) och Tu-22M3 vid Belaja.",
    "image": null,
    "sources": [
     {
@@ -5981,7 +5976,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "33:e gardes robotarmén är en armé i Rysslands robotstyrkor. Garnison: Omsk. Status: aktiv enligt källan.",
+   "description_sv": "Robotarmé i strategiska robotstyrkorna med stab i Omsk, bildad 1970, med divisioner i bland annat Irkutsk, Novosibirsk, Barnaul (Sibirskij) och Uzjur.",
    "image": null,
    "sources": [
     {
@@ -6232,11 +6227,13 @@
    "branch": "flyg",
    "country": "RU",
    "parent": null,
-   "garrison": [],
+   "garrison": [
+    "tjernjachovsk"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "34:e blandade flygdivisionen är en division i Rysslands flygstridskrafter. Status: aktiv enligt källan.",
+   "description_sv": "Östersjöflottans marinflygdivision i Kaliningrad oblast, med 4:e gardes marina attackflygregementet (Su-30SM och Su-24M) i Tjernjachovsk.",
    "image": null,
    "sources": [
     {
@@ -6244,8 +6241,7 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ],
-   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
+   ]
   },
   {
    "id": "34-gardes-artilleridivisionen",
@@ -6262,7 +6258,7 @@
    ],
    "status_sv": "nybildad 2025",
    "as_of": "2026-11",
-   "description_sv": "34:e gardes artilleridivisionen är en division i Rysslands markstridskrafter. Källan nämner 2S19 Msta-S. Status: nybildad 2025.",
+   "description_sv": "Artilleridivision i markstridskrafterna, under sovjettiden förlagd i Potsdam och återbildad 2025 som en del av utbyggnaden av markstridskrafterna under kriget. Den har haubitsar 2S19 Msta-S.",
    "image": null,
    "sources": [
     {
@@ -6297,7 +6293,7 @@
    ],
    "status_sv": "i strid i Sumy oblast under Norra styrkegruppen enligt ISW (11 okt 2026)",
    "as_of": "2026-10-11",
-   "description_sv": "34:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 49:e armén. Källan nämner BTR-82A, MT-LB, 2S3 Akatsija. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Bergsbrigad i 49:e armén, förlagd i Storozjevaja-2 i Karatjajevo-Tjerkessien. Den strider i Sumy oblast under Norra styrkegruppen enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -6458,7 +6454,7 @@
    "equipment": [],
    "status_sv": "i strid i Oleksandrivka-riktningen enligt ISW (21 sep 2026)",
    "as_of": "2026-09-21",
-   "description_sv": "348:e motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente som bildades hösten 2022 under mobiliseringen och hör till 41:a armén. Det strider i Oleksandrivka-riktningen enligt ISW (sept 2026); tidigare har det setts vid Toretsk.",
    "image": null,
    "sources": [
     {
@@ -6489,7 +6485,7 @@
    "equipment": [],
    "status_sv": "i strid i Huljajpole-riktningen enligt ISW (30 okt 2026)",
    "as_of": "2026-10-30",
-   "description_sv": "35:e gardes armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Armé i Östra militärdistriktet med stab i Belogorsk i Amur oblast, bildad på 1960-talet när spänningen mot Kina ökade. Den strider i Huljajpole-riktningen enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -6551,7 +6547,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "35:e gardes luftvärnsrobotbrigaden är en brigad i Rysslands luftförsvar. Den ingår i 36:e gardes armén. Källan nämner Buk-M2 / M3. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotbrigad med Buk-M2/M3 i 36:e armén, förlagd i Ulan-Ude.",
    "image": null,
    "sources": [
     {
@@ -6578,7 +6574,7 @@
    ],
    "status_sv": "i strid i Donetsk oblast under 41:a armén enligt ISW (18 sep 2026)",
    "as_of": "2026-09-18",
-   "description_sv": "35:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 41:a gardes armén. Garnison: Alejsk. Källan nämner T-72B3. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 41:a armén, förlagd i Alejsk i Altaj kraj. Den strider i Donetsk oblast enligt ISW (sept 2026).",
    "image": null,
    "sources": [
     {
@@ -6616,7 +6612,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "35:e robotdivisionen är en division i Rysslands robotstyrkor. Den ingår i 33:e gardes robotarmén. Garnison: Sibirskij. Källan nämner RS-24 Jars, Topol-M. Status: aktiv enligt källan.",
+   "description_sv": "Robotdivision i 33:e robotarmén i den slutna staden Sibirskij nära Barnaul, med mobila interkontinentala robotar RS-24 Jars och Topol-M.",
    "image": null,
    "sources": [
     {
@@ -6671,7 +6667,7 @@
    "equipment": [],
    "status_sv": "i strid i Huljajpole-riktningen enligt ISW (22 okt 2026)",
    "as_of": "2026-10-22",
-   "description_sv": "36:e gardes armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Armé i Östra militärdistriktet med stab i Ulan-Ude, med bland andra 37:e motoriserade skyttebrigaden och 5:e stridsvagnsbrigaden. Den strider i Huljajpole-riktningen enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -6712,7 +6708,7 @@
    ],
    "status_sv": "i strid sydväst om Oleksandrivka (Holubkove) enligt ISW (6 okt 2026)",
    "as_of": "2026-10-06",
-   "description_sv": "36:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 29:e gardes armén. Källan nämner Buk-M2 / M3, T-72B3, BMP-2, 2S3 Akatsija, BM-21 Grad. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 29:e armén, förlagd i Borzja i Zabajkalje. I oktober 2026 visade ryska källor brigadens soldater hissa flaggor i Holubkove och Samijlivka sydväst om Oleksandrivka enligt ISW.",
    "image": null,
    "sources": [
     {
@@ -6747,7 +6743,7 @@
    "equipment": [],
    "status_sv": "i strid i Huljajpole-riktningen enligt ISW (22 okt 2026)",
    "as_of": "2026-10-22",
-   "description_sv": "37:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Garnison: Kjachta. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad (Donkosackerna) i 36:e armén, förlagd i Kjachta i Burjatien. Den stred i Donbas 2014–2015 och har stridit i Ukraina sedan 2022; i oktober 2026 tillskrevs den erövringen av Myrivka i Huljajpole-riktningen.",
    "image": null,
    "sources": [
     {
@@ -6835,7 +6831,7 @@
    ],
    "status_sv": "i strid nordost om Orichiv enligt ISW (19 okt 2026)",
    "as_of": "2026-10-19",
-   "description_sv": "38:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 35:e gardes armén. Källan nämner T-80BVM. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 35:e armén, bildad 2009 ur 21:a gardes divisionen och förlagd i Jekaterinoslavka i Amur oblast. Den strider nordost om Orichiv enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -6904,7 +6900,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "382:a marininfanteribataljonen är en bataljon i Rysslands marin. Källan nämner BMP-2, BTR-82A, MT-LB. Status: aktiv enligt källan.",
+   "description_sv": "Svartahavsflottans marininfanteribataljon i 810:e brigaden, förlagd i Temrjuk vid Azovska sjön.",
    "image": null,
    "sources": [
     {
@@ -6988,7 +6984,7 @@
    "equipment": [],
    "status_sv": "i strid i Zaporizjzja oblast under 68:e armékåren enligt ISW (26 okt 2026)",
    "as_of": "2026-10-26",
-   "description_sv": "39:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Garnison: Juzjno-Sachalinsk. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 68:e armékåren, förlagd i Juzjno-Sachalinsk. Den strider i Zaporizjzja oblast; i oktober 2026 tillskrevs den erövringen av Obsjtje enligt ISW.",
    "image": null,
    "sources": [
     {
@@ -7026,7 +7022,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "39:e gardes robotdivisionen är en division i Rysslands robotstyrkor. Den ingår i 33:e gardes robotarmén. Garnison: Novosibirsk (robotförband). Källan nämner RS-24 Jars, Topol-M. Status: aktiv enligt källan.",
+   "description_sv": "Robotdivision i 33:e robotarmén med stab i Novosibirsk, med mobila interkontinentala robotar RS-24 Jars och Topol-M.",
    "image": null,
    "sources": [
     {
@@ -7105,7 +7101,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "4:e gardes flyg- och luftförsvarsarmén är en armé i Rysslands flygstridskrafter. Status: aktiv enligt källan.",
+   "description_sv": "Flyg- och luftförsvarsarmé i Södra militärdistriktet med stab i Rostov-na-Donu. Den leder flyg och luftvärn i södra Ryssland och på Krim, bland andra 1:a blandade flygdivisionen och 51:a och 31:a luftvärnsdivisionerna.",
    "image": null,
    "sources": [
     {
@@ -7137,7 +7133,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "4:e gardes militärbasen är en militärbas i Rysslands markstridskrafter. Den ingår i 58:e gardes armén. Garnison: Tschinvali (4:e militärbasen). Källan nämner Tornado-S / Smertj. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Rysslands militärbas i Tschinvali och Dzjava i Sydossetien, under 58:e armén. Förband från basen har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -7167,7 +7163,7 @@
    "equipment": [],
    "status_sv": "återbildad 2013, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "4:e gardes stridsvagnsdivisionen är en division i Rysslands markstridskrafter. Garnison: Naro-Fominsk. Status: återbildad 2013, i strid i Ukraina enligt källan.",
+   "description_sv": "Kantemirovskaja-divisionen i 1:a gardes stridsvagnsarmén, med alla förband i Naro-Fominsk sydväst om Moskva. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -7195,7 +7191,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "4:e luftvärnsdivisionen är en division i Rysslands luftförsvar. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsdivision i 1:a luft- och robotförsvarsarmén med stab i Dolgoprudnyj norr om Moskva, en del av luftförsvarsringen runt huvudstaden.",
    "image": null,
    "sources": [
     {
@@ -7204,7 +7200,7 @@
      "accessed": "2026-11-01"
     }
    ],
-   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
+   "garrison_note_sv": "Staben ligger i Dolgoprudnyj norr om Moskva enligt ryska Wikipedia; databasen har ingen bas för orten."
   },
   {
    "id": "4-ubatsbrigaden",
@@ -7298,7 +7294,7 @@
    "equipment": [],
    "status_sv": "försvarar i Oleksandrivka-riktningen sedan mars 2026 enligt ISW (25 okt 2026)",
    "as_of": "2026-10-25",
-   "description_sv": "40:e gardes marininfanteribrigaden är en brigad i Rysslands marin. Garnison: Petropavlovsk-Kamtjatskij. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Stillahavsflottans marininfanteribrigad i Petropavlovsk-Kamtjatskij, under Nordöstra gruppen av trupper och styrkor (Kamtjatka). Enligt ISW har den försvarat i Oleksandrivka-riktningen sedan mars 2026, efter att tidigare ha stridit vid Dobropillja.",
    "image": null,
    "sources": [
     {
@@ -7361,7 +7357,7 @@
    "equipment": [],
    "status_sv": "huvuddelen insatt mot Dobropillja enligt ISW (1 nov 2026)",
    "as_of": "2026-11-01",
-   "description_sv": "41:a gardes armén är en armé i Rysslands markstridskrafter. Garnison: Novosibirsk. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Armé i Centrala militärdistriktet med stab i Novosibirsk, återbildad 1998, med bland andra 90:e stridsvagnsdivisionen och 35:e och 74:e brigaderna. Enligt ISW är huvuddelen av armén insatt mot Dobropillja (nov 2026).",
    "image": null,
    "sources": [
     {
@@ -7424,7 +7420,7 @@
    "equipment": [],
    "status_sv": "delar i strid söder om Orichiv och i norra Ukraina enligt ISW (30 sep 2026)",
    "as_of": "2026-09-30",
-   "description_sv": "42:a gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 58:e gardes armén. Garnison: Sjali. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 58:e armén med stab i Sjali i Tjetjenien. Delar strider söder om Orichiv och, under Norra styrkegruppen, i norra Ukraina enligt ISW (sept 2026).",
    "image": null,
    "sources": [
     {
@@ -7462,7 +7458,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "42:a robotdivisionen är en division i Rysslands robotstyrkor. Den ingår i 31:a robotarmén. Källan nämner RS-24 Jars, Topol-M. Status: aktiv enligt källan.",
+   "description_sv": "Robotdivision i 31:a robotarmén i den slutna staden Svobodnyj vid Nizjnij Tagil, med mobila interkontinentala robotar RS-24 Jars och Topol-M.",
    "image": null,
    "sources": [
     {
@@ -7630,7 +7626,7 @@
    "equipment": [],
    "status_sv": "i strid i Sumy oblast enligt ISW (28 okt 2026)",
    "as_of": "2026-10-28",
-   "description_sv": "44:e armékåren är en armékår i Rysslands markstridskrafter. Garnison: Petrozavodsk. Status: nybildad 2024, i strid i Ukraina enligt källan.",
+   "description_sv": "Armékår i Leningrads militärdistrikt, bildad 2024 med stab i Petrozavodsk, med 72:a motoriserade skyttedivisionen och 128:e brigaden. Den strider i Sumy oblast enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -7724,7 +7720,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "448:e robotbrigaden är en brigad i Rysslands robotstyrkor. Den ingår i 20:e gardes armén. Källan nämner Iskander-M. Status: aktiv enligt källan.",
+   "description_sv": "Taktisk robotbrigad med Iskander-M i 20:e armén, förlagd i Kursk.",
    "image": null,
    "sources": [
     {
@@ -7755,9 +7751,9 @@
     "mi-8",
     "s-400"
    ],
-   "status_sv": "aktiv enligt källan",
-   "as_of": "2026-11",
-   "description_sv": "45:e flyg- och luftförsvarsarmén är en armé i Rysslands flygstridskrafter. Källan nämner Mi-8 / Mi-8AMTSj, S-400. Status: aktiv enligt källan.",
+   "status_sv": "upplöst 2024 enligt Wikipedia",
+   "as_of": "2024",
+   "description_sv": "Norra flottans flyg- och luftförsvarsarmé 2015–2024, med stab i Severomorsk. Den upplöstes 2024 och tillgångarna delades mellan Norra flottans nya 7:e blandade flygkår och flygstridskrafternas 6:e flyg- och luftförsvarsarmé.",
    "image": null,
    "sources": [
     {
@@ -7814,7 +7810,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "45:e gardes specialförbandsbrigaden (Spetsnaz) är en brigad i Rysslands markstridskrafter. Garnison: Kalininets (Alabino). Källan nämner BTR-82A. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftlandsättningstruppernas specialförbandsbrigad (regemente fram till 2015), förlagd i Kubinka väster om Moskva. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -7920,7 +7916,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "47:e motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 18:e armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 18:e armén som strider i Cherson oblast.",
    "image": null,
    "sources": [
     {
@@ -7946,7 +7942,7 @@
    "equipment": [],
    "status_sv": "i strid i Kupjansk-riktningen och i Charkiv oblast enligt ISW (29 okt 2026)",
    "as_of": "2026-10-29",
-   "description_sv": "47:e stridsvagnsdivisionen är en division i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Stridsvagnsdivision i 1:a gardes stridsvagnsarmén, bildad 2022 ur 6:e stridsvagnsbrigaden och förlagd i Mulino. Den strider i Kupjansk-riktningen och i Charkiv oblast enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -8072,7 +8068,7 @@
    "equipment": [],
    "status_sv": "delar (34:e brigaden) i strid i norra Ukraina under Norra styrkegruppen enligt ISW (11 okt 2026)",
    "as_of": "2026-10-11",
-   "description_sv": "49:e armén är en armé i Rysslands markstridskrafter. Status: återbildad 2010.",
+   "description_sv": "Armé i Södra militärdistriktet med stab i Stavropol, bildad 2010. Den har förband i norra Kaukasus och Krasnodar kraj och baser i Abchazien; dess 34:e brigad strider i norra Ukraina enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -8109,7 +8105,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "49:e gardes luftvärnsrobotbrigaden är en brigad i Rysslands luftförsvar. Den ingår i 1:a gardes stridsvagnsarmén. Garnison: Krasnyj Bor (luftvärnsförband). Källan nämner Buk-M2 / M3. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotbrigad med Buk-M2/M3 i 1:a gardes stridsvagnsarmén, förlagd i Krasnyj Bor i Smolensk.",
    "image": null,
    "sources": [
     {
@@ -8139,7 +8135,7 @@
    "equipment": [],
    "status_sv": "i strid i Zaporizjzja oblast och förstärkt med strategiska reserver enligt ISW (1 nov 2026)",
    "as_of": "2026-11-01",
-   "description_sv": "5:e gardes armén är en armé i Rysslands markstridskrafter. Garnison: Ussurijsk. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Armé i Östra militärdistriktet med stab i Ussurijsk, med bland andra 127:e motoriserade skyttedivisionen och 57:e och 60:e brigaderna. Den strider i Zaporizjzja oblast och förstärktes med strategiska reserver 2026 enligt ISW.",
    "image": null,
    "sources": [
     {
@@ -8174,7 +8170,7 @@
    "equipment": [],
    "status_sv": "i strid vid Dobropillja enligt ISW (16 okt 2026)",
    "as_of": "2026-10-16",
-   "description_sv": "5:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Status: aktiv enligt källan.",
+   "description_sv": "Brigaden Oplot i 51:a gardes armén, uppkallad efter Donetsks förre separatistledare Aleksandr Zachartjenko; en del av Donetsks \"folkrepubliks\" milis fram till 1 januari 2023. Den strider vid Dobropillja enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -8209,7 +8205,7 @@
    "equipment": [],
    "status_sv": "samlas i Huljajpole-riktningen enligt ISW (21 okt 2026)",
    "as_of": "2026-10-21",
-   "description_sv": "5:e gardes stridsvagnsbrigaden är en brigad i Rysslands markstridskrafter. Garnison: Ulan-Ude. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Stridsvagnsbrigad i 36:e armén, förlagd i Ulan-Ude. Den samlas i Huljajpole-riktningen enligt ISW (okt 2026) och tillskrevs i september 2026 erövringen av en ort där.",
    "image": null,
    "sources": [
     {
@@ -8271,7 +8267,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "5:e luftvärnsdivisionen är en division i Rysslands luftförsvar. Källan nämner S-400, S-300 (PS, PM, V4), Pantsir-S1. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsdivision i 1:a luft- och robotförsvarsarmén med stab i Vidnoje söder om Moskva, med S-400, S-300 och Pantsir-S1 i luftförsvarsringen runt huvudstaden.",
    "image": null,
    "sources": [
     {
@@ -8280,7 +8276,7 @@
      "accessed": "2026-11-01"
     }
    ],
-   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
+   "garrison_note_sv": "Staben ligger i Vidnoje söder om Moskva enligt ryska Wikipedia; databasen har ingen bas för orten."
   },
   {
    "id": "5-luftvarnsrobotbrigaden",
@@ -8299,7 +8295,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "5:e luftvärnsrobotbrigaden är en brigad i Rysslands luftförsvar. Den ingår i 6:e gardes armén. Källan nämner Buk-M2 / M3. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotbrigad med Buk-M2/M3 i 6:e armén, förlagd vid Sankt Petersburg (Lomonosov/Gorelovo). Den bildades 1961 i Uzjhorod i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -8329,7 +8325,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "5:e specialförbandsbrigaden (Spetsnaz) är en brigad i Belarus markstridskrafter. Garnison: Marina Gorka. Status: aktiv enligt källan.",
+   "description_sv": "Belarus specialförbandsbrigad i Marjina Horka, tidigare en del av sovjetiska GRU:s specialförband.",
    "image": null,
    "sources": [
     {
@@ -8460,7 +8456,7 @@
    "equipment": [],
    "status_sv": "anfaller vid Dobropillja och Pokrovsk väster om Kazennyj Torets enligt ISW (1 nov 2026)",
    "as_of": "2026-11-01",
-   "description_sv": "51:a gardes armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Armé i Södra militärdistriktet, före 2023 Donetsks \"folkrepubliks\" 1:a armékår, med förband i det ockuperade Donetsk oblast. Den anfaller enligt ISW vid Dobropillja och Pokrovsk väster om floden Kazennyj Torets (nov 2026).",
    "image": null,
    "sources": [
     {
@@ -8533,7 +8529,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "51:a luftvärnsdivisionen är en division i Rysslands luftförsvar. Garnison: Novotjerkassk (luftvärnsförband). Källan nämner S-400, S-300 (PS, PM, V4), Pantsir-S1. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsdivision i 4:e flyg- och luftförsvarsarmén med stab i Novotjerkassk, med S-400, S-300 och Pantsir-S1 i södra Ryssland.",
    "image": null,
    "sources": [
     {
@@ -8650,7 +8646,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "53:e gardes luftvärnsrobotbrigaden är en brigad i Rysslands luftförsvar. Den ingår i 20:e gardes armén. Källan nämner Buk-M2 / M3. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftvärnsrobotbrigad med Buk i 20:e armén, förlagd i Kursk. Den internationella utredningsgruppen (JIT) slog 2018 fast att den Buk-robot som sköt ned flyget MH17 över östra Ukraina 2014 kom från brigaden.",
    "image": null,
    "sources": [
     {
@@ -8710,7 +8706,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "54:e gardes robotdivisionen är en division i Rysslands robotstyrkor. Garnison: Tejkovo. Källan nämner RS-24 Jars, Topol-M. Status: aktiv enligt källan.",
+   "description_sv": "Robotdivision i 27:e robotarmén med stab i Tejkovo i Ivanovo oblast, med mobila interkontinentala robotar RS-24 Jars och Topol-M.",
    "image": null,
    "sources": [
     {
@@ -8789,7 +8785,7 @@
    "equipment": [],
    "status_sv": "nybildad 2025",
    "as_of": "2026-11",
-   "description_sv": "55:e gardes marininfanteridivisionen är en division i Rysslands marin. Den ingår i Stillahavsflottan. Status: nybildad 2025.",
+   "description_sv": "Stillahavsflottans marininfanteridivision i Vladivostok, bildad 2025 ur 155:e marininfanteribrigaden.",
    "image": null,
    "sources": [
     {
@@ -8934,7 +8930,7 @@
    "equipment": [],
    "status_sv": "dragen från fronten i Zaporizjzja oblast för återhämtning enligt ISW (31 okt 2026)",
    "as_of": "2026-10-31",
-   "description_sv": "57:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 5:e gardes armén. Garnison: Bikin. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 5:e armén, förlagd i Bikin i Chabarovsk kraj. Enligt ISW drogs den i oktober 2026 från fronten i Zaporizjzja oblast för återhämtning och ersattes av 60:e brigaden.",
    "image": null,
    "sources": [
     {
@@ -8993,7 +8989,7 @@
    "equipment": [],
    "status_sv": "i strid i Zaporizjzja oblast och förstärkt med strategiska reserver enligt ISW (1 nov 2026)",
    "as_of": "2026-11-01",
-   "description_sv": "58:e gardes armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Armé i Södra militärdistriktet med stab i Vladikavkaz, med bland andra 19:e och 42:a motoriserade skyttedivisionerna. Den strider i Zaporizjzja oblast och förstärktes med strategiska reserver 2026 enligt ISW.",
    "image": null,
    "sources": [
     {
@@ -9078,7 +9074,7 @@
    "equipment": [],
    "status_sv": "i strid i norra Ukraina (Charkiv och Sumy) enligt ISW (11 okt 2026)",
    "as_of": "2026-10-11",
-   "description_sv": "6:e gardes armén är en armé i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Armé i Leningrads militärdistrikt med stab i Agalatovo vid Sankt Petersburg, med 68:e och 69:e motoriserade skyttedivisionerna. Den strider i norra Ukraina (Charkiv och Sumy) enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -9112,7 +9108,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "6:e gardes flyg- och luftförsvarsarmén är en armé i Rysslands flygstridskrafter. Källan nämner Su-30SM / SM2, Mi-26, S-400. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Flyg- och luftförsvarsarmé i Leningrads militärdistrikt med stab i Sankt Petersburg, med bland andra 105:e blandade flygdivisionen (Voronezj, Besovets) och luftvärn med S-400. Den har deltagit i luftkriget mot Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -9228,7 +9224,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "6:e motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 3:e armékåren. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 3:e armékåren, bildad 2022 under kriget. Den strider i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -9289,7 +9285,7 @@
    "equipment": [],
    "status_sv": "ersätter 57:e brigaden vid fronten i Zaporizjzja oblast enligt ISW (31 okt 2026)",
    "as_of": "2026-10-31",
-   "description_sv": "60:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 5:e gardes armén. Garnison: Kamen-Rybolov. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 5:e armén, förlagd i Kamen-Rybolov i Primorje. Enligt ISW ersatte den 57:e brigaden vid fronten i Zaporizjzja oblast i oktober 2026.",
    "image": null,
    "sources": [
     {
@@ -9326,7 +9322,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "60:e robotdivisionen är en division i Rysslands robotstyrkor. Källan nämner Topol-M. Status: aktiv enligt källan.",
+   "description_sv": "Robotdivision i 27:e robotarmén vid Tatisjtjevo i Saratov oblast, bildad 1961, med silobaserade interkontinentala robotar Topol-M och UR-100N.",
    "image": null,
    "sources": [
     {
@@ -9385,7 +9381,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "61:a gardes luftvärnsrobotbrigaden är en brigad i Rysslands luftförsvar. Den ingår i 41:a gardes armén. Garnison: Bijsk. Källan nämner Buk-M2 / M3. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotbrigad med Buk-M2/M3 i 41:a armén, förlagd i Bijsk i Altaj kraj.",
    "image": null,
    "sources": [
     {
@@ -9412,7 +9408,7 @@
    ],
    "status_sv": "i strid vid Dobropillja enligt ISW (16 okt 2026)",
    "as_of": "2026-10-16",
-   "description_sv": "61:a gardes marininfanteribrigaden är en brigad i Rysslands marin. Källan nämner BTR-82A. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Norra flottans marininfanteribrigad (Kirkenesskaja), förlagd vid Petjenga. Den strider vid Dobropillja, där den enligt ISW försöker omringa staden från öster och nordost (aug–okt 2026).",
    "image": null,
    "sources": [
     {
@@ -9478,7 +9474,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "62:a robotdivisionen är en division i Rysslands robotstyrkor. Den ingår i 33:e gardes robotarmén. Källan nämner RS-28 Sarmat, R-36M2 Vojevoda. Status: aktiv enligt källan.",
+   "description_sv": "Robotdivision i 33:e robotarmén vid Uzjur i Krasnojarsk kraj, med tunga silobaserade robotar R-36M2 Vojevoda; RS-28 Sarmat knyts också till divisionen.",
    "image": null,
    "sources": [
     {
@@ -9508,7 +9504,7 @@
    "equipment": [],
    "status_sv": "samlas i Huljajpole-riktningen enligt ISW (21 okt 2026)",
    "as_of": "2026-10-21",
-   "description_sv": "64:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 35:e gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 35:e armén, förlagd i Knjaze-Volkonskoje vid Chabarovsk. I augusti 2026 angreps brigadchefens bil av ukrainska drönare; brigaden samlas i Huljajpole-riktningen enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -9543,7 +9539,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "67:e luftvärnsrobotbrigaden är en brigad i Rysslands luftförsvar. Den ingår i 58:e gardes armén. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotbrigad i 58:e armén, förlagd i Vladikavkaz.",
    "image": null,
    "sources": [
     {
@@ -9566,7 +9562,7 @@
    "equipment": [],
    "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "67:e motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 25:e armén. Status: nybildad 2023, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 25:e armén, bildad 2023 under invasionen av Ukraina. Den har stridit i Luhansk oblast och i Lyman-riktningen.",
    "image": null,
    "sources": [
     {
@@ -9592,7 +9588,7 @@
    "equipment": [],
    "status_sv": "i strid i Zaporizjzja oblast enligt ISW (26 okt 2026)",
    "as_of": "2026-10-26",
-   "description_sv": "68:e gardes armékåren är en armékår i Rysslands markstridskrafter. Status: återbildad 2014, i strid i Ukraina enligt källan.",
+   "description_sv": "Armékår i Östra militärdistriktet på Sachalin och Kurilerna med stab i Juzjno-Sachalinsk, bildad 1993, upplöst 2010 och återbildad 2014. Den strider i Zaporizjzja oblast enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -9627,7 +9623,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "68:e gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 6:e gardes armén. Garnison: Luga. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 6:e armén med förband i Luga. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -9711,7 +9707,7 @@
    "equipment": [],
    "status_sv": "i strid i norra Ukraina enligt ISW (11 okt 2026)",
    "as_of": "2026-10-11",
-   "description_sv": "69:e gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 6:e gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 6:e armén, förlagd i Kamenka i Vyborg-distriktet. Den strider i norra Ukraina enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -9781,7 +9777,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "7:e gardes luftanfallsdivisionen är en division i Rysslands luftlandsättningstrupper (VDV). Garnison: Novorossijsk. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftlandsättningstruppernas bergsdivision med stab i Novorossijsk. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -9874,7 +9870,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "7:e gardes robotdivisionen är en division i Rysslands robotstyrkor. Den ingår i 27:e gardes robotarmén. Källan nämner RS-24 Jars, Topol-M. Status: aktiv enligt källan.",
+   "description_sv": "Robotdivision i 27:e robotarmén i Ozjornyj i Tver oblast, med mobila interkontinentala robotar RS-24 Jars och Topol-M.",
    "image": null,
    "sources": [
     {
@@ -9911,7 +9907,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "7:e militärbasen är en militärbas i Rysslands markstridskrafter. Den ingår i 49:e armén. Garnison: Gudauta (7:e militärbasen). Källan nämner S-300 (PS, PM, V4), T-72B3, BTR-82A, 2S3 Akatsija, D-30. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Rysslands militärbas i Abchazien med huvudförläggning i Bombora vid Gudauta, under 49:e armén. Förband från basen har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -9941,7 +9937,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "7:e ubåtsdivisionen är en division i Rysslands marin. Garnison: Vidjajevo. Status: aktiv enligt källan.",
+   "description_sv": "Norra flottans ubåtsdivision i Vidjajevo (Ara-viken), bildad 1965 som division mot hangarfartyg; sedan 2001 har den bara atomdrivna attackubåtar.",
    "image": null,
    "sources": [
     {
@@ -9989,7 +9985,7 @@
    "equipment": [],
    "status_sv": "i strid vid Tjasiv Jar mot Druzjkivka enligt ISW (21 sep 2026)",
    "as_of": "2026-09-21",
-   "description_sv": "70:e motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 18:e armén. Status: nybildad 2023, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 18:e armén, bildad under kriget. Den strider vid Tjasiv Jar och mot Druzjkivka enligt ISW (sept 2026).",
    "image": null,
    "sources": [
     {
@@ -10025,7 +10021,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "71:a gardes luftvärnsrobotbrigaden är en brigad i Rysslands luftförsvar. Den ingår i 35:e gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftvärnsrobotbrigad i 35:e armén, förlagd i Belogorsk i Amur oblast. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -10058,7 +10054,7 @@
    ],
    "status_sv": "i strid i Sumy oblast enligt ISW (15 okt 2026)",
    "as_of": "2026-10-15",
-   "description_sv": "71:a gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 14:e armékåren. Garnison: Petjenga. Källan nämner S-350 Vitjaz, Tor-M2, T-80BVM, MT-LB, 2S3 Akatsija. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 14:e armékåren, förlagd i Petjenga i Murmansk oblast och bildad ur 200:e arktiska brigaden. Den strider i Sumy oblast enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -10147,7 +10143,7 @@
    "equipment": [],
    "status_sv": "i strid i Sumy oblast enligt ISW (28 okt 2026)",
    "as_of": "2026-10-28",
-   "description_sv": "72:a motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 44:e armékåren. Status: nybildad 2024, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 44:e armékåren, bildad 2023–2024 i Leningrads militärdistrikt. Den strider i Sumy oblast enligt ISW (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -10276,7 +10272,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "76:e gardes luftanfallsdivisionen är en division i Rysslands luftlandsättningstrupper (VDV). Garnison: Pskov. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftanfallsdivision i luftlandsättningstrupperna med stab i Pskov. Den har stridit i Ukraina sedan 2022 och strider enligt ISW i Huljajpole-riktningen (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -10308,7 +10304,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "77:e gardes luftvärnsrobotbrigaden är en brigad i Rysslands luftförsvar. Garnison: Korenovsk (luftvärnsförband). Källan nämner S-300 (PS, PM, V4). Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotbrigad med S-300 i Södra militärdistriktet, förlagd i Korenovsk i Krasnodar kraj.",
    "image": null,
    "sources": [
     {
@@ -10363,7 +10359,7 @@
    "equipment": [],
    "status_sv": "anfaller mot Kostjantynivka och Druzjkivka från söder enligt ISW (1 nov 2026)",
    "as_of": "2026-11-01",
-   "description_sv": "8:e gardes armén är en armé i Rysslands markstridskrafter. Garnison: Novotjerkassk. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Armé i Södra militärdistriktet, bildad 2017 med stab i Novotjerkassk, med 150:e och 20:e motoriserade skyttedivisionerna. Den anfaller enligt ISW mot Kostjantynivka och Druzjkivka från söder (nov 2026).",
    "image": null,
    "sources": [
     {
@@ -10400,7 +10396,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "8:e gardes luftvärnsrobotbrigaden är en brigad i Rysslands luftförsvar. Den ingår i 5:e gardes armén. Garnison: Ussurijsk (luftvärnsförband). Källan nämner Buk-M2 / M3. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotbrigad med Buk-M2/M3 i 5:e armén, förlagd i Ussurijsk.",
    "image": null,
    "sources": [
     {
@@ -10425,7 +10421,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "8:e robotdivisionen är en division i Rysslands robotstyrkor. Status: aktiv enligt källan.",
+   "description_sv": "Robotdivision i 31:a robotarmén i den slutna orten Pervomajskij vid Jurja i Kirov oblast, bildad 1961, med mobila interkontinentala robotar av Topol-familjen.",
    "image": null,
    "sources": [
     {
@@ -10455,7 +10451,7 @@
    "equipment": [],
    "status_sv": "i strid vid Komar söder om Novopavlivka enligt ISW (11 sep 2026)",
    "as_of": "2026-09-11",
-   "description_sv": "80:e gardes stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Garnison: Tjebarkul. Status: återbildad 2016, i strid i Ukraina enligt källan.",
+   "description_sv": "Stridsvagnsregemente i 90:e gardes stridsvagnsdivisionen (41:a armén), förlagt i Tjebarkul. Enligt ISW strider det vid Komar söder om Novopavlivka, och en bataljon har opererat sydost om Sumy (sept 2026).",
    "image": null,
    "sources": [
     {
@@ -10514,12 +10510,10 @@
    "garrison": [
     "sevastopol"
    ],
-   "equipment": [
-    "su-24m"
-   ],
+   "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "810:e gardes marininfanteribrigaden är en brigad i Rysslands marin. Den ingår i Svartahavsflottan. Källan nämner Su-24M. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Svartahavsflottans marininfanteribrigad i Sevastopol. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -10580,7 +10574,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "83:e gardes luftanfallsbrigaden är en brigad i Rysslands luftlandsättningstrupper (VDV). Garnison: Ussurijsk (luftlandsättningsförband). Källan nämner Il-76, Mi-8 / Mi-8AMTSj, D-30. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftanfallsbrigad i luftlandsättningstrupperna, bildad 1986 och förlagd i Ussurijsk. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -10608,7 +10602,7 @@
    "equipment": [],
    "status_sv": "ombildad från 4:e brigaden till division under 3:e armén enligt ISW (18 okt 2026)",
    "as_of": "2026-10-18",
-   "description_sv": "84:e gardes motoriserade skyttedivisionen är en division i Rysslands markstridskrafter. Den ingår i 3:e gardes armén. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserad skyttedivision i 3:e gardes armén, ombildad 2026 ur 4:e brigaden från Luhansks \"folkrepubliks\" tidigare milis enligt ISW.",
    "image": null,
    "sources": [
     {
@@ -10759,7 +10753,7 @@
    "equipment": [],
    "status_sv": "i strid öster om Dobropillja enligt ISW (10 aug 2026)",
    "as_of": "2026-08-10",
-   "description_sv": "9:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 51:a gardes armén, tidigare 9:e marininfanteriregementet i Donetsks \"folkrepubliks\" milis. Enligt ISW försöker den omringa Dobropillja från öster (aug 2026).",
    "image": null,
    "sources": [
     {
@@ -10796,7 +10790,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "9:e robotförsvarsdivisionen är en division i Rysslands luftförsvar. Garnison: Sofrino. Källan nämner A-135 / A-235. Status: aktiv enligt källan.",
+   "description_sv": "Robotförsvarsdivision i 1:a luft- och robotförsvarsarmén med stab i Sofrino, som sköter robotförsvaret A-135/A-235 kring Moskva.",
    "image": null,
    "sources": [
     {
@@ -10823,7 +10817,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "90:e luftvärnsrobotbrigaden är en brigad i Rysslands luftförsvar. Den ingår i 49:e armén. Garnison: Afipskij. Källan nämner Buk-M2 / M3. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotbrigad med Buk-M2/M3 i 49:e armén, förlagd i Afipskij i Krasnodar kraj.",
    "image": null,
    "sources": [
     {
@@ -10874,7 +10868,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "92:a gardes robotbrigaden är en brigad i Rysslands robotstyrkor. Den ingår i 2:a gardes armén. Källan nämner Iskander-M. Status: aktiv enligt källan.",
+   "description_sv": "Taktisk robotbrigad med Iskander-M i 2:a armén, förlagd i Totskoje i Orenburg oblast.",
    "image": null,
    "sources": [
     {
@@ -10902,7 +10896,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "93:e luftvärnsdivisionen är en division i Rysslands luftförsvar. Källan nämner S-400, Pantsir-S1. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsdivision i flyg- och rymdstridskrafterna med stab i Vladivostok, med S-400 och Pantsir-S1 i Primorje.",
    "image": null,
    "sources": [
     {
@@ -11035,7 +11029,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "98:e gardes luftlandsättningsdivisionen är en division i Rysslands luftlandsättningstrupper (VDV). Garnison: Ivanovo. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftlandsättningsdivision med stab i Ivanovo och förband i Ivanovo och Kostroma. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -11118,7 +11112,6 @@
     "kaspijsk-marin"
    ],
    "equipment": [
-    "avangard",
     "kalibr",
     "bujan-m",
     "karakurt",
@@ -11126,7 +11119,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "Kaspiska flottiljen är en flottilj i Rysslands marin. Garnison: Astrachan, Kaspijsk. Källan nämner Avangard, Kalibr, Bujan-M-klass (projekt 21631), Karakurt-klass (projekt 22800), Gepard-klass (projekt 11661). Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Rysslands marina styrka i Kaspiska havet, grundad 1722 och med huvudbas i Kaspijsk sedan 2020 (högkvarteret har legat i Astrachan). Den har robotkorvetter av klasserna Bujan-M, Karakurt och Gepard som kan skjuta Kalibr; från Kaspiska havet har kryssningsrobotar skjutits mot Ukraina. Ukraina har anfallit flottiljens fartyg i Kaspijsk 2024 och 2026.",
    "image": null,
    "sources": [
     {
@@ -11172,7 +11165,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "Norra flottan är en flotta i Rysslands marin. Garnison: Severomorsk. Källan nämner Su-33, MiG-29K, Sineva / Lajner, Kalibr, P-800 Onyx. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Rysslands flotta i Arktis med högkvarter i Severomorsk. Den har de flesta strategiska robotubåtarna (Gadzjijevo), attackubåtar av Jasen-klassen, kärnkraftskryssare, fregatter av Admiral Gorsjkov-klassen och marininfanteriet i Petjenga. Sedan mars 2024 är den inte längre ett eget strategiskt kommando; flottans markförband har stridit i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -11224,12 +11217,13 @@
    "country": "RU",
    "parent": null,
    "garrison": [
+    "baltijskaja-vojenno-morskaja-baza",
     "kronstadt"
    ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "Östersjöflottan är en flotta i Rysslands marin. Garnison: Kronstadt. Status: aktiv enligt källan.",
+   "description_sv": "Rysslands flotta i Östersjön med högkvarter i Kaliningrad och huvudbas i Baltijsk, samt bas i Kronstadt. Den har korvetter, robotkorvetter med Kalibr, landstigningsfartyg och 120:e marininfanteridivisionen, som strider i Ukraina; flera av dess fartyg har skickats till Svarta havet och Medelhavet.",
    "image": null,
    "sources": [
     {
@@ -11286,7 +11280,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "Specialoperationsstyrkorna (KSSO) är en kommando i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Rysslands strategiska specialförband (KSSO) under ett eget kommando, som började bildas 2009 med bas i Senezj vid Solnetjnogorsk. Förbanden har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -11333,7 +11327,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "Stillahavsflottan är en flotta i Rysslands marin. Garnison: Vladivostok. Källan nämner Forpost, Orlan-10, Bal, S-400, BM-27 Uragan. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Rysslands flotta i Stilla havet med högkvarter i Vladivostok, grundad 1731. Den har strategiska robotubåtar av Borej-klassen och attackubåtar i Viljutjinsk på Kamtjatka, robotkryssaren Varjag och jagare och korvetter i Vladivostok, och marininfanteri (55:e divisionen, 40:e brigaden) som strider i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -11362,15 +11356,30 @@
     "sevastopolskaja-vojenno-morskaja-baza"
    ],
    "equipment": [],
-   "status_sv": "aktiv enligt källan",
-   "as_of": "2026-11",
-   "description_sv": "Svartahavsflottan är en flotta i Rysslands marin. Garnison: Novorossijsk, Sevastopol. Status: aktiv enligt källan.",
+   "status_sv": "större fartyg flyttade från Sevastopol till Novorossijsk 2023–2024 enligt ISW",
+   "as_of": "2024",
+   "description_sv": "Rysslands flotta i Svarta havet. Efter upprepade ukrainska anfall flyttades de flesta större fartyg 2023–2024 från Sevastopol till Novorossijsk. Flaggskeppet Moskva sänktes i april 2022, och Ukraina har sedan sänkt eller skadat flera fartyg med robotar och marindrönare.",
    "image": null,
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%A7%D0%B5%D1%80%D0%BD%D0%BE%D0%BC%D0%BE%D1%80%D1%81%D0%BA%D0%B8%D0%B9_%D1%84%D0%BB%D0%BE%D1%82_%D0%92%D0%9C%D0%A4_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ukrinform.net/rubric-ato/3770162-russia-transfers-part-of-black-sea-fleet-vessels-from-sevastopol-to-novorossiysk-isw.html",
+     "outlet": "Ukrinform (ISW)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://www.pravda.com.ua/eng/news/2023/10/5/7422697/",
+     "outlet": "Ukrainska Pravda",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_cruiser_Moskva",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
     }
    ]
   },

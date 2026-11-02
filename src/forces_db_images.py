@@ -5,7 +5,10 @@ kept only when Commons gives CC0, CC BY, CC BY-SA or public domain, with
 author and file page. Saved as webapp/public/forces/img/base-<id>.jpg,
 about 640 px wide and under 80 KB.
 
-    python3 src/forces_db_images.py bases|systems [--dry-run]
+    python3 src/forces_db_images.py bases|systems [id,id,...] [--dry-run]
+
+Every picked image must still be looked at by a person before it is
+committed: the script cannot tell a base from a town square or a badge.
 """
 import io
 import json
@@ -17,6 +20,11 @@ from pathlib import Path
 from PIL import Image
 
 from forces_fetch import get, get_json
+
+
+def api(url, params):
+    """A MediaWiki API call sent as POST: long title lists do not fit a URL."""
+    return get_json(url, data=urllib.parse.urlencode(params))
 
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "config" / "forces_db"
@@ -36,7 +44,7 @@ def page_images(lang, titles):
     out = {}
     for i in range(0, len(titles), 40):
         chunk = titles[i:i + 40]
-        j = get_json(f"https://{lang}.wikipedia.org/w/api.php", {
+        j = api(f"https://{lang}.wikipedia.org/w/api.php", {
             "action": "query", "titles": "|".join(chunk), "prop": "pageimages", "piprop": "name",
             "pilicense": "free", "pilimit": 50, "format": "json", "formatversion": 2, "redirects": 1})
         q = j.get("query", {})
@@ -57,7 +65,7 @@ def file_info(names):
     names = list(dict.fromkeys(names))
     for i in range(0, len(names), 40):
         chunk = ["File:" + n for n in names[i:i + 40]]
-        j = get_json("https://commons.wikimedia.org/w/api.php", {
+        j = api("https://commons.wikimedia.org/w/api.php", {
             "action": "query", "titles": "|".join(chunk), "prop": "imageinfo", "iiprop": "url|extmetadata|mime",
             "iiurlwidth": 960, "format": "json", "formatversion": 2})
         for pg in j.get("query", {}).get("pages", []):
@@ -70,7 +78,10 @@ def file_info(names):
             if not FREE.match(lic) or not author or "nonfree" in (md.get("NonFree") or {}).get("value", "").lower():
                 continue
             name = pg["title"].split(":", 1)[1]
-            out[name] = (ii.get("thumburl") or ii["url"], author, lic, (md.get("LicenseUrl") or {}).get("value"),
+            # Thumbnails are served from thumb.wikimedia.org now; the same path
+            # works on upload.wikimedia.org, which the network allows.
+            thumb = re.sub(r"^https://thumb\.wikimedia\.org/", "https://upload.wikimedia.org/", (ii.get("thumburl") or ii["url"]).split("?")[0])
+            out[name] = (thumb, author, lic, (md.get("LicenseUrl") or {}).get("value"),
                          "https://commons.wikimedia.org/wiki/" + urllib.parse.quote("File:" + name.replace(" ", "_")))
     return out
 
@@ -107,7 +118,8 @@ def wiki_titles(entry):
 def main(kind, dry):
     name = "bases" if kind == "bases" else "systems"
     data = json.load(open(DB / f"{name}.json", encoding="utf-8"))
-    rows = [r for r in data[name] if not r.get("image")]
+    only = set(sys.argv[2].split(",")) if len(sys.argv) > 2 and not sys.argv[2].startswith("--") else None
+    rows = [r for r in data[name] if not r.get("image") and (only is None or r["id"] in only)]
     want = {"en": set(), "ru": set()}
     for r in rows:
         for lang, t in wiki_titles(r):
