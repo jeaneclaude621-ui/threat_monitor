@@ -173,7 +173,7 @@ def apply_db(bases: list, db: dict = None) -> list:
         extra = {"db_id": d["id"], "name_ru": d.get("name_ru"), "lat": d["lat"], "lon": d["lon"], "branch": d["branch"],
                  "country": d["country"], "military_district": d.get("military_district"),
                  "description_sv": d.get("description_sv"), "status_sv": (d.get("status") or {}).get("status_sv"),
-                 "status_as_of": (d.get("status") or {}).get("as_of"), "sources": d.get("sources") or [],
+                 "status_as_of": (d.get("status") or {}).get("as_of"), "image": d.get("image"), "sources": d.get("sources") or [],
                  "units": units, "equipment": equipment, "unit_ids": list(d.get("units") or []),
                  "system_ids": list(d.get("equipment") or []), "events": list(d.get("events") or [])}
         if hit is not None:
@@ -228,7 +228,7 @@ def listed_bases(state: dict) -> list:
 # --------------------------------------------------------------------------
 # State
 # --------------------------------------------------------------------------
-DB_FIELDS = ("db_id", "military_district", "description_sv", "status_sv", "status_as_of", "sources", "unit_ids", "system_ids")
+DB_FIELDS = ("db_id", "military_district", "description_sv", "status_sv", "status_as_of", "image", "sources", "unit_ids", "system_ids")
 
 
 def merge(state: dict, listed: list) -> dict:
