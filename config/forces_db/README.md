@@ -8,12 +8,12 @@ kommer från öppna källor och är **inte verifierat**. Hämtat 1 november 2026
 
 | Fil | Innehåll | Antal |
 |---|---|---|
-| `bases.json` | baser: flygbaser, marinbaser, garnisoner för armé, robot, luftvärn och luftlandsättning, samt ryska baser utomlands | 255 |
+| `bases.json` | baser: flygbaser, marinbaser, garnisoner för armé, robot, luftvärn och luftlandsättning, samt ryska baser utomlands | 312 |
 | `units.json` | förband: arméer, kårer, divisioner, brigader, regementen, flottor | 383 |
 | `systems.json` | vapensystem och materiel: flyg, helikoptrar, drönare, robotar, luftvärn, fordon, artilleri, telekrig, ubåtar, fartyg | 132 (alla 33 vapen på anfallskartan ingår) |
 
-Bilder: 120 bilder i `webapp/public/forces/img/` (`sys-<id>.jpg`, cirka
-640 px breda, under 80 kB var, totalt 5,3 MB).
+Bilder: 130 bilder i `webapp/public/forces/img/` (`sys-<id>.jpg`, cirka
+640 px breda, under 80 kB var, totalt 5,7 MB).
 
 ### Bas (`bases.json`)
 `id` (stabil slug), `name` (svensk translitterering), `name_ru`, `name_en`,
@@ -100,7 +100,13 @@ domän eftersom sidans Content-Security-Policy bara tillåter bilder därifrån.
   ändring här.
 - `python3 src/forces_db_check.py` kontrollerar att alla id-hänvisningar
   går att följa, att allt har källa och att varje bild finns med
-  upphovsperson och licens.
+  upphovsperson och licens. Den kontrollerar också att ingen källa är rysk
+  statsmedia eller Telegram, att ingen e-postadress finns i filerna, att
+  bildmappen håller sig under 15 MB (80 kB per fil), att förband utan
+  garnison har `garrison_note_sv` och att appens payload (under 1,5 MB) och
+  den nattliga baslistan (under 60 000 tecken) håller sig inom gränserna.
+- Basens `image` följer nu med till appens payload, precis som
+  `description_sv`, `status_sv` och `status_as_of`.
 
 Att rätta: ändra i JSON-filerna för hand (med källa), kör `export-db` och
 kontrollen. Nästa natt når ändringen appen.
@@ -138,3 +144,12 @@ Andra omgången (påbörjad 2 nov 2026, gren `grunddata-styrkor-2`).
   Tichoretsk, Karatjev, Kotovo, Barsovo, Kotluban) och luftvärnsplatsen på
   kap Tarchankut lades till som baser (vapenslag armé respektive luftvärn).
   Deras positioner är ungefärliga, vilket står i beskrivningen.
+
+- **Molnsessionen 2 nov 2026 (kväll).** Miljöns nätverkspolicy stoppade
+  all trafik till Militaryland, Overpass (alla tre speglarna), Wikipedia,
+  Wikidata, Commons och ISW. Därför gjordes bara det som går utan att läsa
+  källor: basens bild skickas vidare i `src/forces.py` (steg 8), kontrollen
+  byggdes ut (steg 10) och appens kopior exporterades på nytt. Steg 1 var
+  redan klart (alla förband har garnison eller `[]` med anteckning). Steg
+  2, 3, 4, bilderna i steg 6 och steg 7 kräver nätåtkomst och väntar.
+  Inga uppgifter skrevs ur minnet utan källa som gick att läsa.
