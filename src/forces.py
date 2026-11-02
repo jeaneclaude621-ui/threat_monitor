@@ -503,9 +503,23 @@ def run(report: dict = None, pool=None, dry_run: bool = False):
         print(prompt_for(state, text, today))
         return
     from common import ask_model_json
-    result = ask_model_json(prompt_for(state, text, today), max_tokens=6000,
-                            system="You keep a factual record of Russian military bases and forces "
-                                   "from open reporting, for a Swedish monitor. Strict JSON only.")
+    system = ("You keep a factual record of Russian military bases and forces "
+              "from open reporting, for a Swedish monitor. Strict JSON only.")
+    try:
+        result = ask_model_json(prompt_for(state, text, today), max_tokens=6000, system=system)
+    except Exception as e:
+        # The main model's daily quota (20 calls, shared with the reports) is
+        # spent: the lighter survey model has its own, so the night still runs.
+        if "RESOURCE_EXHAUSTED" not in str(e) and "429" not in str(e):
+            survey(state)
+            raise
+        import forces_survey
+        model = forces_survey.survey_model()
+        if not model:
+            survey(state)
+            raise
+        print(f"  ! Forces: main model quota spent; the night runs on {model}")
+        result = ask_model_json(prompt_for(state, text, today), max_tokens=6000, system=system, model=model)
     night = apply(state, result, refs, today)
     state["nights"] = [n for n in state.get("nights", []) if n["date"] != night["date"]] + [night]
     state["nights"] = state["nights"][-NIGHTS_KEPT:]

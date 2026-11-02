@@ -5,6 +5,90 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 
 ## Att följa upp
 
+### Styrkor: status 1 nov kväll (läs först)
+*Lagt till 2026-11-01.* Allt om fliken Styrkor och dess grunddata.
+
+**I produktion:**
+- Nattlig lägesbild (`src/forces.py`, ett Gemini-anrop efter 04:00-rapporten):
+  anfall, uppföljningar och truppändringar mot ursprungligt underlag.
+  API v3.12, D1 `force_maps`, fliken `#/styrkor`.
+- Handskrivet underlag: 83 baser med förband och materiel
+  (`config/forces_curated.json`), totalt 265 baser med Wikidata.
+
+**Driftsatt 1 nov 23:21 (v3.13, migration 0013):**
+- Veckosökningen (`src/forces_survey.py`): Wikipedia-artikeln för varje
+  bas, läst av `gemini-3.5-flash-lite` med egen kvot, 3 anrop per natt
+  (15 baser per anrop). Visas som rutan "Om basen".
+- Anfallskartan över Ukraina (`src/strikes.py`, fliken "Anfall mot
+  Ukraina", `#/styrkor?s=anfall`) från Kaggle-datasetet. Ingen modell.
+  Första uppladdningen gick bra. Körs dagligen efter 04:00-rapporten.
+- Behörighetsspärren stoppar `wrangler deploy` om inte användaren har sagt
+  till uttryckligen i samma meddelande.
+
+**Anfallskartan v2 (driftsatt 1 nov):** målen tas
+ur `target_main` (72 av 112 rader har målregioner, nu spritt över hela
+Ukraina). Rader utan mål ritas som korta, blekande spår. Vapenkort med bild
+och prestanda läses från `webapp/public/forces/systems.json`, som
+molnjobbet tar fram med id:n enligt `SYSTEM_IDS` i `src/strikes.py`. Tills
+den filen finns visar korten bara text.
+
+**Anfallskartan v3 (driftsatt 1 nov, hm-v3.24):** spåren kopplas ihop per natt
+och vapentyp när rapporten delar upp ett anfall på flera rader: en rad med
+avfyrningsplatser och målet "Ukraine", och regionala rader med mål men utan
+avfyrningsplats. De härledda spåren är streckade. Nätter där ingen rad har
+mål (t.ex. 31 okt) får fortfarande korta spår. Testat bara på 31 okt; kontrollera
+en natt med mål (t.ex. 30 okt) i appen.
+
+**Tillfällig vapenkatalog** `webapp/public/forces/systems.json` (33 vapen,
+beskrivning och nyckeltal, 22 Commons-bilder i `webapp/public/forces/img/`).
+Byggd med ett engångsskript från Wikipedias huvudbild, bara fritt
+licensierade Commons-filer. Saknar bild: geran-3/4/5, gerbera, kn-23, kh-22,
+banderol, supercam, zala, merlin-vr, forpost. Molnjobbets katalog ska ersätta
+den vid sammanslagningen; behåll de här posterna för id som molnjobbet saknar.
+Id:na följer `SYSTEM_IDS` i `src/strikes.py`.
+
+**Driftsättning:** användaren har lagt in behörighetsregler (via
+`/permissions`) för `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy` och
+`... d1 migrations apply hotmonitor --remote`. Kör dem som egna kommandon
+med arbetsmappen `webapp/`, inte ihopkedjade med `cd`.
+
+**Kaggle: klart 1 nov.** Hemligheterna är satta, och jobbet `strikes` hämtade
+4306 rader och 30 nätter (senast 31 okt, 134 Shahed varav 105 nedskjutna).
+Saknade
+platsnamn läggs till i `LAUNCH` och `TARGET` i `src/strikes.py` (loggraden
+"places not on the map").
+
+**Pågår:**
+- Veckosökningen: första fullständiga körningen klar 1 nov 23:16
+  (`gemini-3.5-flash-lite`, valdes automatiskt). 228 baser lästa, 113 med
+  förband, 34 utan Wikipedia-artikel. Stickprov bra (Engels-2,
+  Gadzjijevo, Migalovo). Nedlagda baser (t.ex. Orlovka, stängd 2001)
+  syns som "status okänd"; överväg en egen status "nedlagd" från
+  veckosökningen.
+- Molnjobb (Claude Code i molnet, användarens krediter) bygger
+  grunddatabasen på grenen `grunddata-styrkor`:
+  - `config/forces_db/bases.json`, `units.json` och `systems.json`;
+  - bilder från Wikimedia Commons med licens i `webapp/public/forces/img/`;
+  - klickbara förband och vapensystem i appen (`#/styrkor?sys=`, `?unit=`);
+  - export till `webapp/public/forces/`.
+  Det slår inte ihop något självt.
+
+**Att göra när molnjobbet är klart:**
+1. Granska grenen:
+   - alla id-hänvisningar ska gå att lösa upp;
+   - varje bild ska ha upphovsperson, licens och källa;
+   - varje uppgift ska ha en källa, och ingen rysk statsmedia eller Telegram;
+   - datamängden ska ligga långt under 2 MB och mappen med bilder ha rimlig storlek;
+   - inga e-postadresser (repot är publikt);
+   - nattens historik ska vara kvar (gamla id:n behålls, `db_id` är nytt).
+2. Testa lokalt med `webapp/dev/mock_server.py` och data från datarepot
+   (`gh api repos/jeaneclaude621-ui/threat_monitor-data/contents/data/forces.json`).
+3. Slå ihop till main, driftsätt Workern (statiska filer) och kör jobbet
+   `forces` så att den nya grunden laddas upp.
+
+Kvoten efter allt: ungefär 16 av 20 anrop per dygn på huvudmodellen, plus 3
+per natt på flash-lite.
+
 ### Kolla den första dagliga bedömningen av Rysslands handlingsalternativ
 *Lagt till 2026-11-01.* Den första körs efter morgonrapporten 2 nov kl. 04.
 

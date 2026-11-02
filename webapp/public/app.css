@@ -794,3 +794,15 @@ button.icon-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 
 .fkv dd { margin: 0; }
 .chip.static { cursor: default; }
 a.chip { text-decoration: none; color: inherit; }
+.strail.open { opacity: .55; stroke-dasharray: 1 2.5; }
+.slegend-open { display: inline-block; width: 18px; border-top: 2px dotted #C2410C; opacity: .7; }
+.swgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.swcard { display: flex; gap: 10px; text-align: left; padding: 8px; font: inherit; color: inherit; cursor: pointer; align-items: flex-start; }
+.swcard img, .swnoimg { width: 84px; height: 60px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: var(--chip); }
+.swnoimg { display: grid; place-items: center; font-weight: 700; color: var(--muted); }
+.swbody { min-width: 0; display: grid; gap: 2px; }
+.swmore { margin-top: 6px; }
+.swfig { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; font-size: 12px; margin: 4px 0; }
+.swfig dt { color: var(--muted); } .swfig dd { margin: 0; }
+.strail.inferred { opacity: .6; stroke-dasharray: 1.5 2; }
+.slegend-inf { display: inline-block; width: 18px; border-top: 2px dashed #C2410C; opacity: .6; }
