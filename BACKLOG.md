@@ -65,26 +65,43 @@ platsnamn läggs till i `LAUNCH` och `TARGET` i `src/strikes.py` (loggraden
   Gadzjijevo, Migalovo). Nedlagda baser (t.ex. Orlovka, stängd 2001)
   syns som "status okänd"; överväg en egen status "nedlagd" från
   veckosökningen.
-- Molnjobb (Claude Code i molnet, användarens krediter) bygger
-  grunddatabasen på grenen `grunddata-styrkor`:
-  - `config/forces_db/bases.json`, `units.json` och `systems.json`;
-  - bilder från Wikimedia Commons med licens i `webapp/public/forces/img/`;
-  - klickbara förband och vapensystem i appen (`#/styrkor?sys=`, `?unit=`);
-  - export till `webapp/public/forces/`.
-  Det slår inte ihop något självt.
+**Grunddatabasen: sammanslagen och driftsatt 2 nov (hm-v3.25).**
+Molnjobbet byggde `config/forces_db/` (255 baser, 383 förband, 132
+vapensystem, 120 Commons-bilder, 5,3 MB). Granskat:
+- `src/forces_db_check.py` OK;
+- inga e-postadresser, ingen rysk statsmedia eller Telegram;
+- alla poster har källor och alla bilder har licens;
+- nattens historik och veckosökningen finns kvar för alla 265 gamla baser;
+- 379 baser totalt och datamängden är 520 KB.
+Testat lokalt: vapenkort (`#/styrkor?sys=`), förbandskort (`?unit=`), inga
+konsolfel. Uppladdat med jobbet `forces_survey`. Kataloger byggs om med
+`python3 src/forces.py export-db`.
 
-**Att göra när molnjobbet är klart:**
-1. Granska grenen:
-   - alla id-hänvisningar ska gå att lösa upp;
-   - varje bild ska ha upphovsperson, licens och källa;
-   - varje uppgift ska ha en källa, och ingen rysk statsmedia eller Telegram;
-   - datamängden ska ligga långt under 2 MB och mappen med bilder ha rimlig storlek;
-   - inga e-postadresser (repot är publikt);
-   - nattens historik ska vara kvar (gamla id:n behålls, `db_id` är nytt).
-2. Testa lokalt med `webapp/dev/mock_server.py` och data från datarepot
-   (`gh api repos/jeaneclaude621-ui/threat_monitor-data/contents/data/forces.json`).
-3. Slå ihop till main, driftsätt Workern (statiska filer) och kör jobbet
-   `forces` så att den nya grunden laddas upp.
+Att följa upp i grunddatabasen:
+- Förbandskortet för 14:e armékåren säger Petjenga i texten men "Ingen bas
+  i underlaget" som garnison. Kontrollera att garnisonerna i `units.json`
+  pekar på bas-id som finns.
+- Materiel kopplas till förband när artikeln nämner den i nutid (2010 eller
+  senare). Äldre materiel kan ha slunkit med.
+- Texterna är byggda ur mallar. Status är mest "aktiv enligt källan".
+- Militärdistrikten bygger på molnjobbets tolkning av 2024 års reform
+  (Engels räknas till Centrala).
+- Fem baser har bara OpenStreetMap som källa: asipovitjy-belarus,
+  bolsjoje-savino-perm, donskoje-kaliningrad, kamenka-viborg och kapustin-jar-2.
+- Fyra anfallsdatum i det handskrivna underlaget rättades (Lipetsk,
+  Marinovka, Kursk-Chalino, Sjajkovka). Primorsko-Achtarsk fick ett annat
+  anfall, 2 aug 2024.
+- Saknar bild: geran-4, geran-5, gerbera, banderol, supercam, zala,
+  merlin-vr, kn-23, oresjnik, leer-3, tu-214, tornado-g.
+- Inte använt: Overpass (502) och Militaryland.net (robots.txt tillåter
+  automatisk läsning). Kan bli nästa påfyllning.
+- 86 av de nya baserna saknar Wikipedia-artikel för veckosökningen;
+  grunddatabasens text täcker dem.
+
+**Nattens körning 2 nov:** lägesbilden föll på Gemini-kvoten (20 per dygn
+på huvudmodellen, nollställs kl. 09 svensk tid), efter manuella körningar
+kvällen innan. Nu faller den tillbaka på flash-lite-modellen. Undvik
+manuella körningar av `forces` efter kl. 09 dagen före.
 
 Kvoten efter allt: ungefär 16 av 20 anrop per dygn på huvudmodellen, plus 3
 per natt på flash-lite.
