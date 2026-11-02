@@ -56,7 +56,7 @@ def get(url, params=None, data=None, binary=False, tries=None, timeout=60):
                 # Wikimedia's edge limiter answers 429 to about every other
                 # request from a shared address: a short pause is enough.
                 ra = e.headers.get("Retry-After")
-                time.sleep(min(float(ra), 60) if ra and ra.isdigit() else wait)
+                time.sleep(min(float(ra), 20) if ra and ra.isdigit() else wait)
                 wait = min(wait * 1.5, 30)
                 continue
             raise

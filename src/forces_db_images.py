@@ -119,7 +119,9 @@ def main(kind, dry):
     name = "bases" if kind == "bases" else "systems"
     data = json.load(open(DB / f"{name}.json", encoding="utf-8"))
     only = set(sys.argv[2].split(",")) if len(sys.argv) > 2 and not sys.argv[2].startswith("--") else None
-    rows = [r for r in data[name] if not r.get("image") and (only is None or r["id"] in only)]
+    # Ask the APIs about every entry without an image (the same questions as a
+    # dry run, so a rerun reads them from the cache) and pick afterwards.
+    rows = [r for r in data[name] if not r.get("image")]
     want = {"en": set(), "ru": set()}
     for r in rows:
         for lang, t in wiki_titles(r):
@@ -135,6 +137,8 @@ def main(kind, dry):
     prefix = "base" if kind == "bases" else "sys"
     added = 0
     for r in rows:
+        if only is not None and r["id"] not in only:
+            continue
         f = next((f for f in cand.get(r["id"], []) if f in info), None)
         if not f:
             continue
@@ -154,6 +158,8 @@ def main(kind, dry):
         r["image"] = {"file": out.name, "commons_file": "File:" + f, "author": author, "license": lic,
                       "license_url": lic_url, "source_url": page}
         added += 1
+        if not dry:  # save as we go: a slow download must not lose the rest
+            (DB / f"{name}.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     if not dry:
         (DB / f"{name}.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"{added} images added of {len(rows)} {name} without one")

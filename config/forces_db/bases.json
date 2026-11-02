@@ -900,7 +900,15 @@
     "Su-27",
     "Su-30",
     "MiG-31"
-   ]
+   ],
+   "image": {
+    "file": "base-belbek.jpg",
+    "commons_file": "File:BelbekAirport.jpg",
+    "author": "Melee",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ABelbekAirport.jpg"
+   }
   },
   {
    "id": "berdsk-tsentralnyj",
@@ -1528,7 +1536,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "image": {
+    "file": "base-chabarovsk-tsentralnyj.jpg",
+    "commons_file": "File:Самолеты.jpg",
+    "author": "Тимофей Лазько",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3A%D0%A1%D0%B0%D0%BC%D0%BE%D0%BB%D0%B5%D1%82%D1%8B.jpg"
+   }
   },
   {
    "id": "chanskaja",
@@ -1856,7 +1872,15 @@
    ],
    "curated_equipment": [
     "Su-30SM"
-   ]
+   ],
+   "image": {
+    "file": "base-domna.jpg",
+    "commons_file": "File:WorkDay2015-11.jpg",
+    "author": "Вячеслав Степанов, Дмитрий Чистопрудов.",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AWorkDay2015-11.jpg"
+   }
   },
   {
    "id": "donetsk",
@@ -3196,7 +3220,15 @@
    "curated_equipment": [
     "A-50U",
     "Il-76MD"
-   ]
+   ],
+   "image": {
+    "file": "base-ivanovo-severnyj.jpg",
+    "commons_file": "File:Normalair.jpg",
+    "author": "Mechnikef",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ANormalair.jpg"
+   }
   },
   {
    "id": "jasnyj",
@@ -4294,7 +4326,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "image": {
+    "file": "base-kipelovo.jpg",
+    "commons_file": "File:Tu142KIP.jpg",
+    "author": "Alexander Kopitar",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ATu142KIP.jpg"
+   }
   },
   {
    "id": "kirovskoje",
@@ -6090,7 +6130,15 @@
    "curated_equipment": [
     "Su-34",
     "FAB-glidbomber"
-   ]
+   ],
+   "image": {
+    "file": "base-morozovsk.jpg",
+    "commons_file": "File:BomberExercise2018-07.jpg",
+    "author": "Ministry of Defence of the Russian Federation",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ABomberExercise2018-07.jpg"
+   }
   },
   {
    "id": "mozdok",

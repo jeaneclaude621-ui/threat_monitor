@@ -153,3 +153,49 @@ Andra omgången (påbörjad 2 nov 2026, gren `grunddata-styrkor-2`).
   redan klart (alla förband har garnison eller `[]` med anteckning). Steg
   2, 3, 4, bilderna i steg 6 och steg 7 kräver nätåtkomst och väntar.
   Inga uppgifter skrevs ur minnet utan källa som gick att läsa.
+
+- **Molnsessionen 2 nov 2026 (natt), med nätåtkomst.** Domänerna för
+  Wikipedia, Wikidata, Commons, Overpass, Militaryland och ISW/Critical
+  Threats lades till i miljöns nätverkspolicy. Wikimedia svarade ofta med
+  429 (gemensam adress), så allt hämtades långsamt med cache
+  (`src/forces_fetch.py`, `.cache/` ignoreras av git).
+- **Steg 2, Militaryland.** Kontrollerat igen: `/russia/` ger 404 och
+  `/russia/ground-forces/` omdirigeras till en ukrainsk nyhet. Sajten har
+  inga ryska förband och användes inte.
+- **Steg 3, OpenStreetMap.** Overpass (overpass-api.de, overpass.kumi.systems,
+  overpass.private.coffee) svarade inte från miljön: anslutningen återställs
+  eller tar timeout uppströms, flera försök under natten. I stället
+  användes Wikidatas militära flygfält och baser i Ryssland, Belarus och
+  på Krim med deras Wikipedia-artiklar: 87 kandidater som låg mer än 5 km
+  från en befintlig bas lästes, och 13 som artikeln beskriver som aktiva
+  lades till (bland andra Mozdoks flygbas med två anfall, Torzjok, Rostov
+  nord, Syzran, Luninets i Belarus och marinens provskjutningsfält vid
+  Njonoksa). Nedlagda flygfält, rena civila flygplatser och anläggningar
+  utanför försvarsmakten (Rosgvardija, rymdövervakning) togs inte med.
+- **Steg 4, baser.** Varje bas har nu en egen `description_sv` skriven
+  utifrån Wikipedia-ingressen för basen och dess förband, databasens
+  materiel och anfall, och ISW för var förbanden strider. Uppgifter som
+  inte stod i någon läst källa ströks hellre än skrevs ur minnet. 15 baser
+  som Wikipedia beskriver som nedlagda eller civila har `status_sv`
+  "nedlagd". Molkino låg fel (vid en by i Rjazan oblast) och flyttades till
+  Spetsnaz-basen vid Gorjatjij Kljutj i Krasnodar kraj; Mozdoks Tu-22M3
+  flyttades från armégarnisonen till den nya flygbasen.
+- **Basbilder.** `src/forces_db_images.py` tar artikelns huvudbild från
+  Commons bara om licensen är fri och upphovspersonen anges. Av 26
+  kandidater valdes de 14 som visar själva basen eller dess flygplan;
+  bilder av orter, kyrkor, förbandsmärken och övningar med soldater i
+  närbild valdes bort. Varje vald bild granskades visuellt.
+  Commons levererar nu miniatyrer från `thumb.wikimedia.org`, som inte är
+  tillåten; samma sökväg hämtas från `upload.wikimedia.org`.
+- **Steg 6, system.** Oresjnik och Banderol saknar fria fotografier på
+  Commons (bara GIF-stillbilder ur video med oklar licens); `image` är null.
+- **Steg 7, förband.** 104 fartyg ur Wikipedias lista över den ryska
+  marinens aktiva fartyg (nov 2026) lades till som förband av typen
+  `fartyg`, för de klasser databasen har ett system för; skrov som listan
+  själv markerar som osäkra togs inte med. Där listan bara anger flottan är
+  hemmabasen flottans huvudbas för fartygstypen, och det står i
+  `garrison_note_sv`. 64 förband fick aktuell status ur ISW:s dagliga
+  bedömningar (aug–nov 2026), lästa för hand, med datum och länk. 176 av de
+  viktigaste förbanden (arméer, kårer, flottor, divisioner och robot-,
+  marininfanteri- och specialförbandsbrigader) har nu egna beskrivningar.
+  45:e flyg- och luftförsvarsarmén är markerad som upplöst 2024.
