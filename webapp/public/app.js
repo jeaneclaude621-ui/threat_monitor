@@ -1845,7 +1845,7 @@ async function viewForceSystem(id) {
     forceHead(x.category_sv, x.name, [x.name_ru, x.role_sv].filter(Boolean).join(' · ')),
     h('section', { class: 'card card-pad fsys' },
       img ? h('figure', { class: 'ffig' },
-        h('img', { class: 'fimg', src: `/forces/img/${img.file}`, alt: x.name, loading: 'lazy' }),
+        zoomableImg({ class: 'fimg', src: `/forces/img/${img.file}`, alt: x.name, loading: 'lazy' }, `${x.name} · Bild: ${img.author} · ${img.license}`),
         h('figcaption', { class: 'small muted' }, `Bild: ${img.author} · ${img.license} · `,
           externalButton(img.source_url, { outlet: 'Wikimedia Commons' }, 'Wikimedia Commons'))) : null,
       h('p', { class: 'body-sm' }, x.description_sv),
@@ -1905,6 +1905,154 @@ function forceSources(list) {
   return (list || []).length ? h('span', { class: 'fsrc' }, list.map((s) => externalButton(s.url, { outlet: s.outlet }, s.outlet || 'Källa'))) : null;
 }
 
+// ---------------------------------------------------------------- shared map helpers (Version 3.15)
+// Both maps (bases, strikes) share these: the land with a graticule, the
+// names of countries and a few cities for orientation, pan and pinch,
+// smooth wheel zoom, double tap to zoom in, and no stray tap on a base
+// after a drag.
+const MAP_PLACES = [
+  ['Ryssland', 60, 61, 'land'], ['Belarus', 28, 53.6, 'land'], ['Ukraina', 31.5, 49.2, 'land'], ['Finland', 26, 63.5, 'land'],
+  ['Sverige', 15.5, 62.5, 'land'], ['Norge', 9, 61.5, 'land'], ['Estland', 25.8, 58.7, 'land'], ['Lettland', 25.5, 56.9, 'land'],
+  ['Litauen', 23.9, 55.3, 'land'], ['Polen', 19.5, 52, 'land'], ['Tyskland', 10.5, 51, 'land'], ['Rumänien', 25, 45.9, 'land'],
+  ['Moldavien', 28.6, 47.2, 'land'], ['Georgien', 43.5, 42.2, 'land'], ['Turkiet', 35, 39, 'land'], ['Kazakstan', 67, 48, 'land'],
+  ['Mongoliet', 103, 46.8, 'land'], ['Kina', 110, 38, 'land'], ['Danmark', 9.3, 56, 'land'],
+  ['Moskva', 37.62, 55.75, 'city'], ['S:t Petersburg', 30.32, 59.94, 'city'], ['Kaliningrad', 20.5, 54.71, 'city'],
+  ['Murmansk', 33.08, 68.97, 'city'], ['Minsk', 27.56, 53.9, 'city'], ['Kyiv', 30.52, 50.45, 'city'], ['Stockholm', 18.07, 59.33, 'city'],
+  ['Helsingfors', 24.94, 60.17, 'city'], ['Sevastopol', 33.52, 44.6, 'city'], ['Vladivostok', 131.9, 43.12, 'city'],
+  ['Novosibirsk', 82.92, 55.03, 'city'], ['Rostov', 39.7, 47.23, 'city'], ['Charkiv', 36.23, 49.99, 'city'], ['Riga', 24.1, 56.95, 'city'],
+  ['Tallinn', 24.75, 59.44, 'city'], ['Vilnius', 25.28, 54.69, 'city'], ['Warszawa', 21.01, 52.23, 'city'], ['Odesa', 30.72, 46.48, 'city'],
+];
+
+function mapLand(countries, cls = (c) => '') {
+  const g = svgEl('g');
+  const grid = [];
+  for (let lon = -20; lon <= 190; lon += 10) grid.push(`M${FX(lon)} ${FY(82)}V${FY(34)}`);
+  for (let lat = 35; lat <= 80; lat += 5) grid.push(`M${FX(-25)} ${FY(lat)}H${FX(192)}`);
+  g.appendChild(svgEl('path', { d: grid.join(''), class: 'fgrid' }));
+  for (const c of countries) {
+    const d = c.rings.map((r) => `M${r.map(([lon, lat]) => `${FX(lon).toFixed(1)} ${FY(lat).toFixed(1)}`).join('L')}Z`).join('');
+    g.appendChild(svgEl('path', { d, class: `fland ${cls(c)}` }));
+  }
+  return g;
+}
+
+// Country and city names at a constant screen size; px = map units per pixel.
+function mapPlaces(g, px, vb) {
+  g.replaceChildren();
+  for (const [name, lon, lat, kind] of MAP_PLACES) {
+    const x = FX(lon); const y = FY(lat);
+    if (x < vb.x || x > vb.x + vb.w || y < vb.y || y > vb.y + vb.h) continue;
+    if (kind === 'city' && px > 0.9) continue;
+    if (kind === 'city') {
+      g.append(svgEl('circle', { class: 'fcity', cx: x, cy: y, r: px * 2.2 }),
+        svgEl('text', { class: 'fcity-l', x: x + px * 4, y: y + px * 3.5, 'font-size': px * 10, 'stroke-width': px * 2.5 }, name));
+    } else g.append(svgEl('text', { class: 'fcountry', x, y, 'font-size': px * 12, 'text-anchor': 'middle' }, name.toUpperCase()));
+  }
+}
+
+// The map's height over its width as shown, so the view fills the box.
+const boxRatio = (svg) => (svg.clientHeight && svg.clientWidth ? svg.clientHeight / svg.clientWidth : 0.75);
+
+// Keep the view's shape that of the box, around the same centre.
+function fitView(vb, svg) {
+  const want = vb.w * boxRatio(svg);
+  return Math.abs(vb.h - want) < 1e-6 ? vb : { ...vb, y: vb.y + (vb.h - want) / 2, h: want };
+}
+
+function attachPanZoom(svg, opt) {
+  const clampW = (w) => Math.max(opt.minW, Math.min(opt.maxW || opt.full.w, w));
+  const toMap = (cx, cy) => {
+    const r = svg.getBoundingClientRect(); const vb = opt.get();
+    return [vb.x + (cx - r.left) / r.width * vb.w, vb.y + (cy - r.top) / r.height * vb.h];
+  };
+  const zoomAt = (mx, my, w) => {
+    const vb = opt.get(); w = clampW(w);
+    opt.set({ x: mx - (mx - vb.x) * w / vb.w, y: my - (my - vb.y) * w / vb.w, w, h: w * boxRatio(svg) });
+  };
+  const zoomTo = (x, y, w) => { w = clampW(w); const hh = w * boxRatio(svg); opt.set({ x: x - w / 2, y: y - hh / 2, w, h: hh }); };
+  const ptrs = new Map();
+  let start = null; let moved = false; let lastTap = null;
+  svg.addEventListener('pointerdown', (ev) => {
+    if (!ptrs.size) moved = false;
+    ptrs.set(ev.pointerId, [ev.clientX, ev.clientY]);
+    start = { vb: { ...opt.get() }, ptrs: new Map(ptrs) };
+  });
+  svg.addEventListener('pointermove', (ev) => {
+    if (!ptrs.has(ev.pointerId) || !start) return;
+    ptrs.set(ev.pointerId, [ev.clientX, ev.clientY]);
+    const r = svg.getBoundingClientRect();
+    if (ptrs.size === 1 && start.ptrs.size === 1) {
+      const [sx, sy] = [...start.ptrs.values()][0];
+      if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return;
+      if (!moved) { moved = true; svg.setPointerCapture(ev.pointerId); }
+      const dx = (ev.clientX - sx) / r.width * start.vb.w; const dy = (ev.clientY - sy) / r.height * start.vb.h;
+      opt.set({ ...start.vb, x: start.vb.x - dx, y: start.vb.y - dy });
+    } else if (ptrs.size === 2 && start.ptrs.size === 2) {
+      moved = true;
+      const [a, b] = [...ptrs.values()]; const [a0, b0] = [...start.ptrs.values()];
+      const k = Math.hypot(a0[0] - b0[0], a0[1] - b0[1]) / (Math.hypot(a[0] - b[0], a[1] - b[1]) || 1);
+      const cx = start.vb.x + ((a0[0] + b0[0]) / 2 - r.left) / r.width * start.vb.w;
+      const cy = start.vb.y + ((a0[1] + b0[1]) / 2 - r.top) / r.height * start.vb.h;
+      const w = clampW(start.vb.w * k);
+      // Follow the fingers' midpoint as well as their spread.
+      const ratio = boxRatio(svg);
+      const mx = ((a[0] + b[0]) / 2 - r.left) / r.width * w; const my = ((a[1] + b[1]) / 2 - r.top) / r.height * w * ratio;
+      opt.set({ x: cx - mx, y: cy - my, w, h: w * ratio });
+    }
+  });
+  const end = (ev) => {
+    if (ev.type === 'pointerup' && ev.pointerType !== 'mouse' && !moved && ptrs.size === 1) {
+      // Double tap on the map zooms in there.
+      const now = Date.now();
+      if (lastTap && now - lastTap.t < 320 && Math.hypot(ev.clientX - lastTap.x, ev.clientY - lastTap.y) < 30) {
+        const [mx, my] = toMap(ev.clientX, ev.clientY); zoomAt(mx, my, opt.get().w / 2.5); lastTap = null;
+      } else lastTap = { t: now, x: ev.clientX, y: ev.clientY };
+    }
+    ptrs.delete(ev.pointerId);
+    start = ptrs.size ? { vb: { ...opt.get() }, ptrs: new Map(ptrs) } : null;
+  };
+  svg.addEventListener('pointerup', end);
+  svg.addEventListener('pointercancel', end);
+  // A drag that ends over a base must not select it.
+  svg.addEventListener('click', (ev) => { if (moved) { ev.stopPropagation(); ev.preventDefault(); } }, true);
+  svg.addEventListener('dblclick', (ev) => { ev.preventDefault(); const [mx, my] = toMap(ev.clientX, ev.clientY); zoomAt(mx, my, opt.get().w / 2.5); });
+  svg.addEventListener('wheel', (ev) => {
+    ev.preventDefault();
+    const [mx, my] = toMap(ev.clientX, ev.clientY);
+    // Trackpad pinch comes as ctrl+wheel with small deltas; scale smoothly.
+    zoomAt(mx, my, opt.get().w * Math.exp(Math.max(-0.5, Math.min(0.5, ev.deltaY * (ev.ctrlKey ? 0.012 : 0.0018)))));
+  }, { passive: false });
+  return { zoomAt, zoomTo };
+}
+
+// One redraw per frame, however many pointer events come in.
+function frameThrottle(fn) {
+  let queued = false;
+  return () => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; fn(); }); };
+}
+
+// An image that grows to full screen when held down (or tapped).
+function zoomableImg(attrs, caption) {
+  const img = h('img', { ...attrs, class: `${attrs.class || ''} zoomable`, draggable: 'false' });
+  let timer = null;
+  const open = () => {
+    const close = () => { box.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (ev) => { if (ev.key === 'Escape') close(); };
+    const box = h('div', { class: 'lightbox', role: 'dialog', 'aria-label': attrs.alt || 'Bild', onclick: close },
+      h('img', { src: attrs.src, alt: attrs.alt || '' }),
+      caption ? h('div', { class: 'lightbox-cap', onclick: (ev) => ev.stopPropagation() }, caption) : null,
+      h('button', { class: 'lightbox-x', type: 'button', 'aria-label': 'Stäng', onclick: close }, '×'));
+    document.body.appendChild(box);
+    document.addEventListener('keydown', onKey);
+  };
+  img.addEventListener('pointerdown', () => { timer = setTimeout(() => { timer = null; open(); }, 380); });
+  const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+  img.addEventListener('pointerup', cancel); img.addEventListener('pointerleave', cancel); img.addEventListener('pointercancel', cancel);
+  img.addEventListener('contextmenu', (ev) => ev.preventDefault());
+  img.addEventListener('click', (ev) => { ev.stopPropagation(); open(); });
+  return img;
+}
+
 async function viewForces() {
   const loaded = await loadForcesView();
   if (!loaded) {
@@ -1918,14 +2066,12 @@ async function viewForces() {
   let selected = forcesUi.selected ? byId.get(forcesUi.selected) || null : null;
 
   const svg = svgEl('svg', { class: 'fmap', role: 'img', 'aria-label': 'Karta över ryska baser' });
-  const landG = svgEl('g');
-  for (const c of land) {
-    const enemy = c.name === 'Russia' || c.name === 'Belarus';
-    const d = c.rings.map((r) => `M${r.map(([lon, lat]) => `${FX(lon).toFixed(1)} ${FY(lat).toFixed(1)}`).join('L')}Z`).join('');
-    landG.appendChild(svgEl('path', { d, class: `fland${enemy ? ' ru' : ''}` }));
-  }
+  const landG = mapLand(land, (c) => (c.name === 'Russia' || c.name === 'Belarus' ? 'ru' : c.name === 'Sweden' ? 'se' : ''));
+  // Names under the bases, so a name never covers a base or takes its tap.
+  const placesG = svgEl('g', { class: 'fplaces' });
+  const labelsG = svgEl('g', { class: 'flabels' });
   const ptsG = svgEl('g');
-  svg.append(landG, ptsG);
+  svg.append(landG, placesG, labelsG, ptsG);
 
   const search = h('input', { type: 'search', class: 'fsearch', placeholder: 'Sök: Su, Su-34, Iskander, S-400, marin …', autocomplete: 'off', enterkeyhint: 'search' });
   const sugg = h('div', { class: 'chips fsugg' });
@@ -1949,51 +2095,70 @@ async function viewForces() {
     return [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 12);
   }
 
-  function zoomTo(x, y, w) {
-    const ww = Math.max(FULL.w / 40, Math.min(FULL.w, w));
-    const hh = ww * FULL.h / FULL.w;
-    vb = { x: x - ww / 2, y: y - hh / 2, w: ww, h: hh };
-    draw();
-  }
+  const MIN_W = FULL.w / 300;
+  const redraw = frameThrottle(() => draw());
+  const pz = attachPanZoom(svg, { get: () => vb, set: (v) => { vb = v; redraw(); }, full: FULL, minW: MIN_W });
+  const zoomTo = (x, y, w) => { pz.zoomTo(x, y, w); };
+  const EUROPE = () => zoomTo(FX(36), FY(56), FX(68) - FX(4));
 
   function draw() {
+    vb = fitView(vb, svg);
     Object.assign(forcesUi, { vb, query, branch, onlyHit, selected: selected?.id || null });
     svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
     const hit = matches();
-    const z = FULL.w / vb.w;
-    const u = vb.w / 100;            // one hundredth of the view, so marks keep their screen size
-    ptsG.replaceChildren();
-    if (z < 2.5) {
-      // Clusters on a grid of the view.
-      const cell = vb.w / 9;
-      const groups = new Map();
-      for (const b of hit) {
-        const k = `${Math.floor(b.x / cell)}:${Math.floor(b.y / cell)}`;
-        if (!groups.has(k)) groups.set(k, []);
-        groups.get(k).push(b);
-      }
-      for (const g of groups.values()) {
-        const x = g.reduce((s2, b) => s2 + b.x, 0) / g.length; const y = g.reduce((s2, b) => s2 + b.y, 0) / g.length;
-        const r = u * (1.4 + Math.sqrt(g.length) * 0.45);
-        const node = svgEl('g', { class: `fclu${g.some((b) => b.status === 'anfallen') ? ' hit' : ''}`, tabindex: '0', role: 'button',
-          'aria-label': `${g.length} baser, zooma in` });
-        node.append(svgEl('circle', { cx: x, cy: y, r }), svgEl('text', { x, y: y + u * 0.55, 'font-size': u * 1.5 }, String(g.length)));
-        node.addEventListener('click', () => (g.length === 1 ? select(g[0]) : zoomTo(x, y, vb.w / 3)));
-        ptsG.appendChild(node);
-      }
-    } else {
-      for (const b of hit) {
-        const [, letter, colour] = FORCE_BRANCH[b.branch] || ['', '?', '#555'];
-        const node = svgEl('g', { class: `fpt${b.status === 'anfallen' ? ' hit' : ''}${b === selected ? ' sel' : ''}${b.curated ? ' cur' : ''}`,
-          tabindex: '0', role: 'button', 'aria-label': b.name });
-        node.append(svgEl('circle', { cx: b.x, cy: b.y, r: u * (b.curated ? 1.3 : 0.9), fill: colour }));
-        if (b.curated || z > 6) node.append(svgEl('text', { x: b.x, y: b.y + u * 0.45, 'font-size': u * 1.2 }, letter));
-        if (z > 5 && (b.curated || z > 9)) node.append(svgEl('text', { class: 'flab', x: b.x + u * 1.8, y: b.y + u * 0.5, 'font-size': u * 1.4 }, b.name));
-        node.addEventListener('click', () => select(b));
-        ptsG.appendChild(node);
-      }
+    // Sizes in screen pixels: px is map units per pixel.
+    const px = vb.w / (svg.clientWidth || 360);
+    mapPlaces(placesG, px, vb);
+    ptsG.replaceChildren(); labelsG.replaceChildren();
+    // Bases closer than ~30 px on screen gather into a group; the groups
+    // come apart as you zoom in.
+    const cell = px * 44;
+    const groups = new Map();
+    const pad = px * 40;
+    for (const b of hit) {
+      if (b.x < vb.x - pad || b.x > vb.x + vb.w + pad || b.y < vb.y - pad || b.y > vb.y + vb.h + pad) continue;
+      const k = `${Math.floor(b.x / cell)}:${Math.floor(b.y / cell)}`;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(b);
     }
-    info.textContent = `${hit.length} av ${bases.length} baser${hit.length && z < 2.5 ? ' · tryck på en grupp för att zooma in' : ''}`;
+    const singles = []; const groupBoxes = [];
+    for (const g of groups.values()) {
+      if (g.length === 1 || vb.w <= MIN_W * 1.01) { singles.push(...g); continue; }
+      const x = g.reduce((s2, b) => s2 + b.x, 0) / g.length; const y = g.reduce((s2, b) => s2 + b.y, 0) / g.length;
+      const r = px * (9 + Math.sqrt(g.length) * 2.2);
+      groupBoxes.push([x - r, y - r, x + r, y + r]);
+      const node = svgEl('g', { class: `fclu${g.some((b) => b.status === 'anfallen') ? ' hit' : ''}`, tabindex: '0', role: 'button',
+        'aria-label': `${g.length} baser, zooma in` });
+      node.append(svgEl('circle', { cx: x, cy: y, r }), svgEl('text', { x, y: y + px * 4, 'font-size': px * 11 }, String(g.length)));
+      node.addEventListener('click', () => zoomTo(x, y, Math.max(MIN_W, vb.w / 3)));
+      ptsG.appendChild(node);
+    }
+    // Labels where they fit: the chosen base first, then attacked ones,
+    // then those with known forces; never over another base or label.
+    const rank = (b) => (b === selected ? 0 : b.status === 'anfallen' ? 1 : (b.curated || b.db_id) ? 2 : 3);
+    const boxes = [...groupBoxes, ...singles.map((b) => [b.x - px * 7, b.y - px * 7, b.x + px * 7, b.y + px * 7])];
+    const free = (bx) => !boxes.some((o) => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1]);
+    const labelled = new Set();
+    for (const b of [...singles].sort((a, c) => rank(a) - rank(c))) {
+      if (labelled.size >= 80) break;
+      const w = px * (b.name.length * 6.4 + 4); const x0 = b.x + px * 9; const y0 = b.y - px * 7;
+      const bx = [x0, y0, x0 + w, y0 + px * 14];
+      if (!free(bx)) continue;
+      boxes.push(bx); labelled.add(b);
+      labelsG.appendChild(svgEl('text', { class: 'flab', x: x0, y: b.y + px * 4, 'font-size': px * 11.5, 'stroke-width': px * 3 }, b.name));
+    }
+    for (const b of singles) {
+      const [, letter, colour] = FORCE_BRANCH[b.branch] || ['', '?', '#555'];
+      const node = svgEl('g', { class: `fpt${b.status === 'anfallen' ? ' hit' : ''}${b === selected ? ' sel' : ''}${b.curated || b.db_id ? ' cur' : ''}`,
+        tabindex: '0', role: 'button', 'aria-label': b.name });
+      // A larger invisible circle makes the base easy to hit with a finger.
+      node.append(svgEl('circle', { class: 'fhit', cx: b.x, cy: b.y, r: px * 14 }),
+        svgEl('circle', { cx: b.x, cy: b.y, r: px * (b.curated || b.db_id ? 7 : 5), fill: colour }));
+      if (b.curated || b.db_id) node.append(svgEl('text', { x: b.x, y: b.y + px * 3.3, 'font-size': px * 8.5 }, letter));
+      node.addEventListener('click', () => select(b));
+      ptsG.appendChild(node);
+    }
+    info.textContent = `${hit.length} av ${bases.length} baser · tryck på en grupp eller dubbeltryck för att zooma in`;
     const sg = suggestions(hit);
     sugg.replaceChildren(...sg.map(([t, n]) => h('button', { class: 'chip', type: 'button', onclick: () => { query = t; search.value = t; draw(); } }, `${t} · ${n}`)));
     list.replaceChildren(fnorm(query) && hit.length <= 40 ? h('div', { class: 'card list' }, hit.map((b) =>
@@ -2010,7 +2175,7 @@ async function viewForces() {
 
   function select(b, zoom = true) {
     selected = b;
-    if (zoom && FULL.w / vb.w < 6) zoomTo(b.x, b.y, FULL.w / 8); else draw();
+    if (zoom && vb.w > FULL.w / 12) zoomTo(b.x, b.y, FULL.w / 16); else draw();
     const events = [...b.events].sort((a, c) => (a.date < c.date ? 1 : -1));
     const changes = [...b.changes].sort((a, c) => (a.date < c.date ? 1 : -1));
     const orig = b.original || { units: [], equipment: [] };
@@ -2024,6 +2189,10 @@ async function viewForces() {
       h('h2', { class: 'coa-title' }, b.name, b.name_ru ? h('span', { class: 'small muted' }, ` · ${b.name_ru}`) : null),
       h('p', { class: 'small muted' }, [FORCE_BRANCH[b.branch]?.[0], COUNTRY_FORCES[b.country] || countryName(b.country), b.military_district,
         `${b.lat.toFixed(2)}° N, ${b.lon.toFixed(2)}° E`].filter(Boolean).join(' · ')),
+      b.image?.file ? h('figure', { class: 'ffig' }, zoomableImg({ class: 'fimg', src: `/forces/img/${b.image.file}`, alt: b.name, loading: 'lazy' },
+        `${b.name} · Bild: ${b.image.author || 'okänd'} · ${b.image.license || ''}`),
+        h('figcaption', { class: 'small muted' }, `Bild: ${b.image.author || 'okänd'} · ${b.image.license || ''} · `,
+          b.image.source_url ? externalButton(b.image.source_url, { outlet: 'Wikimedia Commons' }, 'Wikimedia Commons') : null)) : null,
       b.description_sv ? h('p', { class: 'body-sm' }, b.description_sv) : null,
       b.units.length ? h('div', null, h('h3', { class: 'fsub' }, 'Förband nu'), h('div', { class: 'chips' }, b.units.map((t) => {
         const uid = unitFor(cat, t);
@@ -2054,54 +2223,16 @@ async function viewForces() {
     if (zoom) detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  // Pan with one pointer, pinch with two, zoom with the wheel.
-  const ptrs = new Map();
-  let start = null;
-  const toMap = (cx, cy) => { const r = svg.getBoundingClientRect(); return [vb.x + (cx - r.left) / r.width * vb.w, vb.y + (cy - r.top) / r.height * vb.h]; };
-  svg.addEventListener('pointerdown', (ev) => {
-    ptrs.set(ev.pointerId, [ev.clientX, ev.clientY]);
-    start = { vb: { ...vb }, ptrs: new Map(ptrs) };
-  });
-  svg.addEventListener('pointermove', (ev) => {
-    if (!ptrs.has(ev.pointerId) || !start) return;
-    ptrs.set(ev.pointerId, [ev.clientX, ev.clientY]);
-    const r = svg.getBoundingClientRect();
-    if (ptrs.size === 1 && start.ptrs.size === 1) {
-      const [sx, sy] = [...start.ptrs.values()][0];
-      const dx = (ev.clientX - sx) / r.width * start.vb.w; const dy = (ev.clientY - sy) / r.height * start.vb.h;
-      if (Math.abs(dx) + Math.abs(dy) > start.vb.w / 200) svg.setPointerCapture(ev.pointerId);
-      vb = { ...start.vb, x: start.vb.x - dx, y: start.vb.y - dy };
-      draw();
-    } else if (ptrs.size === 2 && start.ptrs.size === 2) {
-      const [a, b] = [...ptrs.values()]; const [a0, b0] = [...start.ptrs.values()];
-      const k = Math.hypot(a0[0] - b0[0], a0[1] - b0[1]) / (Math.hypot(a[0] - b[0], a[1] - b[1]) || 1);
-      const cx = start.vb.x + ((a0[0] + b0[0]) / 2 - r.left) / r.width * start.vb.w;
-      const cy = start.vb.y + ((a0[1] + b0[1]) / 2 - r.top) / r.height * start.vb.h;
-      const w = Math.max(FULL.w / 40, Math.min(FULL.w, start.vb.w * k));
-      vb = { x: cx - (cx - start.vb.x) * w / start.vb.w, y: cy - (cy - start.vb.y) * w / start.vb.w, w, h: w * FULL.h / FULL.w };
-      draw();
-    }
-  });
-  const end = (ev) => { ptrs.delete(ev.pointerId); start = ptrs.size ? { vb: { ...vb }, ptrs: new Map(ptrs) } : null; };
-  svg.addEventListener('pointerup', end);
-  svg.addEventListener('pointercancel', end);
-  svg.addEventListener('wheel', (ev) => {
-    ev.preventDefault();
-    const [mx, my] = toMap(ev.clientX, ev.clientY);
-    const w = Math.max(FULL.w / 40, Math.min(FULL.w, vb.w * (ev.deltaY > 0 ? 1.25 : 0.8)));
-    vb = { x: mx - (mx - vb.x) * w / vb.w, y: my - (my - vb.y) * w / vb.w, w, h: w * FULL.h / FULL.w };
-    draw();
-  }, { passive: false });
-
   search.value = query;
   search.addEventListener('input', () => { query = search.value; draw(); });
   const centre = () => [vb.x + vb.w / 2, vb.y + vb.h / 2];
   const tools = h('div', { class: 'fmap-tools' },
     h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma in', onclick: () => zoomTo(...centre(), vb.w / 1.6) }, '+'),
     h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma ut', onclick: () => zoomTo(...centre(), vb.w * 1.6) }, '−'),
-    h('button', { class: 'chip', type: 'button', onclick: () => zoomTo(FX(28), FY(56), FX(62) - FX(-12)) }, 'Europa'),
-    h('button', { class: 'chip', type: 'button', onclick: () => { vb = { ...FULL }; draw(); } }, 'Hela kartan'));
+    h('button', { class: 'chip', type: 'button', onclick: EUROPE }, 'Europa'),
+    h('button', { class: 'chip', type: 'button', onclick: () => zoomTo(FULL.x + FULL.w / 2, FULL.y + FULL.h / 2, FULL.w) }, 'Hela kartan'));
   if (selected) select(selected, false); else draw();
+  requestAnimationFrame(() => draw());
 
   // The latest night: what was found, each base a tap away.
   const night = (data.nights || []).at(-1);
@@ -2143,7 +2274,7 @@ async function viewForces() {
 // weapon kind and as wide as the number launched. The real flight paths
 // are not in the data.
 const STRIKE_KIND = { 'drönare': ['Drönare', '#C2410C'], kryssningsrobot: ['Kryssningsrobotar', '#7C3AED'], 'ballistisk robot': ['Ballistiska robotar', '#B91C1C'], 'övrigt': ['Övrigt', '#6B7280'] };
-const strikesUi = { date: null, kind: null };
+const strikesUi = { date: null, kind: null, vb: null };
 
 // The weapon catalogue (webapp/public/forces/systems.json): pictures and
 // performance. Missing until the database is in; the cards then show text.
@@ -2171,7 +2302,7 @@ function weaponCard(id, sys, rows) {
       sys.image.source_url ? externalButton(sys.image.source_url, { outlet: 'Wikimedia Commons' }, 'Commons') : null) : null);
   const toggle = () => { more.hidden = !more.hidden; };
   return h('div', { class: 'swcard card', role: 'button', tabindex: '0', onclick: toggle, onkeydown: (ev) => { if (ev.key === 'Enter') toggle(); } },
-    img ? h('img', { src: img, alt: name, loading: 'lazy' }) : h('div', { class: 'swnoimg' }, name.slice(0, 2)),
+    img ? zoomableImg({ src: img, alt: name, loading: 'lazy' }, sys?.image ? `${name} · Bild: ${sys.image.author || 'okänd'} · ${sys.image.license || ''}` : name) : h('div', { class: 'swnoimg' }, name.slice(0, 2)),
     h('div', { class: 'swbody' },
       h('div', { class: 'row-title' }, name),
       h('div', { class: 'small muted' }, [sys?.category_sv, launched ? `${launched} avfyrade` : null].filter(Boolean).join(' · ')),
@@ -2193,15 +2324,14 @@ async function viewStrikes() {
   let kind = strikesUi.kind;
   const view = { x: FX(21), y: FY(57.5), w: FX(50) - FX(21), h: FY(42.5) - FY(57.5) };
   const svg = svgEl('svg', { class: 'fmap smap', role: 'img', 'aria-label': 'Karta över nattens anfall', viewBox: `${view.x} ${view.y} ${view.w} ${view.h}` });
-  const landG = svgEl('g');
-  for (const c of land.countries) {
-    const enemy = c.name === 'Russia' || c.name === 'Belarus';
-    const d = c.rings.map((r) => `M${r.map(([lon, lat]) => `${FX(lon).toFixed(1)} ${FY(lat).toFixed(1)}`).join('L')}Z`).join('');
-    landG.appendChild(svgEl('path', { d, class: `fland${enemy ? ' ru' : ''}${c.name === 'Ukraine' ? ' ua' : ''}` }));
-  }
+  const landG = mapLand(land.countries, (c) => (c.name === 'Russia' || c.name === 'Belarus' ? 'ru' : c.name === 'Ukraine' ? 'ua' : ''));
+  const placesG = svgEl('g', { class: 'fplaces' });
   const trailsG = svgEl('g');
-  svg.append(landG, trailsG);
-  const u = view.w / 100;
+  svg.append(landG, placesG, trailsG);
+  let vb = strikesUi.vb || { ...view };
+  let u = vb.w / 100;
+  const redraw = frameThrottle(() => draw());
+  const pz = attachPanZoom(svg, { get: () => vb, set: (v) => { vb = v; redraw(); }, full: view, minW: view.w / 12, maxW: view.w * 1.6 });
   const nights = h('div', { class: 'chips seg-tight' });
   const kinds = h('div', { class: 'chips' });
   const totals = h('div', { class: 'stotals' });
@@ -2209,7 +2339,11 @@ async function viewStrikes() {
   const weapons = h('div');
 
   function draw() {
-    Object.assign(strikesUi, { date: day.date, kind });
+    vb = fitView(vb, svg);
+    Object.assign(strikesUi, { date: day.date, kind, vb });
+    svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+    u = vb.w / 100;
+    mapPlaces(placesG, vb.w / (svg.clientWidth || 360), vb);
     trailsG.replaceChildren();
     const rows = day.rows.filter((r) => !kind || r.kind === kind);
     const launches = new Map(); const targets = new Map();
@@ -2256,7 +2390,7 @@ async function viewStrikes() {
     for (const a of launches.values()) {
       const [x, y] = [FX(a.lon), FY(a.lat)];
       trailsG.append(svgEl('path', { class: 'slaunch', d: `M${x} ${y - u * 1.2}L${x + u} ${y + u * 0.7}L${x - u} ${y + u * 0.7}Z` }),
-        svgEl('text', { class: 'flab', x: x + u * 1.4, y: y + u * 0.4, 'font-size': u * 1.6 }, a.name));
+        svgEl('text', { class: 'flab', x: x + u * 1.4, y: y + u * 0.4, 'font-size': u * 1.6, 'stroke-width': u * 0.4 }, a.name));
     }
     nights.replaceChildren(...data.days.slice(0, 14).map((d) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(d === day),
       onclick: () => { day = d; draw(); } }, dateShort(d.date))));
@@ -2279,11 +2413,15 @@ async function viewStrikes() {
           + (r.hits != null ? ` · träff på ${r.hits} platser` : '') + (r.hidden ? ' · antal ej angivet' : '')))))));
   }
   draw();
+  requestAnimationFrame(() => draw());
 
   return frag(head, forcesSeg(true),
     h('p', { class: 'hint' }, 'Natt för natt: vad Ryssland avfyrade mot Ukraina, varifrån och mot vilka regioner. Spåren är schematiska.'),
     nights, totals, kinds,
-    h('div', { class: 'fmap-wrap card' }, svg),
+    h('div', { class: 'fmap-wrap card' }, svg, h('div', { class: 'fmap-tools' },
+      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma in', onclick: () => pz.zoomTo(vb.x + vb.w / 2, vb.y + vb.h / 2, vb.w / 1.6) }, '+'),
+      h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma ut', onclick: () => pz.zoomTo(vb.x + vb.w / 2, vb.y + vb.h / 2, vb.w * 1.6) }, '−'),
+      h('button', { class: 'chip', type: 'button', onclick: () => pz.zoomTo(view.x + view.w / 2, view.y + view.h / 2, view.w) }, 'Hela Ukraina'))),
     weapons,
     h('div', { class: 'flegend small muted' }, h('span', null, h('b', { class: 'slegend-launch' }), 'Avfyrningsområde'),
       h('span', null, h('b', { class: 'fdot starget-dot' }), 'Målregion'),

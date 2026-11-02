@@ -358,6 +358,9 @@ entries already recorded in the last {CONTEXT_DAYS} days):
 
 {text}
 
+Already recorded at places not in the list (do not repeat these under "other"):
+{chr(10).join(f"- {n['date']} {o['place']}: {o['text_sv'][:140]}" for n in state.get('nights', [])[-CONTEXT_DAYS:] for o in n.get('other', [])) or '(none)'}
+
 Record, from the articles only:
 1. "attacks": a base attacked in the last day (drones, missiles, sabotage,
    fire from an attack). Name the base by its id from the list. "text_sv":
