@@ -8051,7 +8051,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "image": {
+    "file": "base-rtisjtjevo.jpg",
+    "commons_file": "File:RtishchevoAerodrom.jpg",
+    "author": "Photo by A. Sdobnikov",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ARtishchevoAerodrom.jpg"
+   }
   },
   {
    "id": "rybnoje",

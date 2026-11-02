@@ -10,6 +10,7 @@ about 640 px wide and under 80 KB.
 Every picked image must still be looked at by a person before it is
 committed: the script cannot tell a base from a town square or a badge.
 """
+import html
 import io
 import json
 import re
@@ -35,8 +36,8 @@ NOT_PHOTO = re.compile(r"(logo|emblem|insignia|flag|map|locator|coat.of.arms|Ð³Ð
 MAX_BYTES = 80_000
 
 
-def strip(html):
-    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", html or "")).strip()
+def strip(text):
+    return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", text or ""))).strip()
 
 
 def page_images(lang, titles):
