@@ -65,7 +65,8 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
-     ]
+     ],
+     "damage_sv": "Ett Su-57 skadat av splitter enligt bilder; HUR uppgav två."
     }
    ],
    "sources": [
@@ -770,7 +771,8 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
-     ]
+     ],
+     "damage_sv": "Enligt SBU skadades Tu-95MS och Tu-22M3 på basen; bilder visade flera brinnande bombplan."
     }
    ],
    "sources": [
@@ -816,6 +818,24 @@
    },
    "events": [
     {
+     "date": "2024-01-31",
+     "kind": "anfallen",
+     "text_sv": "Ukrainas flygvapen uppgav att det anföll Belbek med robotar.",
+     "damage_sv": "Tre ryska militärflygplan skadade enligt Ukraina.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/air-force-ukraine-damages-3-russia-aircraft-in-crimea/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.telegraph.co.uk/world-news/2024/01/31/ukraine-launches-storm-shadow-missile-attack-on-crimea/",
+       "outlet": "The Telegraph",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
      "date": "2024-05-15",
      "kind": "anfallen",
      "text_sv": "Ukraina anföll basen med robotar; enligt rapporter förstördes två MiG-31 (ockuperade Krim).",
@@ -824,6 +844,20 @@
        "url": "https://en.wikipedia.org/wiki/Sevastopol_International_Airport",
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
+      }
+     ],
+     "damage_sv": "Två MiG-31 förstörda enligt rapporter, brand i ett bränsle- och smörjmedelsförråd, 11 soldater skadade."
+    },
+    {
+     "date": "2025-12-17",
+     "kind": "anfallen",
+     "text_sv": "Ukraina uppgav att flygplatsen anfallits natten mot 18 december och visade stillbilder från drönare.",
+     "damage_sv": "Enligt Ukraina förstördes ett MiG-31, ett Pantsir-S2, en Nebo-SVU-radar och en radar till S-400.",
+     "sources": [
+      {
+       "url": "https://www.twz.com/air/mig-31-foxhound-among-russian-air-defense-assets-targeted-in-crimean-drone-strike",
+       "outlet": "The War Zone",
+       "accessed": "2026-11-02"
       }
      ]
     }
@@ -1226,7 +1260,60 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2024-08-14",
+     "kind": "anfallen",
+     "text_sv": "Basen träffades av ett stort drönaranfall.",
+     "damage_sv": "Minst två hangarer skadade och möjligen två stridsflygplan, enligt New York Times och AP.",
+     "sources": [
+      {
+       "url": "https://www.nytimes.com/2024/08/15/world/europe/russia-ukraine-airfields-kursk.html",
+       "outlet": "New York Times",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2024-10-03",
+     "kind": "anfallen",
+     "text_sv": "SBU anföll basen med drönare och riktade in sig på Su-34, Su-35, bränslecisterner och ett förråd för glidbomber.",
+     "damage_sv": "Bränder syntes i NASA:s satellitdata; skadorna på flygplan är obekräftade.",
+     "sources": [
+      {
+       "url": "https://euromaidanpress.com/2024/10/03/ukraine-targets-russias-guided-bomb-warehouses-and-aircraft-in-voronezh-oblast-airfield-attack/",
+       "outlet": "Euromaidan Press",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2025-07-05",
+     "kind": "anfallen",
+     "text_sv": "Drönare anföll basen; lokalbor rapporterade 8-10 explosioner och branden syntes i satellitdata.",
+     "damage_sv": "Brand på basen.",
+     "sources": [
+      {
+       "url": "https://newsukraine.rbc.ua/news/drone-attack-hits-borisoglebsk-voronezh-region-1751689518.html",
+       "outlet": "RBC-Ukraine",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2026-10-15",
+     "kind": "anfallen",
+     "text_sv": "Basen anfölls med robotar av typen Neptun, enligt den ukrainska marinen.",
+     "damage_sv": "Fyra Su-34 uppges förstörda och två skadade, liksom stödutrustning.",
+     "sources": [
+      {
+       "url": "https://united24media.com/war-in-ukraine/ukraine-takes-out-6-russian-su-34m-bombers-with-a-single-airbase-strike-navy-says-23456",
+       "outlet": "united24media.com",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%91%D0%BE%D1%80%D0%B8%D1%81%D0%BE%D0%B3%D0%BB%D0%B5%D0%B1%D1%81%D0%BA_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
@@ -1363,7 +1450,21 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2023-05-04",
+     "kind": "anfallen",
+     "text_sv": "En drönare träffade området för militär enhet 45117 i Buturlinovka, Voronezj län.",
+     "damage_sv": "Okänt.",
+     "sources": [
+      {
+       "url": "https://english.nv.ua/nation/russian-media-report-drone-attacks-in-voronezh-rostov-oblasts-50322134.html",
+       "outlet": "NV",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%91%D1%83%D1%82%D1%83%D1%80%D0%BB%D0%B8%D0%BD%D0%BE%D0%B2%D0%BA%D0%B0_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
@@ -1429,7 +1530,21 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2024-10-10",
+     "kind": "anfallen",
+     "text_sv": "Ett ukrainskt drönaranfall riktades mot flygbasen Chanskaja nära Maikop; en brand syntes i NASA:s satellitdata.",
+     "damage_sv": "Brand; omfattningen okänd.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/drones-hit-military-airfield-in-russias-republic-of-adygea-russian-media-claims/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%A5%D0%B0%D0%BD%D1%81%D0%BA%D0%B0%D1%8F_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
@@ -1619,6 +1734,20 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
+     ],
+     "damage_sv": "Ett Tu-22M3 skadat, en tankbil förstörd; tre döda och fem skadade."
+    },
+    {
+     "date": "2024-07-27",
+     "kind": "anfallen",
+     "text_sv": "Djagilevo anfölls med drönare samma natt som Olenja och Engels, enligt ukrainska uppgifter.",
+     "damage_sv": "Okänt.",
+     "sources": [
+      {
+       "url": "https://newsukraine.rbc.ua/news/two-tu-22m3-bombers-damaged-during-strike-1722360542.html",
+       "outlet": "RBC-Ukraine",
+       "accessed": "2026-11-02"
+      }
      ]
     },
     {
@@ -1631,7 +1760,8 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
-     ]
+     ],
+     "damage_sv": "Uppgifter om träffade flygplan saknas i källorna."
     }
    ],
    "sources": [
@@ -1968,6 +2098,19 @@
    },
    "events": [
     {
+     "date": "2023-03-20",
+     "kind": "anfallen",
+     "text_sv": "Ukrainas försvarsministerium uppgav att Kalibr-robotar som fraktades på tåg i Dzjankoj förstördes; järnvägen skadades.",
+     "damage_sv": "Kalibr-robotar under transport och järnvägsanläggningar enligt Ukraina.",
+     "sources": [
+      {
+       "url": "https://www.cnn.com/2023/03/21/europe/crimea-russian-missiles-destroyed-ukraine-intl-hnk/index.html",
+       "outlet": "CNN",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
      "date": "2024-04-17",
      "kind": "anfallen",
      "text_sv": "Robotanfall mot flygfältet; Ukraina uppgav att luftvärnsutrustning (S-400) förstördes. Uppgifterna är inte oberoende bekräftade.",
@@ -1982,7 +2125,8 @@
        "outlet": "Kyiv Post",
        "accessed": "2026-11-01"
       }
-     ]
+     ],
+     "damage_sv": "Tre till fem delar av S-300/S-400-system förstörda enligt satellitbilder."
     }
    ],
    "sources": [
@@ -2106,6 +2250,43 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
+     ],
+     "damage_sv": "Minst ett Tu-95MS skadat enligt satellitbilder."
+    },
+    {
+     "date": "2022-12-26",
+     "kind": "anfallen",
+     "text_sv": "Nya explosioner vid Engels-2 efter midnatt; en ukrainsk drönare sköts enligt rysk tv ned nära flygfältet. Tre personer ur den tekniska personalen uppgavs ha dödats.",
+     "damage_sv": "Tre dödade enligt ryska uppgifter; påstådda förstörda bombplan kunde inte bekräftas av Reuters.",
+     "sources": [
+      {
+       "url": "https://www.reuters.com/world/europe/blasts-reported-russias-engels-air-base-online-media-2022-12-26/",
+       "outlet": "Reuters",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.cnbc.com/2022/12/26/ukraine-war-explosions-reported-at-engels-airbase-deep-inside-russia.html",
+       "outlet": "CNBC",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2024-04-05",
+     "kind": "anfallen",
+     "text_sv": "Engels-2 var ett av fyra flygfält som anfölls av en stor våg ukrainska drönare natten mot 5 april 2024. Ryssland uppgav att alla drönare stoppades.",
+     "damage_sv": "Enligt ukrainska källor skadades tre Tu-95MS allvarligt; ISW fann inga bildbevis för skadade flygplan.",
+     "sources": [
+      {
+       "url": "https://www.kyivpost.com/post/30629",
+       "outlet": "Kyiv Post",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://apnews.com/article/ukraine-russia-war-drone-attack-a8bafd70e1ea07cc53b1229790097a4f",
+       "outlet": "AP",
+       "accessed": "2026-11-02"
+      }
      ]
     },
     {
@@ -2117,6 +2298,64 @@
        "url": "https://en.wikipedia.org/wiki/Engels-2_air_base",
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
+      }
+     ],
+     "damage_sv": "Bränsledepå som försörjer basen; brand."
+    },
+    {
+     "date": "2025-01-14",
+     "kind": "anfallen",
+     "text_sv": "Bränsledepået som försörjer Engels-basen träffades på nytt av drönare, sex dagar efter det första anfallet; branden syntes i NASA:s satellitdata.",
+     "damage_sv": "Brand i bränsledepået.",
+     "sources": [
+      {
+       "url": "https://newsukraine.rbc.ua/news/drones-attacked-engels-again-where-oil-refinery-1736826280.html",
+       "outlet": "RBC-Ukraine",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2025-03-20",
+     "kind": "anfallen",
+     "text_sv": "Natten mot 20 mars 2025 anföll ukrainska drönare basen i en gemensam operation av generalstaben, SBU och specialförbanden. Kraftiga explosioner och sekundärexplosioner pågick under dagen.",
+     "damage_sv": "Satellitbilder visade flera stora kratrar i ammunitionsområdet; bränsle och vapenförråd uppgavs träffade, omkring 180 bostadshus skadades av tryckvågen.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/russias-saratov-engels-reportedly-hit-by-massive-drone-attack/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.twz.com/news-features/russian-bomber-base-suffered-major-damage-to-munitions-area-in-ukrainian-drone-attack",
+       "outlet": "The War Zone",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2025-06-06",
+     "kind": "anfallen",
+     "text_sv": "Basens bränsledepå Kristall träffades igen av drönare; bränder i fyra cisterner syntes även nästa dag i satellitdata.",
+     "damage_sv": "Fyra bränslecisterner i två sektioner av depån.",
+     "sources": [
+      {
+       "url": "https://united24media.com/latest-news/satellite-imagery-reveals-damage-to-key-russian-bomber-fuel-depot-in-engels-8948",
+       "outlet": "united24media.com",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2025-11-28",
+     "kind": "anfallen",
+     "text_sv": "Ukraina uppgav att basen anfallits med drönare; invånare hörde explosioner i närheten.",
+     "damage_sv": "Okänt.",
+     "sources": [
+      {
+       "url": "https://united24media.com/latest-news/ukraine-strikes-russias-engels-strategic-bomber-base-as-fires-break-out-in-saratov-13841",
+       "outlet": "united24media.com",
+       "accessed": "2026-11-02"
       }
      ]
     }
@@ -2215,6 +2454,33 @@
        "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Novocherkassk",
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
+      }
+     ],
+     "damage_sv": "Landstigningsfartyget Novotjerkassk förstört; minst en död enligt ryska myndigheter."
+    },
+    {
+     "date": "2024-10-07",
+     "kind": "anfallen",
+     "text_sv": "Ett drönaranfall mot ett bränsledepå i Feodosija orsakade explosioner och brand som syntes i satellitdata.",
+     "damage_sv": "Bränsledepå i brand.",
+     "sources": [
+      {
+       "url": "https://www.rferl.org/a/crimea-drones-feodosia-belgorod/33148782.html",
+       "outlet": "RFE/RL",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2025-10-06",
+     "kind": "anfallen",
+     "text_sv": "Feodosijas marina oljedepå anfölls med drönare; branden pågick i två dygn.",
+     "damage_sv": "Brand i oljedepån.",
+     "sources": [
+      {
+       "url": "https://newsukraine.rbc.ua/news/ukraine-s-general-staff-confirms-strike-on-1759750148.html",
+       "outlet": "RBC-Ukraine",
+       "accessed": "2026-11-02"
       }
      ]
     }
@@ -2688,7 +2954,34 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2025-02-18",
+     "kind": "anfallen",
+     "text_sv": "Flygbasen i Syrien anfölls enligt rapporter med drönare; ingen grupp tog på sig anfallet.",
+     "damage_sv": "Okänt.",
+     "sources": [
+      {
+       "url": "https://www.themoscowtimes.com/2025/02/18/russian-air-base-in-syria-attacked-by-drones-reports-a88057",
+       "outlet": "The Moscow Times",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2025-05-20",
+     "kind": "anfallen",
+     "text_sv": "Väpnade män anföll basens yttre gräns och sköt mot ryska soldater, enligt AP.",
+     "damage_sv": "Minst tre angripare och två ryska soldater uppgavs dödade.",
+     "sources": [
+      {
+       "url": "https://apnews.com/article/syrian-hmeimim-russian-base-attack-2b61871338c51ec233d61df00f759a29",
+       "outlet": "AP",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://en.wikipedia.org/wiki/Khmeimim_Air_Base",
@@ -2854,7 +3147,8 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
-     ]
+     ],
+     "damage_sv": "Två A-50 skadade enligt filmer."
     }
    ],
    "sources": [
@@ -2962,7 +3256,52 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2024-04-05",
+     "kind": "anfallen",
+     "text_sv": "Ukrainska drönare anföll flygfältet i Jejsk natten mot 5 april 2024. Ryssland förnekade skador.",
+     "damage_sv": "Enligt ukrainsk underrättelsetjänst förstördes två Su-25 och fyra ur personalen dödades.",
+     "sources": [
+      {
+       "url": "https://newsukraine.rbc.ua/news/ukraine-organizes-attack-on-three-russian-1712327668.html",
+       "outlet": "RBC-Ukraine",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2024-06-21",
+     "kind": "anfallen",
+     "text_sv": "Drönare anföll det 726:e utbildningscentret för arméluftvärn intill flygbasen.",
+     "damage_sv": "Stor brand; anläggningar och personal för uppskjutning av Shahed-drönare uppgavs träffade.",
+     "sources": [
+      {
+       "url": "https://en.defence-ua.com/news/the_ukrainian_navy_officially_confirmed_the_strike_on_russian_726th_air_defense_training_center_in_krasnodar_region-10940.html",
+       "outlet": "Defense Express",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://kyivindependent.com/russia-claims-several-casualties-after-reporting-mass-drone-attack-on-crimea-krasnodar/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2024-09-29",
+     "kind": "anfallen",
+     "text_sv": "Vågor av ukrainska drönare anföll basen tidigt på morgonen; bränder och explosioner rapporterades.",
+     "damage_sv": "Okänt.",
+     "sources": [
+      {
+       "url": "https://www.newsweek.com/russia-ukraine-drones-air-bases-1960907",
+       "outlet": "Newsweek",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%95%D0%B9%D1%81%D0%BA_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%BF%D0%BE%D1%80%D1%82%29",
@@ -3751,7 +4090,39 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2024-11-06",
+     "kind": "anfallen",
+     "text_sv": "Ett ombyggt lätt flygplan (A-22) använt som drönare anföll marinbasen i Kaspijsk, cirka 1 000 km från Ukraina.",
+     "damage_sv": "Fregatterna Tatarstan och Dagestan och en korvett av Bujan-M-klass uppgavs skadade; båda fregatterna rapporterades aktiva igen i april 2025.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/ukraine-targeted-russian-naval-base-in-dagestan-drone-strike-source-says/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.forbes.com/sites/davidaxe/2024/11/06/a-ukrainian-drone-motored-700-miles-and-blasted-three-russian-warships-in-one-blow/",
+       "outlet": "Forbes",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2026-05-07",
+     "kind": "anfallen",
+     "text_sv": "Ukraina anföll en korvett av Karakurt-klass vid Kaspiska flottiljens bas.",
+     "damage_sv": "En Karakurt-korvett träffad enligt ukrainska uppgifter.",
+     "sources": [
+      {
+       "url": "https://euromaidanpress.com/2026/05/07/russian-karakurt-missile-corvette-just-got-hit-at-its-caspian-sea-base-days-after-another-one-was-struck-in-baltic/",
+       "outlet": "Euromaidan Press",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/177-%D0%B9_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA_%D0%BC%D0%BE%D1%80%D1%81%D0%BA%D0%BE%D0%B9_%D0%BF%D0%B5%D1%85%D0%BE%D1%82%D1%8B",
@@ -3797,7 +4168,21 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2025-09-21",
+     "kind": "anfallen",
+     "text_sv": "HUR uppgav att ett drönaranfall mot Katja förstört två amfibieflygplan Be-12 och en Mi-8.",
+     "damage_sv": "Två Be-12 och en Mi-8 enligt HUR; Be-12:ornas skick före anfallet är oklart.",
+     "sources": [
+      {
+       "url": "https://www.twz.com/air/ukrainian-drones-strike-russias-rare-be-12-flying-boats",
+       "outlet": "The War Zone",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D1%87%D0%B0_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
@@ -4369,7 +4754,21 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2026-06-03",
+     "kind": "anfallen",
+     "text_sv": "Ukrainska drönare anföll en oljeterminal i Sankt Petersburg och militära anläggningar vid marinbasen i Kronstadt, inför det ekonomiska forumet i staden.",
+     "damage_sv": "Okänt.",
+     "sources": [
+      {
+       "url": "https://www.kyivpost.com/post/77390",
+       "outlet": "Kyiv Post",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://en.wikipedia.org/wiki/Kronstadt",
@@ -4414,7 +4813,26 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2024-11-14",
+     "kind": "anfallen",
+     "text_sv": "Ett stort drönaranfall mot flygbasen Krymsk, där Su-27, Su-30 och Ka-27 är baserade. Rysslands försvarsministerium uppgav att 51 drönare sköts ned.",
+     "damage_sv": "Inga skador bekräftade.",
+     "sources": [
+      {
+       "url": "https://english.nv.ua/nation/massive-drone-strike-targets-russian-air-base-in-krasnodar-krai-50466601.html",
+       "outlet": "NV",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.ukrinform.net/rubric-ato/3927287-russia-says-uavs-attack-their-military-airfield-in-krasnodar-territory.html",
+       "outlet": "Ukrinform",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%9A%D1%80%D1%8B%D0%BC%D1%81%D0%BA_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
@@ -4463,7 +4881,21 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2025-05-07",
+     "kind": "anfallen",
+     "text_sv": "Ett ukrainskt drönaranfall orsakade bränder på flygbasen Kubinka väster om Moskva.",
+     "damage_sv": "Bränder; omfattningen okänd.",
+     "sources": [
+      {
+       "url": "https://www.kyivpost.com/post/52165",
+       "outlet": "Kyiv Post",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%9A%D1%83%D0%B1%D0%B8%D0%BD%D0%BA%D0%B0_%28%D0%B0%D0%B2%D0%B8%D0%B0%D0%B1%D0%B0%D0%B7%D0%B0%29",
@@ -4511,6 +4943,45 @@
    },
    "events": [
     {
+     "date": "2022-12-06",
+     "kind": "anfallen",
+     "text_sv": "Ett oljeförråd nära flygbasen Chalino började brinna efter ett drönaranfall, enligt Kursk läns guvernör.",
+     "damage_sv": "Brand i en oljecistern; inga skadade.",
+     "sources": [
+      {
+       "url": "https://www.theguardian.com/world/2022/dec/05/explosions-russia-airbases-far-from-ukraine-frontline-bombers",
+       "outlet": "The Guardian",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2023-08-27",
+     "kind": "anfallen",
+     "text_sv": "Ukrainas säkerhetstjänst SBU uppgav att den skickat 16 drönare mot en flygbas i Kursk län.",
+     "damage_sv": "Enligt SBU förstördes fyra Su-30 och ett MiG-29 och luftvärnssystem skadades; inte oberoende bekräftat.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/media-sbu-confirms-drone-attack-in-russias-kursk-region/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2023-10-18",
+     "kind": "anfallen",
+     "text_sv": "Ett militärläger nära flygbasen Chalino träffades enligt uppgifter av drönare som SBU skickat.",
+     "damage_sv": "Okänt.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/media-sbu-drones-attack-russian-military-camp-near-kursk/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
      "date": "2024-07-31",
      "kind": "anfallen",
      "text_sv": "Ukrainska styrkor anföll ett militärt förråd nära basen; bränder syntes i NASA:s satellitdata (FIRMS).",
@@ -4520,7 +4991,8 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
-     ]
+     ],
+     "damage_sv": "Ett förråd nära basen; bränder."
     }
    ],
    "sources": [
@@ -4556,7 +5028,26 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2024-04-27",
+     "kind": "anfallen",
+     "text_sv": "Flygbasen anfölls i en våg av drönare som också träffade två raffinaderier i Krasnodar kraj.",
+     "damage_sv": "Ett förråd med glidbomber (KAB) uppgavs förstört, möjligen även ett Su-34.",
+     "sources": [
+      {
+       "url": "https://www.forbes.com/sites/davidaxe/2024/05/01/russian-airmen-filled-a-shed-with-powerful-glide-bombs-soon-dozens-of-ukrainian-drones-swarmed-in/",
+       "outlet": "Forbes",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.reuters.com/world/europe/ukraine-drones-target-two-refineries-airfield-russias-krasnodar-region-kyiv-2024-04-27/",
+       "outlet": "Reuters",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%9A%D1%83%D1%89%D1%91%D0%B2%D1%81%D0%BA%D0%B0%D1%8F_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
@@ -4753,6 +5244,20 @@
        "url": "https://en.wikipedia.org/wiki/Lipetsk_air_base",
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
+      }
+     ],
+     "damage_sv": "Förråd av glidbomber enligt Ukraina; sex skadade."
+    },
+    {
+     "date": "2025-12-21",
+     "kind": "anfallen",
+     "text_sv": "Ukrainska partisaner uppgav att de satt eld på två ryska stridsflygplan vid ett flygfält nära Lipetsk.",
+     "damage_sv": "Två flygplan brandskadade enligt uppgifterna; inte bekräftat.",
+     "sources": [
+      {
+       "url": "https://it.euronews.com/2025/12/22/lucraina-colpisce-terminale-petrolifero-jet-e-navi-russe-in-unondata-di-attacchi",
+       "outlet": "it.euronews.com",
+       "accessed": "2026-11-02"
       }
      ]
     }
@@ -5108,6 +5613,33 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
+     ],
+     "damage_sv": "Explosioner och brand på basen enligt satellitdata; omfattningen okänd."
+    },
+    {
+     "date": "2025-06-27",
+     "kind": "anfallen",
+     "text_sv": "Basen anfölls på nytt av ukrainska drönare.",
+     "damage_sv": "Fyra Su-34 förstörda eller skadade enligt ukrainska uppgifter; även verkstadsdelen för flygplansunderhåll träffades.",
+     "sources": [
+      {
+       "url": "https://en.defence-ua.com/news/ukrainian_forces_strike_russian_airfield_in_volgograd_region_damaging_the_su_34_jets-14971.html",
+       "outlet": "Defense Express",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2026-10-30",
+     "kind": "anfallen",
+     "text_sv": "Ett anfall med Neptun-robotar mot basen.",
+     "damage_sv": "Två Su-34 förstörda enligt Militarnyi.",
+     "sources": [
+      {
+       "url": "https://militarnyi.com/en/news/ukrainian-navy-destroy-two-su-34s-neptune/",
+       "outlet": "Militarnyi",
+       "accessed": "2026-11-02"
+      }
      ]
     }
    ],
@@ -5164,7 +5696,8 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
-     ]
+     ],
+     "damage_sv": "Enligt partisanerna skadades ett A-50; Ryssland bekräftade inte."
     }
    ],
    "sources": [
@@ -5262,6 +5795,20 @@
        "url": "https://en.wikipedia.org/wiki/Millerovo_air_base",
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
+      }
+     ],
+     "damage_sv": "Ett Su-30SM förstört enligt rapporter."
+    },
+    {
+     "date": "2024-07-20",
+     "kind": "anfallen",
+     "text_sv": "Natten mot 20 juli 2024 rapporterade invånare ett tjugotal explosioner nära basen efter ett drönaranfall. Guvernören uppgav att 26 drönare sköts ned.",
+     "damage_sv": "Bränder vid start- och uppställningsytorna och vid ett oljedepå enligt lokala uppgifter; skadorna är inte bekräftade.",
+     "sources": [
+      {
+       "url": "https://www.pravda.com.ua/eng/news/2024/07/20/7466599/",
+       "outlet": "Ukrainska Pravda",
+       "accessed": "2026-11-02"
       }
      ]
     }
@@ -5448,6 +5995,38 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
+     ],
+     "damage_sv": "Enligt ukrainska uppgifter sex flygplan förstörda och åtta svårt skadade; ISW fann inga bildbevis."
+    },
+    {
+     "date": "2024-06-14",
+     "kind": "anfallen",
+     "text_sv": "HUR uppgav att två Su-34 skadades i ett drönaranfall mot basen natten mot 14 juni 2024.",
+     "damage_sv": "Två Su-34 skadade enligt HUR; satellitbilder visade bränsleläckage. Uppgifter om döda piloter är obekräftade.",
+     "sources": [
+      {
+       "url": "https://euromaidanpress.com/2024/06/15/at-least-two-russian-su-34-bombers-damaged-in-ukrainian-drone-attack-at-morozovsk-airfield/",
+       "outlet": "Euromaidan Press",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2024-08-03",
+     "kind": "anfallen",
+     "text_sv": "Ett stort drönaranfall mot basen; lokalbor rapporterade många explosioner, även sekundärexplosioner.",
+     "damage_sv": "Enligt ukrainsk militär träffades ett ammunitionsförråd med glidbomber och raketer; bränderna syntes i NASA:s satellitdata.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/drones-hit-warehouses-fuel-tanks-in-rostov-oblast-official-says/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.bloomberg.com/news/articles/2024-08-03/war-in-ukraine-drones-hit-russian-airfield-and-fuel-depots",
+       "outlet": "Bloomberg",
+       "accessed": "2026-11-02"
+      }
      ]
     }
    ],
@@ -5501,7 +6080,21 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2024-06-08",
+     "kind": "anfallen",
+     "text_sv": "Ryssland uppgav att tre ukrainska drönare skjutits ned när de var på väg mot flygbasen i Mozdok, det första sådana anfallet i Nordossetien.",
+     "damage_sv": "Inga skador rapporterade.",
+     "sources": [
+      {
+       "url": "https://www.reuters.com/world/europe/russia-destroys-three-ukrainian-drones-over-north-ossetia-local-head-says-2024-06-08/",
+       "outlet": "Reuters",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/100-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0_%D1%80%D0%B0%D0%B7%D0%B2%D0%B5%D0%B4%D0%BA%D0%B8",
@@ -5891,6 +6484,19 @@
    },
    "events": [
     {
+     "date": "2022-11-17",
+     "kind": "anfallen",
+     "text_sv": "En ukrainsk sjödrönare exploderade vid oljeterminalen Sjeschkaris i Novorossijsk.",
+     "damage_sv": "Okänt.",
+     "sources": [
+      {
+       "url": "https://www.navalnews.com/naval-news/2022/11/ukraine-maritime-drone-strikes-again-reports-indicate-attack-on-novorossiysk/",
+       "outlet": "Naval News",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
      "date": "2023-08-04",
      "kind": "anfallen",
      "text_sv": "Ett marint drönaranfall skadade landstigningsfartyget Olenegorskij Gornjak vid basen; fartyget fick slagsida.",
@@ -5899,6 +6505,20 @@
        "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Olenegorsky_Gornyak",
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
+      }
+     ],
+     "damage_sv": "Landstigningsfartyget Olenegorskij Gornjak svårt skadat."
+    },
+    {
+     "date": "2026-04-06",
+     "kind": "anfallen",
+     "text_sv": "Fregatten Admiral Essen anfölls av ukrainska drönare vid kaj i Novorossijsk.",
+     "damage_sv": "Bränder i över 18 timmar; enligt skadebedömningar allvarliga inre skador och fartyget kunde inte längre använda sina Kalibr-robotar.",
+     "sources": [
+      {
+       "url": "https://www.kyivpost.com/post/73438",
+       "outlet": "Kyiv Post",
+       "accessed": "2026-11-02"
       }
      ]
     }
@@ -6186,6 +6806,24 @@
    },
    "events": [
     {
+     "date": "2024-07-27",
+     "kind": "anfallen",
+     "text_sv": "Ukrainska drönare uppgavs ha nått Olenja på Kolahalvön, omkring 1 800 km från gränsen.",
+     "damage_sv": "Enligt HUR skadades två Tu-22M3; inte oberoende bekräftat.",
+     "sources": [
+      {
+       "url": "https://thebarentsobserver.com/en/security/2024/07/ukrainian-drone-hit-bomber-olenya-airfield",
+       "outlet": "The Barents Observer",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://newsukraine.rbc.ua/news/two-tu-22m3-bombers-damaged-during-strike-1722360542.html",
+       "outlet": "RBC-Ukraine",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
      "date": "2025-06-01",
      "kind": "anfallen",
      "text_sv": "Operation Spiderweb: ukrainska drönare som startade från lastbilar anföll basen; explosioner och bränder rapporterades.",
@@ -6200,7 +6838,8 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
-     ]
+     ],
+     "damage_sv": "Flera Tu-95MS och Tu-22M3 träffade enligt filmer och satellitbilder."
     }
    ],
    "sources": [
@@ -6887,6 +7526,19 @@
    },
    "events": [
     {
+     "date": "2023-07-02",
+     "kind": "anfallen",
+     "text_sv": "En robot sköts enligt ryska uppgifter ned nära basen och lämnade en stor krater omkring 200 meter från startbanan.",
+     "damage_sv": "En krater nära startbanan.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/explosion-reported-near-airfield-in-russias-krasnodar-region/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
      "date": "2024-08-02",
      "kind": "anfallen",
      "text_sv": "Ukrainas säkerhetstjänst SBU uppgav att drönare träffat basen, som används för förvaring och uppskjutning av Shahed-drönare.",
@@ -6895,6 +7547,20 @@
        "url": "https://hromadske.ua/en/war/239194-general-staff-confirms-strike-on-airfield-in-primorsko-akhtarsk-from-where-russian-shahed-drones-are-launched",
        "outlet": "Hromadske",
        "accessed": "2026-11-01"
+      }
+     ],
+     "damage_sv": "Förråd för Shahed-drönare enligt SBU."
+    },
+    {
+     "date": "2025-08-02",
+     "kind": "anfallen",
+     "text_sv": "Ukrainska långräckviddiga drönare anföll basen, som används för att lagra och skjuta upp Shahed-drönare.",
+     "damage_sv": "Brand på basen.",
+     "sources": [
+      {
+       "url": "https://charter97.org/en/news/2025/8/2/650541/",
+       "outlet": "charter97.org",
+       "accessed": "2026-11-02"
       }
      ]
     }
@@ -7389,6 +8055,20 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
+     ],
+     "damage_sv": "Sju flygplan förstörda och tre skadade enligt satellitbilder; en död och 13 skadade."
+    },
+    {
+     "date": "2024-01-06",
+     "kind": "anfallen",
+     "text_sv": "Ukrainas flygvapen uppgav att det förstört en rysk ledningscentral på flygbasen Saky.",
+     "damage_sv": "En ledningscentral enligt Ukraina.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/commander-air-force-destroys-russian-command-center-in-occupied-crimea-airport/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      }
      ]
     }
    ],
@@ -7495,7 +8175,39 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2024-08-14",
+     "kind": "anfallen",
+     "text_sv": "Elva drönare uppgavs ha nått basen i ett av krigets största drönaranfall mot Ryssland; ett nytt anfall följde 16 augusti.",
+     "damage_sv": "Enligt en källa i ukrainsk underrättelsetjänst förstördes tre flygplan (troligen ett MiG-31K och två Il-76) och fem skadades i de två anfallen; AP fann ett brandmärke men ingen tydlig flygplansskada.",
+     "sources": [
+      {
+       "url": "https://www.nytimes.com/2024/08/15/world/europe/russia-ukraine-airfields-kursk.html",
+       "outlet": "New York Times",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.ukrinform.net/rubric-ato/3895004-ten-blasts-reported-as-russias-savasleyka-airfield-comes-under-drone-attack.html",
+       "outlet": "Ukrinform",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2025-06-09",
+     "kind": "anfallen",
+     "text_sv": "Ukrainska drönare anföll basen, som används för MiG-31 med Kinzjal-robotar.",
+     "damage_sv": "Ett MiG-31 och ett Su-30 eller Su-34 skadades enligt Ukraina.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/ukraine-says-strike-damaged-russian-mig-31-su-fighter-jet-at-airfield-used-to-launch-kinzhal-missiles/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://en.wikipedia.org/wiki/Savasleyka_air_base",
@@ -7616,6 +8328,65 @@
    },
    "events": [
     {
+     "date": "2022-07-31",
+     "kind": "anfallen",
+     "text_sv": "En drönare med sprängladdning anföll Svartahavsflottans högkvarter i Sevastopol på marinens dag; firandet ställdes in. Ukraina förnekade inblandning.",
+     "damage_sv": "Sex skadade.",
+     "sources": [
+      {
+       "url": "https://www.bbc.com/russian/features-62369522",
+       "outlet": "BBC",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://meduza.io/news/2022/07/31/shtab-chernomorskogo-flota-v-sevastopole-atakoval-bespilotnik-v-gorode-otmenili-meropriyatiya-po-sluchayu-dnya-vmf",
+       "outlet": "Meduza",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2022-10-29",
+     "kind": "anfallen",
+     "text_sv": "Marinbasen anfölls med flyg- och sjödrönare, krigets första stora sjödrönaranfall. Ryssland lämnade tillfälligt spannmålsavtalet efteråt.",
+     "damage_sv": "Fregatten Admiral Makarov och minsveparen Ivan Golubets träffades; Naval News bedömde senare skadorna som begränsade.",
+     "sources": [
+      {
+       "url": "https://www.navalnews.com/naval-news/2022/10/analysis-ukraine-strikes-with-kamikaze-usvs-russian-bases-are-not-safe-anymore/",
+       "outlet": "Naval News",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.theguardian.com/world/2022/oct/30/russias-black-sea-flagship-damaged-in-crimea-drone-attack-video-suggests",
+       "outlet": "The Guardian",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://en.wikipedia.org/wiki/2022_drone_attack_on_the_Sevastopol_Naval_Base",
+       "outlet": "Wikipedia (en)",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2023-09-13",
+     "kind": "anfallen",
+     "text_sv": "Robotar av typen Storm Shadow träffade varvet i Sevastopol, där två fartyg låg i torrdocka.",
+     "damage_sv": "Landstigningsfartyget Minsk förstördes och ubåten Rostov-na-Donu skadades svårt, enligt satellitbilder.",
+     "sources": [
+      {
+       "url": "https://www.reuters.com/world/europe/satellite-images-show-damage-russian-naval-vessels-struck-ukraine-attack-2023-09-14/",
+       "outlet": "Reuters",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.cnn.com/2023/09/13/europe/crimea-missile-attack-ukraine-russia-intl/index.html",
+       "outlet": "CNN",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
      "date": "2023-09-22",
      "kind": "anfallen",
      "text_sv": "Svartahavsflottans högkvarter i Sevastopol träffades av kryssningsrobotar av typen Storm Shadow/SCALP (ockuperade Krim).",
@@ -7624,6 +8395,38 @@
        "url": "https://en.wikipedia.org/wiki/Missile_strike_on_the_Black_Sea_Fleet_headquarters",
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
+      }
+     ],
+     "damage_sv": "Högkvartersbyggnaden svårt skadad och senare riven; Ukraina uppgav 34 döda officerare."
+    },
+    {
+     "date": "2023-12-29",
+     "kind": "anfallen",
+     "text_sv": "En korvett av Tarantul-klass träffades av en ukrainsk drönare i hamnen; satellitbilder i januari 2024 visade att den sjunkit.",
+     "damage_sv": "En Tarantul-korvett sänkt.",
+     "sources": [
+      {
+       "url": "https://www.forbes.com/sites/davidaxe/2024/01/19/ukraines-drone-boats-blew-up-a-russian-warship-three-weeks-ago-but-few-people-noticed-until-now/",
+       "outlet": "Forbes",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2024-03-23",
+     "kind": "anfallen",
+     "text_sv": "Ett omfattande robotanfall mot Sevastopol; ett sambandscentrum för Svartahavsflottan träffades av tre Storm Shadow.",
+     "damage_sv": "Enligt Ukraina skadades landstigningsfartygen Jamal, Azov och Konstantin Olsjanskij samt underrättelsefartyget Ivan Churs.",
+     "sources": [
+      {
+       "url": "https://www.bbc.com/news/world-europe-68648815",
+       "outlet": "BBC",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.themoscowtimes.com/2024/03/26/ukraine-says-weekend-missile-attack-damaged-4-russian-ships-a84632",
+       "outlet": "The Moscow Times",
+       "accessed": "2026-11-02"
       }
      ]
     }
@@ -7684,7 +8487,21 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2023-07-28",
+     "kind": "anfallen",
+     "text_sv": "Ukrainsk underrättelsetjänst uppgav att sabotörer sprängt ett ammunitionsförråd i Kazatja buchta, där 810:e marininfanteribrigaden har sin bas.",
+     "damage_sv": "Ett ammunitionsförråd.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/ukrainian-intelligence-warehouse-explosion-due-to-sabotage-in-occupied-crimea/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/22-%D0%B9_%D0%B0%D1%80%D0%BC%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%BA%D0%BE%D1%80%D0%BF%D1%83%D1%81_%28%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%A4%D0%B5%D0%B4%D0%B5%D1%80%D0%B0%D1%86%D0%B8%D1%8F%29",
@@ -8038,7 +8855,21 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2024-01-03",
+     "kind": "anfallen",
+     "text_sv": "Ett Su-34 sattes i brand på flygplatsen Sjagol i Tjeljabinsk; HUR uppgav att en ukrainsk sabotör låg bakom.",
+     "damage_sv": "Ett Su-34 brandskadat enligt HUR.",
+     "sources": [
+      {
+       "url": "https://www.forbes.com/sites/davidaxe/2024/01/04/a-ukrainian-saboteur-traveled-600-miles-to-a-snowy-russian-airfield-and-in-the-dead-of-night-lit-a-russian-sukhoi-fighter-bomber-on-fire/",
+       "outlet": "Forbes",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%A8%D0%B0%D0%B3%D0%BE%D0%BB_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
@@ -8084,6 +8915,19 @@
    },
    "events": [
     {
+     "date": "2022-10-07",
+     "kind": "anfallen",
+     "text_sv": "Det rapporterades att en kamikazedrönare anfallit basen.",
+     "damage_sv": "Två Tu-22M3 uppgavs förstörda; inte bekräftat.",
+     "sources": [
+      {
+       "url": "https://www.thedrive.com/the-war-zone/ukrainian-kamikaze-drone-attacks-bomber-base-deep-in-russia",
+       "outlet": "thedrive.com",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
      "date": "2023-08-21",
      "kind": "anfallen",
      "text_sv": "Enligt ukrainsk militär underrättelsetjänst skadade en drönare minst ett flygplan på basen; ryska källor uppgav att drönaren sköts ned.",
@@ -8097,6 +8941,33 @@
        "url": "https://en.wikipedia.org/wiki/Shaykovka_air_base",
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
+      }
+     ],
+     "damage_sv": "Minst ett flygplan enligt HUR; obekräftat."
+    },
+    {
+     "date": "2023-08-25",
+     "kind": "anfallen",
+     "text_sv": "Ryssland uppgav att en S-200-robot som Ukraina använt som markmålsrobot sköts ned nära basen.",
+     "damage_sv": "Inga skador rapporterade.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/russia-claims-to-down-ukrainian-missile-as-explosions-reported-in-two-oblasts/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2025-05-07",
+     "kind": "anfallen",
+     "text_sv": "Ett ukrainskt drönaranfall orsakade bränder på basen.",
+     "damage_sv": "Bränder; omfattningen okänd.",
+     "sources": [
+      {
+       "url": "https://www.kyivpost.com/post/52165",
+       "outlet": "Kyiv Post",
+       "accessed": "2026-11-02"
       }
      ]
     }
@@ -8403,7 +9274,8 @@
        "outlet": "Wikipedia (en)",
        "accessed": "2026-11-01"
       }
-     ]
+     ],
+     "damage_sv": "Ett Tu-22M3 utbränt enligt satellitbilder."
     }
    ],
    "sources": [
@@ -8508,7 +9380,34 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2022-03-01",
+     "kind": "anfallen",
+     "text_sv": "En explosion inträffade på militärflygfältet i Taganrog; det påstods att den orsakats av Ukraina.",
+     "damage_sv": "Okänt.",
+     "sources": [
+      {
+       "url": "https://zaxid.net/u_rosiyskomu_taganrozi_stavsya_vibuh_na_viyskovomu_aerodromi_n1537224",
+       "outlet": "zaxid.net",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2026-09-07",
+     "kind": "anfallen",
+     "text_sv": "Ukrainska drönare anföll flygbasen Taganrog-Tsentralnyj.",
+     "damage_sv": "Enligt Militarnyi träffades en Mi-35 och en Mi-8.",
+     "sources": [
+      {
+       "url": "https://militarnyi.com/en/news/drones-strike-mi-35-and-mi-8-helicopters-at-taganrog-airbase/",
+       "outlet": "Militarnyi",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%A2%D0%B0%D0%B3%D0%B0%D0%BD%D1%80%D0%BE%D0%B3-%D0%A6%D0%B5%D0%BD%D1%82%D1%80%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
@@ -9038,7 +9937,21 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2023-09-18",
+     "kind": "anfallen",
+     "text_sv": "Ukrainas militära underrättelsetjänst HUR uppgav att den genomfört sabotage mot flygbasen Tjkalovskij nära Moskva.",
+     "damage_sv": "Enligt HUR skadades eller förstördes ett An-148, ett Il-20 och en Mi-28-helikopter; inte oberoende bekräftat.",
+     "sources": [
+      {
+       "url": "https://www.businessinsider.com/saboteurs-blew-up-aircraft-russian-military-base-cause-hysteria-ukraine-2023-9",
+       "outlet": "Business Insider",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%A7%D0%BA%D0%B0%D0%BB%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
@@ -9330,7 +10243,21 @@
     "as_of": "2026-11",
     "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2025-06-01",
+     "kind": "anfallen",
+     "text_sv": "Under Operation Spiderweb förhindrades anfallet mot Ukrainka när lastbilen med FPV-drönare exploderade innan de startade.",
+     "damage_sv": "Inga flygplan träffade enligt uppgifterna.",
+     "sources": [
+      {
+       "url": "https://www.kyivpost.com/post/53935",
+       "outlet": "Kyiv Post",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%A3%D0%BA%D1%80%D0%B0%D0%B8%D0%BD%D0%BA%D0%B0_%28%D0%B0%D0%B2%D0%B8%D0%B0%D0%B1%D0%B0%D0%B7%D0%B0%29",
@@ -11206,7 +12133,21 @@
     "as_of": "2026-11",
     "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
    },
-   "events": [],
+   "events": [
+    {
+     "date": "2023-08-25",
+     "kind": "anfallen",
+     "text_sv": "Ukrainsk militär och SBU anföll 126:e kustförsvarsbrigaden i Perevalnoje med drönare.",
+     "damage_sv": "Tiotals döda och skadade enligt ukrainska uppgifter.",
+     "sources": [
+      {
+       "url": "https://kyivindependent.com/media-military-intelligence-confirms-strike-on-russias-126th-coastal-defense-brigade/",
+       "outlet": "Kyiv Independent",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%9F%D0%B5%D1%80%D0%B5%D0%B2%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE%D0%B5_(%D0%9A%D1%80%D1%8B%D0%BC)",
@@ -11761,6 +12702,377 @@
     {
      "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%B8%D0%BB%D1%8B_%D1%81%D0%BF%D0%B5%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D1%85_%D0%BE%D0%BF%D0%B5%D1%80%D0%B0%D1%86%D0%B8%D0%B9_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B9%D1%81%D0%BA%D0%BE%D0%B9_%D0%A4%D0%B5%D0%B4%D0%B5%D1%80%D0%B0%D1%86%D0%B8%D0%B8",
      "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "toropets-107-arsenalen",
+   "name": "Toropets (107:e arsenalen)",
+   "name_ru": "107-й арсенал ГРАУ (Торопец)",
+   "name_en": null,
+   "lat": 56.523,
+   "lon": 31.611,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "Ett av försvarsministeriets stora ammunitionsarsenaler (GRAU), strax utanför staden Toropets i Tver län. Enligt SBU fanns där Iskander- och Totjka-robotar och glidbomber. Positionen är ungefärlig.",
+   "units": [],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [
+    {
+     "date": "2024-09-18",
+     "kind": "anfallen",
+     "text_sv": "Ukrainska drönare anföll arsenalen natten mot 18 september 2024. Detonationen registrerades som en jordbävning och delar av Toropets skadades; området evakuerades.",
+     "damage_sv": "Estlands militära underrättelsetjänst bedömde att omkring 30 000 ton ammunition exploderade; 13 skadade enligt ryska myndigheter.",
+     "sources": [
+      {
+       "url": "https://www.bbc.com/news/articles/c30lp1qq6pzo",
+       "outlet": "BBC",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.rferl.org/a/russia-ukraine-drone-evacuation-tver/33124415.html",
+       "outlet": "RFE/RL",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://en.wikipedia.org/wiki/Toropets_depot_explosions",
+       "outlet": "Wikipedia (en)",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Toropets_depot_explosions",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "oktjabrskij-23-arsenalen",
+   "name": "Oktjabrskij (23:e arsenalen)",
+   "name_ru": "23-й арсенал ГРАУ",
+   "name_en": null,
+   "lat": 56.38,
+   "lon": 31.64,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "GRAU:s 23:e arsenal vid byn Oktjabrskij, omkring 16 km söder om Toropets i Tver län. Positionen är ungefärlig.",
+   "units": [],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [
+    {
+     "date": "2024-09-21",
+     "kind": "anfallen",
+     "text_sv": "Drönare anföll 23:e arsenalen, tre dagar efter anfallet mot Toropets.",
+     "damage_sv": "Omfattande brand över ett stort område enligt satellitdata.",
+     "sources": [
+      {
+       "url": "https://english.nv.ua/nation/ukrainian-drones-attack-two-ammunition-depots-in-russia-including-one-storing-north-korean-missiles-50452659.html",
+       "outlet": "NV",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://en.defence-ua.com/news/another_grau_arsenal_covering_a_huge_area_and_ammunition_base_with_north_korean_shells_destroyed-11929.html",
+       "outlet": "Defense Express",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Main_Missile_and_Artillery_Directorate",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "tichoretsk-719-arsenalen",
+   "name": "Tichoretsk (719:e ammunitionsbasen)",
+   "name_ru": "719-я база боеприпасов (Тихорецк)",
+   "name_en": null,
+   "lat": 45.88,
+   "lon": 40.05,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Den 719:e artilleriammunitionsbasen nordväst om Tichoretsk i Krasnodar kraj; där uppges nordkoreansk ammunition ha lagrats. Positionen är ungefärlig.",
+   "units": [],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [
+    {
+     "date": "2024-09-21",
+     "kind": "anfallen",
+     "text_sv": "Drönare anföll ammunitionsbasen samma natt som 23:e arsenalen; även flygbasen och bangården i Tichoretsk brann.",
+     "damage_sv": "Stor brand i ammunitionsbasen; nordkoreansk ammunition uppgavs lagras där.",
+     "sources": [
+      {
+       "url": "https://english.nv.ua/nation/ukrainian-drones-attack-two-ammunition-depots-in-russia-including-one-storing-north-korean-missiles-50452659.html",
+       "outlet": "NV",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Main_Missile_and_Artillery_Directorate",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "karatjev-67-arsenalen",
+   "name": "Karatjev (67:e arsenalen)",
+   "name_ru": "67-й арсенал ГРАУ (Карачев)",
+   "name_en": null,
+   "lat": 53.13,
+   "lon": 34.96,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "GRAU:s 67:e arsenal nära Karatjev i Brjansk län, omkring 114 km från gränsen mot Ukraina. Positionen är ungefärlig.",
+   "units": [],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [
+    {
+     "date": "2024-10-09",
+     "kind": "anfallen",
+     "text_sv": "Ukrainska drönare anföll ammunitionsområdet vid 67:e arsenalen; bränder och detonationer pågick i timmar.",
+     "damage_sv": "Två ammunitionsförråd förstörda enligt uppgifterna.",
+     "sources": [
+      {
+       "url": "https://www.newsweek.com/ukraine-north-korea-ammunition-depot-karachev-bryansk-russia-1966210",
+       "outlet": "Newsweek",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.kyivpost.com/post/40216",
+       "outlet": "Kyiv Post",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Main_Missile_and_Artillery_Directorate",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "kotovo-13-arsenalen",
+   "name": "Kotovo (13:e arsenalen)",
+   "name_ru": "13-й арсенал ГРАУ (Котово)",
+   "name_en": null,
+   "lat": 58.36,
+   "lon": 33.35,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Leningrads militärdistrikt",
+   "description_sv": "GRAU:s 13:e arsenal vid Kotovo i Novgorod län, omkring 680 km från Ukraina. Positionen är ungefärlig.",
+   "units": [],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [
+    {
+     "date": "2024-11-20",
+     "kind": "anfallen",
+     "text_sv": "Ukrainska drönare anföll 13:e arsenalen i Kotovo; invånarna evakuerades till Okulovka.",
+     "damage_sv": "Okänt.",
+     "sources": [
+      {
+       "url": "https://www.themoscowtimes.com/2024/11/20/village-in-northwestern-russia-evacuated-after-ukrainian-drones-attack-missile-depot-a87073",
+       "outlet": "The Moscow Times",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Main_Missile_and_Artillery_Directorate",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "barsovo-51-arsenalen",
+   "name": "Barsovo (51:a arsenalen)",
+   "name_ru": "51-й арсенал ГРАУ (Барсово)",
+   "name_en": null,
+   "lat": 56.17,
+   "lon": 38.62,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Moskvas militärdistrikt",
+   "description_sv": "GRAU:s 51:a arsenal vid Barsovo nära Kirzjatj i Vladimir län, en av de största i landet. Positionen är ungefärlig.",
+   "units": [],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [
+    {
+     "date": "2025-04-22",
+     "kind": "anfallen",
+     "text_sv": "En explosion följd av bränder i 51:a arsenalen; 450 invånare evakuerades. Orsaken var inte fastställd i källorna.",
+     "damage_sv": "Stor brand i arsenalen enligt satellitdata.",
+     "sources": [
+      {
+       "url": "https://euromaidanpress.com/2025/04/22/russian-ammo-depot-reportedly-holding-264000-tons-of-munitions-obliterated-near-moscow/",
+       "outlet": "Euromaidan Press",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Main_Missile_and_Artillery_Directorate",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "kotluban-arsenalen",
+   "name": "Kotluban (GRAU-arsenal)",
+   "name_ru": "Арсенал ГРАУ (Котлубань)",
+   "name_en": null,
+   "lat": 49.04,
+   "lon": 44.12,
+   "branch": "armé",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "En ammunitionsarsenal tillhörande GRAU nära Kotluban i Volgograd län. Positionen är ungefärlig.",
+   "units": [],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [
+    {
+     "date": "2026-02-12",
+     "kind": "anfallen",
+     "text_sv": "Arsenalen anfölls med kryssningsrobotar av typen Flamingo; guvernören rapporterade en serie kraftiga explosioner och evakuering av närboende.",
+     "damage_sv": "Okänt.",
+     "sources": [
+      {
+       "url": "https://english.nv.ua/amp/russian-amo-depot-burns-near-volgograd-after-overnight-strike-video-50583143.html",
+       "outlet": "NV",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Attacks_in_Russia_during_the_Russo-Ukrainian_war_(2022%E2%80%93present)",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "tarchankut",
+   "name": "Kap Tarchankut (luftvärnsplats)",
+   "name_ru": "Тарханкут",
+   "name_en": null,
+   "lat": 45.35,
+   "lon": 32.55,
+   "branch": "luftvärn",
+   "country": "UA",
+   "military_district": "Södra militärdistriktet (ockuperat område i Ukraina)",
+   "description_sv": "Luftvärnsposition på Tarchankuthalvön på västra Krim, med S-400 och S-300 som skyddar Krim mot robotar och drönare. Positionen är ungefärlig.",
+   "units": [],
+   "equipment": [],
+   "status": {
+    "status_sv": "i bruk enligt källorna",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "events": [
+    {
+     "date": "2023-08-23",
+     "kind": "anfallen",
+     "text_sv": "Ukraina förstörde ett S-400-system på kap Tarchankut med en ombyggd Neptun-robot.",
+     "damage_sv": "Ett S-400-system förstört; flera soldater uppgavs dödade.",
+     "sources": [
+      {
+       "url": "https://www.forbes.com/sites/davidaxe/2023/08/25/to-blow-up-russias-s-400-battery-in-crimea-ukraine-tweaked-its-cruiser-sinking-neptune-missile/",
+       "outlet": "Forbes",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.understandingwar.org/backgrounder/russian-offensive-campaign-assessment-august-23-2023",
+       "outlet": "ISW",
+       "accessed": "2026-11-02"
+      }
+     ]
+    },
+    {
+     "date": "2023-10-30",
+     "kind": "anfallen",
+     "text_sv": "Robotanfall mot luftvärnet nära Olenivka på Tarchankuthalvön; anfallet tros ha gällt ett S-300-batteri.",
+     "damage_sv": "Omkring 17 soldater skadade enligt uppgifterna.",
+     "sources": [
+      {
+       "url": "https://www.themoscowtimes.com/2023/10/30/ukraine-says-hit-russian-air-defense-system-in-crimea-a82930",
+       "outlet": "The Moscow Times",
+       "accessed": "2026-11-02"
+      },
+      {
+       "url": "https://www.kyivpost.com/post/23508",
+       "outlet": "Kyiv Post",
+       "accessed": "2026-11-02"
+      }
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Battle_of_Crimea_(2022%E2%80%93present)",
+     "outlet": "Wikipedia (en)",
      "accessed": "2026-11-02"
     }
    ]

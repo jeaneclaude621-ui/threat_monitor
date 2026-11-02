@@ -127,3 +127,14 @@ Andra omgången (påbörjad 2 nov 2026, gren `grunddata-styrkor-2`).
   kriget och aldrig haft fast förläggning i Ryssland.
 - Förband som strider i Ukraina behåller sin hemgarnison; var de strider
   står i `status_sv`.
+- **Anfall (steg 5).** Varje anfall har nu `damage_sv` (vad som enligt
+  källan träffades; "Okänt." när källan inte säger det). Källorna är de
+  västliga och ukrainska artiklar som Wikipedias artiklar om baserna och om
+  anfallen i Ryssland och på Krim hänvisar till (Reuters, BBC, AP, Kyiv
+  Independent, The War Zone, Forbes, Naval News, ISW med flera), aldrig
+  rysk statsmedia eller Telegram. Ett anfall vars datum inte gick att
+  fastställa (Tu-142 i Taganrog, maj 2026) togs inte med.
+- Stora ammunitionsarsenaler som anfallits (Toropets, Oktjabrskij,
+  Tichoretsk, Karatjev, Kotovo, Barsovo, Kotluban) och luftvärnsplatsen på
+  kap Tarchankut lades till som baser (vapenslag armé respektive luftvärn).
+  Deras positioner är ungefärliga, vilket står i beskrivningen.
