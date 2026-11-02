@@ -104,3 +104,14 @@ domän eftersom sidans Content-Security-Policy bara tillåter bilder därifrån.
 
 Att rätta: ändra i JSON-filerna för hand (med källa), kör `export-db` och
 kontrollen. Nästa natt når ändringen appen.
+
+## Beslut i andra omgången
+
+Andra omgången (påbörjad 2 nov 2026, gren `grunddata-styrkor-2`).
+
+- **Militaryland.net** har i dag (nov 2026) bara Ukrainas förband i sin
+  ordning av bataljon (`/ukraine/...`); sidorna om ryska förband finns inte
+  längre (`/russia/` ger 404, sökningen i sajtens API ger bara ukrainska
+  förband). Den kan därför inte användas för att kontrollera ryska förband
+  och garnisoner. Lästes artigt (en förfrågan var fjärde sekund, med
+  User-Agent som namnger repot).
