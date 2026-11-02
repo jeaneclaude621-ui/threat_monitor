@@ -308,7 +308,11 @@ def ask_gemini(to_translate: list, todays: list, summary_date: str = None) -> di
   "summary_sv", one or two Swedish sentences on what it says (max ~40
   words; empty when there is only a title). For "ru" items write them as
   the channel's claims ("Rybar hävdar att ...", "TASS uppger att ..."),
-  never as facts.""")
+  never as facts. For "ru" items also "on_topic": true when the post is
+  about NATO, the EU or a European country, Sweden, the Nordic or Baltic
+  states, or Russia's neighbours as seen from Europe; false when it is
+  Russian domestic life, history or anniversaries, front-line daily life,
+  sport, or other regions (Latin America, US domestic politics).""")
     if summary_date:
         by_side = {s: sorted((i for i in todays if i["side"] == s), key=rank, reverse=True)[:MAX_ITEMS[s]]
                    for s in ("open", "ru")}
@@ -334,7 +338,7 @@ Write, in natural Swedish:
 {chr(10).join(tasks)}
 
 Respond as strict JSON with just those keys:
-{{"items": {{"<id>": {{"title_sv": "...", "summary_sv": "..."}}}}, "open_sv": "...", "ru_sv": "..."}}"""
+{{"items": {{"<id>": {{"title_sv": "...", "summary_sv": "...", "on_topic": true}}}}, "open_sv": "...", "ru_sv": "..."}}"""
     return ask_model_json(prompt, system="You translate and summarise social-media and search trends for a "
                           "Swedish security analysis team. Strict JSON only.",
                           max_tokens=1500 + 150 * len(to_translate))
@@ -378,7 +382,7 @@ def run(dry_run: bool = False, force_summary: bool = False):
     data["items"] = {k: v for k, v in data["items"].items() if v["last_seen"] >= cutoff}
 
     today = f"{local:%Y-%m-%d}"
-    todays = [i for i in data["items"].values() if i["last_seen"][:10] >= f"{now:%Y-%m-%d}"]
+    todays = [i for i in data["items"].values() if i["last_seen"][:10] >= f"{now:%Y-%m-%d}" and not i.get("off_topic")]
     summary_due = (force_summary or local.hour >= SUMMARY_FROM_HOUR) and bool(todays) \
         and (force_summary or today not in data["summaries"])
     to_translate = [i for i in data["items"].values() if needs_swedish(i)]
@@ -394,6 +398,11 @@ def run(dry_run: bool = False, force_summary: bool = False):
                     data["items"][iid]["title_sv"] = sv["title_sv"]
                     if isinstance(sv.get("summary_sv"), str) and sv["summary_sv"].strip():
                         data["items"][iid]["summary_sv"] = sv["summary_sv"]
+                    # Russian posts the regex let through that are not about
+                    # NATO, Europe or the neighbours (BACKLOG, 2 Nov): kept
+                    # here so they are not fetched again, never shown.
+                    if data["items"][iid]["side"] == "ru" and sv.get("on_topic") is False:
+                        data["items"][iid]["off_topic"] = True
                     done += 1
             print(f"  Put {done} of {len(to_translate)} item(s) into Swedish")
             if summary_due:
@@ -410,7 +419,10 @@ def run(dry_run: bool = False, force_summary: bool = False):
     with open(TRENDS_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
     from app_sync import push_trends
-    push_trends({"items": list(data["items"].values()),
+    hidden = sum(1 for i in data["items"].values() if i.get("off_topic"))
+    if hidden:
+        print(f"  {hidden} Russian post(s) off the subject, not shown")
+    push_trends({"items": [i for i in data["items"].values() if not i.get("off_topic")],
                  "summaries": list(data["summaries"].values())[-7:], "sources": data["sources"]})
     print("Trends done.\n")
 
