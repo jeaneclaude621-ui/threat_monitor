@@ -11332,7 +11332,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Belogorsk är en bas i Ryssland.",
+   "description_sv": "Belogorsk i Amur oblast är stab för 35:e gardes armén och förläggning för 165:e gardes artilleribrigaden, 71:a luftvärnsrobotbrigaden och 35:e CBRN-skyddsregementet. Armén strider i Huljajpole-riktningen enligt ISW (okt 2026).",
    "units": [
     "165-gardes-artilleribrigaden",
     "71-gardes-luftvarnsrobotbrigaden",
@@ -11369,7 +11369,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Chabarovsk är en bas i Ryssland.",
+   "description_sv": "Chabarovsk är garnison för 17:e gardes telekrigsbrigaden, som har stridit i Ukraina sedan 2022.",
    "units": [
     "17-gardes-telekrigsbrigaden"
    ],
@@ -11403,7 +11403,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Drovjanaja (Gornyj) är en bas i Ryssland.",
+   "description_sv": "Den slutna orten Gornyj (tidigare Tjita-46) i Zabajkalje är förläggning för 200:e gardes artilleribrigaden i 29:e armén och 3:e robotbrigaden.",
    "units": [
     "200-gardes-artilleribrigaden",
     "3-robotbrigaden"
@@ -11438,7 +11438,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Stepnoj är en bas i Ryssland.",
+   "description_sv": "Militärort i Aksaj-distriktet utanför Rostov-na-Donu för 22:a gardes specialförbandsbrigaden (GRU) och 19:e telekrigsbrigaden.",
    "units": [
     "22-gardes-specialforbandsbrigaden-spetsnaz",
     "19-telekrigsbrigaden"
@@ -11473,7 +11473,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Soloti är en bas i Ryssland.",
+   "description_sv": "Garnison i Soloti i Valujki-distriktet i Belgorod oblast för 237:e stridsvagnsregementet i 3:e motoriserade skyttedivisionen.",
    "units": [
     "237-stridsvagnsregementet"
    ],
@@ -11507,7 +11507,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Kursk (garnison) är en bas i Ryssland.",
+   "description_sv": "Kursk är garnison för 448:e robotbrigaden med Iskander-M, 53:e gardes luftvärnsrobotbrigaden, 27:e gardes CBRN-skyddsbrigaden och 16:e telekrigsbrigaden.",
    "units": [
     "27-gardes-cbrn-skyddsbrigaden",
     "16-telekrigsbrigaden",
@@ -11544,7 +11544,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Kamysjin är en bas i Ryssland.",
+   "description_sv": "Garnison i Kamysjin i Volgograd oblast för 28:e CBRN-skyddsbrigaden och 33:e gardes motoriserade skytteregementet.",
    "units": [
     "28-cbrn-skyddsbrigaden",
     "33-gardes-motoriserade-skytteregementet"
@@ -11579,7 +11579,7 @@
    "branch": "luftvärn",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Mirnyj (Kirov) är en bas i Ryssland.",
+   "description_sv": "Garnison i Mirnyj i Kirov oblast för 28:e luftvärnsrobotbrigaden. I orten låg också Maradykovskij kemvapenarsenal, där kemiska vapen förvarades och förstördes.",
    "units": [
     "28-luftvarnsrobotbrigaden"
    ],
@@ -11613,7 +11613,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Mulino är en bas i Ryssland.",
+   "description_sv": "Mulino i Nizjnij Novgorod oblast är förläggning för 3:e armékåren (bildad 2022), 47:e stridsvagnsdivisionen med 26:e och 153:e stridsvagnsregementena och 272:a motoriserade skytteregementet, samt 288:e gardes artilleribrigaden. 47:e divisionen strider i Kupjansk-riktningen enligt ISW (okt 2026).",
    "units": [
     "288-gardes-artilleribrigaden",
     "47-stridsvagnsdivisionen",
@@ -11652,7 +11652,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Nizjnij Novgorod är en bas i Ryssland.",
+   "description_sv": "Garnison i Sormovo i Nizjnij Novgorod för 96:e självständiga underrättelsebrigaden i 1:a gardes stridsvagnsarmén.",
    "units": [
     "96-underrattelsebrigaden"
    ],
@@ -11686,7 +11686,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Troitskaja är en bas i Ryssland.",
+   "description_sv": "Garnison i Troitskaja i Ingusjetien för 503:e gardes motoriserade skytteregementet och 291:a gardes artilleribrigaden i 58:e armén.",
    "units": [
     "503-gardes-motoriserade-skytteregementet",
     "291-gardes-artilleribrigaden"
@@ -11721,7 +11721,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Kalinovskaja är en bas i Ryssland.",
+   "description_sv": "Garnison i Kalinovskaja i Tjetjenien för 71:a gardes motoriserade skytteregementet i 42:a divisionen.",
    "units": [
     "71-gardes-motoriserade-skytteregementet"
    ],
@@ -11755,7 +11755,7 @@
    "branch": "luftvärn",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Leonidovka är en bas i Ryssland.",
+   "description_sv": "Garnison i Leonidovka i Penza oblast för 297:e gardes luftvärnsrobotbrigaden.",
    "units": [
     "297-gardes-luftvarnsrobotbrigaden"
    ],
@@ -11789,7 +11789,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Tjernigovka är en bas i Ryssland.",
+   "description_sv": "Helikopterbas vid Tjernigovka i Primorje för 319:e helikopterregementet i arméflyget. Su-25 ur 18:e gardes attackflygregementet från Tjernigovka opererade från Luninets i Belarus under invasionen 2022.",
    "units": [
     "319-helikopterregementet"
    ],
@@ -11823,7 +11823,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Pusjkin är en bas i Ryssland.",
+   "description_sv": "Flygfält med samlokaliserad användning i Pusjkin, 28 kilometer söder om Sankt Petersburg, som tar emot transportflygplan upp till Il-76 och An-22. Här finns 332:a gardes helikopterregementet i 6:e flyg- och luftförsvarsarmén.",
    "units": [
     "332-gardes-helikopterregementet"
    ],
@@ -11857,7 +11857,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Temrjuk är en bas i Ryssland.",
+   "description_sv": "Garnison i hamnstaden Temrjuk vid Azovska sjön för 382:a självständiga marininfanteribataljonen i Svartahavsflottans 810:e brigad.",
    "units": [
     "382-marininfanteribataljonen"
    ],
@@ -11891,7 +11891,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Totskoje är en bas i Ryssland.",
+   "description_sv": "Totskoje i Orenburg oblast är förläggning för 27:e gardes motoriserade skyttedivisionen med 433:e och 506:e regementena, 385:e gardes artilleribrigaden och 92:a gardes robotbrigaden.",
    "units": [
     "385-gardes-artilleribrigaden",
     "92-gardes-robotbrigaden",
@@ -11929,7 +11929,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Rosjtjinskij är en bas i Ryssland.",
+   "description_sv": "Garnison i Rosjtjinskij i Samara oblast för 15:e och 30:e gardes motoriserade skyttebrigaderna och 589:e motoriserade skytteregementet i 2:a armén.",
    "units": [
     "589-gardes-motoriserade-skytteregementet",
     "15-gardes-motoriserade-skyttebrigaden",
@@ -11965,7 +11965,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Sankt Petersburg är en bas i Ryssland.",
+   "description_sv": "Sankt Petersburg är stab för 6:e gardes armén och 6:e gardes flyg- och luftförsvarsarmén. 6:e armén strider i norra Ukraina (Charkiv och Sumy) enligt ISW (okt 2026).",
    "units": [
     "6-gardes-flyg-och-luftforsvarsarmen",
     "6-gardes-armen"
@@ -12000,7 +12000,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Archonskaja är en bas i Ryssland.",
+   "description_sv": "Garnison i Archonskaja i Nordossetien för 40:e CBRN-skyddsregementet.",
    "units": [
     "40-cbrn-skyddsregementet"
    ],
@@ -12034,7 +12034,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Dvojevka (Vjazma) är en bas i Ryssland.",
+   "description_sv": "Flygfält nio kilometer sydost om Vjazma i Smolensk oblast, delat mellan militären och sportflyget, och hemmabas för 440:e gardes helikopterregementet i 6:e flyg- och luftförsvarsarmén.",
    "units": [
     "440-gardes-helikopterregementet"
    ],
@@ -12068,7 +12068,7 @@
    "branch": "fallskärm",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Rajevskaja är en bas i Ryssland.",
+   "description_sv": "Garnison i Rajevskaja vid Novorossijsk för luftlandsättningstruppernas 52:a gardes artilleribrigad.",
    "units": [
     "52-gardes-artilleribrigaden"
    ],
@@ -12102,7 +12102,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Vladikavkaz är en bas i Ryssland.",
+   "description_sv": "Vladikavkaz i Nordossetien är stab för 58:e gardes armén och förläggning för 19:e motoriserade skyttedivisionen och 67:e luftvärnsrobotbrigaden. Armén strider i Zaporizjzja oblast och förstärktes med strategiska reserver 2026 enligt ISW.",
    "units": [
     "67-luftvarnsrobotbrigaden",
     "19-motoriserade-skyttedivisionen",
@@ -12138,7 +12138,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Babstovo är en bas i Ryssland.",
+   "description_sv": "Garnison i Babstovo i Judiska autonoma området för 69:e självständiga skyddsbrigaden (Amurkosackerna).",
    "units": [
     "69-skyddsbrigaden"
    ],
@@ -12172,7 +12172,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Barano-Orenburgskoje är en bas i Ryssland.",
+   "description_sv": "Garnison i Barano-Orenburgskoje i Pogranitjnyj-distriktet i Primorje för 872:a självgående artilleriregementet i 127:e motoriserade skyttedivisionen.",
    "units": [
     "872-sjalvgaende-artilleriregementet"
    ],
@@ -12206,7 +12206,7 @@
    "branch": "luftvärn",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Lomonosov är en bas i Ryssland.",
+   "description_sv": "Garnison i Lomonosov (tidigare Oranienbaum) vid Sankt Petersburg för 5:e luftvärnsrobotbrigaden i 6:e armén.",
    "units": [
     "5-luftvarnsrobotbrigaden"
    ],
@@ -12240,7 +12240,7 @@
    "branch": "luftvärn",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Uljanovka är en bas i Ryssland.",
+   "description_sv": "Garnison i Uljanovka i Tosno-distriktet i Leningrad oblast för 1490:e gardes luftvärnsrobotregementet i flyg- och rymdstridskrafterna.",
    "units": [
     "1490-gardes-luftvarnsrobotregementet"
    ],
@@ -12274,7 +12274,7 @@
    "branch": "armé",
    "country": "UA",
    "military_district": "Södra militärdistriktet (ockuperat område i Ukraina)",
-   "description_sv": "Perevalnoje är en bas i Ryssland.",
+   "description_sv": "Garnison i Perevalnoje söder om Simferopol på det ockuperade Krim för 126:e gardes kustförsvarsbrigaden i Svartahavsflottan. Enligt ukrainska uppgifter dödades och skadades tiotals soldater vid ett anfall mot garnisonen i augusti 2023.",
    "units": [
     "126-gardes-kustforsvarsbrigaden"
    ],
@@ -12322,7 +12322,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Sergejevka är en bas i Ryssland.",
+   "description_sv": "Sergejevka i Pogranitjnyj-distriktet i Primorje är förläggning för 127:e gardes motoriserade skyttedivisionen i 5:e armén. Divisionen strider i Zaporizjzja- och Huljajpole-riktningen enligt ISW (okt 2026).",
    "units": [
     "127-gardes-motoriserade-skyttedivisionen"
    ],
@@ -12356,7 +12356,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Bujnaksk är en bas i Ryssland.",
+   "description_sv": "Garnison i Bujnaksk i Dagestan för 136:e gardes motoriserade skyttebrigaden i 58:e armén.",
    "units": [
     "136-gardes-motoriserade-skyttebrigaden"
    ],
@@ -12390,7 +12390,7 @@
    "branch": "robot",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Josjkar-Ola är en bas i Ryssland.",
+   "description_sv": "Josjkar-Ola i Mari El är stab för 14:e robotdivisionen i 27:e robotarmén, med mobila interkontinentala robotar RS-24 Jars. Divisionens helikoptrar finns på flygfältet Danilovo.",
    "units": [
     "14-robotdivisionen"
    ],
@@ -12424,7 +12424,7 @@
    "branch": "robot",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Nizjnij Tagil (Svobodnyj) är en bas i Ryssland.",
+   "description_sv": "Den slutna staden Svobodnyj nära Nizjnij Tagil i Sverdlovsk oblast är stab för 42:a robotdivisionen i strategiska robotstyrkorna, med mobila interkontinentala robotar.",
    "units": [
     "42-robotdivisionen"
    ],
@@ -12458,7 +12458,7 @@
    "branch": "robot",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Uzjur är en bas i Ryssland.",
+   "description_sv": "Uzjur i Krasnojarsk kraj är stab för 62:a robotdivisionen i 33:e robotarmén, med silobaserade tunga interkontinentala robotar.",
    "units": [
     "62-robotdivisionen"
    ],
@@ -12492,7 +12492,7 @@
    "branch": "robot",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Vypolzovo (Ozjornyj) är en bas i Ryssland.",
+   "description_sv": "Den slutna orten Ozjornyj (Vypolzovo, Bologoje-4) i Tver oblast är stab för 7:e gardes robotdivisionen i 27:e robotarmén.",
    "units": [
     "7-gardes-robotdivisionen"
    ],
@@ -12526,7 +12526,7 @@
    "branch": "robot",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Jurja är en bas i Ryssland.",
+   "description_sv": "Den slutna orten Pervomajskij vid Jurja i Kirov oblast är stab för 8:e robotdivisionen i 31:a robotarmén.",
    "units": [
     "8-robotdivisionen"
    ],
@@ -12560,7 +12560,7 @@
    "branch": "robot",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Nelsja är en bas i Ryssland.",
+   "description_sv": "Robotregementsområde vid floden Nelsja i Kostroma oblast för 235:e gardes robotregementet i 54:e robotdivisionen, med mobila RS-24 Jars.",
    "units": [
     "235-robotregementet"
    ],
@@ -12594,7 +12594,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Södra militärdistriktet",
-   "description_sv": "Storozjevaja är en bas i Ryssland.",
+   "description_sv": "Garnison i Storozjevaja i Karatjajevo-Tjerkessien för 34:e gardes motoriserade skyttebrigaden (bergsbrigad) i 49:e armén. Brigaden strider i norra Ukraina under Norra styrkegruppen enligt ISW (okt 2026).",
    "units": [
     "34-gardes-motoriserade-skyttebrigaden"
    ],
@@ -12628,7 +12628,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Borzja är en bas i Ryssland.",
+   "description_sv": "Garnison i Borzja i Zabajkalje för 36:e gardes motoriserade skyttebrigaden i 29:e armén. Brigaden strider sydväst om Oleksandrivka enligt ISW (okt 2026).",
    "units": [
     "36-gardes-motoriserade-skyttebrigaden"
    ],
@@ -12662,7 +12662,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Jekaterinoslavka är en bas i Ryssland.",
+   "description_sv": "Garnison i Jekaterinoslavka i Amur oblast för 38:e gardes motoriserade skyttebrigaden i 35:e armén och 133:e stridsvagnsbataljonen. Brigaden strider nordost om Orichiv enligt ISW (okt 2026).",
    "units": [
     "38-gardes-motoriserade-skyttebrigaden",
     "133-gardes-stridsvagnsbataljonen"
@@ -12697,7 +12697,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Östra militärdistriktet",
-   "description_sv": "Knjaze-Volkonskoje är en bas i Ryssland.",
+   "description_sv": "Garnison i Knjaze-Volkonskoje utanför Chabarovsk för 64:e gardes motoriserade skyttebrigaden i 35:e armén. Brigaden samlas enligt ISW i Huljajpole-riktningen (okt 2026).",
    "units": [
     "64-gardes-motoriserade-skyttebrigaden"
    ],
@@ -12731,7 +12731,7 @@
    "branch": "fallskärm",
    "country": "BY",
    "military_district": "Belarus",
-   "description_sv": "Vitebsk är en bas i Belarus.",
+   "description_sv": "Garnison i Vitsebsk för Belarus 103:e gardes luftlandsättningsbrigad i specialoperationsstyrkorna.",
    "units": [
     "103-gardes-luftlandsattningsbrigaden-by"
    ],
@@ -12765,7 +12765,7 @@
    "branch": "armé",
    "country": "BY",
    "military_district": "Belarus",
-   "description_sv": "Zaslonava är en bas i Belarus.",
+   "description_sv": "Garnison i Zaslonava i Lepel-distriktet i Vitsebsk oblast för Belarus 19:e gardes mekaniserade brigad.",
    "units": [
     "19-gardes-mekaniserade-brigaden-by"
    ],
@@ -12799,7 +12799,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Tver är en bas i Ryssland.",
+   "description_sv": "Garnison i Tver för 79:e gardes raketartilleribrigaden.",
    "units": [
     "79-gardes-raketartilleribrigaden"
    ],
@@ -12833,7 +12833,7 @@
    "branch": "armé",
    "country": "RU",
    "military_district": "Moskvas militärdistrikt",
-   "description_sv": "Senezj (Solnetjnogorsk) är en bas i Ryssland.",
+   "description_sv": "Senezj vid Solnetjnogorsk nordväst om Moskva är bas för specialoperationsstyrkorna (KSSO), som började bildas 2009 och har stridit i Ukraina sedan 2022.",
    "units": [
     "specialoperationsstyrkorna-ksso"
    ],
