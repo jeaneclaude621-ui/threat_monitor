@@ -139,40 +139,18 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
 
 ## Förslag som väntar på beslut
 
-### Gäståtkomst med länk, utan mejl (NÄSTA STEG)
-*Beslutat 2026-11-01 att detta är nästa steg. Detaljerna bestäms när vi tar upp det.*
-
-Den som har en länk ska kunna läsa appen utan att logga in och utan att
-uppge e-post. En enkel lösning:
-- En hemlig gästlänk, till exempel `.../?g=<token>`. Workern känner igen
-  token och ger läsbehörighet.
-- Länken kan dras tillbaka genom att token byts ut.
-- Hela läsdelen visas för gäster: Idag, Arkiv, Ämnen, Karta, Narrativ och
-  Myndigheter. Bedöm och admin kräver fortfarande inloggning.
-- Gästläsningen får inte räknas mot Cloudflare Access gratisnivå på 50
-  användare. Läsvägarna måste därför gå förbi Access (bypass) för den som
-  har en giltig token.
-
-Allt som byggts sedan 1 nov är rena läsanrop och klara för detta. Följande
-i punkten nedan gäller även här: e-postadresser bort ur rapportdatan,
-gästläge i appen, cachning, AI-märkning.
-
-### Gör appen öppen för alla, gratis
-*Föreslaget 2026-11-01.*
-
-Läsdelen blir öppen utan inloggning. Bedöm och admin ligger kvar bakom
-Cloudflare Access, vars gratisnivå bara räcker till 50 användare.
-Förutsättningar:
-- Ta bort bedömarnas e-postadresser ur rapportdatan.
-- Gästläge i appen.
-- Cachning av publika svar.
-- "Om"-sida med AI-märkning enligt EU:s AI-förordning.
-- Visa bara svenska sammanfattningar av den ryska sidan publikt.
-
-Öppen fråga: ska Narrativ vara publikt eller bara för inloggade?
+Inga just nu.
 
 ## Klart
 
+- 2026-11-03: Appen är öppen för alla som gäst (Version 3.17, hm-v3.31).
+  Gäster läser Idag, Arkiv, Ämnen, Karta, Styrkor, Narrativ och
+  Myndigheter utan inloggning. Bedömarnas e-postadresser byts mot
+  "Bedömare N", den ryska sidan i Narrativ visas bara som svenska
+  sammanfattningar, svaren cachas en minut och sidan Om har AI-märkning.
+  Bedöm, notiser och admin kräver fortfarande inloggning via `/login`.
+  Detta ersätter förslaget om en hemlig gästlänk. Kräver driftsättning
+  och ändrad Access, se `webapp/DEPLOY.md`, Version 3.17.
 - 2026-11-03: Fliken Källor tar inte emot Telegram eller rysk statsmedia
   (Version 3.16, hm-v3.30). Workern svarar 422, även efter omdirigering;
   exporten till analysen och `src/news_sources.py` filtrerar bort sådana

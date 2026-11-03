@@ -2,7 +2,7 @@
 // assessments and the admin/status pages. All data is rendered as text
 // (textContent / createElement), never as HTML.
 import {
-  store, onChange, isAdmin, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
+  store, onChange, isAdmin, isGuest, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
   reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes,
@@ -158,6 +158,7 @@ async function route({ keepScroll = false } = {}) {
     case 'mina': tab = 'bedom'; view = () => viewMine(); break;
     case 'kalla': view = () => viewSource(rest.join('/')); break;
     case 'admin': tab = ''; view = () => viewAdmin(q); break;
+    case 'om': tab = ''; view = () => viewAbout(); break;
     default: view = () => viewReport(null, q);
   }
   setTab(tab);
@@ -183,7 +184,7 @@ function errorView(e) {
     return h('div', { class: 'empty' },
       h('p', { class: 'title-m' }, 'Logga in igen'),
       h('p', { class: 'muted' }, 'Inloggningen saknas eller har gått ut.'),
-      h('a', { class: 'btn primary', href: '/' }, 'Logga in'));
+      h('a', { class: 'btn primary', href: '/login' }, 'Logga in'));
   }
   if (e instanceof OfflineError) {
     return h('div', { class: 'empty' },
@@ -692,7 +693,9 @@ async function viewReport(date, q) {
         h('h1', { class: 'title-xl' }, archived ? 'Rapport' : 'Hotläget')),
       h('div', { class: 'head-actions' },
         date ? null : h('a', { class: 'head-link', href: '#/arkiv' }, 'Tidigare dagar'),
-        date ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
+        date || isGuest() ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
+        date ? null : h('a', { class: 'head-link', href: '#/om' }, 'Om'),
+        isGuest() && !date ? h('a', { class: 'head-link', href: '/login' }, 'Logga in') : null,
         admin ? h('a', { class: 'icon-btn', href: '#/admin', 'aria-label': 'Status och administration', title: 'Status och administration' }, gearIcon()) : null)),
     archived ? null : noticeCards(),
     // The figures and the news first; what is new for me, the controls
@@ -1689,14 +1692,15 @@ function trendRow(t, ru, threadEvents) {
     open ? h('div', { class: 'expand' },
       t.summary_sv ? h('p', { class: 'body-sm' }, t.summary_sv) : null,
       // The original: open when there is no Swedish, folded away when there is.
-      t.title_sv || t.summary_sv
+      !t.title && !t.detail ? null
+      : t.title_sv || t.summary_sv
         ? h('details', { class: 'small muted' }, h('summary', null, ru ? 'Originalet på ryska' : 'Originalet'),
           h('p', { lang: ru ? 'ru' : null }, t.title), t.detail ? h('p', { lang: ru ? 'ru' : null }, t.detail) : null)
         : t.detail ? h('p', { class: 'body-sm', lang: ru ? 'ru' : null }, t.detail) : null,
       ru ? h('p', { class: 'small muted' }, 'Ett påstående från den ryska sidan, inte bekräftat.') : null,
       h('p', { class: 'small muted' }, `Sågs först ${tsFmt(t.first_seen)}${t.last_seen !== t.first_seen ? `, senast ${tsFmt(t.last_seen)}` : ''}`),
       h('div', { class: 'btn-row' },
-        externalButton(t.url, { outlet: t.place }, ru ? 'Öppna på Telegram' : 'Öppna källan'),
+        t.url ? externalButton(t.url, { outlet: t.place }, ru ? 'Öppna på Telegram' : 'Öppna källan') : null,
         threadEvent ? h('a', { class: 'btn', href: eventHref(threadEvent.r.date, threadEvent.e.id) }, 'Bevakad tråd') : null)) : null);
 }
 
@@ -3521,6 +3525,28 @@ async function adminAudit() {
       detailText(r.detail) ? h('span', { class: 'row-sub' }, detailText(r.detail)) : null))));
 }
 
+// ---------------------------------------------------------------- about (Version 3.17)
+// What Hotmonitor is, that AI writes much of it, and what a guest leaves behind.
+function viewAbout() {
+  const guest = isGuest();
+  return frag(
+    backLink('#/', 'Hotläget'),
+    h('header', { class: 'page-head' }, h('div', null, h('h1', { class: 'title-xl' }, 'Om Hotmonitor'))),
+    h('section', { class: 'card card-pad about' },
+      h('h2', { class: 'title-m' }, 'Vad det är'),
+      h('p', null, 'Hotmonitor sammanställer varje dag öppna uppgifter om ryska hybridhot mot Nato, EU och Ukraina: nyheter, myndigheters lägesbilder, styrkor och anfall. Det är ett privat projekt, inte en myndighets bedömning.'),
+      h('h2', { class: 'title-m' }, 'AI-genererat innehåll'),
+      h('p', null, 'Sammanfattningar, översättningar, hotindex och trovärdighetsvärden tas fram automatiskt med hjälp av en AI-modell (Google Gemini) utifrån öppna källor. Texterna kan innehålla fel och ska läsas tillsammans med källorna som länkas. Bedömningar som en människa har gjort visas som bedömare utan namn.'),
+      h('h2', { class: 'title-m' }, 'Källor'),
+      h('p', null, 'Rysk statsmedia och Telegram används inte som nyhetskällor. Under Narrativ visas den ryska sidan bara som våra svenska sammanfattningar, utan länkar dit.'),
+      h('h2', { class: 'title-m' }, 'Integritet'),
+      h('p', null, guest
+        ? 'Du läser utan att logga in. Hotmonitor sätter inga egna kakor och har ingen spårning; typsnitten hämtas från Google Fonts, som då ser din IP-adress. Vad du har läst sparas bara i den här webbläsaren. Servern ser din IP-adress för att stoppa överbelastning, men den sparas inte med det du läser.'
+        : 'Du är inloggad med din e-postadress via Cloudflare Access. Adressen syns bara för administratörer.'),
+      guest ? h('p', null, h('a', { class: 'btn primary', href: '/login' }, 'Logga in'), ' ',
+        h('span', { class: 'small muted' }, 'för notiser och för att bedöma källor (kräver konto).')) : null));
+}
+
 // ---------------------------------------------------------------- chrome
 function updateChrome() {
   const alarmEl = document.getElementById('alarm');
@@ -3549,7 +3575,7 @@ function updateChrome() {
     banner.replaceChildren(
       store.authLost ? 'Inloggningen har gått ut. '
         : offline ? 'Du är offline – visar sparad data.' : 'Ingen kontakt med servern – visar sparad data. ',
-      offline ? null : h('a', { href: '/' }, 'Logga in igen'));
+      offline ? null : h('a', { href: '/login' }, 'Logga in igen'));
     banner.hidden = false;
   } else {
     banner.hidden = true;
@@ -3746,14 +3772,14 @@ async function init() {
     return;
   }
   document.querySelector('[data-tab="bedom"]').hidden = !isAdmin();
-  reportDevice({ standalone: isStandalone(), platform: platformOf() });
+  if (!isGuest()) reportDevice({ standalone: isStandalone(), platform: platformOf() });
   assessmentsReady = loadAssessments().catch((e) => { console.warn('assessments', e); });
   const side = Promise.all([
     loadUpdates().catch((e) => { console.warn('updates', e); }),
     loadNotices().catch((e) => { console.warn('notices', e); }),
     loadReads().catch((e) => { console.warn('reads', e); }),
   ]);
-  refreshPushState().catch(() => {});
+  if (!isGuest()) refreshPushState().catch(() => {});
   window.addEventListener('hashchange', () => route());
   window.addEventListener('offline', updateChrome);
   window.addEventListener('online', () => { loadMe().catch(() => {}).finally(updateChrome); });

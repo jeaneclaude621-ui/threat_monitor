@@ -75,6 +75,9 @@ function emit() { for (const fn of listeners) fn(); }
 
 export function isAdmin() { return !!store.me && store.me.role === 'admin'; }
 
+// Version 3.17: read without logging in. Read marks stay on the device.
+export function isGuest() { return !!store.me && store.me.role === 'guest'; }
+
 export async function loadMe() {
   try {
     store.me = await getJSON('/api/me', { cache: 'no-store' });
@@ -344,6 +347,7 @@ export async function loadNotices() {
 }
 
 export async function loadReads() {
+  if (isGuest()) return store.reads;
   const body = await getJSON('/api/reads', { cache: 'no-store' });
   const ids = Array.isArray(body && body.item_ids) ? body.item_ids : [];
   // Marks still waiting in the outbox stay read locally.
@@ -362,6 +366,7 @@ export function markRead(ids) {
   if (!fresh.length) return;
   for (const id of fresh) store.reads.add(id);
   lsSet(READ_CACHE_KEY, [...store.reads]);
+  if (isGuest()) { emit(); return; }
   // Batches of 200 keep each request small.
   for (let i = 0; i < fresh.length; i += 200) store.readsOutbox.push({ item_ids: fresh.slice(i, i + 200) });
   lsSet(READS_KEY, store.readsOutbox);
@@ -371,6 +376,7 @@ export function markRead(ids) {
 
 let flushingReads = false;
 export async function flushReads() {
+  if (isGuest()) return;
   if (flushingReads || !store.readsOutbox.length) return;
   flushingReads = true;
   try {
@@ -428,6 +434,7 @@ export function adminSend(method, path, body) { return sendJSON(method, path, bo
 
 // Once per session: whether the app runs from the home screen, and on what.
 export async function reportDevice(info) {
+  if (isGuest()) return;
   try {
     if (sessionStorage.getItem('hm.deviceSent') === JSON.stringify(info)) return;
   } catch { /* ignore */ }

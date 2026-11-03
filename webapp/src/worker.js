@@ -27,6 +27,8 @@
  * Version 3.12: the forces map - Russia's bases, units and their status, nightly.
  * Version 3.13: Russia's air attacks on Ukraine, per night, and a weekly survey of the bases.
  * Version 3.16: the Sources tab refuses Telegram and Russian state media.
+ * Version 3.17: with PUBLIC_READ on, anyone reads the public views as a guest,
+ *   without e-mail addresses; everything else still needs a login.
  */
 
 import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
@@ -100,6 +102,11 @@ class HttpError extends Error {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // Version 3.17: /login is behind Access; once Access has let the person
+    // through (and set its cookie), back to the app.
+    if (url.pathname === '/login') {
+      return new Response(null, { status: 302, headers: { Location: '/', 'Cache-Control': 'no-store' } });
+    }
     if (!url.pathname.startsWith('/api/')) {
       return env.ASSETS.fetch(request);
     }
@@ -152,7 +159,11 @@ async function route(req) {
   if (id.kind === 'user') req.email = id.email;
   // Before the 401, so an unauthenticated flood is limited per IP too.
   rateLimit(req, id);
+  // Version 3.17: with PUBLIC_READ on, anyone may read the public views as a
+  // guest, without logging in. Everything else still needs a login.
+  const guestOk = env.PUBLIC_READ === '1' && (method === 'GET' || method === 'HEAD') && isPublicPath(path);
   if (id.kind === 'invalid') {
+    if (guestOk) return guestRead(req, path);
     throw new HttpError(401, 'not authenticated', throttledReason(req, R.invalidJwt));
   }
 
@@ -164,11 +175,25 @@ async function route(req) {
     }
   }
 
-  const who = id.kind === 'user' ? await userFor(id.email, req) : id;
+  let who;
+  try {
+    who = id.kind === 'user' ? await userFor(id.email, req) : id;
+  } catch (e) {
+    // A verified address without an account reads like everyone else.
+    if (guestOk && e instanceof HttpError && e.status === 403) return guestRead(req, path);
+    throw e;
+  }
   req.who = who;
+  return dispatch(req, path, method, who);
+}
+
+async function dispatch(req, path, method, who) {
+  const { request, env, url } = req;
+  const guest = who.kind === 'guest';
 
   if (path === '/api/me') {
     allow(method, 'GET');
+    if (guest) return json({ email: null, role: 'guest', is_owner: false, alarm: null, refresh: null });
     requireUser(who);
     return json({
       email: who.email, role: who.role, is_owner: who.is_owner,
@@ -203,7 +228,7 @@ async function route(req) {
 
   if (path === '/api/reports') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const { results } = await env.DB.prepare(
       'SELECT date, threat_index, threat_index_30d, top_sv FROM reports ORDER BY date DESC'
     ).all();
@@ -213,7 +238,7 @@ async function route(req) {
   let m = path.match(/^\/api\/reports\/([^/]+)$/);
   if (m) {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const date = m[1];
     if (!DATE_RE.test(date)) throw new HttpError(400, 'bad date');
     const row = await env.DB.prepare('SELECT data FROM reports WHERE date = ?').bind(date).first();
@@ -223,6 +248,8 @@ async function route(req) {
 
   if (path === '/api/assessments') {
     if (method === 'GET') {
+      // Who judged what stays among the logged-in.
+      if (guest) return json([]);
       requireUser(who);
       const { results } = await env.DB.prepare(
         'SELECT * FROM assessments ORDER BY ts, rowid'
@@ -237,51 +264,52 @@ async function route(req) {
 
   if (path === '/api/notices') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const { results } = await env.DB.prepare(
       'SELECT id, ts, author, title, body, url, expires_at FROM notices WHERE active = 1 AND expires_at > ? ORDER BY ts DESC'
     ).bind(new Date().toISOString()).all();
+    if (guest) for (const r of results) delete r.author;
     return json(results);
   }
 
   if (path === '/api/updates') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     return listUpdates(env, url);
   }
 
   if (path === '/api/courses') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const row = await env.DB.prepare('SELECT data FROM course_assessments ORDER BY date DESC LIMIT 1').first();
     return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
   }
 
   if (path === '/api/strikes') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const row = await env.DB.prepare('SELECT data FROM strike_maps ORDER BY date DESC LIMIT 1').first();
     return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
   }
 
   if (path === '/api/forces') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const row = await env.DB.prepare('SELECT data FROM force_maps ORDER BY date DESC LIMIT 1').first();
     return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
   }
 
   if (path === '/api/authorities') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const row = await env.DB.prepare('SELECT data FROM authority_briefs ORDER BY generated_at DESC LIMIT 1').first();
     return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
   }
 
   if (path === '/api/trends') {
     allow(method, 'GET');
-    requireUser(who);
-    return listTrends(env, url);
+    requireReader(who);
+    return listTrends(env, url, guest);
   }
 
   if (path === '/api/reads') {
@@ -470,9 +498,83 @@ function allow(method, expected) {
   if (method !== expected) throw new HttpError(405, 'method not allowed');
 }
 
+// ---------------------------------------------------------------------------
+// Guests (Version 3.17)
+// ---------------------------------------------------------------------------
+// What a guest may read with PUBLIC_READ on. Assessments answer [] and
+// /api/me answers role 'guest'; reads, push, devices, admin, ingest and
+// export always need a login or the machine.
+const PUBLIC_PATHS = new Set(['/api/me', '/api/reports', '/api/assessments', '/api/notices', '/api/updates',
+  '/api/courses', '/api/strikes', '/api/forces', '/api/authorities', '/api/trends']);
+const GUEST = Object.freeze({ kind: 'guest' });
+const GUEST_CACHE_MS = 60000;
+const GUEST_CACHE_MAX = 200;
+const guestCache = new Map();   // per isolate: path+query -> {at, body}
+const EMAIL_IN_TEXT = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+
+function isPublicPath(path) {
+  return PUBLIC_PATHS.has(path) || /^\/api\/reports\/[^/]+$/.test(path);
+}
+
+/**
+ * Replaces every e-mail address, as a value or as a key, with "Bedömare N"
+ * (the same N for the same address within one answer), and drops the
+ * fields that only name who added something.
+ */
+function pseudonymize(data) {
+  const names = new Map();
+  const alias = (email) => {
+    const k = email.toLowerCase();
+    if (!names.has(k)) names.set(k, `Bedömare ${names.size + 1}`);
+    return names.get(k);
+  };
+  const walk = (v) => {
+    if (typeof v === 'string') return v.includes('@') ? v.replace(EMAIL_IN_TEXT, alias) : v;
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === 'object') {
+      const out = {};
+      for (const [k, x] of Object.entries(v)) {
+        if (k === 'author' || k === 'added_by' || k === 'created_by' || k === 'actor') continue;
+        out[k.includes('@') ? k.replace(EMAIL_IN_TEXT, alias) : k] = walk(x);
+      }
+      return out;
+    }
+    return v;
+  };
+  return walk(data);
+}
+
+/** A guest's read: the same answer as a user's, without names, cached a minute. */
+async function guestRead(req, path) {
+  const key = path + req.url.search;
+  const now = Date.now();
+  const hit = guestCache.get(key);
+  let body;
+  if (hit && now - hit.at < GUEST_CACHE_MS) {
+    body = hit.body;
+  } else {
+    const res = await dispatch(req, path, req.request.method, GUEST);
+    if (!res.ok) return res;
+    const text = await res.text();
+    body = text === 'null' ? text : JSON.stringify(pseudonymize(JSON.parse(text)));
+    if (guestCache.size >= GUEST_CACHE_MAX) guestCache.clear();
+    guestCache.set(key, { at: now, body });
+  }
+  const headers = apiHeaders();
+  headers['Cache-Control'] = 'public, max-age=60';
+  headers.Vary = 'Cookie';
+  return new Response(req.request.method === 'HEAD' ? null : body, { status: 200, headers });
+}
+
 function requireUser(who) {
   if (!who) throw new HttpError(401, 'not authenticated');
   if (who.kind !== 'user') throw new HttpError(403, 'forbidden');
+}
+
+/** The public read paths: a person, or a guest when PUBLIC_READ is on. */
+function requireReader(who) {
+  if (who && who.kind === 'guest') return;
+  requireUser(who);
 }
 
 function requireMachine(who) {
@@ -1240,7 +1342,7 @@ async function ingestAuthorities(request, env) {
 }
 
 /** One side at a time: the app asks for 'ru' only when the reader chose to see it. */
-async function listTrends(env, url) {
+async function listTrends(env, url, guest = false) {
   const side = url.searchParams.get('side') || 'open';
   if (!TREND_SIDES.has(side)) throw new HttpError(400, 'side must be open or ru');
   const since = new Date(Date.now() - TREND_SHOW_DAYS * 86400000).toISOString();
@@ -1253,7 +1355,14 @@ async function listTrends(env, url) {
     `SELECT date, ${col} AS text FROM trend_summaries WHERE ${col} IS NOT NULL ORDER BY date DESC LIMIT 7`
   ).all();
   const src = await env.DB.prepare("SELECT value FROM meta WHERE key = 'trend_sources'").first();
-  return json({ side, items: results, summaries: sums.results, sources: src ? JSON.parse(src.value) : null });
+  // Guests get the Russian side only as our Swedish summaries: no Russian
+  // headlines, quotes or links to the channels themselves.
+  let items = results;
+  if (guest && side === 'ru') {
+    items = results.filter((r) => r.title_sv || r.summary_sv);
+    for (const r of items) { r.title = null; r.detail = null; r.url = null; }
+  }
+  return json({ side, items, summaries: sums.results, sources: src ? JSON.parse(src.value) : null });
 }
 
 // ---------------------------------------------------------------------------
@@ -2065,7 +2174,9 @@ async function verifyAccessJwt(token, env) {
 
   const now = Math.floor(Date.now() / 1000);
   const aud = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
-  if (!aud.includes(env.ACCESS_AUD)) return null;
+  // ACCESS_AUD may name several Access applications, comma-separated.
+  const want = String(env.ACCESS_AUD).split(',').map((a) => a.trim()).filter(Boolean);
+  if (!aud.some((a) => want.includes(a))) return null;
   if (claims.iss !== `https://${env.TEAM_DOMAIN}`) return null;
   if (typeof claims.exp !== 'number' || claims.exp < now) return null;
   if (typeof claims.nbf === 'number' && claims.nbf > now + 60) return null;
@@ -2113,4 +2224,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
+export const _test = { pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
