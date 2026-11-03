@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 import forces_firms  # noqa: E402
 
-CSV = (ROOT / "tests" / "data" / "firms_sample.csv").read_text(encoding="utf-8")
+CSV = (ROOT / "tests" / "fixtures" / "firms_sample.csv").read_text(encoding="utf-8")
 LAT, LON = 43.7875, 44.6031
 
 

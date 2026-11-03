@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 import forces_isw  # noqa: E402
 
-SAMPLE = (ROOT / "tests" / "data" / "isw_sample.html").read_text(encoding="utf-8")
+SAMPLE = (ROOT / "tests" / "fixtures" / "isw_sample.html").read_text(encoding="utf-8")
 URL = "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-16-2026"
 TODAY = date(2026, 10, 17)
 
