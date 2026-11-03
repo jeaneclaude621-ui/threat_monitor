@@ -32,6 +32,9 @@ EMAIL = os.environ.get("MOCK_EMAIL", "operator@example.test")
 PORT = int(os.environ.get("MOCK_PORT", "8787"))
 AUTH_FAIL = os.environ.get("MOCK_AUTH") == "fail"   # every /api call answers 401
 AUTH_DENIED = os.environ.get("MOCK_AUTH") == "denied"  # every /api call answers 403 not_allowed
+GUEST = ROLE == "guest"   # Version 3.17: not logged in, PUBLIC_READ on
+GUEST_PATHS = ("/api/me", "/api/reports", "/api/assessments", "/api/notices", "/api/updates", "/api/courses",
+               "/api/strikes", "/api/forces", "/api/authorities", "/api/trends")
 OWNER = os.environ.get("MOCK_OWNER", EMAIL if ROLE == "admin" else "owner@example.test")
 ALARM = os.environ.get("MOCK_ALARM") == "1"         # today's report is missing
 # A real P-256 public key (uncompressed, base64url) so the browser accepts
@@ -302,6 +305,10 @@ class Handler(SimpleHTTPRequestHandler):
         """Common checks for every /api call. Returns an error response or None."""
         if AUTH_FAIL:
             return self._json(401, {"error": "not signed in"})
+        if GUEST:
+            if method == "GET" and (path in GUEST_PATHS or path.startswith("/api/reports/")):
+                return None
+            return self._json(401, {"error": "not authenticated"})
         if AUTH_DENIED or not user_of(EMAIL):
             return self._json(403, {"error": "not_allowed"})
         if method != "GET":
@@ -322,6 +329,10 @@ class Handler(SimpleHTTPRequestHandler):
         if err is not None:
             return err
         me = user_of(EMAIL)
+        if GUEST and path == "/api/me":
+            return self._json(200, {"email": None, "role": "guest", "is_owner": False, "alarm": None})
+        if GUEST and path == "/api/assessments":
+            return self._json(200, [])
         if path == "/api/me":
             USERS.get(EMAIL, {})["last_seen"] = now()
             alarm = {"missing_report": MISSING_DATE if ALARM else None,

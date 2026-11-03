@@ -349,3 +349,63 @@ npx wrangler deploy
 
 The strike map needs a Kaggle account: GitHub secrets `KAGGLE_USERNAME`
 and `KAGGLE_KEY` (Kaggle > Settings > API > Create New Token).
+
+## Version 3.17: open to everyone, login only for the rest
+
+The Worker now lets anyone read the public views as a guest
+(`PUBLIC_READ` = `"1"` in `wrangler.jsonc`). Access must therefore stop
+covering the whole hostname and only guard the login and the Mac's paths.
+The Worker still checks every token itself, so a gap in Access exposes
+nothing beyond what guests see anyway.
+
+Do the steps in this order. The Mac's nightly upload keeps working
+throughout.
+
+1. **New Access application for the protected paths.** Zero Trust ->
+   Access -> Applications -> Add an application -> Self-hosted.
+   - Name: `Hotmonitor inloggning`.
+   - Destinations (public hostname `hotmonitor.<account-subdomain>.workers.dev`),
+     one line per path: `login`, `api/ingest/*`, `api/export/*`.
+   - Login method: One-time PIN only. Session duration: 30 days.
+   - Policies: the existing "Hotmonitor users" (Allow) and "Hotmonitor Mac"
+     (Service Auth).
+   - Under cookie settings, leave *Cookie path attribute* **off**: the
+     cookie set at `/login` must reach the whole hostname, or a logged-in
+     person would read as a guest.
+   - Copy the new application's *AUD tag*.
+2. **Both AUD tags in the Worker.** In `wrangler.jsonc`, `ACCESS_AUD`
+   becomes `"<old AUD>,<new AUD>"` (comma-separated, no secret). Then
+   from `webapp/`:
+   ```sh
+   env -u CLOUDFLARE_API_TOKEN npx wrangler deploy
+   ```
+3. **Turn the hostname-wide Access off.** Workers & Pages -> hotmonitor ->
+   Settings -> Domains & Routes -> workers.dev -> *Disable Cloudflare
+   Access* (or, if the old application was made by hand, delete it in Zero
+   Trust -> Access -> Applications). The new application keeps the three
+   paths guarded.
+4. **Check** (no credentials):
+   ```sh
+   curl -s -o /dev/null -w "%{http_code}\n" $HOTMONITOR_URL/api/reports           # 200: guests read
+   curl -s $HOTMONITOR_URL/api/me                                                 # {"role":"guest",...}
+   curl -s -o /dev/null -w "%{http_code}\n" $HOTMONITOR_URL/api/reads             # 401
+   curl -s -o /dev/null -w "%{http_code}\n" $HOTMONITOR_URL/api/export/assessments # 302 to Access
+   ```
+   and the Mac check from step 6 above (200). On a phone: the app opens
+   without a login, *Logga in* goes through the one-time PIN and back,
+   and the Bedöm tab returns for admins.
+
+To close it again: set `PUBLIC_READ` to `"0"` and deploy; guests then get
+401 on everything, even before Access is turned back on.
+
+**Free-plan limits** (checked 3 Nov 2026, developers.cloudflare.com):
+
+| What | Free plan | What it means here |
+|---|---|---|
+| Worker requests | 100 000 a day, reset 00:00 UTC; over it, error 1027 | Only `/api/*` and `/login` count; the app's files are static assets, free and unlimited. A visit makes about 6-10 API calls, the archive more: roughly 10 000 visits a day. |
+| Worker CPU | 10 ms a request | Guests' answers are cached a minute per isolate and in the browser (`max-age=60`); the first answer is parsed once to replace e-mail addresses. |
+| D1 | 5 million rows read and 100 000 written a day | Guests write nothing; the cache keeps reads to roughly one per path a minute per isolate. |
+| Access | 50 seats | Guests never pass Access and take no seat. |
+
+Above that, Workers Paid is $5 a month (10 million requests). The rate
+limit of 120 requests a minute per IP still applies to guests.

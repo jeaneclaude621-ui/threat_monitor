@@ -569,3 +569,46 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   on the light model with the main one as fallback. Any call on the main
   model that finds its quota spent, or the model still overloaded after
   two retries, moves to the light model (src/common.py `ask_model`).
+
+# Version 3.16 (3 Nov 2026) - no Telegram or Russian state media as sources
+
+- `POST /api/admin/sources` answers 422 for a link to Telegram (t.me,
+  telegram.me, telegram.org, telegra.ph, telesco.pe) or Russian state
+  media (tass.ru, tass.com, rt.com, ria.ru, sputniknews.*, sputnikglobe.com,
+  sputnik.by, sputnik.kz, iz.ru, tvzvezda.ru, rg.ru), the host or any
+  subdomain - also when the link redirects there or a site's announced
+  feed lives there.
+- `GET /api/export/sources` leaves such sources out, so one added before
+  this version never reaches the analysis; `src/news_sources.py` drops
+  them again on its side.
+- Narrativ's reading of the Russian side (src/trends.py) is not a source
+  for the analysis and is unchanged.
+- App: the Sources form says that these are not accepted. Service worker
+  hm-v3.30.
+
+# Version 3.17 (3 Nov 2026) - guests: open to everyone
+
+- With `PUBLIC_READ` = `"1"`, a request without a valid Access token (or
+  from a verified address without an account) is a **guest** on the public
+  reads, GET or HEAD only: `/api/me`, `/api/reports`, `/api/reports/:date`,
+  `/api/assessments`, `/api/notices`, `/api/updates`, `/api/courses`,
+  `/api/strikes`, `/api/forces`, `/api/authorities`, `/api/trends`.
+  Everything else answers 401 as before (403 for a verified address
+  without an account). With `PUBLIC_READ` unset, nothing changes.
+- `/api/me` for a guest: `{email: null, role: "guest", is_owner: false,
+  alarm: null, refresh: null}`. `GET /api/assessments`: `[]`.
+- A guest's answer has every e-mail address, as a value or a key,
+  replaced by `Bedömare N` (stable within one answer), and drops
+  `author`, `added_by`, `created_by` and `actor`.
+- `/api/trends?side=ru` for a guest: only items with a Swedish title or
+  summary, with `title`, `detail` and `url` set to null - no Russian
+  headlines, quotes or links to the channels.
+- Guests' answers carry `Cache-Control: public, max-age=60` and
+  `Vary: Cookie`, and are cached a minute per isolate.
+- `GET /login` (behind Access) answers 302 to `/`. The app's *Logga in*
+  links go there.
+- `ACCESS_AUD` may name several Access applications, comma-separated.
+- App: the guest role hides Bedöm, the bell (notices) and admin, keeps read
+  marks on the device only, and reports no device. New page `#/om`: what
+  Hotmonitor is, AI-generated content (EU AI Act, art. 50), sources and
+  privacy. Service worker hm-v3.31.

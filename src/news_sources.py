@@ -151,16 +151,34 @@ def gdelt(query: str, hours: int = 24, limit: int = 40) -> list:
     return out
 
 
+# Never a source for the analysis: Telegram and Russian state media. The
+# Worker refuses them in the Sources tab (Version 3.16); this is the second lock.
+BLOCKED_HOSTS = ("t.me", "telegram.me", "telegram.org", "telegra.ph", "telesco.pe", "tass.ru", "tass.com",
+                 "rt.com", "ria.ru", "sputniknews.com", "sputniknews.ru", "sputnikglobe.com", "sputnik.by",
+                 "sputnik.kz", "iz.ru", "tvzvezda.ru", "rg.ru")
+
+
+def blocked_source(url: str) -> bool:
+    from urllib.parse import urlparse
+    host = (urlparse(url or "").hostname or "").lower().rstrip(".")
+    return any(host == b or host.endswith("." + b) for b in BLOCKED_HOSTS)
+
+
 def app_sources() -> list:
-    """Sources added in the web app: [{id, kind: rss|article, url, title, added_at}]."""
+    """Sources added in the web app: [{id, kind: rss|article, url, title, added_at}],
+    without Telegram and Russian state media."""
     import app_sync
     if not app_sync._config():
         return []
     try:
-        return app_sync._request("GET", "/api/export/sources", retries=False) or []
+        rows = app_sync._request("GET", "/api/export/sources", retries=False) or []
     except Exception as e:
         print(f"  ! Could not fetch the app's sources ({e})")
         return []
+    kept = [s for s in rows if not blocked_source(s.get("url", ""))]
+    if len(kept) < len(rows):
+        print(f"  ! {len(rows) - len(kept)} app source(s) left out: Telegram or Russian state media")
+    return kept
 
 
 def all_feeds(app: list) -> list:

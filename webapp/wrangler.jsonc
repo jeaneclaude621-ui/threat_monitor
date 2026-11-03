@@ -9,7 +9,7 @@
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*"],
+    "run_worker_first": ["/api/*", "/login"],
     "not_found_handling": "single-page-application"
   },
   "d1_databases": [
@@ -32,6 +32,9 @@
     // The scheduled runs are started here (CONTRACT.md, Version 3.8), with
     // the Worker secret GITHUB_DISPATCH_TOKEN: a fine-grained token for this
     // repo only, with Actions read and write.
+    // Version 3.17: anyone may read the public views as a guest. Only takes
+    // effect once Access no longer covers the whole hostname (DEPLOY.md 7).
+    "PUBLIC_READ": "1",
     "GITHUB_REPO": "jeaneclaude621-ui/threat_monitor",
     // OWNER (always an active admin, break-glass) and the optional ADMINS/
     // READERS seed lists are Worker secrets so no address lives in this repo.
