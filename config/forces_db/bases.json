@@ -9044,7 +9044,15 @@
    ],
    "curated_equipment": [
     "Su-34"
-   ]
+   ],
+   "image": {
+    "file": "base-sjagol.jpg",
+    "commons_file": "File:Шагол.jpg",
+    "author": "Maxiss (c)",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3A%D0%A8%D0%B0%D0%B3%D0%BE%D0%BB.jpg"
+   }
   },
   {
    "id": "sjajkovka",
