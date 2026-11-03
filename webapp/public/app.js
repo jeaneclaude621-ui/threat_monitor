@@ -1781,6 +1781,31 @@ async function loadForcesView() {
   return { land: land.countries, bases: data.bases, byId: new Map(data.bases.map((b) => [b.id, b])), data, cat };
 }
 
+// ---------------------------------------------------------------- how old a status is
+// Version 3.29: an attack NASA FIRMS saw as fire says so (src/forces_firms.py);
+// every unit and base card says when its status was last
+// updated; a status older than STALE_DAYS is toned down and marked
+// "ej bekräftad sedan". Dates may be a day, a month ("2026-11") or a year.
+const STALE_DAYS = 60;
+function statusDate(s) {
+  const m = String(s || '').match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+  return m ? `${m[1]}-${m[2] || '01'}-${m[3] || '01'}` : null;
+}
+function ageNote(asOf) {
+  const d = statusDate(asOf);
+  if (!d) return null;
+  const stale = (Date.now() - Date.parse(`${d}T00:00:00Z`)) / 864e5 > STALE_DAYS;
+  const s = String(asOf);
+  const label = /^\d{4}-\d{2}-\d{2}/.test(s) ? `${dateShort(d)} ${d.slice(0, 4)}` : s;
+  return { stale, text: stale ? `ej bekräftad sedan ${label}` : `uppdaterad ${label}` };
+}
+function statusLine(label, text, asOf, extra) {
+  if (!text) return null;
+  const a = ageNote(asOf);
+  return h('p', { class: `small${a?.stale ? ' muted' : ''}`, style: a?.stale ? 'opacity:.6' : null },
+    h('b', null, label), text, a ? h('span', { class: 'muted' }, ` · ${a.text}`) : null, extra ? [' ', extra] : null);
+}
+
 // ---------------------------------------------------------------- the forces catalogue (grunddata)
 // Weapon systems and units from config/forces_db, served as static files
 // (/forces/systems.json, /forces/units.json) and read once. A base's
@@ -1869,11 +1894,16 @@ async function viewForceUnit(id) {
   const garrisons = all.filter((b) => (b.unit_ids || []).includes(id) || (u.garrison || []).includes(b.db_id));
   const parent = u.parent ? cat.units.get(u.parent) : null;
   const kids = (cat.children.get(id) || []).map((k) => cat.units.get(k)).filter(Boolean);
+  const live = data?.units?.[id] || null;   // the nightly ISW reading (src/forces_isw.py)
   return frag(
     forceHead(`${u.type.charAt(0).toUpperCase()}${u.type.slice(1)} · ${FORCE_BRANCH[u.branch]?.[0] || u.branch}`, u.name_sv,
       [u.name_ru, u.name_en].filter(Boolean).join(' · ')),
     h('section', { class: 'card card-pad' },
-      h('p', { class: 'small' }, h('b', null, 'Status: '), u.status_sv, u.as_of ? ` (uppgifter per ${u.as_of})` : ''),
+      statusLine('Status: ', live?.status_sv || u.status_sv, live?.status_as_of || u.as_of,
+        live?.status_source?.[0]?.url ? externalButton(live.status_source[0].url, { outlet: live.status_source[0].outlet, date: live.status_as_of }, 'ISW') : null),
+      (live?.status_source || []).length > 1 ? h('details', { class: 'small muted' }, h('summary', null, 'Tidigare lägen enligt ISW'),
+        h('ul', null, live.status_source.slice(1).map((p) => h('li', null, `${dateShort(p.date)} ${p.date.slice(0, 4)}: ${p.status_sv} `,
+          externalButton(p.url, { outlet: p.outlet, date: p.date }, 'ISW'))))) : null,
       h('p', { class: 'body-sm' }, u.description_sv),
       parent ? h('p', { class: 'body-sm' }, h('b', null, 'Ingår i: '), unitChip(cat, parent.id)) : null,
       kids.length ? [h('h3', { class: 'fsub' }, 'Underställda förband'), h('div', { class: 'chips' }, kids.map((k) => unitChip(cat, k.id)))] : null,
@@ -2307,10 +2337,11 @@ async function viewForces() {
     const same = (x, y) => x.length === y.length && x.every((t) => y.includes(t));
     const changed = !same(orig.units, b.units) || !same(orig.equipment, b.equipment);
     const otherBase = (id) => byId.get(id)?.name || id;
+    const age = ageNote([b.updated, statusDate(b.status_as_of)].filter(Boolean).sort().pop());
     detail.replaceChildren(h('section', { class: 'card card-pad fdetail' },
       h('div', { class: 'coa-head-row' },
-        h('span', { class: `fstatus ${b.status}` }, FORCE_STATUS[b.status]),
-        b.updated ? h('span', { class: 'small muted' }, `senast ändrad ${dateShort(b.updated)}`) : null),
+        h('span', { class: `fstatus ${b.status}`, style: age?.stale ? 'opacity:.55' : null }, FORCE_STATUS[b.status]),
+        age ? h('span', { class: 'small muted' }, age.text) : null),
       h('h2', { class: 'coa-title' }, b.name, b.name_ru ? h('span', { class: 'small muted' }, ` · ${b.name_ru}`) : null),
       h('p', { class: 'small muted' }, [FORCE_BRANCH[b.branch]?.[0], COUNTRY_FORCES[b.country] || countryName(b.country), b.military_district,
         `${b.lat.toFixed(2)}° N, ${b.lon.toFixed(2)}° E`].filter(Boolean).join(' · ')),
@@ -2338,11 +2369,13 @@ async function viewForces() {
       events.length ? h('div', null, h('h3', { class: 'fsub' }, 'Anfall och uppföljningar'),
         h('ul', { class: 'coa-signs' }, events.map((e) => h('li', { class: `coa-sign ${e.kind === 'anfallen' ? 'obs' : 'part'}` },
           h('i'), h('span', null, h('b', null, `${dateShort(e.date)} ${e.date.slice(0, 4)}${e.kind === 'uppföljning' ? ', uppföljning' : ''}: `), e.text_sv,
+            e.firms ? h('span', { class: 'small' }, h('br'), h('b', null, 'Brand sedd av satellit (NASA FIRMS)'),
+              `: ${plural(e.firms.count, 'brandpunkt', 'brandpunkter')} inom 3 km från ${dateShort(e.firms.date)}, konfidens ${e.firms.confidence}.`) : null,
             ' ', forceSources(e.sources)))))) : null,
       surveyBlock(b.survey),
       !b.curated && !b.units.length && !b.equipment.length && !(b.survey && b.survey.summary_sv)
         ? h('p', { class: 'small muted' }, b.survey ? 'Bara position och typ är kända: Wikipedia har ingen artikel om basen.' : 'Bara position och typ är kända än. Veckosökningen läser basens Wikipedia-artikel inom en vecka.') : null,
-      b.status_sv ? h('p', { class: 'small muted' }, `Grunddata: ${b.status_sv}${b.status_as_of ? ` (${b.status_as_of})` : ''}. Från öppna källor, inte verifierat.`) : null,
+      b.status_sv ? statusLine('Grunddata: ', `${b.status_sv}. Från öppna källor, inte verifierat.`, b.status_as_of) : null,
       (b.sources || []).length ? h('div', { class: 'chips' }, b.sources.map((s) => externalButton(s.url, { outlet: s.outlet, date: s.accessed }, s.outlet || 'Källa'))) : null,
       b.source ? externalButton(b.source, { outlet: 'Wikidata' }, 'Wikidata') : null));
     if (zoom) detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

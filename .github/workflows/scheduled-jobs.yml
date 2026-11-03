@@ -14,12 +14,13 @@ on:
   schedule:
     - cron: "0 2,3 * * *"        # daily report, 04:00 Stockholm
     - cron: "30 10,11,19,20 * * *"   # thread monitor, 12:00 and 21:00 Stockholm (at :30, so a queued one never cancels a pending daily)
+    - cron: "17 13 * * 3"        # forces_images: photos for the foundation database, Wednesdays
   workflow_dispatch:
     inputs:
       job:
         description: Job to run
         type: choice
-        options: [hourly, daily, forces, forces_survey, strikes]   # forces: the forces map alone (it also runs after daily)
+        options: [hourly, daily, forces, forces_survey, strikes, forces_images]   # forces: the forces map alone (it also runs after daily); forces_images: the weekly photo job
       test:
         description: "Test run: mail to the sender only, no app upload, nothing saved"
         type: boolean
@@ -30,6 +31,10 @@ on:
         default: ""
 
 # One run at a time, so two runs never push the state against each other.
+# forces_images commits photos to this repo with the workflow token.
+permissions:
+  contents: write
+
 concurrency:
   group: run-state
   cancel-in-progress: false
@@ -58,6 +63,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           FORCES_SURVEY_MODEL: ${{ vars.FORCES_SURVEY_MODEL }}
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}   # NASA FIRMS (src/forces_firms.py); unset: the check is skipped
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
           STRIKES_DEBUG: ${{ vars.STRIKES_DEBUG }}
@@ -78,6 +84,8 @@ jobs:
           set -o pipefail
           if [ "$SCHEDULE" = "0 2,3 * * *" ]; then
             ARGS="--at 4 daily"
+          elif [ "$SCHEDULE" = "17 13 * * 3" ]; then
+            ARGS="forces_images"
           elif [ -n "$SCHEDULE" ]; then
             ARGS="--at 12,21 hourly"
           elif [ "$DISPATCH_TEST" = "true" ]; then
