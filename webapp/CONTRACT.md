@@ -560,3 +560,12 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
 - App: in a base's detail units and equipment are tappable;
   `#/styrkor?sys=<id>` and `#/styrkor?unit=<id>` show a system's or a
   unit's card. Service worker hm-v3.25.
+
+# Version 3.15 (3 Nov 2026) - two thread checks a day
+
+- On 3 Nov the main model's 20 calls a day ran out twice: the 04:00
+  report failed and so did the 17:00 authorities' brief. The thread
+  monitor now runs at 12:00 and 21:00 Stockholm (`RUN_JOBS.hourly.hours`),
+  on the light model with the main one as fallback. Any call on the main
+  model that finds its quota spent, or the model still overloaded after
+  two retries, moves to the light model (src/common.py `ask_model`).

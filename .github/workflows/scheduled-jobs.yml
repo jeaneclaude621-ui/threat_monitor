@@ -13,7 +13,7 @@ name: Scheduled jobs
 on:
   schedule:
     - cron: "0 2,3 * * *"        # daily report, 04:00 Stockholm
-    - cron: "30 10,11,14,15,19,20 * * *"   # thread monitor, 12:00, 16:00 and 21:00 Stockholm (at :30, so a queued one never cancels a pending daily)
+    - cron: "30 10,11,19,20 * * *"   # thread monitor, 12:00 and 21:00 Stockholm (at :30, so a queued one never cancels a pending daily)
   workflow_dispatch:
     inputs:
       job:
@@ -79,7 +79,7 @@ jobs:
           if [ "$SCHEDULE" = "0 2,3 * * *" ]; then
             ARGS="--at 4 daily"
           elif [ -n "$SCHEDULE" ]; then
-            ARGS="--at 12,16,21 hourly"
+            ARGS="--at 12,21 hourly"
           elif [ "$DISPATCH_TEST" = "true" ]; then
             # Test: the report goes to the sending account only, nothing is
             # uploaded to the app, and replies are read but left unread.

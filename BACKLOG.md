@@ -174,6 +174,18 @@ Förutsättningar:
 
 ## Klart
 
+- 2026-11-03: Huvudkvoten tog slut två gånger den 3 nov: 04:00-rapporten
+  föll (mina manuella Styrkor-körningar kvällen före tog av samma
+  kvotdygn) och Nato-briefen 17:00. Åtgärder: trådbevakningen går bara
+  12:00 och 21:00 och på lite-modellen; ett anrop på huvudmodellen som
+  möter slut kvot, eller överbelastning efter 2 omförsök (förr 6), byter
+  till lite-modellen i stället för att falla. Narrativ och trådbevakningen
+  byter åt andra hållet. Kör inga manuella Gemini-jobb på kvällen före en
+  morgonrapport.
+- 2026-11-03: Narrativ översätter på lite-modellen, max 60 per anrop;
+  inlägg som modellen bedömer utanför ämnet tas bort ur appens databas.
+  0 oöversatta ryska inlägg efter ändringen.
+
 - 2026-11-02: Första dagliga bedömningen av handlingsalternativen
   granskad och rimlig. De markerade tecknen har källor: drönare över Rumänien
   är observerat, sabotage i Europa delvis. Sannolikheterna är stabila (hög,
