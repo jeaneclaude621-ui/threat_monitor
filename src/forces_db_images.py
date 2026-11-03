@@ -6,9 +6,14 @@ author and file page. Saved as webapp/public/forces/img/base-<id>.jpg,
 about 640 px wide and under 80 KB.
 
     python3 src/forces_db_images.py bases|systems [id,id,...] [--dry-run]
+    python3 src/forces_db_images.py job      # the weekly job (schedule/run_job.py forces_images)
 
-Every picked image must still be looked at by a person before it is
-committed: the script cannot tell a base from a town square or a badge.
+By hand, every picked image is looked at before it is committed: the
+script cannot tell a base from a town square or a badge. The weekly job
+cannot look, so it takes an image only when the file name or its Commons
+description speaks of an airfield, a base, a port, an aircraft or a ship
+(PLACE_OR_CRAFT), adds at most JOB_LIMIT a run, stops at the first 429 from
+Wikimedia, and lists what it added in its log for review afterwards.
 """
 import html
 import io
@@ -34,6 +39,15 @@ FREE = re.compile(r"^(CC0|CC BY(-SA)? \d|CC BY(-SA)?$|Public domain|PD)", re.I)
 # No logos, maps, flags, emblems or diagrams: a photograph of the place or thing.
 NOT_PHOTO = re.compile(r"(logo|emblem|insignia|flag|map|locator|coat.of.arms|герб|эмблема|знак|карта|схема|diagram|\.svg$|\.png$|icon|patch|нарукав)", re.I)
 MAX_BYTES = 80_000
+JOB_LIMIT = 15
+_stopped = []    # set when Wikimedia answered 429: the unattended job ends
+# What an image must show for the unattended job to take it.
+PLACE_OR_CRAFT = re.compile(
+    r"(air ?field|air ?base|airport|aerodrome|naval base|harbou?r|\bport\b|pier|aircraft|airplane|plane|jet|bomber|fighter|"
+    r"helicopter|ship|vessel|frigate|corvette|cruiser|destroyer|submarine|"
+    r"аэродром|аэропорт|авиабаз|военно-морск|гаван|порт|причал|самол[её]т|вертол[её]т|корабл|судно|фрегат|корвет|крейсер|эсминец|подводн|"
+    r"flygfält|flygplats|flygbas|hamn|flygplan|fartyg|ubåt|"
+    r"\b(Su|Tu|MiG|Il|An|Ka|Mi|Be|Yak)-\d)", re.I)
 
 
 def strip(text):
@@ -83,7 +97,8 @@ def file_info(names):
             # works on upload.wikimedia.org, which the network allows.
             thumb = re.sub(r"^https://thumb\.wikimedia\.org/", "https://upload.wikimedia.org/", (ii.get("thumburl") or ii["url"]).split("?")[0])
             out[name] = (thumb, author, lic, (md.get("LicenseUrl") or {}).get("value"),
-                         "https://commons.wikimedia.org/wiki/" + urllib.parse.quote("File:" + name.replace(" ", "_")))
+                         "https://commons.wikimedia.org/wiki/" + urllib.parse.quote("File:" + name.replace(" ", "_")),
+                         strip((md.get("ImageDescription") or {}).get("value"))[:500])
     return out
 
 
@@ -116,10 +131,11 @@ def wiki_titles(entry):
     return out
 
 
-def main(kind, dry):
+def main(kind, dry, only=None, limit=None, unattended=False):
+    """Adds images to bases or systems without one; returns [(id, file, licence, author)].
+    unattended: the weekly job's rules (PLACE_OR_CRAFT, stop at a 429)."""
     name = "bases" if kind == "bases" else "systems"
     data = json.load(open(DB / f"{name}.json", encoding="utf-8"))
-    only = set(sys.argv[2].split(",")) if len(sys.argv) > 2 and not sys.argv[2].startswith("--") else None
     # Ask the APIs about every entry without an image (the same questions as a
     # dry run, so a rerun reads them from the cache) and pick afterwards.
     rows = [r for r in data[name] if not r.get("image")]
@@ -136,14 +152,17 @@ def main(kind, dry):
                 cand.setdefault(r["id"], []).append(f)
     info = file_info([f for fs in cand.values() for f in fs])
     prefix = "base" if kind == "bases" else "sys"
-    added = 0
+    added = []
     for r in rows:
         if only is not None and r["id"] not in only:
             continue
-        f = next((f for f in cand.get(r["id"], []) if f in info), None)
+        if limit is not None and len(added) >= limit:
+            break
+        f = next((f for f in cand.get(r["id"], []) if f in info
+                  and (not unattended or PLACE_OR_CRAFT.search(f + " " + info[f][5]))), None)
         if not f:
             continue
-        thumb, author, lic, lic_url, page = info[f]
+        thumb, author, lic, lic_url, page, _desc = info[f]
         out = IMG / f"{prefix}-{r['id']}.jpg"
         print(r["id"], "<-", f, "|", lic, "|", author[:40])
         if dry:
@@ -151,20 +170,53 @@ def main(kind, dry):
         try:
             raw = get(thumb, binary=True)
         except Exception as e:
-            print("  ! download", type(e).__name__, e)
+            print("  ! download", type(e).__name__, str(e)[:120])
+            if unattended and "429" in str(e):
+                print("  ! Wikimedia answers 429: the job stops here and tries again next week")
+                _stopped.append(True)
+                break
             continue
         if not save_jpeg(raw, out):
             print("  ! too large")
             continue
         r["image"] = {"file": out.name, "commons_file": "File:" + f, "author": author, "license": lic,
                       "license_url": lic_url, "source_url": page}
-        added += 1
+        added.append((r["id"], f, lic, author))
         if not dry:  # save as we go: a slow download must not lose the rest
             (DB / f"{name}.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     if not dry:
         (DB / f"{name}.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"{added} images added of {len(rows)} {name} without one")
+    print(f"{len(added)} images added of {len(rows)} {name} without one")
+    return added
+
+
+def job():
+    """The weekly image job: bases first, then systems, JOB_LIMIT in all."""
+    import os
+    os.environ.setdefault("FORCES_TRIES", "3")      # a 429 ends the run quickly instead of waiting it out
+    added = []
+    for kind in ("bases", "systems"):
+        try:
+            added += main(kind, False, limit=JOB_LIMIT - len(added), unattended=True)
+        except Exception as e:
+            print(f"  ! Forces images ({kind}): {type(e).__name__}: {str(e)[:160]}")
+            break
+        if len(added) >= JOB_LIMIT or _stopped:
+            break
+    if added:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import forces
+        forces.export_db()
+        print("Added this run, to be looked at (webapp/public/forces/img):")
+        for rid, f, lic, author in added:
+            print(f"  {rid}: {f} | {lic} | {author[:60]}")
+    else:
+        print("Forces images: nothing new this week")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], "--dry-run" in sys.argv)
+    if sys.argv[1] == "job":
+        job()
+    else:
+        only = set(sys.argv[2].split(",")) if len(sys.argv) > 2 and not sys.argv[2].startswith("--") else None
+        main(sys.argv[1], "--dry-run" in sys.argv, only=only)

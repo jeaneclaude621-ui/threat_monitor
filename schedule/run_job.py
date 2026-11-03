@@ -67,9 +67,20 @@ JOBS = {
     "forces": ["src/forces.py"],
     "forces_survey": ["src/forces.py", "survey", "--batches", "18"],
     "strikes": ["src/strikes.py"],
+    "forces_images": ["src/forces_db_images.py", "job"],
 }
-QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes"}   # forces: a manual extra run; the nightly one runs inside daily
+QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images"}   # forces: a manual extra run; the nightly one runs inside daily
 HOST = "cloud"
+
+# Jobs whose output belongs in the code repo, not the state repo: the weekly
+# image job adds photos and their entries to the foundation database, which
+# the app serves as static files. They are committed to the checked-out code
+# repo and pushed with the workflow's own token (contents: write).
+CODE_JOBS = {
+    "forces_images": ["config/forces_db/bases.json", "config/forces_db/systems.json",
+                      "webapp/public/forces/systems.json", "webapp/public/forces/units.json",
+                      "webapp/public/forces/img"],
+}
 
 # What the state repo tracks, as git pathspecs. Named at every add rather
 # than kept in an exclude file: the code repo's .gitignore sits in the same
@@ -147,6 +158,23 @@ def commit_and_push(message: str):
         "and goes up with the next run")
 
 
+def commit_code(job: str, message: str):
+    """Commits a CODE_JOBS job's files to the code repo and pushes them."""
+    paths = CODE_JOBS[job]
+    code = lambda *a: subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True)  # noqa: E731
+    code("add", "--", *paths)
+    if code("diff", "--cached", "--quiet").returncode == 0:
+        log(f"{job}: nothing new for the code repo")
+        return
+    code("commit", "--quiet", "-m", message)
+    for _ in range(3):
+        if code("push", "--quiet", "origin", "HEAD").returncode == 0:
+            log(f"{job}: pushed to the code repo")
+            return
+        code("pull", "--quiet", "--rebase", "origin", BRANCH)
+    log(f"! {job}: could not push to the code repo")
+
+
 def load_last_run() -> dict:
     try:
         return json.loads(LAST_RUN_PATH.read_text())
@@ -217,6 +245,8 @@ def main() -> int:
         if not args.test:
             with state_lock():
                 commit_and_push(f"{args.job} {now:%Y-%m-%d %H:%M}")
+            if args.job in CODE_JOBS and code == 0:
+                commit_code(args.job, f"Forces database: weekly images {now:%Y-%m-%d} (to be looked at; see the job's log)")
         return code
     if not args.test:
         if args.at:
