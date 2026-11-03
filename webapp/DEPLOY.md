@@ -361,6 +361,17 @@ nothing beyond what guests see anyway.
 Do the steps in this order. The Mac's nightly upload keeps working
 throughout.
 
+**Or let a script do all of it** (it checks what is already there, fixes
+it, adds the AUD tag, deploys, and asks before removing the old
+protection). It needs an API token you make yourself and paste when asked;
+the permissions are listed at the top of the script.
+
+```sh
+git checkout main && git pull
+node webapp/scripts/open_app.mjs --check   # only report
+node webapp/scripts/open_app.mjs           # do it
+```
+
 1. **New Access application for the protected paths.** Zero Trust ->
    Access -> Applications -> Add an application -> Self-hosted.
    - Name: `Hotmonitor inloggning`.
