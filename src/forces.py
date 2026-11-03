@@ -7,6 +7,7 @@ after the 04:00 report, shown in the app's Styrkor tab.
     python3 src/forces.py --dry-run    # print the material, no call
     python3 src/forces.py catalogue OUT.json   # the base list only, no call
     python3 src/forces.py survey --batches 18  # a Wikipedia survey round (forces_survey.py)
+    python3 src/forces.py isw [--dry-run]      # the night's ISW reading alone (forces_isw.py)
     python3 src/forces.py export-db           # the app's static catalogues from config/forces_db
 
 The base list: every base Wikidata has in Russia and Belarus with a
@@ -487,7 +488,9 @@ def payload(state: dict) -> dict:
         bases.append(out)
     return {"date": state.get("date"), "generated_at": state.get("generated_at"),
             "note": "Baspositioner från Wikidata (CC0) och grunddatabasen. Förband, materiel och anfall från öppna källor, inte verifierat.",
-            "bases": bases, "nights": state.get("nights", [])[-30:]}
+            "bases": bases, "nights": state.get("nights", [])[-30:],
+            # Units' current status from ISW (forces_isw.py): {id: {status_sv, status_as_of, status_source}}
+            "units": state.get("units", {})}
 
 
 def run(report: dict = None, pool=None, dry_run: bool = False):
@@ -533,8 +536,22 @@ def run(report: dict = None, pool=None, dry_run: bool = False):
     print(f"  Forces: {len(night['attacks'])} attacks, {len(night['follow_ups'])} follow-ups, "
           f"{len(night['changes'])} changes, {len(night['other'])} elsewhere")
     survey(state)
+    isw(state)
     from app_sync import push_forces
     push_forces(payload(state))
+
+
+def isw(state: dict, dry_run: bool = False):
+    """The night's ISW reading (forces_isw.py): units' current status, one
+    call on the light model at most. A failure there costs only that."""
+    import forces_isw
+    try:
+        forces_isw.run(state, dry_run=dry_run)
+    except Exception as e:
+        print(f"  ! ISW reading failed ({type(e).__name__}: {e})")
+    if not dry_run:
+        with open(STATE_PATH, "w", encoding="utf-8") as f:
+            json.dump(state, f, ensure_ascii=False, indent=1)
 
 
 def survey(state: dict, batches: int = None):
@@ -586,6 +603,17 @@ if __name__ == "__main__":
         print(f"{len(data)} bases, {sum(1 for b in data if b.get('curated'))} with detail")
     elif len(sys.argv) == 2 and sys.argv[1] == "export-db":
         export_db()
+    elif len(sys.argv) >= 2 and sys.argv[1] == "isw":
+        ap = argparse.ArgumentParser()
+        ap.add_argument("cmd")
+        ap.add_argument("--dry-run", action="store_true")
+        dry = ap.parse_args().dry_run
+        st = load()
+        isw(st, dry_run=dry)
+        if not dry:
+            from app_sync import push_forces
+            merge(st, listed_bases(st))
+            push_forces(payload(st))
     elif len(sys.argv) >= 2 and sys.argv[1] == "survey":
         ap = argparse.ArgumentParser()
         ap.add_argument("cmd")
