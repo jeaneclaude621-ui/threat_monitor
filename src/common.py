@@ -161,6 +161,33 @@ def get_client():
                         http_options=types.HttpOptions(timeout=REQUEST_TIMEOUT_MS))
 
 
+_lite = []
+
+
+def lite_model() -> str:
+    """The light model for simple work (translation, extraction): LITE_MODEL
+    or FORCES_SURVEY_MODEL, else the newest flash-lite the key can use, else
+    None. On the free tier each model has its own daily quota, so work sent
+    here never takes calls from the reports."""
+    if _lite:
+        return _lite[0]
+    name = os.environ.get("LITE_MODEL") or os.environ.get("FORCES_SURVEY_MODEL")
+    if not name:
+        try:
+            client = get_client()   # kept: the list pages lazily, and a dropped client is closed
+            names = [m.name.removeprefix("models/") for m in client.models.list()]
+        except Exception:
+            names = []
+        lite = [n for n in names if "flash-lite" in n and not re.search(r"preview|exp|tts|image|audio|live", n)]
+
+        def version(n):
+            m = re.search(r"gemini-(\d+)(?:\.(\d+))?", n)
+            return (int(m[1]), int(m[2] or 0), -len(n)) if m else (0, 0, 0)
+        name = max(lite, key=version) if lite else None
+    _lite.append(name)
+    return name
+
+
 def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, model: str = None) -> str:
     """Send a prompt to Gemini and return the text of the response. The
     model does not search (the free tier has no search grounding): the

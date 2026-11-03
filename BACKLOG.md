@@ -5,157 +5,122 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 
 ## Att följa upp
 
-### Styrkor: status 1 nov kväll (läs först)
-*Lagt till 2026-11-01.* Allt om fliken Styrkor och dess grunddata.
+### Styrkor: läget 2 nov (läs först)
+*Uppdaterat 2026-11-02.*
 
-**I produktion:**
-- Nattlig lägesbild (`src/forces.py`, ett Gemini-anrop efter 04:00-rapporten):
-  anfall, uppföljningar och truppändringar mot ursprungligt underlag.
-  API v3.12, D1 `force_maps`, fliken `#/styrkor`.
-- Handskrivet underlag: 83 baser med förband och materiel
-  (`config/forces_curated.json`), totalt 265 baser med Wikidata.
+**I produktion (hm-v3.26):**
+- Fliken Styrkor har två delar.
+  - **Ryska baser:** 379 baser, varav 255 ur grunddatabasen
+    (`config/forces_db/`). Vapen- och förbandskort finns på `#/styrkor?sys=`
+    och `?unit=`.
+  - **Anfall mot Ukraina:** Kaggle-data. Spåren kopplas ihop mellan
+    rapportens rader, och vapenkorten visar bild och prestanda.
+- **Nattjobb efter 04:00-rapporten:**
+  - `src/forces.py`: anfall, uppföljningar och truppändringar. Faller
+    tillbaka på flash-lite när huvudkvoten är slut.
+  - Veckosökningen (`src/forces_survey.py`): 3 anrop flash-lite per natt.
+  - `src/strikes.py`: hämtar Kaggle-datan, utan modellanrop.
+- **Kartorna (2 nov):**
+  - Djup zoom. Grupper efter skärmavstånd som löses upp när man zoomar.
+  - Basnamn under punkterna och bara där de får plats; de skymmer aldrig en
+    bas och tar inga tryck.
+  - Land- och stadsnamn, gradnät, mjuk zoom med hjulet och dubbeltryck
+    för att zooma in. Ett drag väljer ingen bas av misstag.
+  - Anfallskartan går också att panorera och zooma.
+  - Gemensamma hjälpfunktioner i `app.js`: `attachPanZoom`, `mapLand`
+    och `mapPlaces`.
+- **Kartan, version 2 (hm-v3.27):**
+  - Fina kustlinjer och gränser (Natural Earth 1:10m) laddas när man
+    zoomar in; bara länder i bild ritas.
+  - Sjöar, de stora floderna och regiongränserna i Ryssland, Belarus och
+    Ukraina.
+  - Minikarta nere till vänster när man har zoomat in. Den visar var man
+    är, och ett tryck flyttar dit.
+  - Underlag och skript finns i `webapp/scripts/map_data/`.
+- **Bilder** förstoras när man håller nere eller trycker på dem
+  (`zoomableImg`), med upphovsperson och licens.
+- Nattjobbet ser nu tidigare nätters "Övrigt", så att samma händelse inte
+  tas upp igen (Rostov kom tillbaka 2 nov).
+- **Driftsättning:** behörighetsregler finns (`/permissions`). Kör
+  `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy` som ett eget
+  kommando med arbetsmappen `webapp/`.
 
-**Driftsatt 1 nov 23:21 (v3.13, migration 0013):**
-- Veckosökningen (`src/forces_survey.py`): Wikipedia-artikeln för varje
-  bas, läst av `gemini-3.5-flash-lite` med egen kvot, 3 anrop per natt
-  (15 baser per anrop). Visas som rutan "Om basen".
-- Anfallskartan över Ukraina (`src/strikes.py`, fliken "Anfall mot
-  Ukraina", `#/styrkor?s=anfall`) från Kaggle-datasetet. Ingen modell.
-  Första uppladdningen gick bra. Körs dagligen efter 04:00-rapporten.
-- Behörighetsspärren stoppar `wrangler deploy` om inte användaren har sagt
-  till uttryckligen i samma meddelande.
+**Viktigt om "molnjobb":** subagenter som startas med molnisolering härifrån
+kördes lokalt i `.claude/worktrees/` på användarens vanliga användningsgräns,
+inte i molnet. Den andra omgången stoppades av femtimmarsgränsen 2 nov kl. 06.
+Användaren vill använda molnkrediterna. Starta därför långa jobb som en egen
+session på claude.ai/code, och skriv instruktionen till en fil i grenen.
 
-**Anfallskartan v2 (driftsatt 1 nov):** målen tas
-ur `target_main` (72 av 112 rader har målregioner, nu spritt över hela
-Ukraina). Rader utan mål ritas som korta, blekande spår. Vapenkort med bild
-och prestanda läses från `webapp/public/forces/systems.json`, som
-molnjobbet tar fram med id:n enligt `SYSTEM_IDS` i `src/strikes.py`. Tills
-den filen finns visar korten bara text.
+**Pågår: andra omgången av grunddatabasen (molnjobb, gren `grunddata-styrkor-2`).**
+**Status 2 nov kl. 09:** steg 1 (garnisoner, 158 förband och 49 baser) och steg 5
+(72 anfall) är klara och pushade, och steg 6 är påbörjat (bilder för tio vapen).
+Användaren startar själv en molnsession på claude.ai/code som fortsätter enligt
+`config/forces_db/ANDRA_OMGANGEN.md` på grenen.
+Startad 2 nov förmiddag och får köra över dagen. Den ska inte fråga
+något, och den pushar efter varje steg. Steg:
+1. garnisoner för alla förband (212 av 383 saknade);
+2. Militaryland.net;
+3. OpenStreetMap (Overpass);
+4. fler baser, med nedlagda kvar och markerade "nedlagd", och riktiga
+   beskrivningar och basbilder;
+5. anfall mot baser sedan 2022 med skador;
+6. vapensystem och de 12 bilder som saknas;
+7. förbandstexter och fartyg;
+8. genomsläpp i `forces.py`;
+9. storleksgränser;
+10. kontroller.
+Molnjobbet får inte röra `app.js`, `app.css`, `sw.js`, `index.html`,
+`worker.js` eller `strikes.py`. Appen visar redan `b.image` och
+`description_sv` för baser.
 
-**Anfallskartan v3 (driftsatt 1 nov, hm-v3.24):** spåren kopplas ihop per natt
-och vapentyp när rapporten delar upp ett anfall på flera rader: en rad med
-avfyrningsplatser och målet "Ukraine", och regionala rader med mål men utan
-avfyrningsplats. De härledda spåren är streckade. Nätter där ingen rad har
-mål (t.ex. 31 okt) får fortfarande korta spår. Testat bara på 31 okt; kontrollera
-en natt med mål (t.ex. 30 okt) i appen.
+**När molnjobbet är klart (planerat 2 nov eftermiddag):**
+1. Hämta grenen. Kör `python3 -I src/forces_db_check.py`.
+2. Leta efter e-postadresser, rysk statsmedia, Telegram och bilder utan licens.
+3. Slå ihop med nattens riktiga data och kontrollera:
+   - att inga gamla id:n med data försvinner;
+   - att datamängden är under 1,5 MB;
+   - att `base_lines` är under 60 000 tecken.
+4. Testa lokalt med mock-servern: baskort, förbandskort (garnison) och vapenkort.
+5. Slå ihop till main, driftsätt och kör jobbet `forces_survey` så att
+   allt laddas upp.
+6. Uppdatera det här avsnittet.
 
-**Tillfällig vapenkatalog** `webapp/public/forces/systems.json` (33 vapen,
-beskrivning och nyckeltal, 22 Commons-bilder i `webapp/public/forces/img/`).
-Byggd med ett engångsskript från Wikipedias huvudbild, bara fritt
-licensierade Commons-filer. Saknar bild: geran-3/4/5, gerbera, kn-23, kh-22,
-banderol, supercam, zala, merlin-vr, forpost. Molnjobbets katalog ska ersätta
-den vid sammanslagningen; behåll de här posterna för id som molnjobbet saknar.
-Id:na följer `SYSTEM_IDS` i `src/strikes.py`.
-
-**Driftsättning:** användaren har lagt in behörighetsregler (via
-`/permissions`) för `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy` och
-`... d1 migrations apply hotmonitor --remote`. Kör dem som egna kommandon
-med arbetsmappen `webapp/`, inte ihopkedjade med `cd`.
-
-**Kaggle: klart 1 nov.** Hemligheterna är satta, och jobbet `strikes` hämtade
-4306 rader och 30 nätter (senast 31 okt, 134 Shahed varav 105 nedskjutna).
-Saknade
-platsnamn läggs till i `LAUNCH` och `TARGET` i `src/strikes.py` (loggraden
-"places not on the map").
-
-**Pågår:**
-- Veckosökningen: första fullständiga körningen klar 1 nov 23:16
-  (`gemini-3.5-flash-lite`, valdes automatiskt). 228 baser lästa, 113 med
-  förband, 34 utan Wikipedia-artikel. Stickprov bra (Engels-2,
-  Gadzjijevo, Migalovo). Nedlagda baser (t.ex. Orlovka, stängd 2001)
-  syns som "status okänd"; överväg en egen status "nedlagd" från
-  veckosökningen.
-**Grunddatabasen: sammanslagen och driftsatt 2 nov (hm-v3.25).**
-Molnjobbet byggde `config/forces_db/` (255 baser, 383 förband, 132
-vapensystem, 120 Commons-bilder, 5,3 MB). Granskat:
-- `src/forces_db_check.py` OK;
-- inga e-postadresser, ingen rysk statsmedia eller Telegram;
-- alla poster har källor och alla bilder har licens;
-- nattens historik och veckosökningen finns kvar för alla 265 gamla baser;
-- 379 baser totalt och datamängden är 520 KB.
-Testat lokalt: vapenkort (`#/styrkor?sys=`), förbandskort (`?unit=`), inga
-konsolfel. Uppladdat med jobbet `forces_survey`. Kataloger byggs om med
-`python3 src/forces.py export-db`.
-
-Att följa upp i grunddatabasen:
-- Förbandskortet för 14:e armékåren säger Petjenga i texten men "Ingen bas
-  i underlaget" som garnison. Kontrollera att garnisonerna i `units.json`
-  pekar på bas-id som finns.
-- Materiel kopplas till förband när artikeln nämner den i nutid (2010 eller
-  senare). Äldre materiel kan ha slunkit med.
-- Texterna är byggda ur mallar. Status är mest "aktiv enligt källan".
-- Militärdistrikten bygger på molnjobbets tolkning av 2024 års reform
-  (Engels räknas till Centrala).
+**Kvar att följa upp i grunddatabasen** (bör täckas av andra omgången):
+- Texterna är byggda ur mallar, och status är mest "aktiv enligt källan".
+- Materiel kopplas till förband när artikeln nämner den i nutid; äldre
+  materiel kan ha slunkit med.
+- Militärdistrikten bygger på molnjobbets tolkning av reformen 2024.
 - Fem baser har bara OpenStreetMap som källa: asipovitjy-belarus,
-  bolsjoje-savino-perm, donskoje-kaliningrad, kamenka-viborg och kapustin-jar-2.
-- Fyra anfallsdatum i det handskrivna underlaget rättades (Lipetsk,
-  Marinovka, Kursk-Chalino, Sjajkovka). Primorsko-Achtarsk fick ett annat
-  anfall, 2 aug 2024.
-- Saknar bild: geran-4, geran-5, gerbera, banderol, supercam, zala,
-  merlin-vr, kn-23, oresjnik, leer-3, tu-214, tornado-g.
-- Inte använt: Overpass (502) och Militaryland.net (robots.txt tillåter
-  automatisk läsning). Kan bli nästa påfyllning.
-- 86 av de nya baserna saknar Wikipedia-artikel för veckosökningen;
-  grunddatabasens text täcker dem.
+  bolsjoje-savino-perm, donskoje-kaliningrad, kamenka-viborg och
+  kapustin-jar-2.
+- 86 baser saknar Wikipedia-artikel för veckosökningen.
 
-**Nattens körning 2 nov:** lägesbilden föll på Gemini-kvoten (20 per dygn
-på huvudmodellen, nollställs kl. 09 svensk tid), efter manuella körningar
-kvällen innan. Nu faller den tillbaka på flash-lite-modellen. Undvik
-manuella körningar av `forces` efter kl. 09 dagen före.
+**Kvota:** huvudmodellen gemini-3.8-flash har 20 anrop per dygn, och dygnet
+nollställs kl. 09 svensk tid. Rapporterna tar ungefär 16. Kör inte `forces`
+manuellt efter kl. 09 dagen före en natt, för då kan 04-körningen få slut
+på kvoten (det hände 2 nov). Flash-lite har en egen kvot och används av
+veckosökningen och som reserv.
 
-Kvoten efter allt: ungefär 16 av 20 anrop per dygn på huvudmodellen, plus 3
-per natt på flash-lite.
+### Telegram-filtret: kontrollera effekten
+*Lagt till 2026-11-02.* Den 2 nov rörde ungefär 11–15 av de 40 senaste
+ryska posterna inte Nato, Europa eller grannländerna. Exempel: fältpräster i
+Luhansk, Vernadskij, Kozlov, bäverbygge i Novosibirsk, hockey-VM och Hegseth.
+Det översättningsanrop som redan körs varje dag markerar nu ryska inlägg med
+`on_topic` (`src/trends.py`). Inlägg utanför ämnet sparas med
+`off_topic`, men skickas inte till appen och räknas inte in i
+dagssammanfattningen. Redan inlagda poster i D1 försvinner när de blir för
+gamla.
 
-### Kolla den första dagliga bedömningen av Rysslands handlingsalternativ
-*Lagt till 2026-11-01.* Den första körs efter morgonrapporten 2 nov kl. 04.
-
-Kontrollera:
-- att tecknen markeras rimligt, att observerat betyder att något faktiskt
-  har hänt och inte bara att det skulle kunna hända;
-- att sannolikheterna inte står still eller flyter iväg;
-- att kartan stämmer med texten.
-
-Kvoten: ungefär 15 av 20 anrop per dygn.
-
-
-### Kolla den första nattliga lägesbilden för styrkekartan
-*Lagt till 2026-11-01.* Körs efter morgonrapporten, efter handlingsalternativen.
-
-Kontrollera i fliken Styrkor:
-- att anfallen hamnar på rätt bas och inte är gamla händelser som tas upp igen;
-- att flyttade eller tillförda förband har stöd i källan;
-- att "Övrigt" fångar anfall på platser som inte finns i baslistan (raffinaderier, fabriker).
-
-Kvoten: ungefär 16 av 20 anrop per dygn.
-
-### Skärp filtret för ryska Telegram-inlägg om för mycket kommer igenom
-*Lagt till 2026-11-01. Kolla vid nästa session.*
-
-Narrativ-flikens ryska sida släpper ibland igenom inlägg som inte handlar om
-Nato, Europa eller grannländerna. Ett exempel 1 nov är Rybars minnestext om
-vetenskapsmannen Vladimir Vernadskij. Filtret är regexen `RU_TOPIC` i
-`src/trends.py`. Ett inlägg tas med om det någonstans nämner till exempel
-Europa, Polen, Baltikum, sanktioner eller sabotage.
-
-Så kollar du:
-1. Läs de senaste dygnens ryska poster: `data/trends.json` i datarepot
-   (`threat_monitor-data`), eller tabellen `trends` med `side = 'ru'` i D1:
-   `npx wrangler d1 execute hotmonitor --remote --command "SELECT place, title_sv FROM trends WHERE side='ru' ORDER BY last_seen DESC LIMIT 40"`
-2. Räkna hur många som inte rör Nato, EU eller grannländerna.
-
-Om fler än ungefär en av fem är irrelevanta, välj en av lösningarna:
-- Kräv att ämnesordet finns i inläggets första stycke i stället för var som
-  helst i texten.
-- Kräv två träffar i stället för en.
-- Låt det dagliga Gemini-anropet som ändå översätter inläggen markera de som
-  är utanför ämnet, och dölj dem. Det kostar inga extra anrop.
+Kolla om ett par dagar:
+`npx wrangler d1 execute hotmonitor --remote --command "SELECT place, title_sv FROM trends WHERE side='ru' ORDER BY last_seen DESC LIMIT 40"`
+Om mer än en av fem fortfarande är utanför ämnet: kräv också två träffar
+på `RU_TOPIC`.
 
 ### Håll koll på trådbevakningens klassning
-*Lagt till 2026-10-31.*
-
-Efter omläggningen till ett anrop per körning klassades 5–6 av 6 trådar som
-"ny utveckling". Den 1 nov var det 1–4 av 6. Om det går tillbaka till nästan
-alla trådar varje gång, skärp instruktionen i `src/hourly_monitor.py`.
+*Lagt till 2026-10-31. Kontrollerat 2026-11-02.* De senaste körningarna gav
+2, 5 respektive 2 av 6 trådar som "ny utveckling". Ingen ändring behövs än.
+Om det går tillbaka till nästan alla trådar varje gång, skärp instruktionen i
+`src/hourly_monitor.py`.
 
 ### Förnya GitHub-token för Workern innan den går ut
 *Lagt till 2026-10-31.*
@@ -208,6 +173,17 @@ Förutsättningar:
 Öppen fråga: ska Narrativ vara publikt eller bara för inloggade?
 
 ## Klart
+
+- 2026-11-02: Första dagliga bedömningen av handlingsalternativen
+  granskad och rimlig. De markerade tecknen har källor: drönare över Rumänien
+  är observerat, sabotage i Europa delvis. Sannolikheterna är stabila (hög,
+  måttlig, låg), och kartan stämmer med texten.
+- 2026-11-02: Första nattliga lägesbilden för Styrkor. Den föll på
+  huvudkvoten och kördes om på flash-lite. Nu finns en reservmodell.
+- 2026-11-02: Grunddatabasen, första omgången, sammanslagen och
+  driftsatt (hm-v3.25): 255 baser, 383 förband, 132 vapensystem och 120
+  bilder.
+- 2026-11-02: Kartorna och bildförstoringen (hm-v3.26).
 
 - 2026-11-01: Rysslands handlingsalternativ. Uppdateras varje dag efter
   morgonrapporten, 1 anrop. Den ryska sidan i Narrativ hålls utanför.

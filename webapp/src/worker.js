@@ -1098,6 +1098,9 @@ async function ingestTrends(request, env) {
       'INSERT INTO trend_summaries (date, open_sv, ru_sv) VALUES (?, ?, ?) ON CONFLICT(date) DO UPDATE SET open_sv = excluded.open_sv, ru_sv = excluded.ru_sv'
     ).bind(s.date, open, ru));
   }
+  // Posts the run judged off the subject (2 Nov): taken out, not just left to age.
+  const remove = Array.isArray(body.remove) ? body.remove.filter((id) => typeof id === 'string' && ITEM_ID_RE.test(id)).slice(0, 500) : [];
+  for (const id of remove) stmts.push(env.DB.prepare('DELETE FROM trends WHERE id = ?').bind(id));
   const cutoff = new Date(Date.now() - TREND_KEEP_DAYS * 86400000).toISOString();
   stmts.push(env.DB.prepare('DELETE FROM trends WHERE last_seen < ?').bind(cutoff));
   stmts.push(env.DB.prepare('DELETE FROM trend_summaries WHERE date < ?').bind(cutoff.slice(0, 10)));
