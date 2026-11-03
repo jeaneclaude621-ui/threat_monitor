@@ -9,7 +9,7 @@ kommer från öppna källor och är **inte verifierat**. Hämtat 1–3 november 
 | Fil | Innehåll | Antal |
 |---|---|---|
 | `bases.json` | baser: flygbaser, marinbaser, garnisoner för armé, robot, luftvärn och luftlandsättning, samt ryska baser utomlands | 325 (15 nedlagda, 98 anfall) |
-| `units.json` | förband: arméer, kårer, divisioner, brigader, regementen, flottor, och marinens fartyg (`fartyg`) | 487 (varav 104 fartyg) |
+| `units.json` | förband: arméer, kårer, divisioner, brigader, regementen, flottor, och marinens fartyg (`fartyg`) | 487 (varav 104 fartyg; alla med egen text) |
 | `systems.json` | vapensystem och materiel: flyg, helikoptrar, drönare, robotar, luftvärn, fordon, artilleri, telekrig, ubåtar, fartyg | 132 (alla 33 vapen på anfallskartan ingår) |
 
 Bilder: 139 bilder i `webapp/public/forces/img/` – 130 system (`sys-<id>.jpg`)
@@ -113,6 +113,17 @@ domän eftersom sidans Content-Security-Policy bara tillåter bilder därifrån.
   den nattliga baslistan (under 60 000 tecken) håller sig inom gränserna.
 - Basens `image` följer nu med till appens payload, precis som
   `description_sv`, `status_sv` och `status_as_of`.
+- **ISW varje natt** (`src/forces_isw.py`, efter enkäten i `forces.run()`):
+  förbandens aktuella status hamnar i tillståndet som
+  `units[<id>] = {status_sv, status_as_of, status_source}` och i payloadens
+  `units`. Förbandskortet visar den före grunddatabasens status.
+  `python3 src/forces.py isw --dry-run` visar styckena och prompten.
+- **NASA FIRMS** (`src/forces_firms.py`): anfall de senaste tre dygnen får
+  `firms` när satelliten såg brand inom 3 km inom 48 timmar. Kräver
+  hemligheten `FIRMS_MAP_KEY`.
+- **Bildjobbet** (`forces_images`, onsdagar): `src/forces_db_images.py job`
+  lägger till högst 15 fria Commons-bilder och committar dem till kodrepot;
+  loggen listar vad som lagts till, för granskning i efterhand.
 
 Att rätta: ändra i JSON-filerna för hand (med källa), kör `export-db` och
 kontrollen. Nästa natt når ändringen appen.
@@ -256,3 +267,37 @@ till låg kostnad.
   källa med öppen licens dyker upp) kan ett jobb och ett lager byggas:
   förenkla ytan en gång per dygn till `webapp/public/forces/front.json`
   och rita den halvgenomskinlig under baserna med källan på kartan.
+- **Steg 6, grunddata.** De 207 förband som hade kvar malltexten har nu egna
+  beskrivningar, skrivna från Wikipedia-ingresserna och ISW; alla 487
+  förband och alla 325 baser har egna texter, och kontrollen avvisar
+  malltexterna. Några felaktiga högre förband och garnisoner rättades
+  (bland annat 103:e regementet under 150:e divisionen, 218:e
+  stridsvagnsregementet i Sergejevka, 74:e robotregementet under 28:e
+  robotdivisionen). Overpass (alla tre speglarna) svarade fortfarande inte
+  från miljön (återställd anslutning eller timeout); OpenStreetMap
+  användes därför inte heller i denna omgång.
+
+### Gemini-budget (gratisnivån, 20 anrop per dygn och modell)
+
+Dygnet slår om kl. 09 svensk tid. Tredje omgången lägger till högst ett
+anrop per dygn, på lite-modellen.
+
+| Jobb | Modell | Anrop per dygn |
+|---|---|---|
+| Rapporter och nattens styrkeuppdatering (`common.ask_model`) | huvudmodellen | cirka 16 (oförändrat) |
+| Narrativ (`src/trends.py`, 8 körningar) | lite | 8 |
+| Nattens Wikipedia-enkät (`forces_survey.NIGHTLY_BATCHES`) | lite | 3 |
+| **ISW-läsningen (`src/forces_isw.py`), ny** | lite | **högst 1** (0 när inget stycke nämner ett förband) |
+| Reserv när huvudmodellen ger 429 | lite | varierar, i praktiken 0–2 |
+| NASA FIRMS (`src/forces_firms.py`), ny | inga | 0 |
+| Bildjobbet (`forces_images`), nytt, en gång i veckan | inga | 0 |
+| Lite-modellen totalt | | cirka 12–14 av 20 |
+
+### Siffror efter tredje omgången (3 nov 2026)
+
+325 baser (alla med egen text, 15 nedlagda, 98 anfall, 9 med bild),
+487 förband (alla med egen text; 104 fartyg; 63 med daterad status ur ISW
+från andra omgången, och från och med nu uppdateras statusen varje natt),
+132 system (130 med bild). Payload 457 kB, nattens baslista 38 705 tecken,
+bildmappen 6,0 MB. Tester: `python3 -m unittest discover -s tests`
+(18 tester, utan nät).

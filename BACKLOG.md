@@ -6,7 +6,7 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 ## Att följa upp
 
 ### Styrkor: läget 2 nov (läs först)
-*Uppdaterat 2026-11-02.*
+*Uppdaterat 2026-11-03.*
 
 **I produktion (hm-v3.26):**
 - Fliken Styrkor har två delar.
@@ -51,52 +51,58 @@ inte i molnet. Den andra omgången stoppades av femtimmarsgränsen 2 nov kl. 06.
 Användaren vill använda molnkrediterna. Starta därför långa jobb som en egen
 session på claude.ai/code, och skriv instruktionen till en fil i grenen.
 
-**Pågår: andra omgången av grunddatabasen (molnjobb, gren `grunddata-styrkor-2`).**
-**Status 2 nov kl. 09:** steg 1 (garnisoner, 158 förband och 49 baser) och steg 5
-(72 anfall) är klara och pushade, och steg 6 är påbörjat (bilder för tio vapen).
-Användaren startar själv en molnsession på claude.ai/code som fortsätter enligt
-`config/forces_db/ANDRA_OMGANGEN.md` på grenen.
-Startad 2 nov förmiddag och får köra över dagen. Den ska inte fråga
-något, och den pushar efter varje steg. Steg:
-1. garnisoner för alla förband (212 av 383 saknade);
-2. Militaryland.net;
-3. OpenStreetMap (Overpass);
-4. fler baser, med nedlagda kvar och markerade "nedlagd", och riktiga
-   beskrivningar och basbilder;
-5. anfall mot baser sedan 2022 med skador;
-6. vapensystem och de 12 bilder som saknas;
-7. förbandstexter och fartyg;
-8. genomsläpp i `forces.py`;
-9. storleksgränser;
-10. kontroller.
-Molnjobbet får inte röra `app.js`, `app.css`, `sw.js`, `index.html`,
-`worker.js` eller `strikes.py`. Appen visar redan `b.image` och
-`description_sv` för baser.
+**Grunddatabasen och löpande uppdatering: klart på grenar, väntar på granskning.**
+*Uppdaterat 2026-11-03.*
 
-**När molnjobbet är klart (planerat 2 nov eftermiddag):**
-1. Hämta grenen. Kör `python3 -I src/forces_db_check.py`.
-2. Leta efter e-postadresser, rysk statsmedia, Telegram och bilder utan licens.
-3. Slå ihop med nattens riktiga data och kontrollera:
-   - att inga gamla id:n med data försvinner;
-   - att datamängden är under 1,5 MB;
-   - att `base_lines` är under 60 000 tecken.
-4. Testa lokalt med mock-servern: baskort, förbandskort (garnison) och vapenkort.
-5. Slå ihop till main, driftsätt och kör jobbet `forces_survey` så att
-   allt laddas upp.
-6. Uppdatera det här avsnittet.
+- **Andra omgången** (gren `grunddata-styrkor-2`, PR
+  jeaneclaude621-ui/threat_monitor#1 mot main): 325 baser och 487 förband
+  (104 marinfartyg) med egna texter, 13 nya baser, status ur ISW för 63
+  förband, 9 basbilder, rättade garnisoner. Se `config/forces_db/README.md`.
+- **Tredje omgången** (gren `styrkor-lopande`, bygger på andra omgången och
+  main 3 nov): klar enligt `config/forces_db/TREDJE_OMGANGEN.md`.
+  - ISW varje natt (`src/forces_isw.py`): högst ett lite-anrop per dygn;
+    förbandskorten visar aktuell status med datum och länk.
+  - Statusens ålder syns på förbands- och baskort; äldre än 60 dagar tonas
+    ner, "ej bekräftad sedan" (Version 3.29, `sw.js` hm-v3.29).
+  - NASA FIRMS (`src/forces_firms.py`): brand sedd av satellit vid anfall.
+  - Bildjobbet `forces_images` på onsdagar, som committar bilder till
+    kodrepot (`permissions: contents: write` i `scheduled-jobs.yml`).
+  - Alla förband har egna texter. Tester i `tests/`.
+  - Frontlinjen som kartlager gick inte: ingen källa med villkor som
+    tillåter återpublicering (ISW, DeepStateMap). Se README.
+  - Ej nått från molnmiljön: Overpass, deepstatemap.live och nya
+    miniatyrer på Wikimedia (429).
 
-**Kvar att följa upp i grunddatabasen** (bör täckas av andra omgången):
-- Texterna är byggda ur mallar, och status är mest "aktiv enligt källan".
+**Kvar för användaren (lokalt):**
+1. Granska PR #1 och grenen `styrkor-lopande` (den innehåller PR #1).
+   Kör `python3 -I src/forces_db_check.py` och
+   `python3 -m unittest discover -s tests`.
+2. Testa i mockservern: förbandskort med ISW-status, gammal status
+   tonad ("ej bekräftad sedan"), baskort, FIRMS-raden vid ett anfall.
+3. Merga till main och driftsätt Workern och appen (hm-v3.29).
+4. **Skaffa en gratis `FIRMS_MAP_KEY`** hos NASA FIRMS och lägg den som
+   repo-hemlighet med det namnet. Utan den gör FIRMS-kontrollen ingenting.
+5. Kör `python3 src/forces.py isw --dry-run` en gång efter merge och se att
+   förfiltret hittar förband i nattens ISW-bedömning.
+6. Bildjobbet: titta i loggen efter första onsdagen och ta bort bilder som
+   inte visar en bas, ett flygplan eller ett fartyg.
+7. Om DeepStateMap ger skriftligt tillstånd att återpublicera
+   frontlinjens geometri: bygg lagret enligt steg 5 i TREDJE_OMGANGEN.md.
+
+**Kvar att följa upp i grunddatabasen:**
 - Materiel kopplas till förband när artikeln nämner den i nutid; äldre
   materiel kan ha slunkit med.
-- Militärdistrikten bygger på molnjobbets tolkning av reformen 2024.
+- Militärdistrikten bygger på tolkningen av reformen 2024.
 - Fem baser har bara OpenStreetMap som källa: asipovitjy-belarus,
   bolsjoje-savino-perm, donskoje-kaliningrad, kamenka-viborg och
   kapustin-jar-2.
-- 86 baser saknar Wikipedia-artikel för veckosökningen.
+- Fartygens hemmabas är flottans huvudbas när Wikipedias lista bara anger
+  flotta.
 
 **Kvota:** huvudmodellen gemini-3.8-flash har 20 anrop per dygn, och dygnet
-nollställs kl. 09 svensk tid. Rapporterna tar ungefär 16. Kör inte `forces`
+nollställs kl. 09 svensk tid. Rapporterna tar ungefär 16. Lite-modellen:
+Narrativ 8, enkäten 3, ISW högst 1, plus reserv (budgettabell i
+`config/forces_db/README.md`). Kör inte `forces`
 manuellt efter kl. 09 dagen före en natt, för då kan 04-körningen få slut
 på kvoten (det hände 2 nov). Flash-lite har en egen kvot och används av
 veckosökningen och som reserv.
