@@ -284,14 +284,15 @@ anrop per dygn, på lite-modellen.
 
 | Jobb | Modell | Anrop per dygn |
 |---|---|---|
-| Rapporter och nattens styrkeuppdatering (`common.ask_model`) | huvudmodellen | cirka 16 (oförändrat) |
+| Rapporter, Nato-briefen och nattens styrkeuppdatering (`common.ask_model`) | huvudmodellen | under 20 (byter till lite-modellen när kvoten är slut, sedan 3 nov) |
+| Trådbevakningen (`src/hourly_monitor.py`, 12:00 och 21:00, sedan 3 nov) | lite | 2 |
 | Narrativ (`src/trends.py`, 8 körningar) | lite | 8 |
 | Nattens Wikipedia-enkät (`forces_survey.NIGHTLY_BATCHES`) | lite | 3 |
-| **ISW-läsningen (`src/forces_isw.py`), ny** | lite | **högst 1** (0 när inget stycke nämner ett förband) |
-| Reserv när huvudmodellen ger 429 | lite | varierar, i praktiken 0–2 |
+| **ISW-läsningen (`src/forces_isw.py`), ny** | lite | **högst 1** (0 när inget stycke nämner ett förband; byter aldrig till huvudmodellen) |
+| Reserv när huvudmodellen ger 429 eller är överbelastad | lite | varierar, i praktiken 0–2 |
 | NASA FIRMS (`src/forces_firms.py`), ny | inga | 0 |
 | Bildjobbet (`forces_images`), nytt, en gång i veckan | inga | 0 |
-| Lite-modellen totalt | | cirka 12–14 av 20 |
+| Lite-modellen totalt | | cirka 14–16 av 20 |
 
 ### Siffror efter tredje omgången (3 nov 2026)
 

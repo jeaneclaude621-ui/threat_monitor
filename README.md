@@ -253,7 +253,7 @@ midnight Pacific time (08:00-09:00 Stockholm).
 threat_monitor/
   config/methodology.json      starting source-tier & watchlist config
   src/common.py                state persistence, logging, API wrapper
-  src/hourly_monitor.py        thread check, 12/16/21
+  src/hourly_monitor.py        thread check, 12/21
   src/daily_report.py          04:00 consolidation, self-check, proposal, deck build
   src/recalibrate.py           rescores the threat-index history against current rules
   src/pptx_builder.py          PowerPoint generation (python-pptx)

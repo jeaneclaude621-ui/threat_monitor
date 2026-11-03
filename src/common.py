@@ -26,9 +26,13 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 MODEL = os.environ.get("GEMINI_MODEL") or "gemini-3.8-flash"
 THINKING_BUDGET = 2048
 
-# Waits between attempts when the API is unreachable or overloaded, ~15
-# minutes in all.
+# Waits between attempts when the API is unreachable, ~15 minutes in all.
 NETWORK_RETRY_DELAYS = [30, 60, 120, 240, 300, 300]
+# An overloaded model (5xx) is tried this many more times, then the call
+# moves to the other model (ask_model's fallback). Every attempt seems to
+# count against the free tier's 20 a day: on 3 Nov six retries a call
+# spent the main model's quota by 17:00 and the Nato brief failed.
+OVERLOAD_RETRIES = 2
 # A call that has not answered by then is dropped and retried as above: on
 # 26 Oct one hung until the job's 60-minute limit. The daily sweep, the
 # longest call, takes a few minutes.
@@ -188,10 +192,21 @@ def lite_model() -> str:
     return name
 
 
-def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, model: str = None) -> str:
+class ModelUnavailable(Exception):
+    """The model is overloaded past OVERLOAD_RETRIES, or its quota is spent:
+    worth trying the other model, unlike a bad request."""
+
+
+def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, model: str = None,
+              fallback: str = None) -> str:
     """Send a prompt to Gemini and return the text of the response. The
     model does not search (the free tier has no search grounding): the
-    articles it should read go in the prompt (news_sources.py)."""
+    articles it should read go in the prompt (news_sources.py).
+
+    On the main model (model=None) a spent quota or a model that stays
+    overloaded moves the call to the light model, which has its own quota,
+    so a report is written rather than lost. `fallback` names another model
+    for that (MODEL lets a light-model call fall back to the main one)."""
     from google.genai import types
     config = types.GenerateContentConfig(
         system_instruction=system,
@@ -200,7 +215,19 @@ def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, model: st
         max_output_tokens=max_tokens + THINKING_BUDGET,
         thinking_config=types.ThinkingConfig(thinking_budget=THINKING_BUDGET),
     )
-    response = _generate_with_retry(get_client(), prompt, config, model)
+    name = model or MODEL
+    if fallback is None and name == MODEL:
+        fallback = lite_model()
+    try:
+        response = _generate_with_retry(get_client(), prompt, config, name)
+    except ModelUnavailable as e:
+        if not fallback or fallback == name:
+            raise RuntimeError(str(e)) from e
+        print(f"  ! {name} unavailable ({str(e)[:160]}); this call runs on {fallback}")
+        try:
+            response = _generate_with_retry(get_client(), prompt, config, fallback)
+        except ModelUnavailable as e2:
+            raise RuntimeError(f"{name}: {str(e)[:200]}; {fallback}: {e2}") from e2
 
     candidate = (response.candidates or [None])[0]
     finish = getattr(candidate, "finish_reason", None)
@@ -210,36 +237,45 @@ def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, model: st
     return (response.text or "").strip()
 
 
-def _generate_with_retry(client, prompt, config, model=None):
+def _generate_with_retry(client, prompt, config, model):
     """client.models.generate_content, retried with long waits when the
-    network is down or the API is overloaded (5xx). A 429 is retried only
-    when Google says when to (retryDelay: the per-minute limit); without
-    one the quota is spent or zero, and waiting would only burn Actions
-    minutes (24 Oct: search grounding has no free quota). The spent daily
-    quota (a PerDay quotaId) comes with a retryDelay of hours: not
-    retried either, or each call waits out the whole delay list."""
+    network is down, and OVERLOAD_RETRIES times when the model is
+    overloaded (5xx); then ModelUnavailable. A 429 is retried only when
+    Google says when to (retryDelay: the per-minute limit); without one the
+    quota is spent or zero, and waiting would only burn Actions minutes
+    (24 Oct: search grounding has no free quota). The spent daily quota (a
+    PerDay quotaId) comes with a retryDelay of hours: not retried either.
+    Both raise ModelUnavailable."""
     from google.genai import errors
     import httpx
+    overloaded = 0
     for delay in NETWORK_RETRY_DELAYS + [None]:
         try:
-            return client.models.generate_content(model=model or MODEL, contents=prompt, config=config)
+            return client.models.generate_content(model=model, contents=prompt, config=config)
         except (errors.ServerError, errors.ClientError, httpx.TransportError) as e:
             code = getattr(e, "code", None)
-            if isinstance(e, errors.ClientError) and (code != 429 or "retryDelay" not in str(e)
-                                                      or "PerDay" in str(e)):
-                raise
+            if isinstance(e, errors.ClientError):
+                if code != 429:
+                    raise
+                if "retryDelay" not in str(e) or "PerDay" in str(e):
+                    raise ModelUnavailable(str(e)) from e
+            if isinstance(e, errors.ServerError):
+                overloaded += 1
+                if overloaded > OVERLOAD_RETRIES:
+                    raise ModelUnavailable(str(e)) from e
             if delay is None:
                 raise
             print(f"  ! Gemini API unavailable ({e}); retrying in {delay}s")
             time.sleep(delay)
 
 
-def ask_model_json(prompt: str, system: str = None, max_tokens: int = 2000, model: str = None) -> dict:
+def ask_model_json(prompt: str, system: str = None, max_tokens: int = 2000, model: str = None,
+                   fallback: str = None) -> dict:
     """ask_model + extract_json, with one recovery attempt. The model
     sometimes spends the whole token budget on narrative analysis and
     gets cut off before the JSON. Rather than discard that work, hand the
     partial response back and ask for just the JSON object."""
-    raw = ask_model(prompt, system=system, max_tokens=max_tokens, model=model)
+    raw = ask_model(prompt, system=system, max_tokens=max_tokens, model=model, fallback=fallback)
     try:
         return extract_json(raw)
     except ValueError as first_err:
@@ -253,7 +289,7 @@ Your previous answer was cut off or was not valid JSON. Here it is:
 </previous_answer>
 
 Using ONLY the information in that previous answer, respond with the strict JSON object requested above and nothing else."""
-        raw2 = ask_model(recovery_prompt, system=system, max_tokens=max_tokens, model=model)
+        raw2 = ask_model(recovery_prompt, system=system, max_tokens=max_tokens, model=model, fallback=fallback)
         return extract_json(raw2)
 
 

@@ -63,7 +63,7 @@ const INVITE_ID_RE = /^[0-9a-f-]{36}$/;
 // .github/workflows/scheduled-jobs.yml.
 const RUN_JOBS = {
   daily: { label: 'Morgonrapport', hours: [4], maxMinutes: 45, workflow: 'scheduled-jobs.yml' },
-  hourly: { label: 'Trådbevakning', hours: [12, 16, 21], maxMinutes: 20, workflow: 'scheduled-jobs.yml' },
+  hourly: { label: 'Trådbevakning', hours: [12, 21], maxMinutes: 20, workflow: 'scheduled-jobs.yml' },
   trends: { label: 'Narrativ', hours: [8, 12, 16, 21], maxMinutes: 15, workflow: 'trends.yml' },
   authorities: { label: 'Myndigheter', hours: [7, 17], maxMinutes: 15, workflow: 'authorities.yml' },
 };

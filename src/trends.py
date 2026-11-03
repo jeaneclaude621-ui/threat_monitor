@@ -344,14 +344,10 @@ Respond as strict JSON with just those keys:
     tokens = 1500 + 150 * len(to_translate)
     # The light model, with its own daily quota: the reports' model ran out
     # on most runs on 2 Nov and left half the Russian posts untranslated.
-    from common import lite_model
-    lite = lite_model()
-    if lite:
-        try:
-            return ask_model_json(prompt, system=system, max_tokens=tokens, model=lite)
-        except Exception as e:
-            print(f"  ! Trends on {lite} failed ({str(e)[:120]}); trying the main model")
-    return ask_model_json(prompt, system=system, max_tokens=tokens)
+    # The main model takes over if the light one is overloaded or spent.
+    from common import lite_model, MODEL
+    return ask_model_json(prompt, system=system, max_tokens=tokens,
+                          model=lite_model() or None, fallback=MODEL)
 
 
 # --------------------------------------------------------------------------

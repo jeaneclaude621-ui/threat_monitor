@@ -101,8 +101,8 @@ session på claude.ai/code, och skriv instruktionen till en fil i grenen.
 
 **Kvota:** huvudmodellen gemini-3.8-flash har 20 anrop per dygn, och dygnet
 nollställs kl. 09 svensk tid. Rapporterna tar ungefär 16. Lite-modellen:
-Narrativ 8, enkäten 3, ISW högst 1, plus reserv (budgettabell i
-`config/forces_db/README.md`). Kör inte `forces`
+trådbevakningen 2, Narrativ 8, enkäten 3, ISW högst 1, plus reserv
+(budgettabell i `config/forces_db/README.md`). Kör inte `forces`
 manuellt efter kl. 09 dagen före en natt, för då kan 04-körningen få slut
 på kvoten (det hände 2 nov). Flash-lite har en egen kvot och används av
 veckosökningen och som reserv.
@@ -179,6 +179,18 @@ Förutsättningar:
 Öppen fråga: ska Narrativ vara publikt eller bara för inloggade?
 
 ## Klart
+
+- 2026-11-03: Huvudkvoten tog slut två gånger den 3 nov: 04:00-rapporten
+  föll (mina manuella Styrkor-körningar kvällen före tog av samma
+  kvotdygn) och Nato-briefen 17:00. Åtgärder: trådbevakningen går bara
+  12:00 och 21:00 och på lite-modellen; ett anrop på huvudmodellen som
+  möter slut kvot, eller överbelastning efter 2 omförsök (förr 6), byter
+  till lite-modellen i stället för att falla. Narrativ och trådbevakningen
+  byter åt andra hållet. Kör inga manuella Gemini-jobb på kvällen före en
+  morgonrapport.
+- 2026-11-03: Narrativ översätter på lite-modellen, max 60 per anrop;
+  inlägg som modellen bedömer utanför ämnet tas bort ur appens databas.
+  0 oöversatta ryska inlägg efter ändringen.
 
 - 2026-11-02: Första dagliga bedömningen av handlingsalternativen
   granskad och rimlig. De markerade tecknen har källor: drönare över Rumänien
