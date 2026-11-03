@@ -26,6 +26,7 @@
  * Version 3.11: Russia's courses of action, updated daily after the report.
  * Version 3.12: the forces map - Russia's bases, units and their status, nightly.
  * Version 3.13: Russia's air attacks on Ukraine, per night, and a weekly survey of the bases.
+ * Version 3.16: the Sources tab refuses Telegram and Russian state media.
  */
 
 import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
@@ -365,7 +366,8 @@ async function route(req) {
     const { results } = await env.DB.prepare(
       'SELECT id, kind, url, title, added_at FROM sources WHERE active = 1 ORDER BY added_at'
     ).all();
-    return json(results);
+    // A source added before Version 3.16 never reaches the analysis either.
+    return json(results.filter((r) => !blockedSource(r.url)));
   }
 
   if (path === '/api/export/all') {
@@ -1610,6 +1612,20 @@ async function removeNotice(env, who, id) {
 // Sources added in the app (Version 3.5)
 // ---------------------------------------------------------------------------
 const SOURCE_KINDS = ['auto', 'rss', 'article'];
+// Version 3.16: never a source for the analysis - Telegram and Russian state
+// media (TASS, RT, RIA Novosti, Sputnik, Izvestia, Zvezda, Rossiyskaya
+// Gazeta). A host matches itself and its subdomains.
+const BLOCKED_SOURCE_HOSTS = [
+  't.me', 'telegram.me', 'telegram.org', 'telegra.ph', 'telesco.pe',
+  'tass.ru', 'tass.com', 'rt.com', 'ria.ru', 'sputniknews.com', 'sputniknews.ru', 'sputnikglobe.com',
+  'sputnik.by', 'sputnik.kz', 'iz.ru', 'tvzvezda.ru', 'rg.ru',
+];
+function blockedSource(href) {
+  let host;
+  try { host = new URL(href).hostname.toLowerCase().replace(/\.$/, ''); } catch { return false; }
+  return BLOCKED_SOURCE_HOSTS.some((b) => host === b || host.endsWith(`.${b}`));
+}
+const BLOCKED_SOURCE_MSG = 'Telegram och rysk statsmedia (TASS, RT, RIA, Sputnik, Izvestija, Zvezda, Rossijskaja Gazeta) tas inte emot som källor.';
 const SOURCE_FETCH_MS = 8000;
 const SOURCE_PEEK_BYTES = 200000;
 
@@ -1694,8 +1710,11 @@ async function addSource(request, env, who) {
   if (!['http:', 'https:'].includes(url.protocol) || url.href.length > 1000) {
     throw new HttpError(400, 'Adressen måste börja med http:// eller https://.');
   }
+  if (blockedSource(url.href)) throw new HttpError(422, BLOCKED_SOURCE_MSG);
 
   const peek = await peekUrl(url.href);
+  // A link that redirects there (a shortener, a mirror) is refused too.
+  if (peek.finalUrl && blockedSource(peek.finalUrl)) throw new HttpError(422, BLOCKED_SOURCE_MSG);
   // Many news sites turn away fetches that are not a browser. An article
   // is still worth keeping: the jobs try again, and its address names it.
   if (peek.error && kind === 'rss') throw new HttpError(422, `Sidan ${peek.error} – kontrollera adressen.`);
@@ -1713,6 +1732,7 @@ async function addSource(request, env, who) {
     if (!feed) throw new HttpError(422, 'Hittade inget RSS-flöde på den adressen.');
     const fp = await peekUrl(feed);
     if (fp.error || !looksLikeFeed(fp)) throw new HttpError(422, 'Sidans RSS-flöde gick inte att läsa.');
+    if (blockedSource(feed) || (fp.finalUrl && blockedSource(fp.finalUrl))) throw new HttpError(422, BLOCKED_SOURCE_MSG);
     finalUrl = feed;
     const t = fp.text.match(/<title[^>]*>([\s\S]{1,300}?)<\/title>/i);
     title = t ? decodeEntities(t[1]).slice(0, 200) : url.hostname;

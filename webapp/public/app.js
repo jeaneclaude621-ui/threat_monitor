@@ -3203,7 +3203,7 @@ async function adminSources() {
     },
   },
   h('h2', { class: 'kicker' }, 'Lägg till källa'),
-  h('p', { class: 'small' }, 'Klistra in en länk till en artikel eller ett RSS-flöde. Appen känner själv igen vilket det är; en sajts startsida blir dess RSS-flöde om du väljer det.'),
+  h('p', { class: 'small' }, 'Klistra in en länk till en artikel eller ett RSS-flöde. Appen känner själv igen vilket det är; en sajts startsida blir dess RSS-flöde om du väljer det. Telegram och rysk statsmedia tas inte emot.'),
   h('label', { class: 'search-label', for: 'src-url' }, 'Länk'), url,
   h('label', { class: 'search-label', for: 'src-kind' }, 'Typ'), kind,
   h('div', { class: 'btn-row' }, pasteBtn, addBtn));

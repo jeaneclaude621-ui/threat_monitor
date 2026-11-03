@@ -139,13 +139,6 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
 
 ## Förslag som väntar på beslut
 
-### Spärra Telegram och rysk statsmedia i fliken Källor
-*Föreslaget 2026-11-01.*
-
-Fliken Källor är den enda vägen för Telegram eller rysk statsmedia in i
-analysen: en länk som läggs in där läses av rapporten. Förslaget är att
-Workern vägrar sådana länkar (t.me, tass, rt.com, ria.ru, sputnik).
-
 ### Gäståtkomst med länk, utan mejl (NÄSTA STEG)
 *Beslutat 2026-11-01 att detta är nästa steg. Detaljerna bestäms när vi tar upp det.*
 
@@ -180,6 +173,10 @@ Förutsättningar:
 
 ## Klart
 
+- 2026-11-03: Fliken Källor tar inte emot Telegram eller rysk statsmedia
+  (Version 3.16, hm-v3.30). Workern svarar 422, även efter omdirigering;
+  exporten till analysen och `src/news_sources.py` filtrerar bort sådana
+  källor som redan finns. Kräver driftsättning av Workern.
 - 2026-11-03: Huvudkvoten tog slut två gånger den 3 nov: 04:00-rapporten
   föll (mina manuella Styrkor-körningar kvällen före tog av samma
   kvotdygn) och Nato-briefen 17:00. Åtgärder: trådbevakningen går bara

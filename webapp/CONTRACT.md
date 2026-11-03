@@ -569,3 +569,19 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   on the light model with the main one as fallback. Any call on the main
   model that finds its quota spent, or the model still overloaded after
   two retries, moves to the light model (src/common.py `ask_model`).
+
+# Version 3.16 (3 Nov 2026) - no Telegram or Russian state media as sources
+
+- `POST /api/admin/sources` answers 422 for a link to Telegram (t.me,
+  telegram.me, telegram.org, telegra.ph, telesco.pe) or Russian state
+  media (tass.ru, tass.com, rt.com, ria.ru, sputniknews.*, sputnikglobe.com,
+  sputnik.by, sputnik.kz, iz.ru, tvzvezda.ru, rg.ru), the host or any
+  subdomain - also when the link redirects there or a site's announced
+  feed lives there.
+- `GET /api/export/sources` leaves such sources out, so one added before
+  this version never reaches the analysis; `src/news_sources.py` drops
+  them again on its side.
+- Narrativ's reading of the Russian side (src/trends.py) is not a source
+  for the analysis and is unchanged.
+- App: the Sources form says that these are not accepted. Service worker
+  hm-v3.30.
