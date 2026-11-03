@@ -49,7 +49,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1:a gardes ingenjörbrigaden är en brigad i Rysslands markstridskrafter. Garnison: Murom. Källan nämner BTR-82A. Status: aktiv enligt källan.",
+   "description_sv": "Ingenjörbrigad (Brest-Berlinskaja), bildad den 1 december 2014 och förlagd i Murom i Vladimir oblast. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -81,7 +81,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1:a gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Garnison: Komsomolskoje. Källan nämner T-72B3. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad (Slavjanskaja) i 51:a gardes armén. Den bildades ur 1:a Slavjansk-bataljonen av frivilliga i Donetsks \"folkrepublik\" och är en del av ryska markstridskrafterna sedan 1 januari 2023.",
    "image": null,
    "sources": [
     {
@@ -116,7 +116,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1:a gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 2:a gardes motoriserade skyttedivisionen. Källan nämner T-72B3, BTR-82A, MT-LB, D-30. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserat skytteregemente (Sevastopolskij) i 2:a gardes motoriserade skyttedivisionen, förlagt i Kalininets väster om Moskva. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -218,7 +218,7 @@
    ],
    "status_sv": "återbildad 2016, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1:a gardes stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Den ingår i 2:a gardes motoriserade skyttedivisionen. Källan nämner T-80BVM, BMP-2, BTR-82A, 2S3 Akatsija. Status: återbildad 2016, i strid i Ukraina enligt källan.",
+   "description_sv": "Stridsvagnsregemente uppkallat efter marskalk Katukov, i 2:a gardes motoriserade skyttedivisionen och förlagt i Kalininets. Det återbildades 2016 och har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -316,7 +316,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1:a luftvärnsrobotregementet är en regemente i Belarus luftförsvar. Garnison: Grodno (luftvärnsförband). Källan nämner S-300 (PS, PM, V4). Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotregemente i Belarus flyg- och luftförsvarsstyrkor, förlagt i Hrodna, med S-300.",
    "image": null,
    "sources": [
     {
@@ -410,7 +410,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "10:e gardes stridsvagnsbataljonen är en bataljon i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Status: aktiv enligt källan.",
+   "description_sv": "Stridsvagnsbataljonen Dizel i 51:a gardes armén, före 1 januari 2023 en del av Donetsks \"folkrepubliks\" milis.",
    "image": null,
    "sources": [
     {
@@ -438,7 +438,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "10:e gardes stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Stridsvagnsregemente i markstridskrafterna, bildat 2022 under kriget. Det strider i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -496,7 +496,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "100:e gardes underrättelsebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 58:e gardes armén. Garnison: Mozdok. Källan nämner BTR-82A, Tigr. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Underrättelsebrigad i 58:e armén, förlagd i Mozdok i Nordossetien. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -524,7 +524,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1008:e motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 6:e motoriserade skyttedivisionen. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 6:e motoriserade skyttedivisionen (3:e armékåren), bildat 2022 under kriget.",
    "image": null,
    "sources": [
     {
@@ -548,7 +548,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1009:e motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente som bildades av mobiliserade 2022. Det strider i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -637,7 +637,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "103:e gardes luftlandsättningsbrigaden är en brigad i Belarus luftlandsättningstrupper. Status: aktiv enligt källan.",
+   "description_sv": "Belarus luftlandsättningsbrigad i Vitsebsk, en del av specialoperationsstyrkorna; arvtagare till den sovjetiska 103:e luftlandsättningsdivisionen.",
    "image": null,
    "sources": [
     {
@@ -660,7 +660,7 @@
    "type": "regemente",
    "branch": "armé",
    "country": "RU",
-   "parent": "19-motoriserade-skyttedivisionen",
+   "parent": "150-gardes-motoriserade-skyttedivisionen",
    "garrison": [
     "rostov-na-donu"
    ],
@@ -670,7 +670,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "103:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 19:e motoriserade skyttedivisionen. Garnison: Rostov-na-Donu. Källan nämner BTR-82A, 2A65 Msta-B. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 150:e gardes motoriserade skyttedivisionen, förlagt i Rostov-na-Donu sedan 2019. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -757,7 +757,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "104:e gardes luftanfallsregementet är en regemente i Rysslands luftlandsättningstrupper (VDV). Den ingår i 76:e gardes luftanfallsdivisionen. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftanfallsregemente i 76:e gardes luftanfallsdivisionen i Pskov, bildat 1948. Enligt ryska militärbloggare tillskrevs det erövringen av Myrivka i Huljajpole-riktningen i oktober 2026 (ISW).",
    "image": null,
    "sources": [
     {
@@ -858,7 +858,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1065:e gardes artilleriregementet är en regemente i Rysslands markstridskrafter. Den ingår i 98:e gardes luftlandsättningsdivisionen. Garnison: Kostroma. Källan nämner 2S9 Nona, 2S25 Sprut-SD, D-30. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Artilleriregemente i 98:e gardes luftlandsättningsdivisionen, förlagt i Kostroma, med Nona, Sprut-SD och D-30. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -915,7 +915,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "108:e gardes luftanfallsregementet är en regemente i Rysslands luftlandsättningstrupper (VDV). Den ingår i 7:e gardes luftanfallsdivisionen. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftanfallsregemente (Kubankosackerna) i 7:e gardes luftanfallsdivisionen, förlagt i Novorossijsk. Det har stridit i Tjetjenien och Abchazien och i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -945,7 +945,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "109:e skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Skytteregemente som bildades av mobiliserade invånare i Donetsks \"folkrepublik\" och sedan 1 januari 2023 hör till ryska markstridskrafterna.",
    "image": null,
    "sources": [
     {
@@ -1007,7 +1007,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "11:e gardes ingenjörbrigaden är en brigad i Rysslands markstridskrafter. Garnison: Kamensk-Sjachtinskij. Källan nämner BTR-82A. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Ingenjörbrigad i Södra militärdistriktet, förlagd i Kamensk-Sjachtinskij i Rostov oblast. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -1066,7 +1066,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "11:e gardes mekaniserade brigaden är en brigad i Belarus markstridskrafter. Garnison: Slonim. Källan nämner T-72B3, BMP-2, 2S3 Akatsija. Status: aktiv enligt källan.",
+   "description_sv": "Belarus mekaniserade brigad i Slonim, med T-72B3, BMP-2 och 2S3 Akatsija.",
    "image": null,
    "sources": [
     {
@@ -1096,7 +1096,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "11:e stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Den ingår i 18:e gardes motoriserade skyttedivisionen. Garnison: Gusev. Status: aktiv enligt källan.",
+   "description_sv": "Stridsvagnsregemente i 18:e gardes motoriserade skyttedivisionen, förlagt i Gusev i Kaliningrad oblast.",
    "image": null,
    "sources": [
     {
@@ -1185,7 +1185,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "111:e gardes artilleribrigaden är en brigad i Belarus markstridskrafter. Garnison: Brest. Status: aktiv enligt källan.",
+   "description_sv": "Belarus artilleribrigad (Königsbergskaja) i Brest.",
    "image": null,
    "sources": [
     {
@@ -1246,7 +1246,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "112:e helikopterregementet är en regemente i Rysslands flygstridskrafter. Källan nämner Mi-28N / Mi-28NM, Mi-24 / Mi-35M, Mi-8 / Mi-8AMTSj. Status: aktiv enligt källan.",
+   "description_sv": "Helikopterregemente i 11:e flyg- och luftförsvarsarmén, förlagt på flygfältet Tjerjomusjki i Tjita, med Mi-28N, Mi-35M och Mi-8.",
    "image": null,
    "sources": [
     {
@@ -1279,7 +1279,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "113:e gardes motoriserade skyttebataljonen är en bataljon i Rysslands markstridskrafter. Källan nämner BMP-2, BM-21 Grad. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserad skyttebataljon i den ryska styrkan i Transnistrien.",
    "image": null,
    "sources": [
     {
@@ -1373,7 +1373,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1140:e gardes artilleriregementet är en regemente i Rysslands markstridskrafter. Källan nämner 2S9 Nona, 2S25 Sprut-SD, D-30. Status: aktiv enligt källan.",
+   "description_sv": "Artilleriregemente i 76:e gardes luftanfallsdivisionen i Pskov, med Nona, Sprut-SD och D-30.",
    "image": null,
    "sources": [
     {
@@ -1400,7 +1400,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1146:e gardes luftvärnsrobotregementet är en regemente i Belarus luftförsvar. Garnison: Baranovitji (luftvärnsförband). Källan nämner Tor-M2. Status: aktiv enligt källan.",
+   "description_sv": "Belarus luftvärnsrobotregemente i Baranavitjy, återbildat den 1 december 2017, med Tor-M2.",
    "image": null,
    "sources": [
     {
@@ -1429,7 +1429,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "116:e gardes attackflygbasen är en flygbas i Belarus flygstridskrafter. Garnison: Lida (Belarus). Källan nämner Su-24M, Su-25, Jak-130. Status: aktiv enligt källan.",
+   "description_sv": "Belarus attackflygbas på flygbasen Lida, med Su-25 och Jak-130.",
    "image": null,
    "sources": [
     {
@@ -1459,7 +1459,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "116:e skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Skytteregemente ur Donetsks \"folkrepubliks\" tidigare milis, i ryska markstridskrafterna.",
    "image": null,
    "sources": [
     {
@@ -1484,7 +1484,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1182:a gardes artilleriregementet är en regemente i Rysslands markstridskrafter. Den ingår i 106:e gardes luftlandsättningsdivisionen. Status: aktiv enligt källan.",
+   "description_sv": "Artilleriregemente i 106:e gardes luftlandsättningsdivisionen, förlagt i Naro-Fominsk.",
    "image": null,
    "sources": [
     {
@@ -1536,7 +1536,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "12:e gardes ingenjörbrigaden är en brigad i Rysslands markstridskrafter. Garnison: Alkino-2. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Ingenjörbrigad i Centrala militärdistriktet, förlagd i Alkino-2 vid Ufa. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -1592,7 +1592,7 @@
    ],
    "status_sv": "återbildad 2013",
    "as_of": "2026-11",
-   "description_sv": "12:e gardes stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Den ingår i 4:e gardes stridsvagnsdivisionen. Källan nämner T-80BVM, BMP-2, MT-LB. Status: återbildad 2013.",
+   "description_sv": "Stridsvagnsregemente i 4:e gardes stridsvagnsdivisionen (1:a gardes stridsvagnsarmén), förlagt i Naro-Fominsk, med T-80BVM.",
    "image": null,
    "sources": [
     {
@@ -1620,7 +1620,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "12:e luftvärnsrobotregementet är en regemente i Rysslands luftförsvar. Den ingår i 31:a luftvärnsdivisionen. Källan nämner S-400, S-300 (PS, PM, V4). Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotregemente i 31:a luftvärnsdivisionen med stab i Sevastopol, bildat 2014 efter annekteringen av Krim. Det har S-400 och S-300.",
    "image": null,
    "sources": [
     {
@@ -1680,7 +1680,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "120:e gardes jaktflygregementet är en regemente i Rysslands flygstridskrafter. Garnison: Domna. Källan nämner Su-30SM / SM2. Status: aktiv enligt källan.",
+   "description_sv": "Jaktflygregemente i 11:e flyg- och luftförsvarsarmén, baserat på Domna i Zabajkalje, med Su-30SM.",
    "image": null,
    "sources": [
     {
@@ -1745,7 +1745,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "120:e gardes mekaniserade brigaden är en brigad i Belarus markstridskrafter. Garnison: Minsk. Status: aktiv enligt källan.",
+   "description_sv": "Belarus mekaniserade brigad (Rogatjovskaja) i Minsk, arvtagare till den sovjetiska 120:e gardes skyttedivisionen.",
    "image": null,
    "sources": [
     {
@@ -1812,7 +1812,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "126:e gardes kustförsvarsbrigaden är en brigad i Rysslands marin. Den ingår i 22:a armékåren. Källan nämner T-72B3. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Kustförsvarsbrigad i Svartahavsflottans kusttrupper, förlagd i Perevalnoje på det ockuperade Krim. Den har stridit i Ukraina sedan 2022; enligt ukrainska uppgifter dödades och skadades många av dess soldater vid ett anfall mot garnisonen i augusti 2023.",
    "image": null,
    "sources": [
     {
@@ -1911,7 +1911,7 @@
    ],
    "status_sv": "återbildad 2013",
    "as_of": "2026-11",
-   "description_sv": "13:e gardes stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Den ingår i 4:e gardes stridsvagnsdivisionen. Garnison: Naro-Fominsk. Källan nämner T-72B3, T-80BVM, BMP-2, MT-LB. Status: återbildad 2013.",
+   "description_sv": "Stridsvagnsregemente i 4:e gardes stridsvagnsdivisionen, förlagt i Naro-Fominsk, med T-72B3 och T-80BVM.",
    "image": null,
    "sources": [
     {
@@ -1972,7 +1972,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1307:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente som bildades av mobiliserade 2022 och i januari 2024 hörde till 6:e motoriserade skyttedivisionen.",
    "image": null,
    "sources": [
     {
@@ -1998,7 +1998,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "132:a gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad (Gorlovskaja, \"Berkut\") i 51:a gardes armén, tidigare 3:e brigaden i Donetsks \"folkrepubliks\" milis och en del av ryska markstridskrafterna sedan 1 januari 2023.",
    "image": null,
    "sources": [
     {
@@ -2030,7 +2030,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "133:e gardes stridsvagnsbataljonen är en bataljon i Rysslands markstridskrafter. Den ingår i 38:e gardes motoriserade skyttebrigaden. Källan nämner T-80BVM. Status: aktiv enligt källan.",
+   "description_sv": "Stridsvagnsbataljon med T-80BVM, förlagd i Jekaterinoslavka i Amur oblast och knuten till en motoriserad skyttebrigad i Östra militärdistriktet.",
    "image": null,
    "sources": [
     {
@@ -2056,7 +2056,7 @@
    ],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "136:e gardes artilleriregementet är en regemente i Rysslands markstridskrafter. Källan nämner D-30. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Artilleriregemente som bildades 2022 av mobiliserade från Jaroslavl oblast. Det strider i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -2082,7 +2082,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "136:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 58:e armén, bildad 1993 i Bujnaksk i Dagestan. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -2116,7 +2116,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "137:e gardes fallskärmsregementet är en regemente i Rysslands luftlandsättningstrupper (VDV). Den ingår i 106:e gardes luftlandsättningsdivisionen. Garnison: Rjazan. Källan nämner Il-76, BMD-4M, BTR-MDM Rakusjka. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Fallskärmsregemente (Kubankosackerna) i 106:e gardes luftlandsättningsdivisionen, förlagt i Rjazan. Det deltog i den ryska interventionen i Ukraina 2014 och har stridit där igen sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -2186,7 +2186,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "14:e gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Garnison: Donetsk. Källan nämner 2A65 Msta-B, D-30, BM-21 Grad, BM-27 Uragan. Status: aktiv enligt källan.",
+   "description_sv": "Artilleribrigaden Kalmius i 51:a gardes armén, före 2023 en del av Donetsks \"folkrepubliks\" 1:a armékår, med Msta-B, D-30, Grad och Uragan.",
    "image": null,
    "sources": [
     {
@@ -2258,7 +2258,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "14:e gardes jaktflygregementet är en regemente i Rysslands flygstridskrafter. Den ingår i 105:e gardes blandade flygdivisionen. Garnison: Kursk-Chalino. Källan nämner Su-30SM / SM2, MiG-29 / MiG-29SMT. Status: aktiv enligt källan.",
+   "description_sv": "Jaktflygregemente i 105:e gardes blandade flygdivisionen, baserat på Chalino vid Kursk, med Su-30SM och MiG-29SMT.",
    "image": null,
    "sources": [
     {
@@ -2373,7 +2373,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1429:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente som bildades av mobiliserade 2022. Det strider i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -2397,7 +2397,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1430:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente som bildades av mobiliserade 2022. Det strider i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -2463,7 +2463,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "147:e gardes självgående artilleriregementet är en regemente i Rysslands markstridskrafter. Den ingår i 2:a gardes motoriserade skyttedivisionen. Källan nämner 2S19 Msta-S, Tornado-G, BM-27 Uragan. Status: aktiv enligt källan.",
+   "description_sv": "Självgående artilleriregemente i 2:a gardes motoriserade skyttedivisionen, förlagt i Kalininets, med Msta-S, Tornado-G och Uragan.",
    "image": null,
    "sources": [
     {
@@ -2486,7 +2486,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1472:a gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente som bildades av mobiliserade 2022. Det strider i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -2510,7 +2510,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1486:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente som bildades för invasionen av Ukraina och består av mobiliserade från Sankt Petersburg.",
    "image": null,
    "sources": [
     {
@@ -2539,7 +2539,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1490:e gardes luftvärnsrobotregementet är en regemente i Rysslands luftförsvar. Källan nämner S-400, S-300 (PS, PM, V4). Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotregemente i flyg- och rymdstridskrafterna, förlagt i Uljanovka i Leningrad oblast, med S-400 och S-300 i luftförsvaret runt Sankt Petersburg.",
    "image": null,
    "sources": [
     {
@@ -2570,7 +2570,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "15:e arméflygbrigaden är en brigad i Rysslands flygstridskrafter. Garnison: Ostrov. Källan nämner Ka-52, Mi-28N / Mi-28NM, Mi-24 / Mi-35M, Mi-8 / Mi-8AMTSj, Mi-26. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Arméflygbrigad i 6:e flyg- och luftförsvarsarmén, baserad på flygfältet Veretje vid Ostrov i Pskov oblast, med Ka-52, Mi-28N, Mi-35M, Mi-8 och Mi-26. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -2595,7 +2595,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "15:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 2:a gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Markstridskrafternas fredsbevarande brigad (Aleksandrijskaja) i 2:a gardes armén, förlagd i Rosjtjinskij i Samara oblast. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -2629,7 +2629,7 @@
    ],
    "status_sv": "återbildad 2013, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "15:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 2:a gardes motoriserade skyttedivisionen. Källan nämner T-72B3, BMP-2, 2S19 Msta-S. Status: återbildad 2013, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente (Sjavlinskij) i 2:a gardes motoriserade skyttedivisionen, förlagt i Kalininets, återbildat 2013. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -2752,7 +2752,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1528:e luftvärnsrobotregementet är en regemente i Rysslands luftförsvar. Den ingår i 1:a luftvärnsdivisionen. Garnison: Severodvinsk (luftvärnsförband). Källan nämner S-400, S-300 (PS, PM, V4). Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotregemente i marinen, förlagt i Severodvinsk, med S-400 och S-300 i 1:a luftvärnsdivisionen.",
    "image": null,
    "sources": [
     {
@@ -2813,7 +2813,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "1530:e gardes luftvärnsrobotregementet är en regemente i Rysslands luftförsvar. Den ingår i 5:e luftvärnsdivisionen. Källan nämner S-400, Pantsir-S1. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotregemente i flyg- och rymdstridskrafterna, förlagt vid Bolsjaja Kartel i Chabarovsk kraj, med S-400 och Pantsir-S1.",
    "image": null,
    "sources": [
     {
@@ -2840,7 +2840,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "159:e gardes jaktflygregementet är en regemente i Rysslands flygstridskrafter. Den ingår i 105:e gardes blandade flygdivisionen. Garnison: Karelija, Besovets (Petrozavodsk). Källan nämner Su-35S. Status: aktiv enligt källan.",
+   "description_sv": "Jaktflygregemente i 105:e gardes blandade flygdivisionen, baserat på Besovets vid Petrozavodsk, med Su-35S. Det deltar i invasionen av Ukraina.",
    "image": null,
    "sources": [
     {
@@ -2868,7 +2868,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "16:e gardes arméflygbrigaden är en brigad i Rysslands flygstridskrafter. Källan nämner Mi-28N / Mi-28NM, Mi-8 / Mi-8AMTSj. Status: aktiv enligt källan.",
+   "description_sv": "Arméflygbrigad i flyg- och rymdstridskrafterna, baserad på Zernograd i Rostov oblast, med Mi-28N och Mi-8.",
    "image": null,
    "sources": [
     {
@@ -2893,7 +2893,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "16:e gardes CBRN-skyddsbrigaden är en brigad i Rysslands markstridskrafter. Garnison: Lesozavodsk. Status: aktiv enligt källan.",
+   "description_sv": "CBRN-skyddsbrigad (Chinganskaja) i Östra militärdistriktet, förlagd i Lesozavodsk i Primorje.",
    "image": null,
    "sources": [
     {
@@ -2948,7 +2948,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "16:e telekrigsbrigaden är en brigad i Rysslands markstridskrafter. Status: aktiv enligt källan.",
+   "description_sv": "Telekrigsbrigad i Moskvas militärdistrikt, förlagd i Kursk.",
    "image": null,
    "sources": [
     {
@@ -2976,7 +2976,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "161:a ubåtsbrigaden är en brigad i Rysslands marin. Den ingår i Norra flottan. Garnison: Poljarnyj. Källan nämner Kilo-klass (projekt 636.3), Lada-klass (projekt 677). Status: aktiv enligt källan.",
+   "description_sv": "Norra flottans ubåtsbrigad i Poljarnyj, bildad 1951, med dieselelektriska ubåtar av Kilo- och Lada-klassen i Kolaflottiljen.",
    "image": null,
    "sources": [
     {
@@ -3006,7 +3006,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "165:e gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 35:e gardes armén. Källan nämner Orlan-10, 2S7 Pion / Malka, 2S4 Tjulpan, BM-27 Uragan. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Artilleribrigad i 35:e armén, förlagd i Belogorsk i Amur oblast, med 2S7 Pion, 2S4 Tjulpan och Uragan. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -3035,7 +3035,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "17:e gardes arméflygbrigaden är en brigad i Rysslands flygstridskrafter. Källan nämner Mi-24 / Mi-35M, Mi-8 / Mi-8AMTSj, Mi-26. Status: aktiv enligt källan.",
+   "description_sv": "Arméflygbrigad i 14:e flyg- och luftförsvarsarmén, baserad på Travjany vid Kamensk-Uralskij, med Mi-35M, Mi-8 och Mi-26.",
    "image": null,
    "sources": [
     {
@@ -3060,7 +3060,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "17:e gardes telekrigsbrigaden är en brigad i Rysslands markstridskrafter. Status: aktiv enligt källan.",
+   "description_sv": "Telekrigsbrigad i Östra militärdistriktet, förlagd i Chabarovsk.",
    "image": null,
    "sources": [
     {
@@ -3086,7 +3086,7 @@
    ],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "17:e gardes tunga artilleribrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 3:e armékåren. Källan nämner 2S7 Pion / Malka, 2S4 Tjulpan. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Tung artilleribrigad med 2S7 Pion och 2S4 Tjulpan i 3:e armékåren, bildad 2022 under kriget.",
    "image": null,
    "sources": [
     {
@@ -3183,7 +3183,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "18:e gardes arméflygbrigaden är en brigad i Rysslands flygstridskrafter. Källan nämner Ka-52, Mi-8 / Mi-8AMTSj, Mi-26. Status: aktiv enligt källan.",
+   "description_sv": "Arméflygbrigad i 11:e flyg- och luftförsvarsarmén, baserad på Chabarovsk-Tsentralnyj, med Ka-52, Mi-8 och Mi-26.",
    "image": null,
    "sources": [
     {
@@ -3213,7 +3213,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "18:e gardes luftvärnsrobotregementet är en regemente i Rysslands luftförsvar. Den ingår i 31:a luftvärnsdivisionen. Källan nämner Bastion-P, S-400, S-300 (PS, PM, V4), Pantsir-S1. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotregemente i 31:a luftvärnsdivisionen, förlagt i Feodosija på det ockuperade Krim och bildat 2014 efter annekteringen.",
    "image": null,
    "sources": [
     {
@@ -3297,7 +3297,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "19:e gardes mekaniserade brigaden är en brigad i Belarus markstridskrafter. Status: aktiv enligt källan.",
+   "description_sv": "Belarus mekaniserade brigad i Zaslonava öster om Lepel.",
    "image": null,
    "sources": [
     {
@@ -3357,7 +3357,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "19:e telekrigsbrigaden är en brigad i Rysslands markstridskrafter. Status: aktiv enligt källan.",
+   "description_sv": "Telekrigsbrigad i Södra militärdistriktet, förlagd i Stepnoj vid Rostov-na-Donu.",
    "image": null,
    "sources": [
     {
@@ -3419,7 +3419,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "2:a gardes blandade flygregementet är en regemente i Rysslands flygstridskrafter. Den ingår i 21:a blandade flygdivisionen. Källan nämner Su-34. Status: aktiv enligt källan.",
+   "description_sv": "Blandat flygregemente i 21:a blandade flygdivisionen, baserat på Sjagol i Tjeljabinsk, med Su-34 och Su-24MR.",
    "image": null,
    "sources": [
     {
@@ -3543,7 +3543,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "20:e gardes CBRN-skyddsregementet är en regemente i Rysslands markstridskrafter. Den ingår i 1:a gardes stridsvagnsarmén. Status: aktiv enligt källan.",
+   "description_sv": "CBRN-skyddsregemente i 1:a gardes stridsvagnsarmén, förlagt i Odintsovo.",
    "image": null,
    "sources": [
     {
@@ -3631,7 +3631,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "200:e gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 29:e gardes armén. Status: aktiv enligt källan.",
+   "description_sv": "Artilleribrigad i 29:e armén, förlagd i Gornyj i Zabajkalje.",
    "image": null,
    "sources": [
     {
@@ -3722,7 +3722,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "205:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 49:e armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad (kosackbrigad) i 49:e armén, förlagd i Budjonnovsk i Stavropol kraj och bildad 1995. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -3777,7 +3777,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "217:e gardes fallskärmsregementet är en regemente i Rysslands luftlandsättningstrupper (VDV). Den ingår i 98:e gardes luftlandsättningsdivisionen. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Fallskärmsregemente i 98:e gardes luftlandsättningsdivisionen, förlagt i Ivanovo och bildat 1948. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -3800,12 +3800,14 @@
    "type": "regemente",
    "branch": "armé",
    "country": "RU",
-   "parent": null,
-   "garrison": [],
+   "parent": "127-gardes-motoriserade-skyttedivisionen",
+   "garrison": [
+    "sergejevka"
+   ],
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "218:e gardes stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Stridsvagnsregemente i 127:e motoriserade skyttedivisionen (5:e armén), förlagt i Sergejevka i Primorje. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -3866,7 +3868,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "22:a gardes jaktflygregementet är en regemente i Rysslands flygstridskrafter. Källan nämner Su-35S, MiG-31 (BM, K). Status: aktiv enligt källan.",
+   "description_sv": "Jaktflygregemente i 303:e blandade flygdivisionen, baserat på Tsentralnaja Uglovaja vid Vladivostok, med Su-35S och MiG-31.",
    "image": null,
    "sources": [
     {
@@ -3990,7 +3992,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "227:e gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Källan nämner 2S19 Msta-S, 2A65 Msta-B, BM-27 Uragan. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Artilleribrigad i 49:e armén, förlagd i Majkop och bildad 2017, med Msta-B, Msta-S och Uragan. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -4024,13 +4026,18 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "228:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Garnison: Jekaterinburg. Källan nämner T-72B3, BTR-82A, 2A65 Msta-B. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 90:e gardes stridsvagnsdivisionen (41:a armén), förlagt i Jekaterinburg. Enligt ISW opererade det i Pokrovsk-riktningen i maj 2026 och genomförde ett misslyckat anfall vid Sjachove öster om Dobropillja (sept 2026).",
    "image": null,
    "sources": [
     {
      "url": "https://ru.wikipedia.org/wiki/228-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D1%8B%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-september-11-2026",
+     "outlet": "ISW / Critical Threats",
+     "accessed": "2026-11-02"
     }
    ]
   },
@@ -4051,7 +4058,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "23:e gardes jaktflygregementet är en regemente i Rysslands flygstridskrafter. Garnison: Dzemgi (Komsomolsk-na-Amure). Källan nämner Su-35S. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Jaktflygregemente (Tallinskij) i 303:e blandade flygdivisionen (11:e flyg- och luftförsvarsarmén), baserat på Dzemgi vid Komsomolsk-na-Amure, med Su-35S. Det fick gardesstatus efter invasionen av Ukraina 2022.",
    "image": null,
    "sources": [
     {
@@ -4079,7 +4086,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "231:a artilleribrigaden är en brigad i Belarus markstridskrafter. Status: aktiv enligt källan.",
+   "description_sv": "Belarus artilleribrigad med stab i byn Borovka i Vitsebsk oblast, i markstridskrafternas nordvästra operativa kommando.",
    "image": null,
    "sources": [
     {
@@ -4093,7 +4100,7 @@
      "accessed": "2026-11-01"
     }
    ],
-   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
+   "garrison_note_sv": "Staben ligger i byn Borovka i Vitsebsk oblast enligt Wikipedia; databasen har ingen bas för orten."
   },
   {
    "id": "232-gardes-raketartilleribrigaden",
@@ -4112,7 +4119,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "232:a gardes raketartilleribrigaden är en brigad i Rysslands markstridskrafter. Garnison: Tjebarkul. Källan nämner BM-27 Uragan. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Raketartilleribrigad med BM-27 Uragan, förlagd i Tjebarkul i Tjeljabinsk oblast. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -4137,7 +4144,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "234:e gardes luftanfallsregementet är en regemente i Rysslands luftlandsättningstrupper (VDV). Den ingår i 76:e gardes luftanfallsdivisionen. Garnison: Pskov. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftanfallsregemente (Tjernomorskij) i 76:e gardes luftanfallsdivisionen, förlagt i Pskov. Det har stridit i Ukraina sedan 2022; enligt ISW kan delar av 76:e divisionen med 104:e eller 234:e regementet operera i Huljajpole-riktningen (okt 2026).",
    "image": null,
    "sources": [
     {
@@ -4169,7 +4176,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "235:e robotregementet är en regemente i Rysslands robotstyrkor. Källan nämner Topol-M. Status: aktiv enligt källan.",
+   "description_sv": "Robotregemente i 54:e gardes robotdivisionen (27:e robotarmén) med mobila interkontinentala robotar, i området vid floden Nelsja.",
    "image": null,
    "sources": [
     {
@@ -4197,7 +4204,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "236:e gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 20:e gardes armén. Garnison: Kolomna. Källan nämner 2S19 Msta-S, BM-27 Uragan. Status: aktiv enligt källan.",
+   "description_sv": "Artilleribrigad i 20:e armén, förlagd i Kolomna i Moskva oblast, med Msta-S och Uragan.",
    "image": null,
    "sources": [
     {
@@ -4222,7 +4229,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "237:e gardes luftanfallsregementet är en regemente i Rysslands luftlandsättningstrupper (VDV). Den ingår i 76:e gardes luftanfallsdivisionen. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftanfallsregemente (Torunskij) i 76:e gardes luftanfallsdivisionen, förlagt i Pskov. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -4251,7 +4258,7 @@
    ],
    "status_sv": "återbildad 2016, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "237:e stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Källan nämner T-72B3, BMP-2, 2A65 Msta-B. Status: återbildad 2016, i strid i Ukraina enligt källan.",
+   "description_sv": "Stridsvagnsregemente i 3:e motoriserade skyttedivisionen (20:e armén), förlagt i Soloti i Belgorod oblast och återbildat 2016. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -4276,7 +4283,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "238:e gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 8:e gardes armén. Status: aktiv enligt källan.",
+   "description_sv": "Artilleribrigad i 8:e gardes armén, förlagd i Korenovsk i Krasnodar kraj.",
    "image": null,
    "sources": [
     {
@@ -4396,7 +4403,7 @@
    "equipment": [],
    "status_sv": "nybildad 2024",
    "as_of": "2026-11",
-   "description_sv": "242:a gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 20:e gardes motoriserade skyttedivisionen. Garnison: Volgograd. Status: nybildad 2024.",
+   "description_sv": "Motoriserat skytteregemente i 20:e gardes motoriserade skyttedivisionen (8:e armén), förlagt i Volgograd.",
    "image": null,
    "sources": [
     {
@@ -4421,7 +4428,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "244:e artilleribrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 11:e armékåren. Status: aktiv enligt källan.",
+   "description_sv": "Artilleribrigad i Östersjöflottans kusttrupper (11:e armékåren), förlagd i Kaliningrad.",
    "image": null,
    "sources": [
     {
@@ -4480,7 +4487,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "247:e gardes luftanfallsregementet är en regemente i Rysslands luftlandsättningstrupper (VDV). Den ingår i 7:e gardes luftanfallsdivisionen. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftanfallsregemente (Kaukasuskosackerna) i 7:e gardes luftanfallsdivisionen, förlagt i Stavropol; bildat 1973 som 21:a luftanfallsbrigaden. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -4625,7 +4632,7 @@
    "equipment": [],
    "status_sv": "återbildad 2016, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "252:a gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 3:e motoriserade skyttedivisionen. Garnison: Bogutjar. Status: återbildad 2016, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 3:e motoriserade skyttedivisionen (20:e armén), förlagt i Bogutjar och återbildat 2016. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -4656,7 +4663,7 @@
    ],
    "status_sv": "återbildad 2020, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "254:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 144:e gardes motoriserade skyttedivisionen. Källan nämner T-72B3, BMP-2, BTR-82A, MT-LB, 2A65 Msta-B. Status: återbildad 2020, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente uppkallat efter Aleksandr Matrosov, i 144:e motoriserade skyttedivisionen, förlagt i Zajmisjtje vid Klintsy i Brjansk oblast. Det återbildades 2020 och har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -4681,7 +4688,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "255:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 20:e gardes motoriserade skyttedivisionen. Garnison: Volgograd. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 20:e gardes motoriserade skyttedivisionen, förlagt i Volgograd. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -4773,7 +4780,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "27:e gardes CBRN-skyddsbrigaden är en brigad i Rysslands markstridskrafter. Status: aktiv enligt källan.",
+   "description_sv": "CBRN-skyddsbrigad i Moskvas militärdistrikt, förlagd i Kursk.",
    "image": null,
    "sources": [
     {
@@ -4800,7 +4807,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "27:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 1:a gardes stridsvagnsarmén. Garnison: Posjolok zavoda Mosrentgen. Källan nämner An-26. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad (Sevastopolskaja) i 1:a gardes stridsvagnsarmén, förlagd i Mosrentgen i Moskva. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -4893,7 +4900,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "272:a motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 47:e stridsvagnsdivisionen. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 47:e stridsvagnsdivisionen (1:a gardes stridsvagnsarmén), förlagt i Mulino och bildat 2022.",
    "image": null,
    "sources": [
     {
@@ -4923,7 +4930,7 @@
    "equipment": [],
    "status_sv": "återbildad 2021",
    "as_of": "2026-11",
-   "description_sv": "275:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 18:e gardes motoriserade skyttedivisionen. Garnison: Gusev. Status: återbildad 2021.",
+   "description_sv": "Motoriserat skytteregemente i 18:e gardes motoriserade skyttedivisionen (11:e armékåren), förlagt i Gusev i Kaliningrad oblast och återbildat 2021.",
    "image": null,
    "sources": [
     {
@@ -4954,7 +4961,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "275:e självgående artilleriregementet är en regemente i Rysslands markstridskrafter. Den ingår i 4:e gardes stridsvagnsdivisionen. Källan nämner 2S19 Msta-S, 2S3 Akatsija, BM-21 Grad, Tornado-G, BM-27 Uragan. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Självgående artilleriregemente i 4:e gardes stridsvagnsdivisionen, förlagt i Naro-Fominsk, med Msta-S, Akatsija, Grad, Tornado-G och Uragan. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -4981,7 +4988,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "28:e CBRN-skyddsbrigaden är en brigad i Rysslands markstridskrafter. Källan nämner TOS-1A. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "CBRN-skyddsbrigad i Södra militärdistriktet, förlagd i Kamysjin i Volgograd oblast, med de termobariska raketkastarna TOS-1A. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -5006,7 +5013,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "28:e gardes brobyggnadsbrigaden är en brigad i Rysslands markstridskrafter. Garnison: Murom. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Pontonbrobrigad i ingenjörtrupperna, förlagd i Murom i Vladimir oblast (Moskvas militärdistrikt). Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -5090,7 +5097,7 @@
    "equipment": [],
    "status_sv": "återbildad 2021",
    "as_of": "2026-11",
-   "description_sv": "280:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 18:e gardes motoriserade skyttedivisionen. Garnison: Gusev. Status: återbildad 2021.",
+   "description_sv": "Motoriserat skytteregemente i 18:e gardes motoriserade skyttedivisionen (11:e armékåren), förlagt i Gusev och återbildat 2021.",
    "image": null,
    "sources": [
     {
@@ -5113,7 +5120,7 @@
    "equipment": [],
    "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "283:e motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 144:e gardes motoriserade skyttedivisionen. Status: nybildad 2023, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 144:e gardes motoriserade skyttedivisionen, bildat i april 2023.",
    "image": null,
    "sources": [
     {
@@ -5143,7 +5150,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "288:e gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 1:a gardes stridsvagnsarmén. Källan nämner 2S19 Msta-S, 2A65 Msta-B, BM-27 Uragan. Status: aktiv enligt källan.",
+   "description_sv": "Artilleribrigad i 1:a gardes stridsvagnsarmén, förlagd i Mulino i Nizjnij Novgorod oblast, med Msta-S, Msta-B och Uragan.",
    "image": null,
    "sources": [
     {
@@ -5208,7 +5215,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "29:e gardes CBRN-skyddsbrigaden är en brigad i Rysslands markstridskrafter. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "CBRN-skyddsbrigad i Centrala militärdistriktet, förlagd i Jekaterinburg. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -5266,7 +5273,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "29:e järnvägsbrigaden är en brigad i Rysslands markstridskrafter. Garnison: Krasnyj Bor. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Järnvägsbrigad (Varsjavskaja) i järnvägstrupperna, förlagd i Krasnyj Bor i Smolensk oblast sedan 2012.",
    "image": null,
    "sources": [
     {
@@ -5321,7 +5328,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "291:a gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Källan nämner 2S19 Msta-S, 2S7 Pion / Malka, 2S4 Tjulpan, BM-27 Uragan. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Artilleribrigad i 58:e armén, förlagd i Troitskaja i Ingusjetien, med Msta-S, 2S7 Pion, 2S4 Tjulpan och Uragan. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -5344,7 +5351,7 @@
    "equipment": [],
    "status_sv": "återbildad 2016, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "291:a gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 42:a gardes motoriserade skyttedivisionen. Status: återbildad 2016, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 42:a gardes motoriserade skyttedivisionen (58:e armén), återbildat 2016.",
    "image": null,
    "sources": [
     {
@@ -5430,7 +5437,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "3:e blandade flygregementet är en regemente i Rysslands flygstridskrafter. Den ingår i 1:a gardes blandade flygdivisionen. Garnison: Krymsk. Källan nämner Su-27 / Su-27SM3, Su-30M2. Status: aktiv enligt källan.",
+   "description_sv": "Blandat flygregemente i 1:a gardes blandade flygdivisionen, baserat på Krymsk i Krasnodar kraj, med Su-27SM3 och Su-30M2.",
    "image": null,
    "sources": [
     {
@@ -5553,7 +5560,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "3:e radarregementet är en regemente i Rysslands luftförsvar. Status: aktiv enligt källan.",
+   "description_sv": "Radarregemente i flyg- och rymdstridskrafternas radartrupper, bildat 2014 på Krim efter annekteringen.",
    "image": null,
    "sources": [
     {
@@ -5609,7 +5616,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "30:e gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 36:e gardes armén. Källan nämner 2S19 Msta-S, BM-27 Uragan. Status: aktiv enligt källan.",
+   "description_sv": "Artilleribrigad i 36:e armén, förlagd i Ulan-Ude, med Msta-S och Uragan.",
    "image": null,
    "sources": [
     {
@@ -5634,7 +5641,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "30:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 2:a gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 2:a gardes armén, bildad 2016 och förlagd i Rosjtjinskij i Samara oblast. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -5695,7 +5702,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "305:e gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 5:e gardes armén. Garnison: Ussurijsk. Källan nämner 2S7 Pion / Malka, 2S4 Tjulpan, BM-27 Uragan. Status: aktiv enligt källan.",
+   "description_sv": "Artilleribrigad i 5:e armén, förlagd i Pokrovka vid Ussurijsk, med 2S7 Pion, 2S4 Tjulpan och Uragan.",
    "image": null,
    "sources": [
     {
@@ -5725,7 +5732,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "31:a gardes ingenjörregementet är en regemente i Rysslands markstridskrafter. Den ingår i 58:e gardes armén. Garnison: Prochladnyj. Status: aktiv enligt källan.",
+   "description_sv": "Ingenjörregemente i 58:e armén, bildat 2014 och förlagt i Prochladnyj i Kabardino-Balkarien.",
    "image": null,
    "sources": [
     {
@@ -5775,7 +5782,7 @@
    "equipment": [],
    "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "31:a motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 67:e motoriserade skyttedivisionen. Status: nybildad 2023, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente \"Basjkortostan\" i 67:e motoriserade skyttedivisionen (25:e armén), bildat under kriget.",
    "image": null,
    "sources": [
     {
@@ -5863,7 +5870,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "319:e helikopterregementet är en regemente i Rysslands flygstridskrafter. Källan nämner Ka-52, Mi-8 / Mi-8AMTSj. Status: aktiv enligt källan.",
+   "description_sv": "Helikopterregemente i arméflyget, baserat på Tjernigovka i Primorje, med Ka-52 och Mi-8.",
    "image": null,
    "sources": [
     {
@@ -5950,7 +5957,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "33:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 20:e gardes motoriserade skyttedivisionen. Källan nämner T-80BVM, BMP-2, BTR-82A. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserat skytteregemente (Donkosackerna) i 20:e gardes motoriserade skyttedivisionen, förlagt i Kamysjin, med T-80BVM, BMP-2 och BTR-82A.",
    "image": null,
    "sources": [
     {
@@ -6008,7 +6015,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "33:e luftvärnsrobotregementet är en regemente i Rysslands luftförsvar. Den ingår i 1:a luftvärnsdivisionen. Garnison: Novaja Zemlja. Källan nämner S-400, S-300 (PS, PM, V4). Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotregemente i 1:a luftvärnsdivisionen, bildat 2015 med stab i Rogatjovo på Novaja Zemlja, med S-400 och S-300.",
    "image": null,
    "sources": [
     {
@@ -6035,7 +6042,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "331:a gardes fallskärmsregementet är en regemente i Rysslands luftlandsättningstrupper (VDV). Den ingår i 98:e gardes luftlandsättningsdivisionen. Källan nämner BMD-2. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Fallskärmsregemente i 98:e gardes luftlandsättningsdivisionen, förlagt i Kostroma, med BMD-2. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -6070,7 +6077,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "332:a gardes helikopterregementet är en regemente i Rysslands flygstridskrafter. Källan nämner Mi-28N / Mi-28NM, Mi-24 / Mi-35M, Mi-8 / Mi-8AMTSj. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Helikopterregemente i 6:e flyg- och luftförsvarsarmén, baserat vid Sankt Petersburg (Pusjkin och Pribylovo), med Mi-28N, Mi-35M och Mi-8. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -6093,7 +6100,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "334:e radarregementet är en regemente i Rysslands luftförsvar. Status: aktiv enligt källan.",
+   "description_sv": "Radarregemente i 2:a luftvärnsdivisionen med stab i Petrozavodsk.",
    "image": null,
    "sources": [
     {
@@ -6117,7 +6124,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "335:e radarregementet är en regemente i Rysslands luftförsvar. Den ingår i 32:a luftvärnsdivisionen. Status: aktiv enligt källan.",
+   "description_sv": "Radarregemente i 32:a luftvärnsdivisionen med stab i Jaroslavl.",
    "image": null,
    "sources": [
     {
@@ -6146,7 +6153,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "337:e gardes helikopterregementet är en regemente i Rysslands flygstridskrafter. Garnison: Tolmatjjovo. Källan nämner Mi-24 / Mi-35M, Mi-8 / Mi-8AMTSj. Status: aktiv enligt källan.",
+   "description_sv": "Helikopterregemente i 14:e flyg- och luftförsvarsarmén, baserat på Tolmatjovo vid Novosibirsk, med Mi-35M och Mi-8.",
    "image": null,
    "sources": [
     {
@@ -6178,7 +6185,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "338:e gardes raketartilleribrigaden är en brigad i Rysslands markstridskrafter. Garnison: Ussurijsk. Källan nämner BM-27 Uragan. Status: aktiv enligt källan.",
+   "description_sv": "Raketartilleribrigad med BM-27 Uragan i 5:e armén, förlagd i Ussurijsk i Primorje.",
    "image": null,
    "sources": [
     {
@@ -6206,7 +6213,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "339:e radarregementet är en regemente i Rysslands luftförsvar. Status: aktiv enligt källan.",
+   "description_sv": "Radarregemente i 51:a luftvärnsdivisionen med stab i Astrachan.",
    "image": null,
    "sources": [
     {
@@ -6327,7 +6334,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "34:e järnvägsbrigaden är en brigad i Rysslands markstridskrafter. Garnison: Rybnoje. Status: aktiv enligt källan.",
+   "description_sv": "Järnvägsbrigad i Moskvas militärdistrikt, förlagd i Rjazan oblast.",
    "image": null,
    "sources": [
     {
@@ -6352,7 +6359,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "345:e gardes fallskärmsregementet är en regemente i Rysslands luftlandsättningstrupper (VDV). Garnison: Ivanovo. Status: aktiv enligt källan.",
+   "description_sv": "Luftanfallsregemente i 104:e gardes luftanfallsdivisionen; databasen knyter det till Ivanovo.",
    "image": null,
    "sources": [
     {
@@ -6382,7 +6389,7 @@
    "equipment": [],
    "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "345:e luftanfallsregementet är en regemente i Rysslands luftlandsättningstrupper (VDV). Den ingår i 104:e gardes luftanfallsdivisionen. Status: nybildad 2023, i strid i Ukraina enligt källan.",
+   "description_sv": "Luftanfallsregemente uppkallat efter generalöverste Vostrotin, i 104:e gardes luftanfallsdivisionen i Uljanovsk, bildat 2023.",
    "image": null,
    "sources": [
     {
@@ -6405,7 +6412,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "346:e motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i markstridskrafterna, bildat 2022 under kriget.",
    "image": null,
    "sources": [
     {
@@ -6429,7 +6436,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "347:e motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente som bildades av mobiliserade i oktober–november 2022.",
    "image": null,
    "sources": [
     {
@@ -6519,7 +6526,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "35:e gardes CBRN-skyddsregementet är en regemente i Rysslands markstridskrafter. Den ingår i 35:e gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "CBRN-skyddsregemente i 35:e armén, förlagt i Belogorsk i Amur oblast. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -6641,7 +6648,7 @@
    "equipment": [],
    "status_sv": "återbildad 2021",
    "as_of": "2026-11",
-   "description_sv": "358:e gardes luftvärnsrobotregementet är en regemente i Rysslands luftförsvar. Den ingår i 20:e gardes motoriserade skyttedivisionen. Status: återbildad 2021.",
+   "description_sv": "Luftvärnsrobotregemente i 20:e gardes motoriserade skyttedivisionen, förlagt i Volgograd och återbildat 2021.",
    "image": null,
    "sources": [
     {
@@ -6775,7 +6782,7 @@
    "equipment": [],
    "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "37:e motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 67:e motoriserade skyttedivisionen. Status: nybildad 2023, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 67:e motoriserade skyttedivisionen (25:e armén), bildat 2023.",
    "image": null,
    "sources": [
     {
@@ -6803,7 +6810,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "377:e gardes luftvärnsrobotregementet är en regemente i Belarus luftförsvar. Garnison: Polotsk. Källan nämner S-300 (PS, PM, V4). Status: aktiv enligt källan.",
+   "description_sv": "Belarus luftvärnsrobotregemente i Polatsk, med S-300.",
    "image": null,
    "sources": [
     {
@@ -6869,7 +6876,7 @@
    ],
    "status_sv": "återbildad 2017",
    "as_of": "2026-11",
-   "description_sv": "381:a gardes artilleriregementet är en regemente i Rysslands markstridskrafter. Den ingår i 150:e gardes motoriserade skyttedivisionen. Källan nämner 2S19 Msta-S, 2A65 Msta-B, Tornado-G. Status: återbildad 2017.",
+   "description_sv": "Artilleriregemente i 150:e gardes motoriserade skyttedivisionen, förlagt i Novotjerkassk och återbildat 2017, med Msta-S, Msta-B och Tornado-G.",
    "image": null,
    "sources": [
     {
@@ -6924,7 +6931,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "385:e gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 2:a gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Artilleribrigad (Odesskaja) i 2:a gardes armén, förlagd i Totskoje i Orenburg oblast. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -6952,7 +6959,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "387:e motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente som bildades av mobiliserade i oktober 2022 och först lades under luftlandsättningstrupperna.",
    "image": null,
    "sources": [
     {
@@ -7051,7 +7058,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "39:e järnvägsbrigaden är en brigad i Rysslands markstridskrafter. Status: aktiv enligt källan.",
+   "description_sv": "Järnvägsbrigad i ständig beredskap, förlagd i Krasnodar.",
    "image": null,
    "sources": [
     {
@@ -7070,11 +7077,13 @@
    "branch": "flyg",
    "country": "RU",
    "parent": "34-blandade-flygdivisionen",
-   "garrison": [],
+   "garrison": [
+    "tjernjachovsk"
+   ],
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "4:e gardes blandade flygregementet är en regemente i Rysslands flygstridskrafter. Den ingår i 34:e blandade flygdivisionen. Status: aktiv enligt källan.",
+   "description_sv": "Östersjöflottans marina attackflygregemente i 34:e blandade flygdivisionen, baserat i Tjernjachovsk, med Su-30SM och Su-24M.",
    "image": null,
    "sources": [
     {
@@ -7082,8 +7091,7 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
     }
-   ],
-   "garrison_note_sv": "Fast förläggning är okänd: öppna källor anger ingen säker garnison."
+   ]
   },
   {
    "id": "4-gardes-flyg-och-luftforsvarsarmen",
@@ -7218,7 +7226,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "4:e ubåtsbrigaden är en brigad i Rysslands marin. Den ingår i Svartahavsflottan. Källan nämner Kilo-klass (projekt 636.3). Status: aktiv enligt källan.",
+   "description_sv": "Svartahavsflottans ubåtsbrigad, bildad 2014, med dieselelektriska ubåtar av Kilo-klassen (projekt 636.3) som kan skjuta Kalibr-robotar; baserad i Novorossijsk.",
    "image": null,
    "sources": [
     {
@@ -7243,7 +7251,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "40:e CBRN-skyddsregementet är en regemente i Rysslands markstridskrafter. Den ingår i 58:e gardes armén. Status: aktiv enligt källan.",
+   "description_sv": "CBRN-skyddsregemente i 58:e armén, förlagt i Archonskaja i Nordossetien.",
    "image": null,
    "sources": [
     {
@@ -7268,7 +7276,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "40:e gardes ingenjörregementet är en regemente i Rysslands markstridskrafter. Garnison: Isjim. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Ingenjörregemente i 41:a armén, bildat 2020 och förlagt i Isjim i Tiumen oblast. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -7331,7 +7339,7 @@
    ],
    "status_sv": "återbildad 2018",
    "as_of": "2026-11",
-   "description_sv": "400:e gardes självgående artilleriregementet är en regemente i Rysslands markstridskrafter. Källan nämner 2S3 Akatsija, BM-27 Uragan. Status: återbildad 2018.",
+   "description_sv": "Självgående artilleriregemente i 90:e gardes stridsvagnsdivisionen, förlagt i Tjebarkul och återbildat 2018, med Akatsija och Uragan.",
    "image": null,
    "sources": [
     {
@@ -7394,7 +7402,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "41:a robotbåtsbrigaden är en brigad i Rysslands marin. Källan nämner Kalibr, Bujan-M-klass (projekt 21631). Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Svartahavsflottans brigad för robotfartyg och robotbåtar, med bland annat robotkorvetter av Bujan-M-klassen som skjuter Kalibr. Den har stridit i kriget mot Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -7493,7 +7501,7 @@
    ],
    "status_sv": "återbildad 2013, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "423:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 4:e gardes stridsvagnsdivisionen. Garnison: Naro-Fominsk. Källan nämner T-80BVM, BMP-2, BTR-82A, 2S19 Msta-S, BM-21 Grad. Status: återbildad 2013, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente (Jampolskij) i 4:e gardes stridsvagnsdivisionen, förlagt i Naro-Fominsk och återbildat 2013. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -7521,7 +7529,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "429:e motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 19:e motoriserade skyttedivisionen. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 19:e motoriserade skyttedivisionen (58:e armén). Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -7545,7 +7553,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "430:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i markstridskrafterna, bildat 2022 under kriget.",
    "image": null,
    "sources": [
     {
@@ -7573,7 +7581,7 @@
    ],
    "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "433:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 27:e gardes motoriserade skyttedivisionen. Källan nämner T-72B3. Status: nybildad 2023, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente uppkallat efter Donkosackerna, i 27:e gardes motoriserade skyttedivisionen, förlagt i Totskoje.",
    "image": null,
    "sources": [
     {
@@ -7600,7 +7608,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "439:e gardes raketartilleribrigaden är en brigad i Rysslands markstridskrafter. Källan nämner D-30. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Raketartilleribrigad (Perekopskaja) i markstridskrafterna, förlagd vid Kapustin Jar i Astrachan oblast. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -7658,7 +7666,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "44:e gardes stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Status: aktiv enligt källan.",
+   "description_sv": "Stridsvagnsregemente för utbildning (Berditjevskij) i markstridskrafterna.",
    "image": null,
    "sources": [
     {
@@ -7692,7 +7700,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "440:e gardes helikopterregementet är en regemente i Rysslands flygstridskrafter. Källan nämner Ka-52, Mi-8 / Mi-8AMTSj. Status: aktiv enligt källan.",
+   "description_sv": "Helikopterregemente i 6:e flyg- och luftförsvarsarmén, baserat på Dvojevka vid Vjazma, med Ka-52 och Mi-8.",
    "image": null,
    "sources": [
     {
@@ -7782,7 +7790,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "45:e gardes ingenjörbrigaden är en brigad i Rysslands markstridskrafter. Garnison: Nachabino. Status: aktiv enligt källan.",
+   "description_sv": "Ingenjörbrigad (Berlinskaja), förlagd i Nachabino väster om Moskva.",
    "image": null,
    "sources": [
     {
@@ -7841,7 +7849,7 @@
    ],
    "status_sv": "återbildad 2017",
    "as_of": "2026-11",
-   "description_sv": "45:e tunga artilleribrigaden är en brigad i Rysslands markstridskrafter. Källan nämner 2S4 Tjulpan. Status: återbildad 2017.",
+   "description_sv": "Tung artilleribrigad (Svirskaja) med 2S4 Tjulpan, förlagd i Tambov och återbildad 2017.",
    "image": null,
    "sources": [
     {
@@ -7864,7 +7872,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "453:e stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Stridsvagnsregemente som bildades av mobiliserade 2022. Det strider i Ukraina.",
    "image": null,
    "sources": [
     {
@@ -7892,7 +7900,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "47:e gardes bombflygregementet är en regemente i Rysslands flygstridskrafter. Den ingår i 105:e gardes blandade flygdivisionen. Garnison: Baltimor (Voronezj). Källan nämner Su-34. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Bombflygregemente i 105:e gardes blandade flygdivisionen, baserat på Baltimor i Voronezj, med två divisioner Su-34. Det har deltagit i luftkriget mot Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -7978,7 +7986,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "479:e robotregementet är en regemente i Rysslands robotstyrkor. Garnison: Majkop. Källan nämner Topol-M. Status: aktiv enligt källan.",
+   "description_sv": "Robotregemente som tidigare hörde till strategiska robotstyrkorna (46:e robotbrigaden och 35:e robotdivisionen); databasen knyter det till Majkop.",
    "image": null,
    "sources": [
     {
@@ -8007,7 +8015,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "487:e helikopterregementet är en regemente i Rysslands flygstridskrafter. Källan nämner Mi-28N / Mi-28NM, Mi-24 / Mi-35M, Mi-8 / Mi-8AMTSj. Status: aktiv enligt källan.",
+   "description_sv": "Helikopterregemente för stridsledning i 4:e flyg- och luftförsvarsarmén, baserat i Budjonnovsk i Stavropol kraj, med Mi-28N, Mi-35M och Mi-8.",
    "image": null,
    "sources": [
     {
@@ -8037,7 +8045,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "488:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 144:e gardes motoriserade skyttedivisionen. Garnison: Klintsy. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserat skytteregemente (Simferopolskij) i 144:e motoriserade skyttedivisionen, förlagt i Klintsy i Brjansk oblast; tidigare 28:e motoriserade skyttebrigaden. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -8239,7 +8247,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "5:e järnvägsbrigaden är en brigad i Rysslands markstridskrafter. Garnison: Abakan. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Järnvägsbrigad (Poznanskaja) i järnvägstrupperna, förlagd i Abakan i Chakassien. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -8354,7 +8362,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "50:e järnvägsbrigaden är en brigad i Rysslands markstridskrafter. Garnison: Svobodnyj. Status: aktiv enligt källan.",
+   "description_sv": "Järnvägsbrigad i järnvägstrupperna, förlagd i Svobodnyj i Amur oblast.",
    "image": null,
    "sources": [
     {
@@ -8381,7 +8389,7 @@
    ],
    "status_sv": "återbildad 2021, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "503:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 19:e motoriserade skyttedivisionen. Källan nämner BTR-82A. Status: återbildad 2021, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente (Fastovskij) i 19:e motoriserade skyttedivisionen (58:e armén), förlagt i Troitskaja i Ingusjetien och återbildat 2021. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -8404,7 +8412,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "504:e stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Stridsvagnsregemente i markstridskrafterna, bildat 2022 under kriget.",
    "image": null,
    "sources": [
     {
@@ -8430,7 +8438,7 @@
    "equipment": [],
    "status_sv": "nybildad 2024, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "506:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 27:e gardes motoriserade skyttedivisionen. Status: nybildad 2024, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente (Poznanskij) i 27:e gardes motoriserade skyttedivisionen, förlagt i Totskoje.",
    "image": null,
    "sources": [
     {
@@ -8494,7 +8502,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "51:a gardes artilleribrigaden är en brigad i Belarus markstridskrafter. Källan nämner 2A65 Msta-B, 2S7 Pion / Malka, BM-27 Uragan. Status: aktiv enligt källan.",
+   "description_sv": "Belarus artilleribrigad i Asipovitjy, bildad 1942, med Msta-B, 2S7 Pion och Uragan.",
    "image": null,
    "sources": [
     {
@@ -8561,7 +8569,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "511:e gardes luftvärnsrobotregementet är en regemente i Rysslands luftförsvar. Garnison: Engels (luftvärnsförband). Källan nämner S-400, S-300 (PS, PM, V4). Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotregemente (Smolenskij) i 76:e luftvärnsdivisionen, förlagt i Engels i Saratov oblast, med S-400 och S-300 som bland annat skyddar bombflygbasen Engels-2.",
    "image": null,
    "sources": [
     {
@@ -8590,7 +8598,7 @@
    ],
    "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "52:a gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Källan nämner D-30, BM-27 Uragan, ZALA (spaningsdrönare). Status: nybildad 2023, i strid i Ukraina enligt källan.",
+   "description_sv": "Artilleribrigad i luftlandsättningstrupperna, bildad 2023 och förlagd i Rajevskaja vid Novorossijsk, med D-30, Uragan och drönare av typen ZALA.",
    "image": null,
    "sources": [
     {
@@ -8618,7 +8626,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "52:a gardes tunga bombflygregementet är en regemente i Rysslands flygstridskrafter. Garnison: Sjajkovka. Källan nämner Tu-22M3, Kh-22. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Tungt bombflygregemente i fjärrflyget, baserat på Sjajkovka i Kaluga oblast, med Tu-22M3 och Ch-22-robotar. Basen har anfallits av Ukraina flera gånger sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -8677,7 +8685,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "538:e gardes luftvärnsrobotregementet är en regemente i Rysslands luftförsvar. Den ingår i 4:e gardes stridsvagnsdivisionen. Källan nämner Tor-M2. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotregemente i 4:e gardes stridsvagnsdivisionen, förlagt i Naro-Fominsk, med Tor-M2.",
    "image": null,
    "sources": [
     {
@@ -8733,7 +8741,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "54:e motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente som bildades 2022 och först hörde till 6:e motoriserade skyttedivisionen.",
    "image": null,
    "sources": [
     {
@@ -8759,7 +8767,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "55:e gardes helikopterregementet är en regemente i Rysslands flygstridskrafter. Garnison: Korenovsk. Status: aktiv enligt källan.",
+   "description_sv": "Helikopterregemente (Sevastopolskij) i 4:e flyg- och luftförsvarsarmén, baserat i Korenovsk i Krasnodar kraj.",
    "image": null,
    "sources": [
     {
@@ -8814,7 +8822,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "55:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 41:a gardes armén. Garnison: Kyzyl. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Bergsbrigad i 41:a armén, förlagd i Kyzyl i Tuva. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -8846,7 +8854,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "559:e gardes bombflygregementet är en regemente i Rysslands flygstridskrafter. Den ingår i 1:a gardes blandade flygdivisionen. Garnison: Morozovsk. Källan nämner Su-34. Status: aktiv enligt källan.",
+   "description_sv": "Bombflygregemente i 1:a gardes blandade flygdivisionen, baserat på Morozovsk i Rostov oblast, med tre divisioner Su-34. Basen har anfallits av Ukraina flera gånger.",
    "image": null,
    "sources": [
     {
@@ -8871,7 +8879,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "56:e gardes luftanfallsregementet är en regemente i Rysslands luftlandsättningstrupper (VDV). Den ingår i 7:e gardes luftanfallsdivisionen. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Luftanfallsregemente (Donkosackerna) i 7:e gardes luftanfallsdivisionen, förlagt i Feodosija på det ockuperade Krim. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -8899,12 +8907,11 @@
     "sesjtja"
    ],
    "equipment": [
-    "su-27",
     "an-124"
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "566:e transportflygregementet är en regemente i Rysslands flygstridskrafter. Den ingår i 12:e transportflygdivisionen. Källan nämner Su-27 / Su-27SM3, An-124. Status: aktiv enligt källan.",
+   "description_sv": "Transportflygregemente (Solnetjnogorskij) i 12:e transportflygdivisionen, baserat på Sesjtja i Brjansk oblast sedan 1958 – det enda förbandet med An-124.",
    "image": null,
    "sources": [
     {
@@ -8962,7 +8969,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "57:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserat skytteregemente som bildades 2022 och först hörde till 6:e motoriserade skyttedivisionen.",
    "image": null,
    "sources": [
     {
@@ -9023,7 +9030,7 @@
    "equipment": [],
    "status_sv": "nybildad 2024",
    "as_of": "2026-11",
-   "description_sv": "589:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 27:e gardes motoriserade skyttedivisionen. Status: nybildad 2024.",
+   "description_sv": "Motoriserat skytteregemente (Berlinskij) i 27:e gardes motoriserade skyttedivisionen, förlagt i Rosjtjinskij i Samara oblast.",
    "image": null,
    "sources": [
     {
@@ -9048,7 +9055,7 @@
    "equipment": [],
    "status_sv": "återbildad 2018, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "59:e gardes stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Status: återbildad 2018, i strid i Ukraina enligt källan.",
+   "description_sv": "Stridsvagnsregemente (Ljublinskij) i 144:e gardes motoriserade skyttedivisionen, förlagt i Jelnja och återbildat 2018. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -9137,7 +9144,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "6:e gardes mekaniserade brigaden är en brigad i Belarus markstridskrafter. Garnison: Grodno. Status: aktiv enligt källan.",
+   "description_sv": "Belarus mekaniserade brigad (Kievsko-Berlinskaja) i Hrodna.",
    "image": null,
    "sources": [
     {
@@ -9167,7 +9174,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "6:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 3:e gardes armén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Kosackbrigad (Lisitjanskaja, uppkallad efter Matvej Platov) i 3:e gardes armén, förlagd i Luhansk; före 2023 en del av Luhansks \"folkrepubliks\" milis.",
    "image": null,
    "sources": [
     {
@@ -9200,7 +9207,7 @@
    ],
    "status_sv": "återbildad 2016, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "6:e gardes stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Garnison: Tjebarkul. Källan nämner T-80BVM, BMP-2. Status: återbildad 2016, i strid i Ukraina enligt källan.",
+   "description_sv": "Stridsvagnsregemente (Lvovskij) i 90:e gardes stridsvagnsdivisionen, förlagt i Tjebarkul och återbildat 2016, med T-80BVM. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -9254,7 +9261,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "60:e gardes motoriserade skyttebataljonen är en bataljon i Rysslands markstridskrafter. Den ingår i 9:e gardes motoriserade skyttebrigaden. Garnison: Donetsk. Status: aktiv enligt källan.",
+   "description_sv": "Stormbataljonen Somali, uppkallad efter M. S. Tolstych, i Donetsk; före 1 januari 2023 en del av Donetsks \"folkrepubliks\" milis.",
    "image": null,
    "sources": [
     {
@@ -9353,7 +9360,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "606:e gardes luftvärnsrobotregementet är en regemente i Rysslands luftförsvar. Den ingår i 5:e luftvärnsdivisionen. Garnison: Elektrostal. Källan nämner S-400. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotregemente i 5:e luftvärnsdivisionen med stab i Elektrostal öster om Moskva, med S-400.",
    "image": null,
    "sources": [
     {
@@ -9445,7 +9452,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "61:a jaktflygbasen är en flygbas i Belarus flygstridskrafter. Garnison: Baranavitjy (Belarus). Källan nämner Su-27 / Su-27SM3, MiG-29 / MiG-29SMT. Status: aktiv enligt källan.",
+   "description_sv": "Belarus jaktflygbas i Baranavitjy, med MiG-29, Su-30SM och Su-27.",
    "image": null,
    "sources": [
     {
@@ -9656,7 +9663,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "68:e gardes stridsvagnsregementet är en regemente i Rysslands markstridskrafter. Garnison: Novotjerkassk. Källan nämner T-72B3, T-80BVM, D-30. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Stridsvagnsregemente (Zjitomirsko-Berlinskij) i 150:e gardes motoriserade skyttedivisionen, förlagt i Novotjerkassk, med T-72B3 och T-80BVM. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -9681,7 +9688,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "68:e marina ingenjörregementet är en regemente i Rysslands marin. Garnison: Jevpatorija (marinbas). Status: aktiv enligt källan.",
+   "description_sv": "Ingenjörregemente i marinens kusttrupper, förlagt i Jevpatorija på det ockuperade Krim.",
    "image": null,
    "sources": [
     {
@@ -9746,7 +9753,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "69:e skyddsbrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 35:e gardes armén. Källan nämner T-80BVM, BMP-2, 2S19 Msta-S, BM-21 Grad. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Skyddsbrigad (Amurkosackerna) i 35:e armén, förlagd i Babstovo i Judiska autonoma området, en brigad för gränsskydd. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -9806,7 +9813,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "7:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 3:e gardes armén. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad (Tjistjakovskaja) i 3:e gardes armén, förlagd i Luhansk; före 1 januari 2023 en del av Luhansks \"folkrepubliks\" milis.",
    "image": null,
    "sources": [
     {
@@ -9836,7 +9843,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "7:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 11:e armékåren. Garnison: Kaliningrad (luftvärn). Status: aktiv enligt källan.",
+   "description_sv": "Självständigt motoriserat skytteregemente (Proletarskij) i 11:e armékåren, förlagt i Kaliningrad.",
    "image": null,
    "sources": [
     {
@@ -9961,7 +9968,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "70:e gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 42:a gardes motoriserade skyttedivisionen. Garnison: Sjali. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 42:a gardes motoriserade skyttedivisionen, förlagt i Sjali i Tjetjenien. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -10088,7 +10095,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "71:a gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 42:a gardes motoriserade skyttedivisionen. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserat skytteregemente i 42:a gardes motoriserade skyttedivisionen, förlagt i Kalinovskaja i Tjetjenien. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -10113,7 +10120,7 @@
    ],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "72:a motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 3:e armékåren. Källan nämner Orlan-10. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad i 3:e armékåren, bildad 2022. Den led stora förluster vid Bachmut i maj 2023.",
    "image": null,
    "sources": [
     {
@@ -10180,7 +10187,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "74:e gardes motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Garnison: Jurga. Källan nämner T-72B3. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Motoriserad skyttebrigad (Zvenigorodsko-Berlinskaja) i 41:a armén, förlagd i Jurga i Kemerovo oblast. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -10203,7 +10210,7 @@
    "type": "regemente",
    "branch": "robot",
    "country": "RU",
-   "parent": "8-robotdivisionen",
+   "parent": "28-gardes-robotdivisionen",
    "garrison": [
     "kozelsk-robot"
    ],
@@ -10212,7 +10219,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "74:e robotregementet är en regemente i Rysslands robotstyrkor. Den ingår i 8:e robotdivisionen. Garnison: Kozelsk. Källan nämner RS-24 Jars. Status: aktiv enligt källan.",
+   "description_sv": "Robotregemente (Brjanskij) i 28:e gardes robotdivisionen (27:e robotarmén) vid Kozelsk, med silobaserade RS-24 Jars.",
    "image": null,
    "sources": [
     {
@@ -10241,7 +10248,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "752:a gardes motoriserade skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 27:e gardes motoriserade skyttedivisionen. Garnison: Valujki. Källan nämner T-72B3, BTR-82A, BM-21 Grad. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserat skytteregemente (Volgakosackerna) i 3:e motoriserade skyttedivisionen, förlagt i Valujki i Belgorod oblast.",
    "image": null,
    "sources": [
     {
@@ -10328,7 +10335,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "79:e gardes raketartilleribrigaden är en brigad i Rysslands markstridskrafter. Status: aktiv enligt källan.",
+   "description_sv": "Raketartilleribrigad med BM-27 Uragan, förlagd i Tver.",
    "image": null,
    "sources": [
     {
@@ -10482,7 +10489,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "80:e motoriserade skyttebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 14:e armékåren. Garnison: Alakurtti. Källan nämner MT-LB. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Arktisk motoriserad skyttebrigad i 14:e armékåren, bildad 2014 och förlagd i Alakurtti i Murmansk oblast. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -10544,7 +10551,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "82:a gardes motoriserade skyttebataljonen är en bataljon i Rysslands markstridskrafter. Garnison: Tiraspol (ryska styrkor i Transnistrien). Källan nämner BMP-2. Status: aktiv enligt källan.",
+   "description_sv": "Motoriserad skyttebataljon i den ryska styrkan i Transnistrien, förlagd i Bender.",
    "image": null,
    "sources": [
     {
@@ -10639,7 +10646,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "856:e gardes självgående artilleriregementet är en regemente i Rysslands markstridskrafter. Den ingår i 144:e gardes motoriserade skyttedivisionen. Garnison: Potjep. Källan nämner 2S19 Msta-S. Status: aktiv enligt källan.",
+   "description_sv": "Självgående artilleriregemente (Kobrinskij) i 144:e motoriserade skyttedivisionen, förlagt i Potjep i Brjansk oblast, med 2S19 Msta-S.",
    "image": null,
    "sources": [
     {
@@ -10664,7 +10671,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "87:e skytteregementet är en regemente i Rysslands markstridskrafter. Den ingår i 51:a gardes armén. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Skytteregemente ur Donetsks \"folkrepubliks\" tidigare milis, i 51:a gardes armén (före 2024 1:a armékåren).",
    "image": null,
    "sources": [
     {
@@ -10694,7 +10701,7 @@
    "equipment": [],
    "status_sv": "återbildad 2018",
    "as_of": "2026-11",
-   "description_sv": "872:a självgående artilleriregementet är en regemente i Rysslands markstridskrafter. Den ingår i 127:e gardes motoriserade skyttedivisionen. Status: återbildad 2018.",
+   "description_sv": "Självgående artilleriregemente i 127:e motoriserade skyttedivisionen, förlagt i Barano-Orenburgskoje i Primorje och återbildat 2018.",
    "image": null,
    "sources": [
     {
@@ -10722,7 +10729,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "9:e gardes artilleribrigaden är en brigad i Rysslands markstridskrafter. Garnison: Luga, Luga. Källan nämner 2S19 Msta-S. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Artilleribrigad (Kieletsko-Berlinskaja) i 6:e armén, förlagd i Luga, med 2S19 Msta-S. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -10839,7 +10846,7 @@
    "equipment": [],
    "status_sv": "nybildad 2023, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "91:a logistikbrigaden är en brigad i Rysslands markstridskrafter. Status: nybildad 2023, i strid i Ukraina enligt källan.",
+   "description_sv": "Mobil logistikbrigad i luftlandsättningstrupperna, bildad 2023.",
    "image": null,
    "sources": [
     {
@@ -10923,7 +10930,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "933:e luftvärnsrobotregementet är en regemente i Rysslands luftförsvar. Den ingår i 150:e gardes motoriserade skyttedivisionen. Garnison: Millerovo (luftvärnsförband). Källan nämner Tor-M2. Status: aktiv enligt källan.",
+   "description_sv": "Luftvärnsrobotregemente med Tor-M2, förlagt i Millerovo i Rostov oblast.",
    "image": null,
    "sources": [
     {
@@ -10948,7 +10955,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "944:e gardes självgående artilleriregementet är en regemente i Rysslands markstridskrafter. Den ingår i 20:e gardes motoriserade skyttedivisionen. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Självgående artilleriregemente i 20:e gardes motoriserade skyttedivisionen, förlagt i Volgograd. Det har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -10973,7 +10980,7 @@
    "equipment": [],
    "status_sv": "nybildad 2022, i strid i Ukraina enligt källan",
    "as_of": "2026-11",
-   "description_sv": "95:e skytteregementet är en regemente i Rysslands markstridskrafter. Status: nybildad 2022, i strid i Ukraina enligt källan.",
+   "description_sv": "Skytteregemente ur Donetsks \"folkrepubliks\" tidigare milis, i ryska markstridskrafterna.",
    "image": null,
    "sources": [
     {
@@ -10998,7 +11005,7 @@
    "equipment": [],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "96:e underrättelsebrigaden är en brigad i Rysslands markstridskrafter. Den ingår i 1:a gardes stridsvagnsarmén. Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Underrättelsebrigad (Nizjegorodskaja) i 1:a gardes stridsvagnsarmén, förlagd i Sormovo i Nizjnij Novgorod. Den har stridit i Ukraina sedan 2022.",
    "image": null,
    "sources": [
     {
@@ -11062,7 +11069,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "999:e gardes flygbasen är en flygbas i Rysslands flygstridskrafter. Källan nämner Su-25, Mi-8 / Mi-8AMTSj, Orlan-10. Status: aktiv enligt källan.",
+   "description_sv": "Rysk flygbas i Kant i Kirgizistan med Su-25 och helikoptrar.",
    "image": null,
    "sources": [
     {
@@ -11087,7 +11094,7 @@
    "equipment": [],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "Baltijsks marinbas är en marinbas i Rysslands marin. Den ingår i Östersjöflottan. Garnison: Baltijsk. Status: aktiv enligt källan.",
+   "description_sv": "Östersjöflottans marinbas i Baltijsk, som leder fartygsförbanden och hamnen i flottans huvudbas.",
    "image": null,
    "sources": [
     {
@@ -11196,7 +11203,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "Novorossijsks marinbas är en marinbas i Rysslands marin. Den ingår i Svartahavsflottan. Garnison: Novorossijsk. Källan nämner Kilo-klass (projekt 636.3). Status: aktiv enligt källan.",
+   "description_sv": "Svartahavsflottans territoriella marinbas i Tsemes-viken i Novorossijsk, dit flottans större fartyg och ubåtar flyttades 2023–2024.",
    "image": null,
    "sources": [
     {
@@ -11248,7 +11255,7 @@
    ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
-   "description_sv": "Rubikon, centret för obemannade system är en center i Rysslands markstridskrafter. Källan nämner Lancet, Geran-2 (Shahed-136). Status: i strid i Ukraina sedan 2022 enligt källan.",
+   "description_sv": "Centret för avancerade obemannade system Rubikon, bildat i augusti 2024 på order av försvarsminister Belousov. Det är specialiserat på drönarkrig, med bland annat Lancet och Geran-2, och har stridit i Kursk oblast och Ukraina.",
    "image": null,
    "sources": [
     {
@@ -11399,7 +11406,7 @@
    ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
-   "description_sv": "Vita havets marinbas är en marinbas i Rysslands marin. Den ingår i Norra flottan. Garnison: Severodvinsk. Källan nämner Bulava. Status: aktiv enligt källan.",
+   "description_sv": "Norra flottans marinbas i Severodvinsk vid Vita havet, med Bulava enligt källorna.",
    "image": null,
    "sources": [
     {

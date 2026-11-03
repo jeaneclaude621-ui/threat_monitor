@@ -2,7 +2,7 @@
 Checks the forces foundation database (config/forces_db): every id
 reference resolves (and a unit's garrison lists the unit, and back), every
 entry has a source, every image file exists and carries author, licence
-and source, every ship has a class and a home base, no base text is the
+and source, every ship has a class and a home base, no base or unit text is the
 first pass's template, and the app's static copies match.
 Also: no Russian state media, Telegram or email addresses anywhere, the
 image folder within its limits (15 MB in all, 80 KB a file), and the
@@ -28,6 +28,7 @@ STRIKE_IDS = ["geran-2", "shahed-131", "geran-3", "geran-4", "geran-5", "gerbera
 BANNED = re.compile(r"(^|[/.])(tass\.(ru|com)|rt\.com|ria\.ru|sputniknews\.|sputnik\.|iz\.ru|tvzvezda\.ru|rg\.ru|t\.me|telegram\.(org|me))(/|$)", re.I)
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 TEMPLATE = re.compile(r"^\S.* är en (militär flygbas|garnison för|luftvärnsgarnison|marinbas|robotgarnison) .*militärdistrikt|Här finns enligt källorna|Materiel som nämns:")
+UNIT_TEMPLATE = re.compile(r" är en? \w+ i (Rysslands|Belarus|ryska)\b.*Status: ")
 IMG_TOTAL = 15_000_000
 IMG_FILE = 80_000
 PAYLOAD_MAX = 1_500_000
@@ -111,6 +112,8 @@ def main() -> int:
             err(f"unit {u['id']}: branch")
         if u.get("garrison") == [] and not u.get("garrison_note_sv"):
             err(f"unit {u['id']}: no garrison and no garrison_note_sv")
+        if UNIT_TEMPLATE.search(u.get("description_sv") or ""):
+            err(f"unit {u['id']}: description is still the template")
         if not u.get("status_sv") or not u.get("as_of"):
             err(f"unit {u['id']}: status_sv or as_of")
         if u.get("type") == "fartyg" and u.get("class") not in systems:

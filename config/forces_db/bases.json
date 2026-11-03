@@ -9939,7 +9939,8 @@
    "military_district": "Leningrads militärdistrikt",
    "description_sv": "Marinflygbas fyra kilometer sydväst om Tjernjachovsk i Kaliningrad oblast, hemmabas för 4:e gardes marina attackflygregementet med Su-30SM och Su-24M i Östersjöflottans 34:e blandade flygdivision; drönare av typen Forpost finns här sedan 2013.",
    "units": [
-    "34-blandade-flygdivisionen"
+    "34-blandade-flygdivisionen",
+    "4-gardes-blandade-flygregementet"
    ],
    "equipment": [],
    "status": {
@@ -12396,7 +12397,8 @@
    "military_district": "Östra militärdistriktet",
    "description_sv": "Sergejevka i Pogranitjnyj-distriktet i Primorje är förläggning för 127:e gardes motoriserade skyttedivisionen i 5:e armén. Divisionen strider i Zaporizjzja- och Huljajpole-riktningen enligt ISW (okt 2026).",
    "units": [
-    "127-gardes-motoriserade-skyttedivisionen"
+    "127-gardes-motoriserade-skyttedivisionen",
+    "218-gardes-stridsvagnsregementet"
    ],
    "equipment": [],
    "status": {
