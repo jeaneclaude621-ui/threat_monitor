@@ -2,18 +2,19 @@
 
 Grunddatabasen för fliken Styrkor: Rysslands och Belarus militära baser, de
 förband som finns där och de vapensystem de har, med bild och status. Allt
-kommer från öppna källor och är **inte verifierat**. Hämtat 1 november 2026.
+kommer från öppna källor och är **inte verifierat**. Hämtat 1–3 november 2026.
 
 ## Filer
 
 | Fil | Innehåll | Antal |
 |---|---|---|
-| `bases.json` | baser: flygbaser, marinbaser, garnisoner för armé, robot, luftvärn och luftlandsättning, samt ryska baser utomlands | 312 |
-| `units.json` | förband: arméer, kårer, divisioner, brigader, regementen, flottor | 383 |
+| `bases.json` | baser: flygbaser, marinbaser, garnisoner för armé, robot, luftvärn och luftlandsättning, samt ryska baser utomlands | 325 (15 nedlagda, 98 anfall) |
+| `units.json` | förband: arméer, kårer, divisioner, brigader, regementen, flottor, och marinens fartyg (`fartyg`) | 487 (varav 104 fartyg) |
 | `systems.json` | vapensystem och materiel: flyg, helikoptrar, drönare, robotar, luftvärn, fordon, artilleri, telekrig, ubåtar, fartyg | 132 (alla 33 vapen på anfallskartan ingår) |
 
-Bilder: 130 bilder i `webapp/public/forces/img/` (`sys-<id>.jpg`, cirka
-640 px breda, under 80 kB var, totalt 5,7 MB).
+Bilder: 139 bilder i `webapp/public/forces/img/` – 130 system (`sys-<id>.jpg`)
+och 9 baser (`base-<id>.jpg`), högst 640 px breda, under 80 kB var, totalt
+6,0 MB.
 
 ### Bas (`bases.json`)
 `id` (stabil slug), `name` (svensk translitterering), `name_ru`, `name_en`,
@@ -21,7 +22,7 @@ Bilder: 130 bilder i `webapp/public/forces/img/` (`sys-<id>.jpg`, cirka
 `country` (RU, BY, UA för ockuperade Krim, annars landets ISO-kod),
 `military_district`, `description_sv`, `units` (förbands-id), `equipment`
 (system-id), `status` (`status_sv`, `as_of`, `note`), `events` (anfall:
-`date`, `kind`, `text_sv`, `sources`) och `sources`. Baser från den
+`date`, `kind`, `text_sv`, `damage_sv`, `sources`), `image` (som för system, eller saknas) och `sources`. Baser från den
 handskrivna listan (`config/forces_curated.json`) har också
 `curated_index`, `curated_units` och `curated_equipment`, så att appens
 namn och visningssträngar består.
@@ -30,7 +31,8 @@ namn och visningssträngar består.
 `id`, `name_sv`, `name_ru`, `name_en`, `type`, `branch`, `country`,
 `parent` (högre förband), `garrison` (bas-id), `equipment` (system-id),
 `status_sv`, `as_of`, `description_sv`, `image` (inga förbandsmärken än),
-`sources`.
+`sources`, och vid behov `garrison_note_sv`. Fartyg (`type` "fartyg") har
+också `class` (system-id för fartygsklassen) och flottan som `parent`.
 
 ### System (`systems.json`)
 `id`, `name`, `name_ru`, `category_sv`, `role_sv`, `description_sv`,
@@ -57,14 +59,18 @@ på anfallskartan (`src/strikes.py`) är fasta och kontrolleras av
   avgör militärdistriktet. Positioner där ingen artikel finns länkas till
   OpenStreetMap.
 - **Wikimedia Commons**: alla bilder (se nedan).
+- **ISW / Critical Threats**: de dagliga bedömningarna aug–nov 2026 för
+  förbandens aktuella status (var de strider, med datum och länk).
+- **Wikipedias lista över den ryska marinens aktiva fartyg** (nov 2026):
+  fartygen, deras klass, flotta, hemmahamn och status.
 - **Ukrainska och västliga medier samt ISW**: anfall där Wikipedia inte
   räckte (Espreso, Hromadske, Kyiv Post, ISW/Critical Threats), och
   Reuters och Kyiv Independent för enstaka system.
 
 Inte använt: rysk statsmedia (TASS, RT, RIA, Sputnik, Izvestija, Zvezda,
-Rossijskaja Gazeta) och Telegram. Militaryland.net tillåter automatisk
-läsning enligt robots.txt men lästes inte i denna omgång; OpenStreetMaps
-Overpass-tjänst svarade inte (502) när underlaget byggdes. Oryx, IISS,
+Rossijskaja Gazeta) och Telegram. Militaryland.net har inga ryska förband längre
+(se beslut nedan); OpenStreetMaps Overpass-tjänst gick inte att nå från
+molnmiljön, så Wikidata fick stå för kontrollen av saknade baser. Oryx, IISS,
 CSIS, RUSI och Janes används inte direkt; förluster och styrketal från
 dem kan läggas till för hand med källa.
 
@@ -182,7 +188,8 @@ Andra omgången (påbörjad 2 nov 2026, gren `grunddata-styrkor-2`).
   flyttades från armégarnisonen till den nya flygbasen.
 - **Basbilder.** `src/forces_db_images.py` tar artikelns huvudbild från
   Commons bara om licensen är fri och upphovspersonen anges. Av 26
-  kandidater valdes de 14 som visar själva basen eller dess flygplan;
+  kandidater valdes 14 som visar själva basen eller dess flygplan, och 9
+  av dem gick att ladda ner innan Wikimedias spärr (429) tog stopp;
   bilder av orter, kyrkor, förbandsmärken och övningar med soldater i
   närbild valdes bort. Varje vald bild granskades visuellt.
   Commons levererar nu miniatyrer från `thumb.wikimedia.org`, som inte är
