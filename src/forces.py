@@ -537,6 +537,7 @@ def run(report: dict = None, pool=None, dry_run: bool = False):
           f"{len(night['changes'])} changes, {len(night['other'])} elsewhere")
     survey(state)
     isw(state)
+    firms(state)
     from app_sync import push_forces
     push_forces(payload(state))
 
@@ -552,6 +553,18 @@ def isw(state: dict, dry_run: bool = False):
     if not dry_run:
         with open(STATE_PATH, "w", encoding="utf-8") as f:
             json.dump(state, f, ensure_ascii=False, indent=1)
+
+
+def firms(state: dict):
+    """Satellite fire detections at recently attacked bases (forces_firms.py,
+    NASA FIRMS; does nothing without FIRMS_MAP_KEY). No model calls."""
+    import forces_firms
+    try:
+        forces_firms.run(state)
+    except Exception as e:
+        print(f"  ! FIRMS check failed ({type(e).__name__}: {e})")
+    with open(STATE_PATH, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=1)
 
 
 def survey(state: dict, batches: int = None):

@@ -58,6 +58,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           FORCES_SURVEY_MODEL: ${{ vars.FORCES_SURVEY_MODEL }}
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}   # NASA FIRMS (src/forces_firms.py); unset: the check is skipped
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
           STRIKES_DEBUG: ${{ vars.STRIKES_DEBUG }}

@@ -1782,7 +1782,8 @@ async function loadForcesView() {
 }
 
 // ---------------------------------------------------------------- how old a status is
-// Version 3.29: every unit and base card says when its status was last
+// Version 3.29: an attack NASA FIRMS saw as fire says so (src/forces_firms.py);
+// every unit and base card says when its status was last
 // updated; a status older than STALE_DAYS is toned down and marked
 // "ej bekräftad sedan". Dates may be a day, a month ("2026-11") or a year.
 const STALE_DAYS = 60;
@@ -2368,6 +2369,8 @@ async function viewForces() {
       events.length ? h('div', null, h('h3', { class: 'fsub' }, 'Anfall och uppföljningar'),
         h('ul', { class: 'coa-signs' }, events.map((e) => h('li', { class: `coa-sign ${e.kind === 'anfallen' ? 'obs' : 'part'}` },
           h('i'), h('span', null, h('b', null, `${dateShort(e.date)} ${e.date.slice(0, 4)}${e.kind === 'uppföljning' ? ', uppföljning' : ''}: `), e.text_sv,
+            e.firms ? h('span', { class: 'small' }, h('br'), h('b', null, 'Brand sedd av satellit (NASA FIRMS)'),
+              `: ${plural(e.firms.count, 'brandpunkt', 'brandpunkter')} inom 3 km från ${dateShort(e.firms.date)}, konfidens ${e.firms.confidence}.`) : null,
             ' ', forceSources(e.sources)))))) : null,
       surveyBlock(b.survey),
       !b.curated && !b.units.length && !b.equipment.length && !(b.survey && b.survey.summary_sv)
