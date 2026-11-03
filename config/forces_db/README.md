@@ -206,3 +206,53 @@ Andra omgången (påbörjad 2 nov 2026, gren `grunddata-styrkor-2`).
   viktigaste förbanden (arméer, kårer, flottor, divisioner och robot-,
   marininfanteri- och specialförbandsbrigader) har nu egna beskrivningar.
   45:e flyg- och luftförsvarsarmén är markerad som upplöst 2024.
+
+## Beslut i tredje omgången
+
+Tredje omgången (3 nov 2026, gren `styrkor-lopande`): löpande uppdatering
+till låg kostnad.
+
+- **Steg 0.** `origin/main` (Narrativ, latin-transkribering) mergades in
+  utan konflikter.
+- **Steg 1, ISW varje natt.** `understandingwar.org` svarar med en
+  Cloudflare-utmaning (403) både på sidorna, RSS och sitemap. Samma dagliga
+  bedömningar publiceras på `criticalthreats.org` med förutsägbara adresser
+  (`russian-offensive-campaign-assessment-<månad>-<dag>-<år>`), så
+  `src/forces_isw.py` läser dem där och provar ISW:s egen adress som
+  reserv. Förfiltret i Python (nummer + typ på det sätt ISW skriver, med
+  förkortningarna CAA, AC, GTA, MRD, TD, VDV) gav 6–9 förband ur 8 stycken
+  på de bedömningar som provades; inget stycke med ett känt förband ger
+  inget anrop. Högst ett lite-anrop per dygn (`state["isw"]["called"]`).
+- **Steg 2.** Förbands- och baskort visar "uppdaterad <datum>"; status
+  äldre än 60 dagar tonas ner och märks "ej bekräftad sedan <datum>".
+  Månadsdatum ("2026-11") räknas från månadens första dag.
+- **Steg 3, NASA FIRMS.** API:t nås från miljön (svarar "Invalid MAP_KEY"
+  utan nyckel). Modulen testas med ett sparat svar i FIRMS format;
+  `FIRMS_MAP_KEY` måste skaffas av ägaren (gratis hos NASA FIRMS) och
+  läggas som repo-hemlighet. Utan den gör kontrollen ingenting.
+- **Steg 4, bildjobbet.** Inga jobb skriver idag till kodrepot (de skriver
+  till state-repot via `STATE_DEPLOY_KEY`). Bilderna och databasen hör dock
+  hemma i kodrepot, eftersom appen serverar dem som statiska filer, så
+  `run_job.py` committar jobbets filer dit med arbetsflödets egen token
+  (`permissions: contents: write`). Jobbet pushar till grenen det körs på,
+  i drift `main`. Wikimedia stryper nya miniatyrer för miljöns adress
+  (429 även vid standardstorlekarna 330 och 500 px, medan redan skapade
+  miniatyrer levereras), så sessionen fick inga nya basbilder; jobbet
+  stannar vid första 429 och försöker igen veckan efter.
+- **Steg 5, frontlinjen: inget kartlager.** Undersökt:
+  - *ISW:s karta* (ArcGIS/KMZ): ISW anger inga öppna villkor för kartdatan;
+    innehållet är upphovsrättsskyddat och att återpublicera geometrin i en
+    app kräver tillstånd. Inte använd.
+  - *DeepStateMap*: licenssidan (deepstatemap.live/license-en.html) gick
+    inte att läsa från miljön (anslutningen bryts efter TLS-handskakningen).
+    Enligt sökresultat om sidan kräver API:t godkännande vid kommersiell
+    användning och visuellt material får användas med hänvisning, men
+    inget säger att polygondatan fritt får återpubliceras och bearbetas.
+    Inte använd utan att villkoren lästs och tillstånd getts.
+  - *Wikimedia Commons*: kartorna över ockuperat område är rasterbilder
+    eller SVG (CC BY-SA) utan geografisk referens; ingen GeoJSON med fri
+    licens hittades. *OpenStreetMap* kartlägger inte ockupationslinjer.
+  Om ägaren får skriftligt tillstånd från DeepStateMap (eller en annan
+  källa med öppen licens dyker upp) kan ett jobb och ett lager byggas:
+  förenkla ytan en gång per dygn till `webapp/public/forces/front.json`
+  och rita den halvgenomskinlig under baserna med källan på kartan.
