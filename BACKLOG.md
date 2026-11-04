@@ -143,6 +143,16 @@ Inga just nu.
 
 ## Klart
 
+- 2026-11-04: Appen tog inte emot några uppladdningar mellan 3 nov 21:51
+  och 4 nov 07:20 UTC (401 invalid_jwt). `open_app.mjs` hade skapat
+  Access-appen "Hotmonitor inloggning" (login, api/ingest/*, api/export/*)
+  men dess AUD kom aldrig in i `ACCESS_AUD`. Båda AUD ligger nu i
+  wrangler.jsonc och Workern är driftsatt. Morgonrapporten, kurserna och
+  kartorna skickades om med det nya jobbet `repush` (inga modellanrop).
+  Kvar av Version 3.17: den gamla Access-appen täcker fortfarande hela
+  adressen, så gäster kommer inte in förrän den tas bort (steg 6 i
+  `node webapp/scripts/open_app.mjs`, kräver användarens egen token).
+
 - 2026-11-03: Appen är öppen för alla som gäst (Version 3.17, hm-v3.31).
   Gäster läser Idag, Arkiv, Ämnen, Karta, Styrkor, Narrativ och
   Myndigheter utan inloggning. Bedömarnas e-postadresser byts mot
