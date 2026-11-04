@@ -149,9 +149,11 @@ Inga just nu.
   men dess AUD kom aldrig in i `ACCESS_AUD`. Båda AUD ligger nu i
   wrangler.jsonc och Workern är driftsatt. Morgonrapporten, kurserna och
   kartorna skickades om med det nya jobbet `repush` (inga modellanrop).
-  Kvar av Version 3.17: den gamla Access-appen täcker fortfarande hela
-  adressen, så gäster kommer inte in förrän den tas bort (steg 6 i
-  `node webapp/scripts/open_app.mjs`, kräver användarens egen token).
+  Samma dag kördes `open_app.mjs --force` och den gamla Access-appen togs
+  bort: appen är öppen för gäster (kontrollerat: läsvägarna svarar 200 som
+  gäst utan e-postadresser och utan ryska rubriker eller länkar; admin 401;
+  login, ingest och export bakom Access; jobbens uppladdning fungerar).
+  `--force` behövdes för att Macen saknar CF_ACCESS_CLIENT_* i ~/.zshrc.
 
 - 2026-11-03: Appen är öppen för alla som gäst (Version 3.17, hm-v3.31).
   Gäster läser Idag, Arkiv, Ämnen, Karta, Styrkor, Narrativ och
