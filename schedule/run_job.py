@@ -69,8 +69,9 @@ JOBS = {
     "strikes": ["src/strikes.py"],
     "forces_images": ["src/forces_db_images.py", "job"],
     "repush": ["src/app_sync.py", "repush"],
+    "firms_check": ["src/forces_firms.py", "check"],
 }
-QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush"}   # forces: a manual extra run; the nightly one runs inside daily
+QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check"}   # forces: a manual extra run; the nightly one runs inside daily
 HOST = "cloud"
 
 # Jobs whose output belongs in the code repo, not the state repo: the weekly

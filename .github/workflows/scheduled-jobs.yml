@@ -20,7 +20,7 @@ on:
       job:
         description: Job to run
         type: choice
-        options: [hourly, daily, forces, forces_survey, strikes, forces_images, repush]   # forces: the forces map alone (it also runs after daily); forces_images: the weekly photo job; repush: send the saved report and maps to the app again, no model calls
+        options: [hourly, daily, forces, forces_survey, strikes, forces_images, repush, firms_check]   # forces: the forces map alone (it also runs after daily); forces_images: the weekly photo job; repush: send the saved report and maps to the app again, no model calls; firms_check: is FIRMS_MAP_KEY valid (no state change)
       test:
         description: "Test run: mail to the sender only, no app upload, nothing saved"
         type: boolean

@@ -11,6 +11,7 @@ Needs FIRMS_MAP_KEY (a free key from NASA FIRMS, set as a repository
 secret by the owner). Without it the module logs a line and does nothing.
 
     python3 src/forces_firms.py --dry-run    # which attacks would be checked
+    python3 src/forces_firms.py check        # is the key valid, and does a query work (no state change)
 """
 import csv
 import io
@@ -110,7 +111,11 @@ def run(state: dict, today: date = None, key: str = None, get=None, dry_run: boo
         for source in SOURCES:
             url = API.format(key=key, source=source, area=area(b["lat"], b["lon"]), days=WINDOW_DAYS, date=start.isoformat())
             try:
-                rows += parse(get(url))
+                text = get(url)
+                if text.lstrip().lower().startswith("invalid"):
+                    print(f"  ! FIRMS: the key was refused ({text.strip()[:60]})")
+                    return found
+                rows += parse(text)
             except Exception as ex:
                 print(f"  ! FIRMS {source}: {type(ex).__name__}")
         hit = match(rows, b["lat"], b["lon"], start)
@@ -125,7 +130,58 @@ def run(state: dict, today: date = None, key: str = None, get=None, dry_run: boo
     return found
 
 
+STATUS = "https://firms.modaps.eosdis.nasa.gov/mapserver/mapkey_status/?MAP_KEY={key}"
+# A box over eastern Ukraine and the Russian border regions: there are fire
+# detections there on almost any day, so an empty answer means something.
+TEST_AREA = "30,44,42,52"
+
+
+def check(key: str = None, get=None) -> bool:
+    """The key's status at NASA and one real query for yesterday; prints, changes nothing."""
+    import json
+    key = key if key is not None else os.environ.get("FIRMS_MAP_KEY", "")
+    get = get or _get
+    if not key:
+        print("  FIRMS check: FIRMS_MAP_KEY is not set")
+        return False
+    try:
+        raw = get(STATUS.format(key=key))
+    except Exception as ex:
+        code = getattr(ex, "code", None)
+        if code in (400, 401, 403):
+            print(f"  ! FIRMS check: NASA refuses the key (HTTP {code}) - make a new one and update the FIRMS_MAP_KEY secret")
+        else:
+            print(f"  ! FIRMS check: the key status could not be read ({type(ex).__name__}: {str(ex)[:80]})")
+        return False
+    try:
+        st = json.loads(raw)
+    except ValueError:
+        st = raw.strip()   # NASA answers in plain text when it does not know the key
+    if not isinstance(st, dict) or "transaction_limit" not in st:
+        print(f"  ! FIRMS check: NASA does not know the key ({str(st)[:80]})")
+        return False
+    print(f"  FIRMS check: the key is valid; {st.get('current_transactions')} of {st.get('transaction_limit')} "
+          f"requests used in the current {st.get('transaction_interval', '10 minutes')}")
+    day = (date.today() - timedelta(days=1)).isoformat()
+    good = True
+    for source in SOURCES:
+        try:
+            text = get(API.format(key=key, source=source, area=TEST_AREA, days=1, date=day))
+        except Exception as ex:
+            print(f"  ! FIRMS check {source}: {type(ex).__name__}: {str(ex)[:80]}")
+            good = False
+            continue
+        if text.lstrip().lower().startswith("invalid"):
+            print(f"  ! FIRMS check {source}: refused ({text.strip()[:60]})")
+            good = False
+            continue
+        print(f"  FIRMS check {source}: {len(parse(text))} fire detections over eastern Ukraine on {day}")
+    return good
+
+
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["check"]:
+        sys.exit(0 if check() else 1)
     sys.path.insert(0, os.path.dirname(__file__))
     import forces
     st = forces.load()
