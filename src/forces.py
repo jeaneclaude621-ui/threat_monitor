@@ -90,7 +90,15 @@ QUERIES = [
     "Russia Finland border troops", "Leningrad Military District", "Moscow Military District",
     "Kaliningrad military deployment", "Russian troops Belarus", "Iskander deployment",
     "Russia new division formed", "Russian brigade relocated",
+    # Ukraine's long-range strikes hit far more than the listed bases:
+    # refineries, oil depots, factories, power and ports (Version 3.18).
+    "Ukraine drone attack refinery Russia", "Russian oil depot drone strike", "drone attack Russia region governor",
+    "Ukraine strike Crimea", "Ukraine long-range strike Russia", "Russian port drone attack",
+    "Russian factory drone attack", "Russian power plant drone attack", "Ukraine General Staff confirms strike",
 ]
+# Searched first among the night's articles: what speaks of a strike.
+STRIKE_WORDS = re.compile(r"(drone|strike|struck|attack|explosion|blast|fire|hit|missile|refinery|depot|"
+                          r"destroyed|damaged|shot down)", re.I)
 # Russian state media stay out, as everywhere in the analysis.
 STATE_MEDIA = re.compile(r"\b(tass|rt\b|russia today|ria\b|ria novosti|sputnik|izvestia|zvezda|rossiyskaya|"
                          r"rg\.ru|kommersant|interfax|pravda\.ru|tvzvezda)", re.I)
@@ -292,20 +300,44 @@ def load() -> dict:
 # --------------------------------------------------------------------------
 # The night's material
 # --------------------------------------------------------------------------
+RU_LATIN = dict(zip("абвгдезийклмнопрстуфыэ", "abvgdeziyklmnoprstufye"))
+RU_LATIN.update({"ё": "yo", "ж": "zh", "х": "kh", "ц": "ts", "ч": "ch", "ш": "sh", "щ": "shch",
+                 "ъ": "", "ь": "", "ю": "yu", "я": "ya"})
+
+
+def search_name(b: dict) -> str:
+    """The base's name as English-language news spell it. The display name is
+    Swedish ("Achtubinsk", "Voronezj", "Tichoretsk (719:e ammunitionsbasen)"),
+    which English reporting never matches; the Russian name, romanised the
+    English way, does ("Akhtubinsk", "Voronezh", "Tikhoretsk")."""
+    ru = re.sub(r"\s*\(.*?\)", "", b.get("name_ru") or "").strip()
+    # A unit's name ("51-й арсенал ГРАУ") is no place name: the display name then.
+    if ru and re.search(r"[а-яё]", ru, re.I) and not re.search(r"\d", ru) and len(ru.split()) <= 2:
+        out = []
+        for i, ch in enumerate(ru):
+            low = ch.lower()
+            # е at the start of a word or after a vowel sounds "ye" (Yeysk, Mayevka)
+            t = ("ye" if low == "е" and (i == 0 or not ru[i - 1].isalpha() or ru[i - 1].lower() in "аеёиоуыэюяьъй")
+                 else RU_LATIN.get(low, ch))
+            out.append(t.capitalize() if ch.isupper() and t else t)
+        return "".join(out)
+    return re.sub(r"\s*\(.*?\)", "", b["name"]).strip()
+
+
 def articles(state: dict, report: dict = None, pool=None) -> list:
     """The last day's reporting on Russian bases and forces."""
     import news_sources
     p = news_sources.Pool()
     for q in QUERIES:
         p.add(news_sources.google_news(q))
-    for b in state["bases"]:
-        if b["curated"]:
-            p.add(news_sources.google_news(f'"{b["name"]}" Russia'))
+    for name in dict.fromkeys(search_name(b) for b in state["bases"] if b["curated"]):
+        p.add(news_sources.google_news(f'"{name}" (drone OR strike OR attack OR airfield OR base)'))
     if pool is not None:
         p.add(a for a in pool.items if TOPIC.search(f"{a.get('title', '')} {a.get('summary', '')}"))
     p.since(datetime.now() - timedelta(hours=28))
     items = [a for a in p.items if not STATE_MEDIA.search(f"{a.get('source', '')} {a.get('link', '')}")]
-    items.sort(key=lambda a: a.get("published") or datetime.max, reverse=True)
+    # Strikes first, then the newest: the cap must not cut the attacks.
+    items.sort(key=lambda a: (bool(STRIKE_WORDS.search(a.get("title") or "")), a.get("published") or datetime.max), reverse=True)
     return items[:MAX_ARTICLES]
 
 
@@ -360,7 +392,7 @@ entries already recorded in the last {CONTEXT_DAYS} days):
 {text}
 
 Already recorded at places not in the list (do not repeat these under "other"):
-{chr(10).join(f"- {n['date']} {o['place']}: {o['text_sv'][:140]}" for n in state.get('nights', [])[-CONTEXT_DAYS:] for o in n.get('other', [])) or '(none)'}
+{chr(10).join(f"- {o.get('date') or n['date']} {o['place']}: {o['text_sv'][:140]}" for n in state.get('nights', [])[-CONTEXT_DAYS:] for o in n.get('other', [])) or '(none)'}
 
 Record, from the articles only:
 1. "attacks": a base attacked in the last day (drones, missiles, sabotage,
@@ -377,8 +409,16 @@ Record, from the articles only:
    systems). "what": the unit or equipment, as named in the list when it
    is there (e.g. "Su-34", "22:a gardes tunga bombflygdivisionen").
    "kind" tillfört, flyttat (give "to_base" as an id), borta or ändrat.
-4. "other": an attack on or a change at a Russian military site that is
-   not in the list: "place" and "text_sv".
+4. "other": every other attack in the last day on a target in Russia,
+   Belarus or occupied Ukraine (Crimea included) that is not a listed
+   base: refineries, oil depots, factories, power plants, ports, ships,
+   airfields, ammunition depots, air defence, command posts - and changes
+   at Russian military sites not in the list. "place": the place in
+   Swedish ("Raffinaderiet i Novosjachtinsk, Rostov oblast"). "target_sv":
+   what kind of target, a few Swedish words ("oljeraffinaderi",
+   "ammunitionsdepå", "hamn"). "search_name": the facility and town in
+   English as a map search would find them ("Novoshakhtinsk oil refinery,
+   Novoshakhtinsk"). "date": the day it happened. "text_sv" as above.
 
 Every entry needs "refs" to the articles it rests on. Only what the
 articles report happening - not plans, threats or speculation. If nothing
@@ -392,7 +432,8 @@ Respond as strict JSON:
   "follow_ups": [{{"base": "Q123", "text_sv": "...", "refs": ["A2"]}}],
   "changes": [{{"base": "Q123", "category": "materiel", "what": "Su-34", "kind": "flyttat", "to_base": "Q456",
                "text_sv": "...", "refs": ["A3"]}}],
-  "other": [{{"place": "...", "text_sv": "...", "refs": ["A4"]}}],
+  "other": [{{"place": "...", "target_sv": "...", "search_name": "...", "date": "{today.isoformat()}",
+             "text_sv": "...", "refs": ["A4"]}}],
   "summary_sv": "..."}}"""
 
 
@@ -474,8 +515,74 @@ def apply(state: dict, result: dict, refs: dict, today: date) -> dict:
     for o in result.get("other") or []:
         src = _sources(o, refs) if ok(o, "text_sv", "place") else []
         if src:
-            night["other"].append({"place": _text(o["place"], 200), "text_sv": _text(o["text_sv"]), "sources": src})
+            when = o.get("date") if isinstance(o.get("date"), str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", o["date"]) else day
+            when = min(max(when, (today - timedelta(days=2)).isoformat()), day)
+            night["other"].append({"place": _text(o["place"], 200), "target_sv": _text(o.get("target_sv"), 80) or None,
+                                   "search_name": _text(o.get("search_name"), 200) or None, "date": when,
+                                   "text_sv": _text(o["text_sv"]), "sources": src})
     return night
+
+
+# --------------------------------------------------------------------------
+# Where the other strikes were (Version 3.18)
+# --------------------------------------------------------------------------
+NOMINATIM = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=en&q={q}"
+# Inside Russia, Belarus or occupied Ukraine, roughly: a hit far outside is a wrong place.
+REGION_BOX = (27.0, 41.0, 180.0, 82.0)   # west, south, east, north
+SITE_CLASSES = {"man_made", "industrial", "landuse", "military", "aeroway", "power", "building", "amenity",
+                "railway", "harbour", "waterway"}
+MAX_LOOKUPS = 15
+
+
+def _nominatim(q: str):
+    req = urllib.request.Request(NOMINATIM.format(q=urllib.parse.quote(q)), headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        rows = json.loads(r.read().decode("utf-8"))
+    return rows[0] if rows else None
+
+
+def locate_other(state: dict, lookup=None, pause: float = 1.1) -> int:
+    """Coordinates for the recent "other" strikes, from OpenStreetMap's
+    Nominatim (one request a second, as its policy asks): the facility when
+    OSM knows it ("precision": "site"), else the town ("town"). Cached by
+    search name. Returns how many were placed."""
+    import time
+    lookup = lookup or _nominatim
+    cache = state.setdefault("places", {})
+    placed = asked = 0
+    for n in state.get("nights", [])[-3:]:
+        for o in n.get("other", []):
+            if "lat" in o or not o.get("search_name"):
+                continue
+            names = [o["search_name"]]
+            if "," in o["search_name"]:
+                names.append(o["search_name"].rsplit(",", 1)[1].strip())
+            hit = None
+            for q in names:
+                if q in cache:
+                    hit = cache[q]
+                elif asked < MAX_LOOKUPS:
+                    asked += 1
+                    try:
+                        r = lookup(q)
+                    except Exception as e:
+                        print(f"  ! Places: {q}: {type(e).__name__}")
+                        r = None
+                    if pause:
+                        time.sleep(pause)
+                    hit = None
+                    if r:
+                        lat, lon = float(r["lat"]), float(r["lon"])
+                        w, s_, e_, n_ = REGION_BOX
+                        if w <= lon <= e_ and s_ <= lat <= n_:
+                            precise = r.get("category", r.get("class")) in SITE_CLASSES and q == names[0]
+                            hit = {"lat": round(lat, 5), "lon": round(lon, 5), "precision": "site" if precise else "town"}
+                    cache[q] = hit
+                if hit:
+                    break
+            o["lat"], o["lon"], o["precision"] = (hit["lat"], hit["lon"], hit["precision"]) if hit else (None, None, None)
+            placed += bool(hit)
+    return placed
 
 
 def payload(state: dict) -> dict:
@@ -535,6 +642,11 @@ def run(report: dict = None, pool=None, dry_run: bool = False):
         json.dump(state, f, ensure_ascii=False, indent=1)
     print(f"  Forces: {len(night['attacks'])} attacks, {len(night['follow_ups'])} follow-ups, "
           f"{len(night['changes'])} changes, {len(night['other'])} elsewhere")
+    try:
+        n = locate_other(state)
+        print(f"  Places: {n} of {len(night['other'])} other strikes placed on the map")
+    except Exception as e:
+        print(f"  ! Places failed ({type(e).__name__}: {e})")
     survey(state)
     isw(state)
     firms(state)

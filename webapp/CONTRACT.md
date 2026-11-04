@@ -613,3 +613,21 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   marks on the device only, and reports no device. New page `#/om`: what
   Hotmonitor is, AI-generated content (EU AI Act, art. 50), sources and
   privacy. Service worker hm-v3.31.
+
+# Version 3.18 (4 Nov 2026) - all strikes in Russia, satellite map links
+
+- `/api/forces`: each night's `other` entries (attacks on targets in
+  Russia, Belarus or occupied Ukraine away from the listed bases:
+  refineries, depots, factories, ports ...) may carry `target_sv`,
+  `search_name`, `date`, and `lat`/`lon`/`precision` ("site" when
+  OpenStreetMap knows the facility, "town" when only the town; null when
+  not found). They get `firms` like base attacks: `{date, count,
+  confidence, radius_km}` (3 km at a site, 10 km at a town), or null
+  when the window passed without fire. Base attacks' `firms` gains
+  `radius_km`.
+- The nightly search looks for the bases by their English spelling
+  (romanised from the Russian name), not the Swedish display name, and
+  for Ukraine's strikes on refineries, depots, factories, power and ports.
+- App: every attack has a "Satellitkarta, bränder" button that opens NASA
+  FIRMS's map at the place, on the attack day and the next. Styrkor shows
+  the week's other strikes. Service worker hm-v3.33.

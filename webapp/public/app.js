@@ -1785,6 +1785,35 @@ async function loadForcesView() {
   return { land: land.countries, bases: data.bases, byId: new Map(data.bases.map((b) => [b.id, b])), data, cat };
 }
 
+// ---------------------------------------------------------------- satellite fire (Version 3.18)
+// NASA FIRMS's own map, opened at the place and on the attack day and the
+// next, so anyone can look at the fire detections themselves.
+function firmsMapUrl(lat, lon, day) {
+  if (typeof lat !== 'number' || typeof lon !== 'number' || !/^\d{4}-\d{2}-\d{2}/.test(day || '')) return null;
+  const start = day.slice(0, 10);
+  const next = new Date(`${start}T12:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  return `https://firms.modaps.eosdis.nasa.gov/map/#d:${start}..${next.toISOString().slice(0, 10)};@${lon.toFixed(3)},${lat.toFixed(3)},12z`;
+}
+
+function firmsLine(f) {
+  return f ? h('span', { class: 'small' }, h('br'), h('b', null, 'Brand sedd av satellit (NASA FIRMS)'),
+    `: ${plural(f.count, 'brandpunkt', 'brandpunkter')} inom ${String(f.radius_km || 3).replace('.', ',')} km från ${dateShort(f.date)}, konfidens ${f.confidence}.`) : null;
+}
+
+function firmsButton(lat, lon, day) {
+  return externalButton(firmsMapUrl(lat, lon, day), { outlet: 'NASA FIRMS' }, 'Satellitkarta, bränder');
+}
+
+// An attack away from the listed bases: a refinery, a depot, a port ...
+function otherStrikeRow(o) {
+  return h('li', { class: 'coa-sign part' }, h('i'), h('span', null,
+    h('b', null, `${o.place}${o.target_sv ? ` (${o.target_sv})` : ''}${o.date ? `, ${dateShort(o.date)}` : ''}: `), o.text_sv,
+    firmsLine(o.firms),
+    o.lat != null && o.precision === 'town' ? h('span', { class: 'small muted' }, h('br'), 'Platsen är orten, inte själva målet.') : null,
+    ' ', forceSources(o.sources), ' ', o.lat != null ? firmsButton(o.lat, o.lon, o.date) : null));
+}
+
 // ---------------------------------------------------------------- how old a status is
 // Version 3.29: an attack NASA FIRMS saw as fire says so (src/forces_firms.py);
 // every unit and base card says when its status was last
@@ -2373,9 +2402,8 @@ async function viewForces() {
       events.length ? h('div', null, h('h3', { class: 'fsub' }, 'Anfall och uppföljningar'),
         h('ul', { class: 'coa-signs' }, events.map((e) => h('li', { class: `coa-sign ${e.kind === 'anfallen' ? 'obs' : 'part'}` },
           h('i'), h('span', null, h('b', null, `${dateShort(e.date)} ${e.date.slice(0, 4)}${e.kind === 'uppföljning' ? ', uppföljning' : ''}: `), e.text_sv,
-            e.firms ? h('span', { class: 'small' }, h('br'), h('b', null, 'Brand sedd av satellit (NASA FIRMS)'),
-              `: ${plural(e.firms.count, 'brandpunkt', 'brandpunkter')} inom 3 km från ${dateShort(e.firms.date)}, konfidens ${e.firms.confidence}.`) : null,
-            ' ', forceSources(e.sources)))))) : null,
+            firmsLine(e.firms),
+            ' ', forceSources(e.sources), e.kind === 'anfallen' ? [' ', firmsButton(b.lat, b.lon, e.date)] : null))))) : null,
       surveyBlock(b.survey),
       !b.curated && !b.units.length && !b.equipment.length && !(b.survey && b.survey.summary_sv)
         ? h('p', { class: 'small muted' }, b.survey ? 'Bara position och typ är kända: Wikipedia har ingen artikel om basen.' : 'Bara position och typ är kända än. Veckosökningen läser basens Wikipedia-artikel inom en vecka.') : null,
@@ -2404,8 +2432,11 @@ async function viewForces() {
     ...night.follow_ups.map((e) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, 'Uppföljning: '), baseBtn(e.base), '. ', e.text_sv, ' ', forceSources(e.sources)))),
     ...night.changes.map((c) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, `${FORCE_CHANGE[c.kind] || c.kind} ${c.what}: `), baseBtn(c.base),
       c.to_base ? [' → ', baseBtn(c.to_base)] : '', '. ', c.text_sv, ' ', forceSources(c.sources)))),
-    ...night.other.map((o) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, `${o.place}: `), o.text_sv, ' ', forceSources(o.sources)))),
+    ...night.other.map(otherStrikeRow),
   ] : [];
+  // The week's other strikes, the latest night's already above.
+  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+  const otherWeek = (data.nights || []).slice(0, -1).filter((n) => n.date >= weekAgo).reverse().flatMap((n) => n.other || []);
   const counts = { anfallen: 0, aktiv: 0, 'okänd': 0 };
   for (const b of bases) counts[b.status] += 1;
 
@@ -2418,6 +2449,10 @@ async function viewForces() {
       h('h2', { class: 'fsub' }, `Senaste dygnet (natten till ${dateShort(night.date)})`),
       night.summary_sv ? h('p', { class: 'body-sm' }, night.summary_sv) : null,
       nightRows.length ? h('ul', { class: 'coa-signs' }, nightRows) : h('p', { class: 'small muted' }, 'Inget nytt rapporterat om baserna eller styrkorna.')) : null,
+    otherWeek.length ? h('section', { class: 'card card-pad' },
+      h('h2', { class: 'fsub' }, 'Andra anfall i Ryssland och ockuperade områden, senaste veckan'),
+      h('p', { class: 'small muted' }, 'Raffinaderier, depåer, fabriker, hamnar och andra mål utanför baslistan. Satellitkartan visar NASA:s brandpunkter på platsen dagen för anfallet och dagen efter.'),
+      h('ul', { class: 'coa-signs' }, otherWeek.map(otherStrikeRow))) : null,
     h('p', { class: 'small muted' }, `${bases.length} baser: ${counts.anfallen} anfallna senaste 30 dagarna, ${counts.aktiv} med kända förband, ${counts['okänd']} bara position.`),
     search, sugg, chips,
     h('div', { class: 'fmap-wrap card' }, svg, tools, mini.svg),

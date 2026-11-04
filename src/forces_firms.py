@@ -51,7 +51,7 @@ def parse(text: str) -> list:
     return list(csv.DictReader(io.StringIO(text)))
 
 
-def match(rows: list, lat: float, lon: float, start: date) -> dict:
+def match(rows: list, lat: float, lon: float, start: date, radius_km: float = RADIUS_KM) -> dict:
     """{date, count, confidence} for the detections within RADIUS_KM of the
     base on the attack day or the WINDOW_DAYS - 1 days after, else None."""
     end = start + timedelta(days=WINDOW_DAYS - 1)
@@ -66,13 +66,13 @@ def match(rows: list, lat: float, lon: float, start: date) -> dict:
             dist = km(lat, lon, float(r["latitude"]), float(r["longitude"]))
         except (KeyError, ValueError):
             continue
-        if start <= d <= end and dist <= RADIUS_KM:
+        if start <= d <= end and dist <= radius_km:
             hits.append((d, CONFIDENCE.get(str(r.get("confidence", "")).strip().lower(), str(r.get("confidence", "")))))
     if not hits:
         return None
     order = ["låg", "normal", "hög"]
     best = max((c for _, c in hits), key=lambda c: order.index(c) if c in order else -1)
-    return {"date": min(d for d, _ in hits).isoformat(), "count": len(hits), "confidence": best}
+    return {"date": min(d for d, _ in hits).isoformat(), "count": len(hits), "confidence": best, "radius_km": radius_km}
 
 
 def _get(url: str) -> str:
@@ -81,14 +81,25 @@ def _get(url: str) -> str:
         return r.read().decode("utf-8", "replace")
 
 
+TOWN_RADIUS_KM = 10.0   # an "other" strike placed only at its town (forces.locate_other)
+
+
 def pending(state: dict, today: date) -> list:
-    """(base, event) for the recent attacks that have not been checked."""
+    """(place, event, radius) for the recent attacks not yet checked: the
+    listed bases' and, since Version 3.18, the other strikes the night
+    placed on the map (refineries, depots, ports ...)."""
     since = (today - timedelta(days=ATTACK_DAYS)).isoformat()
     out = []
     for b in state.get("bases", []):
         for e in b.get("events", []):
             if e.get("kind") == "anfallen" and e.get("date", "") >= since and "firms" not in e:
-                out.append((b, e))
+                out.append((b, e, RADIUS_KM))
+    for n in state.get("nights", []):
+        for o in n.get("other", []):
+            if o.get("lat") is not None and (o.get("date") or n["date"]) >= since and "firms" not in o:
+                o.setdefault("date", n["date"])
+                out.append(({"name": o["place"], "lat": o["lat"], "lon": o["lon"]}, o,
+                            RADIUS_KM if o.get("precision") == "site" else TOWN_RADIUS_KM))
     return out[:MAX_CHECKS]
 
 
@@ -102,14 +113,14 @@ def run(state: dict, today: date = None, key: str = None, get=None, dry_run: boo
         return 0
     get = get or _get
     found = 0
-    for b, e in todo:
+    for b, e, radius in todo:
         start = date.fromisoformat(e["date"][:10])
         if dry_run:
             print(f"  FIRMS: would check {b.get('name')} {e['date']}")
             continue
         rows = []
         for source in SOURCES:
-            url = API.format(key=key, source=source, area=area(b["lat"], b["lon"]), days=WINDOW_DAYS, date=start.isoformat())
+            url = API.format(key=key, source=source, area=area(b["lat"], b["lon"], radius), days=WINDOW_DAYS, date=start.isoformat())
             try:
                 text = get(url)
                 if text.lstrip().lower().startswith("invalid"):
@@ -118,7 +129,7 @@ def run(state: dict, today: date = None, key: str = None, get=None, dry_run: boo
                 rows += parse(text)
             except Exception as ex:
                 print(f"  ! FIRMS {source}: {type(ex).__name__}")
-        hit = match(rows, b["lat"], b["lon"], start)
+        hit = match(rows, b["lat"], b["lon"], start, radius)
         # A check is final once the whole window is in the past; until then
         # a miss is checked again the next night.
         if hit:

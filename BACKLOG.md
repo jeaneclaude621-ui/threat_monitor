@@ -143,6 +143,17 @@ Inga just nu.
 
 ## Klart
 
+- 2026-11-04: Styrkor ser alla anfall i Ryssland och ockuperade områden
+  (Version 3.18, hm-v3.33). Nattsökningen letade efter baserna med de
+  svenska namnen ("Achtubinsk", "Voronezj", "Tichoretsk (719:e
+  ammunitionsbasen)"), som engelska nyheter aldrig skriver; nu används
+  engelsk stavning från det ryska namnet. Anfall mot raffinaderier,
+  depåer, fabriker, hamnar m.m. utanför baslistan får plats via
+  OpenStreetMap och kontrolleras med NASA FIRMS (3 km vid känt mål, 10 km
+  när bara orten hittas). Varje anfall har en knapp till FIRMS satellitkarta
+  för platsen och dagen. Rysslands anfall mot Ukraina kontrolleras inte med
+  FIRMS: flygvapnet anger bara region.
+
 - 2026-11-04: Anfallskartan visar 30 nätter löpande, alla valbara. Kaggle-
   datasetet uppdateras ungefär en gång i veckan (senast 31 okt), så
   nätterna efter dess senaste läses ur nyhetsrubriker som citerar
