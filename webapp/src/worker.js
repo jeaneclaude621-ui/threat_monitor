@@ -38,6 +38,9 @@ const JWKS_TTL_MS = 60 * 60 * 1000;
 const JWKS_MIN_REFETCH_MS = 60 * 1000;
 
 const RATE_LIMIT_PER_MIN = 120;
+// Guests share addresses (an office, a school, a mobile carrier's NAT), so an
+// address gets more than one person; their reads are cached a minute.
+const RATE_LIMIT_PER_IP_MIN = 600;
 const LAST_SEEN_EVERY_MS = 5 * 60 * 1000;
 const NEW_VISIT_GAP_MS = 30 * 60 * 1000;   // a gap this long starts a new visit
 const SECURITY_LOG_DAYS = 90;
@@ -1993,7 +1996,7 @@ function rateLimit(req, id) {
     }
   }
   w.n += 1;
-  if (w.n > RATE_LIMIT_PER_MIN) {
+  if (w.n > (id.kind === 'user' ? RATE_LIMIT_PER_MIN : RATE_LIMIT_PER_IP_MIN)) {
     throw new HttpError(429, 'too many requests', throttledReason(req, R.rateLimited));
   }
 }

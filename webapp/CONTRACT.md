@@ -158,7 +158,8 @@ the owner out. `ADMINS`/`READERS` (optional Worker secrets) only seed the table 
 Rules: the last active admin cannot be demoted or removed; OWNER can't
 be demoted or removed. Every mutating request must carry
 `Origin` equal to the app's own origin (else `bad_origin`). Per-email
-rate limit ~120 requests/min (else 429 `rate_limited`).
+rate limit ~120 requests/min, per IP address without a login (guests)
+~600/min since 4 Nov 2026 (else 429 `rate_limited`).
 
 ## Richer report JSON (from 2 Oct reports; older ones lack these - render only if present)
 
