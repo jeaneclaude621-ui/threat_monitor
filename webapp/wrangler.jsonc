@@ -26,7 +26,7 @@
   // the D1 users table (CONTRACT.md, Version 2).
   "vars": {
     "TEAM_DOMAIN": "crimson-frog-4f56.cloudflareaccess.com",
-    "ACCESS_AUD": "4927acc83722928ac8ca01ece8466a3e92da19bb282814c635ff27363320e3a6",
+    "ACCESS_AUD": "4927acc83722928ac8ca01ece8466a3e92da19bb282814c635ff27363320e3a6,8ba5679286ed9f93b1a8b334a35fe7af8a7b0a423cfa9759d4f3f2b66b2fe64e",
     "MACHINE_CLIENT_ID": "a31ef3f6c5b1989fb694ca7ad6ce0bbf.access",
     "SERVICE_TOKEN_EXPIRES": "2027-09-30",
     // The scheduled runs are started here (CONTRACT.md, Version 3.8), with
