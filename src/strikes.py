@@ -12,7 +12,14 @@ The places in the data are names ("Kursk oblast and Primorsko-Akhtarsk");
 LAUNCH and TARGET below put them on the map. A name not there is kept in
 the row's text but not drawn, and printed so it can be added.
 
-No model call. Run by daily_report.py after the forces map, or alone:
+The dataset is updated about once a week, so the nights after its newest
+one are read from news headlines quoting the Air Force (Google News, no
+Russian state media): one light-model call a night at most, for totals per
+weapon kind and the regions named. Such a night is marked "preliminary"
+and kept until the dataset covers it. Without a light model, or with no
+headlines, the gap stays empty.
+
+Run by daily_report.py after the forces map, or alone:
 
     python3 src/strikes.py              # fetch, build, upload
     python3 src/strikes.py --dry-run    # fetch and print, no upload
@@ -182,6 +189,146 @@ def build(rows: list, today: date) -> dict:
             "days": days}
 
 
+# --------------------------------------------------------------------------
+# Preliminary nights from news headlines
+PRELIM_QUERIES = [
+    'Ukraine "air force" drones missiles overnight',
+    'Russia launched drones overnight Ukraine "shot down"',
+    'Russia attacked Ukraine overnight drones missiles air force',
+]
+PRELIM_MAX_NIGHTS = 7
+STATE_MEDIA = re.compile(r"\b(tass|rt\b|russia today|ria\b|ria novosti|sputnik|izvestia|zvezda|rossiyskaya|rg\.ru)", re.I)
+KIND_NAMES = {"drönare", "kryssningsrobot", "ballistisk robot"}
+
+
+def headlines(days: int) -> dict:
+    """{YYYY-MM-DD (Kyiv morning): [article]} from Google News."""
+    import news_sources
+    from zoneinfo import ZoneInfo
+    kyiv = ZoneInfo("Europe/Kyiv")
+    seen, out = set(), {}
+    for q in PRELIM_QUERIES:
+        for a in news_sources.google_news(q, days=days):
+            title = (a.get("title") or "").strip()
+            if not title or title in seen or not a.get("published"):
+                continue
+            if STATE_MEDIA.search(f"{a.get('source', '')} {a.get('link', '')}"):
+                continue
+            seen.add(title)
+            pub = a["published"]
+            if pub.tzinfo is None:
+                pub = pub.replace(tzinfo=ZoneInfo("UTC"))
+            out.setdefault(pub.astimezone(kyiv).date().isoformat(), []).append(a)
+    return out
+
+
+PRELIM_PROMPT = """Below are news headlines, grouped by the date they were published, about
+Russia's overnight air attacks on Ukraine. Each morning Ukraine's Air Force
+reports how many drones and missiles Russia launched in the night and how
+many were shot down; headlines quote those figures.
+
+For each date listed, give the Air Force's figures for the night ending that
+morning, ONLY if a headline states them. Never estimate or add up figures
+from different nights. Omit a date with no such figures.
+
+{blocks}
+
+Respond as strict JSON:
+{{"nights": [{{"date": "YYYY-MM-DD",
+  "rows": [{{"kind": "drönare|kryssningsrobot|ballistisk robot",
+            "model": "the weapon named, e.g. Shahed, Kh-101, Iskander-M, or empty",
+            "launched": 0, "destroyed": 0}}],
+  "launch_places": ["places launched from, if named"],
+  "targets": ["Ukrainian regions or cities named as hit or targeted"],
+  "refs": ["H1"]}}]}}"""
+
+
+def preliminary(kaggle_newest: str, previous: dict, today: date) -> list:
+    """Nights after the dataset's newest, up to yesterday: kept from the
+    previous run when already read, else read now in one light call."""
+    start = date.fromisoformat(kaggle_newest) + timedelta(days=1) if kaggle_newest else today - timedelta(days=3)
+    start = max(start, today - timedelta(days=PRELIM_MAX_NIGHTS))
+    wanted = []
+    d = start
+    while d < today:
+        wanted.append(d.isoformat())
+        d += timedelta(days=1)
+    kept = {x["date"]: x for x in (previous or {}).get("days", []) if x.get("preliminary") and x["date"] in wanted}
+    missing = [w for w in wanted if w not in kept]
+    if not missing:
+        return [kept[w] for w in wanted if w in kept]
+    from common import lite_model, ask_model_json, MODEL
+    model = lite_model()
+    if not model:
+        print("  Strikes: no light model; nights after the dataset stay empty")
+        return list(kept.values())
+    news = headlines(days=(today - date.fromisoformat(missing[0])).days + 2)
+    refs, blocks = {}, []
+    for w in missing:
+        items = news.get(w, [])[:15]
+        if not items:
+            continue
+        lines = [f"Date {w}:"]
+        for a in items:
+            ref = f"H{len(refs) + 1}"
+            refs[ref] = {"url": a.get("link"), "outlet": a.get("source")}
+            lines.append(f"[{ref}] {a.get('source') or '?'}: {a['title']}")
+        blocks.append("\n".join(lines))
+    if not blocks:
+        print(f"  Strikes: no headlines for {', '.join(missing)}")
+        return list(kept.values())
+    try:
+        # The light model only: this must not take the reports' calls.
+        result = ask_model_json(PRELIM_PROMPT.format(blocks="\n\n".join(blocks)), max_tokens=2500,
+                                system="You extract figures from news headlines. Strict JSON only.",
+                                model=model, fallback=model)
+    except Exception as e:
+        print(f"  ! Strikes: preliminary nights failed ({str(e)[:160]})")
+        return list(kept.values())
+    for n in (result.get("nights") or []) if isinstance(result, dict) else []:
+        night = _prelim_night(n, missing, refs)
+        if night:
+            kept[night["date"]] = night
+    got = [w for w in wanted if w in kept]
+    print(f"  Strikes: preliminary nights from headlines: {', '.join(got) or 'none'}")
+    return [kept[w] for w in got]
+
+
+def _prelim_night(n: dict, missing: list, refs: dict):
+    if not isinstance(n, dict) or n.get("date") not in missing:
+        return None
+    launch, _ = places(", ".join(str(x) for x in n.get("launch_places") or [] if isinstance(x, str)), LAUNCH)
+    target, _ = places(", ".join(str(x) for x in n.get("targets") or [] if isinstance(x, str)), TARGET)
+    target = [t for t in target if t["name"].lower() != "ukraine"]
+    rows, totals = [], {}
+    for r in (n.get("rows") or [])[:10]:
+        if not isinstance(r, dict):
+            continue
+        model = str(r.get("model") or "").strip()[:60]
+        kind = r.get("kind") if r.get("kind") in KIND_NAMES else kind_of(model)
+        launched, destroyed = _num(r.get("launched")), _num(r.get("destroyed"))
+        if kind not in KIND_NAMES or not launched or not (0 < launched <= 2000):
+            continue
+        if destroyed is not None and not (0 <= destroyed <= launched):
+            destroyed = None
+        sys_ids = system_ids(model) or (["geran-2"] if kind == "drönare" else [])
+        rows.append({"model": model or {"drönare": "Shahed-drönare"}.get(kind, kind), "kind": kind,
+                     "launched": launched, "destroyed": destroyed, "carrier": None,
+                     "launch_place": ", ".join(p["name"] for p in launch), "target": ", ".join(t["name"] for t in target),
+                     "target_main": None, "unspecified": not target, "systems": sys_ids,
+                     "hits": None, "fragments": None, "hidden": False,
+                     "from": launch, "to": target, "time_start": "", "time_end": n["date"]})
+        t = totals.setdefault(kind, {"launched": 0, "destroyed": 0})
+        t["launched"] += launched
+        t["destroyed"] += destroyed or 0
+    if not rows:
+        return None
+    sources = [refs[r] for r in n.get("refs") or [] if r in refs and refs[r].get("url")][:4]
+    if not sources:
+        return None
+    return {"date": n["date"], "rows": rows, "totals": totals, "preliminary": True, "sources": sources}
+
+
 def run(dry_run: bool = False):
     rows = download()
     if rows is None:
@@ -195,7 +342,23 @@ def run(dry_run: bool = False):
         print("  Targets:", C(r.get("target", "") for r in rows[:300]).most_common(15))
         print("  Affected:", C(r.get("affected region", "") for r in rows[:300]).most_common(15))
         print("  Models:", C(r.get("model", "") for r in rows[:600]).most_common(40))
-    data = build(rows, date.today())
+    today = date.today()
+    data = build(rows, today)
+    previous = None
+    if PATH.exists():
+        try:
+            previous = json.load(open(PATH, encoding="utf-8"))
+        except ValueError:
+            previous = None
+    newest = data["days"][0]["date"] if data["days"] else None
+    try:
+        extra = preliminary(newest, previous, today)
+    except Exception as e:
+        print(f"  ! Strikes: preliminary nights failed ({type(e).__name__}: {e})")
+        extra = []
+    have = {d["date"] for d in data["days"]}
+    data["days"] = sorted(data["days"] + [x for x in extra if x["date"] not in have],
+                          key=lambda d: d["date"], reverse=True)
     print(f"  Strikes: {len(rows)} rows in the dataset, {len(data['days'])} nights in the last {DAYS} days"
           + (f", newest {data['days'][0]['date']}" if data["days"] else ""))
     if dry_run:

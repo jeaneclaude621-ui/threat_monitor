@@ -2498,6 +2498,7 @@ async function viewStrikes() {
   const nights = h('div', { class: 'chips seg-tight' });
   const kinds = h('div', { class: 'chips' });
   const totals = h('div', { class: 'stotals' });
+  const prelim = h('div');
   const list = h('div');
   const weapons = h('div');
 
@@ -2556,8 +2557,15 @@ async function viewStrikes() {
       trailsG.append(svgEl('path', { class: 'slaunch', d: `M${x} ${y - u * 1.2}L${x + u} ${y + u * 0.7}L${x - u} ${y + u * 0.7}Z` }),
         svgEl('text', { class: 'flab', x: x + u * 1.4, y: y + u * 0.4, 'font-size': u * 1.6, 'stroke-width': u * 0.4 }, a.name));
     }
-    nights.replaceChildren(...data.days.slice(0, 14).map((d) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(d === day),
-      onclick: () => { day = d; draw(); } }, dateShort(d.date))));
+    nights.replaceChildren(...data.days.map((d) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(d === day),
+      title: d.preliminary ? 'Preliminär, ur nyhetsrubriker' : null,
+      onclick: () => { day = d; draw(); } }, dateShort(d.date) + (d.preliminary ? '*' : ''))));
+    // A night the dataset does not cover yet (it is updated about weekly):
+    // read from news headlines quoting the Air Force, totals only.
+    prelim.replaceChildren(day.preliminary ? h('p', { class: 'notice' },
+      'Preliminär natt (*): siffrorna kommer ur nyhetsrubriker som citerar ukrainska flygvapnet och ersätts av den fullständiga rapporten när Kaggle-datasetet uppdateras. Startplatser och mål saknas ofta. ',
+      ...(day.sources || []).slice(0, 4).map((src, i) => frag(i ? ', ' : 'Källor: ', externalButton(src.url, { outlet: src.outlet }, src.outlet || 'källa'))))
+      : '');
     kinds.replaceChildren(...Object.entries(STRIKE_KIND).filter(([k]) => day.totals[k]).map(([k, [label, colour]]) =>
       h('button', { class: 'chip', type: 'button', 'aria-pressed': String(kind === k), onclick: () => { kind = kind === k ? null : k; draw(); } },
         h('b', { class: 'fdot', style: `background:${colour}` }), ` ${label}`)));
@@ -2581,7 +2589,7 @@ async function viewStrikes() {
 
   return frag(head, forcesSeg(true),
     h('p', { class: 'hint' }, 'Natt för natt: vad Ryssland avfyrade mot Ukraina, varifrån och mot vilka regioner. Spåren är schematiska.'),
-    nights, totals, kinds,
+    nights, totals, prelim, kinds,
     h('div', { class: 'fmap-wrap card' }, svg, h('div', { class: 'fmap-tools' },
       h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma in', onclick: () => pz.zoomTo(vb.x + vb.w / 2, vb.y + vb.h / 2, vb.w / 1.6) }, '+'),
       h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma ut', onclick: () => pz.zoomTo(vb.x + vb.w / 2, vb.y + vb.h / 2, vb.w * 1.6) }, '−'),
@@ -2593,7 +2601,7 @@ async function viewStrikes() {
       h('span', null, h('b', { class: 'slegend-inf' }), 'Härlett: avfyrning och mål från olika rader i rapporten')),
     list,
     h('p', { class: 'notice' }, 'Källa: ukrainska flygvapnets dagliga rapporter, sammanställda i ', externalButton(data.source.url, { outlet: 'Kaggle' }, 'Kaggle-datasetet'),
-      '. Uppdateras varje morgon. Siffrorna är Ukrainas egna och inte oberoende verifierade. Platserna är ungefärliga och spåren visar riktning, inte verklig flygväg. Påverkar inte index.'));
+      '. Visar de senaste 30 nätterna och uppdateras varje morgon. Siffrorna är Ukrainas egna och inte oberoende verifierade. Platserna är ungefärliga och spåren visar riktning, inte verklig flygväg. Påverkar inte index.'));
 }
 
 // ---------------------------------------------------------------- Karta
