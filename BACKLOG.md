@@ -143,6 +143,20 @@ Inga just nu.
 
 ## Klart
 
+- 2026-11-04: Anfallskartan visar 30 nätter löpande, alla valbara. Kaggle-
+  datasetet uppdateras ungefär en gång i veckan (senast 31 okt), så
+  nätterna efter dess senaste läses ur nyhetsrubriker som citerar
+  flygvapnet (Google News, ingen rysk statsmedia), ett lite-anrop per natt
+  högst, märkta preliminära (*) tills datasetet täcker dem. Första
+  körningen: 1-3 nov. Nattens rapport kommer ut på morgonen, så natten
+  till samma dag läses först nästa morgon. Lite-budgeten blir cirka
+  16 av 20 per dygn.
+- 2026-11-04: Alla tre trådkontroller den 3 nov föll på 503 hos
+  huvudmodellen (före bytet till lite-modellen) men visades som "ok" på
+  statussidan. Myndigheter hade inte uppdaterats sedan 2 nov (alla
+  körningar föll på kvoten); 07:00-körningen 4 nov gick på lite-modellen
+  och laddades upp. Ingen rapport finns för 3 nov.
+
 - 2026-11-04: Appen tog inte emot några uppladdningar mellan 3 nov 21:51
   och 4 nov 07:20 UTC (401 invalid_jwt). `open_app.mjs` hade skapat
   Access-appen "Hotmonitor inloggning" (login, api/ingest/*, api/export/*)
