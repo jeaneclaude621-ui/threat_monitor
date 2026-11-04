@@ -7369,7 +7369,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "image": {
+    "file": "base-plesetsk.jpg",
+    "commons_file": "File:Plestsy.jpg",
+    "author": "Ssr & Alexander Davydov",
+    "license": "Public domain",
+    "license_url": null,
+    "source_url": "https://commons.wikimedia.org/wiki/File%3APlestsy.jpg"
+   }
   },
   {
    "id": "plesetsk-2",
@@ -8915,7 +8923,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "image": {
+    "file": "base-severomorsk-3.jpg",
+    "commons_file": "File:Severomorsk-3.jpg",
+    "author": "NASA",
+    "license": "Public domain",
+    "license_url": null,
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ASeveromorsk-3.jpg"
+   }
   },
   {
    "id": "sibirskij-robot",
@@ -9403,7 +9419,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
     }
-   ]
+   ],
+   "image": {
+    "file": "base-sokol.jpg",
+    "commons_file": "File:Dolinsk-sokol.jpg",
+    "author": "NASA",
+    "license": "Public domain",
+    "license_url": null,
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ADolinsk-sokol.jpg"
+   }
   },
   {
    "id": "soltsy",
@@ -11918,7 +11942,15 @@
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-02"
     }
-   ]
+   ],
+   "image": {
+    "file": "base-pusjkin.jpg",
+    "commons_file": "File:097pushkinair.jpg",
+    "author": "I6x at English Wikipedia",
+    "license": "Public domain",
+    "license_url": null,
+    "source_url": "https://commons.wikimedia.org/wiki/File%3A097pushkinair.jpg"
+   }
   },
   {
    "id": "temrjuk",
