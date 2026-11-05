@@ -18,6 +18,52 @@ Insats: **S** = timmar, **M** = 1–3 dagar, **L** = en vecka eller mer.
 
 ---
 
+## Lanseringschecklista (detaljer i avsnitt 1–4)
+
+### Måste fixas före lansering
+
+- [ ] **K1:** Idag (och Arkiv, Ämnen, Karta) hämtar inte alla rapporter. Högst ~6–10 anrop per
+      förstabesök (app.js:671, api.js:140). **S–M**
+- [ ] **S1/K4/K5:** skydd mot att kvoten töms: egen domän med WAF-regel för rate limit och Bot Fight
+      Mode, *eller* Workers Paid över lanseringen. **S**
+- [ ] **K7** (eller K5): uppladdning och export får inte stoppas av en läsartopp. **S–M**
+- [ ] **AI-märkning enligt art. 50.4** på Idag, händelsesidor, scenarier, Myndigheter och Narrativ, och i
+      delningstexter. **S**
+- [ ] **Ansvarsfriskrivning, kontaktväg och vem som ansvarar**, synliga utan att man behöver leta. **S**
+- [ ] **G1:** självhostade typsnitt (bort med Google Fonts). **S**
+- [ ] **G2:** integritetspolicy för inloggade, med lagringstider och biträden. **M**
+- [ ] **A1:** ta bort `aria-live` från `<main>` (index.html:30). **S**
+- [ ] **U2/U3:** förklara hotindex och att händelsepoängen är trovärdighet. **S**
+- [ ] **U8:** svenska felmeddelanden, särskilt vid 429 och överbelastning. **S**
+- [ ] **K8/S3:** rätta DEPLOY.md (anrop per besök, gränsen 600 och inte 120) och slå på larm vid 70 % av
+      kvoten. **S**
+
+### Bör fixas
+
+- [ ] U1 och 4.5: en mening om vad appen är, och en kort introduktion för nya gäster. **S–M**
+- [ ] U6: inga ”nytt”-märken och ingen funktionsmeny vid första besöket. **S**
+- [ ] U7: förklaring när någon loggar in utan konto. **S**
+- [ ] 4.1: delningslänkar `/h/<datum>/<id>` med OG-taggar och dagliga OG-bilder, plus Dela-knapp. **M**
+- [ ] S2/K6: normaliserad cachenyckel och `caches.default`. **S**
+- [ ] S5: töm service workerns datacache vid rollbyte. **S**
+- [ ] A2, A3, A4: poängrutans etikett, kontrast på Karta och minsta textstorlek. **S**
+- [ ] 4 px vågrätt spill (`.fbar`, app.css:415), ta bort `orientation: portrait` i manifestet. **S**
+- [ ] U9: skelettvy vid laddning. **S**
+- [ ] CSP: `object-src 'none'`, `upgrade-insecure-requests`. HSTS på egen domän. **S**
+- [ ] G3, G5: lagringstider och en rutin för rättelse eller borttagning. **S–M**
+- [ ] RSS-flöde (4.2). **S**
+
+### Kan vänta
+
+- [ ] K2/K3: paketanrop eller statiska datafiler för gäster. **M–L**
+- [ ] Webbpush för gäster med köad utsändning, morgonbrev via e-post. **M**
+- [ ] SEO: sitemap, server-renderad text. **M**
+- [ ] Ansökan om att bli bedömare och följa ämne eller land. **M**
+- [ ] Veckobrev och automatiska inlägg i sociala medier. **M**
+- [ ] Test i CI som förbjuder `innerHTML` i `public/`. **S**
+
+---
+
 ## Sammanfattning: de fem viktigaste fynden
 
 1. **Ett första besök på Idag gör ett API-anrop per rapport som någonsin publicerats.**
@@ -323,52 +369,6 @@ viktigaste hindren för spridning i dag är att **ingenting går att dela snyggt
 | Veckobrev ”Veckan i korthet” | AI-sammanfattning av 7 rapporter, märkt enligt art. 50, via e-post eller RSS | M |
 | Hotindexets utveckling som delbar bild | Finns som diagram i Arkiv. Gör det till en OG-bild | S |
 | ”Lägg till på hemskärmen” vid andra besöket | Finns (`openInstall`). Visa det automatiskt vid besök nummer 2 | S |
-
----
-
-## 5. Lanseringschecklista
-
-### Måste fixas före lansering
-
-- [ ] **K1:** Idag (och Arkiv, Ämnen, Karta) hämtar inte alla rapporter. Högst ~6–10 anrop per
-      förstabesök (app.js:671, api.js:140). **S–M**
-- [ ] **S1/K4/K5:** skydd mot att kvoten töms: egen domän med WAF-regel för rate limit och Bot Fight
-      Mode, *eller* Workers Paid över lanseringen. **S**
-- [ ] **K7** (eller K5): uppladdning och export får inte stoppas av en läsartopp. **S–M**
-- [ ] **AI-märkning enligt art. 50.4** på Idag, händelsesidor, scenarier, Myndigheter och Narrativ, och i
-      delningstexter. **S**
-- [ ] **Ansvarsfriskrivning, kontaktväg och vem som ansvarar**, synliga utan att man behöver leta. **S**
-- [ ] **G1:** självhostade typsnitt (bort med Google Fonts). **S**
-- [ ] **G2:** integritetspolicy för inloggade, med lagringstider och biträden. **M**
-- [ ] **A1:** ta bort `aria-live` från `<main>` (index.html:30). **S**
-- [ ] **U2/U3:** förklara hotindex och att händelsepoängen är trovärdighet. **S**
-- [ ] **U8:** svenska felmeddelanden, särskilt vid 429 och överbelastning. **S**
-- [ ] **K8/S3:** rätta DEPLOY.md (anrop per besök, gränsen 600 och inte 120) och slå på larm vid 70 % av
-      kvoten. **S**
-
-### Bör fixas
-
-- [ ] U1 och 4.5: en mening om vad appen är, och en kort introduktion för nya gäster. **S–M**
-- [ ] U6: inga ”nytt”-märken och ingen funktionsmeny vid första besöket. **S**
-- [ ] U7: förklaring när någon loggar in utan konto. **S**
-- [ ] 4.1: delningslänkar `/h/<datum>/<id>` med OG-taggar och dagliga OG-bilder, plus Dela-knapp. **M**
-- [ ] S2/K6: normaliserad cachenyckel och `caches.default`. **S**
-- [ ] S5: töm service workerns datacache vid rollbyte. **S**
-- [ ] A2, A3, A4: poängrutans etikett, kontrast på Karta och minsta textstorlek. **S**
-- [ ] 4 px vågrätt spill (`.fbar`, app.css:415), ta bort `orientation: portrait` i manifestet. **S**
-- [ ] U9: skelettvy vid laddning. **S**
-- [ ] CSP: `object-src 'none'`, `upgrade-insecure-requests`. HSTS på egen domän. **S**
-- [ ] G3, G5: lagringstider och en rutin för rättelse eller borttagning. **S–M**
-- [ ] RSS-flöde (4.2). **S**
-
-### Kan vänta
-
-- [ ] K2/K3: paketanrop eller statiska datafiler för gäster. **M–L**
-- [ ] Webbpush för gäster med köad utsändning, morgonbrev via e-post. **M**
-- [ ] SEO: sitemap, server-renderad text. **M**
-- [ ] Ansökan om att bli bedömare och följa ämne eller land. **M**
-- [ ] Veckobrev och automatiska inlägg i sociala medier. **M**
-- [ ] Test i CI som förbjuder `innerHTML` i `public/`. **S**
 
 ---
 
