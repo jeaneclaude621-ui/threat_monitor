@@ -49,7 +49,11 @@ jobs:
       - name: Install wrangler
         run: npm ci --no-audit --no-fund
       - name: Deploy
-        run: npx wrangler deploy
+        # Pasted secrets often end in a newline or a space; wrangler refuses them.
+        run: |
+          export CLOUDFLARE_ACCOUNT_ID="$(printf %s "$CLOUDFLARE_ACCOUNT_ID" | tr -d '[:space:]')"
+          export CLOUDFLARE_API_TOKEN="$(printf %s "$CLOUDFLARE_API_TOKEN" | tr -d '[:space:]')"
+          npx wrangler deploy
       - name: Check
         run: |
           VERSION=$(grep -o "hm-v[0-9.]*" public/sw.js | head -1)
