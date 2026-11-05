@@ -3,8 +3,9 @@ Shapes the report's events for the web app - ids, articles with links,
 topics and countries - per webapp/CONTRACT.md.
 
 The model supplies the Swedish text, topics, countries and article list;
-this module assigns the ids and links only articles the model cited by
-the ref of an article it was really given (common.LAST_SEARCH_RESULTS).
+this module assigns the ids and keeps only articles the model cited by
+the ref of an article it was really given (common.LAST_SEARCH_RESULTS);
+an event with none of those is marked "unverified".
 """
 import hashlib
 import re
@@ -110,16 +111,43 @@ RELATIONS = {"bekräftar", "motsäger", "tillför"}
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
+def _outlet_for(a: dict, match: dict) -> str:
+    """The outlet of a verified article: the name the article list gave,
+    so the model cannot put "Reuters" on a Devdiscourse copy. The model's
+    shorter name is used only when the list's name begins with it or
+    contains it - "BBC" for the feed "BBC Europe", "Reuters" for GDELT's
+    reuters.com - so verdicts on one outlet stay on one name."""
+    listed = (match.get("outlet") or "").strip()
+    model = canonical_outlet(a.get("outlet") or "")
+    if not listed:
+        return model
+    canon = canonical_outlet(listed)
+    m = re.sub(r"[^a-z0-9]", "", model.lower())
+    full = re.sub(r"[^a-z0-9]", "", listed.lower())
+    if m and m != re.sub(r"[^a-z0-9]", "", canon.lower()) and (full.startswith(m) or (len(m) >= 4 and m in full)):
+        return model
+    return canon
+
+
 def enrich_events(events: list, report_date: str, search_results: list = None,
                   thread_ids: set = None) -> list:
     """Adds id, model_score, articles (with ids), and cleans topics and
-    countries. `search_results` is the list of articles the model was
-    given; an article gets a link only when its "ref" (or, in reports from
-    before refs, its url) is among them. None means: no link check
-    possible (backfill), so every url is dropped."""
+    countries.
+
+    `search_results` is the list of articles the model was given. Only an
+    article cited by a "ref" (or url) in that list is kept, with the list's
+    own link, title and outlet; an article the list does not have is left
+    out, never shown unlinked. An event left with no verified article is
+    kept but gets "unverified": true, which the app shows.
+
+    None means: no link check possible (backfill of reports from before
+    refs), so the articles are the outlets the model read off the old
+    sources line, without links - and every such event is unverified."""
     from news_sources import decode_google_link
+    import blocklist
     known = {_norm_url(r["url"]): r for r in (search_results or []) if r.get("url")}
     by_ref = {r["ref"]: r for r in (search_results or []) if r.get("ref") and r.get("url")}
+    dropped = 0
     for i, ev in enumerate(events, start=1):
         ev["id"] = f"{report_date}-e{i}"
         ev.setdefault("model_score", ev.get("score"))
@@ -134,23 +162,33 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
         if "thread_id" in ev and (thread_ids is None or ev["thread_id"] not in thread_ids):
             ev["thread_id"] = None
 
-        articles = ev.get("articles") or parse_sources(ev.get("sources", ""))
+        if search_results is None:
+            ev["articles"] = _legacy_articles(ev, report_date, i)
+            ev["unverified"] = True
+            continue
+
+        # New reports: only the articles list, never the free-text sources line.
         clean = []
-        for a in articles:
+        for a in ev.get("articles") or []:
+            if not isinstance(a, dict):
+                continue
             ref = str(a.get("ref") or "").strip("[] ")
             match = by_ref.get(ref)
             if not match and a.get("url"):
                 match = known.get(_norm_url(a["url"]))
-            outlet = canonical_outlet(a.get("outlet") or (match or {}).get("outlet") or "")
-            if not outlet:
+            if not match or blocklist.blocked(match.get("url"), match.get("outlet")):
+                dropped += 1
                 continue
-            url = decode_google_link(match["url"]) if match else None
-            title = a.get("title") or (match or {}).get("title")
+            outlet = _outlet_for(a, match)
+            if not outlet:
+                dropped += 1
+                continue
+            url = decode_google_link(match["url"])
             tier = a.get("tier")
             item = {
                 "id": article_id(report_date, i, outlet, url),
                 "outlet": outlet,
-                "title": title if url else a.get("title"),
+                "title": match.get("title") or a.get("title"),
                 "url": url,
                 "tier": tier if isinstance(tier, int) and 1 <= tier <= 4 else None,
             }
@@ -161,10 +199,33 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
             if a.get("relation") in RELATIONS:
                 item["relation"] = a["relation"]
             clean.append(item)
-        # Same article twice (same link, or same outlet without a link) -> once.
+        # Same article twice -> once.
         seen = set()
         ev["articles"] = [a for a in clean if not (a["id"] in seen or seen.add(a["id"]))]
+        if ev["articles"]:
+            ev.pop("unverified", None)
+        else:
+            ev["unverified"] = True
+    if dropped:
+        print(f"  Left out {dropped} cited article(s) not in the article list (no verified source)")
+    unverified = sum(1 for e in events if e.get("unverified"))
+    if unverified and search_results is not None:
+        print(f"  {unverified} event(s) marked unverified: no verified news source")
     return events
+
+
+def _legacy_articles(ev: dict, report_date: str, i: int) -> list:
+    """Outlets without links, for reports from before refs (backfill)."""
+    out, seen = [], set()
+    for a in ev.get("articles") or parse_sources(ev.get("sources", "")):
+        outlet = canonical_outlet((a or {}).get("outlet") or "")
+        if not outlet or outlet in seen:
+            continue
+        seen.add(outlet)
+        tier = a.get("tier")
+        out.append({"id": article_id(report_date, i, outlet), "outlet": outlet, "title": a.get("title"),
+                    "url": None, "tier": tier if isinstance(tier, int) and 1 <= tier <= 4 else None})
+    return out
 
 
 SWEEP_EVENT_FIELDS = """Each event also carries, for the Swedish web app:
