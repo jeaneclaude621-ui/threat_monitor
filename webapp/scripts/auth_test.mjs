@@ -173,7 +173,9 @@ r = await call('/api/assessments', { envOver: pub });
 expect('guest sees no assessments', JSON.stringify(r.body), '[]');
 r = await call('/api/trends?side=ru', { envOver: pub });
 expect('guest reads trends', r.status, 200);
-for (const p of ['/api/reads', '/api/push/key', '/api/admin/users', '/api/export/assessments', '/api/ingest/updates']) {
+r = await call('/api/push/key', { envOver: { ...pub, VAPID_PUBLIC_KEY: 'BPublicKey' } });
+expect('guest reads the push key (Version 3.23)', r.body && r.body.publicKey, 'BPublicKey');
+for (const p of ['/api/reads', '/api/admin/users', '/api/export/assessments', '/api/ingest/updates']) {
   r = await call(p, { envOver: pub });
   expect(`guest refused ${p}`, r.status, 401);
 }

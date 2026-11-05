@@ -179,8 +179,11 @@ async function route(req) {
   // Version 3.17: with PUBLIC_READ on, anyone may read the public views as a
   // guest, without logging in. Everything else still needs a login.
   const guestOk = env.PUBLIC_READ === '1' && (method === 'GET' || method === 'HEAD') && isPublicPath(path);
+  // Version 3.23: guests may also subscribe to push (the subscription is the key).
+  const guestPost = env.PUBLIC_READ === '1' && method === 'POST' && GUEST_POST_PATHS.has(path);
   if (id.kind === 'invalid') {
     if (guestOk) return guestRead(req, path);
+    if (guestPost) return guestWrite(req, path);
     throw new HttpError(401, 'not authenticated', throttledReason(req, R.invalidJwt));
   }
 
@@ -208,6 +211,7 @@ async function route(req) {
     if (guestOk && e instanceof HttpError && e.status === 403) {
       return path === '/api/me' ? meWithoutAccount(env, id.email) : guestRead(req, path);
     }
+    if (guestPost && e instanceof HttpError && e.status === 403) return guestWrite(req, path);
     throw e;
   }
   req.who = who;
@@ -236,21 +240,30 @@ async function dispatch(req, path, method, who) {
 
   if (path === '/api/push/key') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);   // Version 3.23: guests may subscribe too
     if (!env.VAPID_PUBLIC_KEY) throw new HttpError(503, 'push is not configured');
     return json({ publicKey: env.VAPID_PUBLIC_KEY });
   }
 
   if (path === '/api/push/subscribe') {
     allow(method, 'POST');
+    if (guest) return subscribePush(request, env, null);
     requireUser(who);
     return subscribePush(request, env, who);
   }
 
   if (path === '/api/push/unsubscribe') {
     allow(method, 'POST');
+    if (guest) return unsubscribePush(request, env, null);
     requireUser(who);
     return unsubscribePush(request, env, who);
+  }
+
+  if (path === '/api/push/prefs') {
+    allow(method, 'POST');
+    if (guest) return pushFollow(request, env, null);
+    requireUser(who);
+    return pushFollow(request, env, who);
   }
 
   if (path === '/api/reports') {
@@ -542,7 +555,7 @@ function allow(method, expected) {
 // What a guest may read with PUBLIC_READ on. Assessments answer [] and
 // /api/me answers role 'guest'; reads, push, devices, admin, ingest and
 // export always need a login or the machine.
-const PUBLIC_PATHS = new Set(['/api/me', '/api/reports', '/api/assessments', '/api/notices', '/api/updates',
+const PUBLIC_PATHS = new Set(['/api/me', '/api/push/key', '/api/reports', '/api/assessments', '/api/notices', '/api/updates',
   '/api/courses', '/api/strikes', '/api/forces', '/api/authorities', '/api/trends']);
 const GUEST = Object.freeze({ kind: 'guest' });
 const GUEST_CACHE_MS = 60000;
@@ -651,6 +664,30 @@ async function guestRead(req, path) {
   headers['Cache-Control'] = 'public, max-age=60';
   headers.Vary = 'Cookie';
   return new Response(req.request.method === 'HEAD' ? null : body, { status: 200, headers });
+}
+
+// Version 3.23: what a guest may POST, from the app's own pages only and
+// at most GUEST_WRITES_PER_HOUR an hour per IP (per isolate).
+const GUEST_POST_PATHS = new Set(['/api/push/subscribe', '/api/push/unsubscribe', '/api/push/prefs']);
+const GUEST_WRITES_PER_HOUR = 20;
+const guestWrites = new Map();   // ip -> {start, n}
+
+async function guestWrite(req, path) {
+  const { request, url } = req;
+  if (request.headers.get('Origin') !== url.origin) throw new HttpError(403, 'bad origin', R.badOrigin);
+  const ip = clientIp(request);
+  const now = Date.now();
+  let w = guestWrites.get(ip);
+  if (!w || now - w.start >= 3600000) {
+    w = { start: now, n: 0 };
+    guestWrites.set(ip, w);
+    if (guestWrites.size > 10000) {
+      for (const [k, v] of guestWrites) if (now - v.start >= 3600000) guestWrites.delete(k);
+    }
+  }
+  w.n += 1;
+  if (w.n > GUEST_WRITES_PER_HOUR) throw new HttpError(429, 'too many requests', throttledReason(req, R.rateLimited));
+  return dispatch(req, path, 'POST', GUEST);
 }
 
 function requireUser(who) {
@@ -1950,6 +1987,30 @@ function devPushAllow(env) {
   return env.DEV_AUTH_EMAIL && env.DEV_PUSH_ALLOW ? env.DEV_PUSH_ALLOW : '';
 }
 
+// Version 3.23: a guest's subscription has email NULL; the endpoint, which
+// only that browser knows, is the key. Guests get only the public pushes
+// (reportPush: big index moves and events scored 9+), never notices from
+// admins or alarms. A subscription may follow topics or countries: then
+// event pushes reach it only when an event matches (empty = everything).
+const MAX_GUEST_SUBSCRIPTIONS = 5000;
+const GUEST_PREFS = new Set(['report']);
+const PUSH_TOPICS = new Set(['Drönare', 'Sabotage', 'IT-hot', 'Skuggflotta', 'Sanktioner', 'Diplomati', 'Arktis', 'Desinformation', 'Kinetiskt']);
+const COUNTRY_RE = /^[A-Z]{2}$/;
+
+/** {topics, countries} from a body, validated; undefined when absent. */
+function followFrom(body) {
+  const out = {};
+  for (const [k, max, ok] of [['topics', 9, (t) => PUSH_TOPICS.has(t)], ['countries', 40, (c) => COUNTRY_RE.test(c)]]) {
+    if (body[k] === undefined) continue;
+    const v = body[k] === null ? [] : body[k];
+    if (!Array.isArray(v) || v.length > max || v.some((x) => typeof x !== 'string' || !ok(x))) {
+      throw new HttpError(400, k === 'topics' ? 'topics must be a list of the fixed TOPICS' : 'countries must be a list of ISO 3166-1 alpha-2 codes');
+    }
+    out[k] = [...new Set(v)];
+  }
+  return out;
+}
+
 async function subscribePush(request, env, who) {
   const body = await readJson(request);
   if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'body must be a PushSubscription object');
@@ -1976,22 +2037,34 @@ async function subscribePush(request, env, who) {
         || Object.entries(p).some(([k, v]) => !/^[a-z_]{1,32}$/.test(k) || typeof v !== 'boolean')) {
       throw new HttpError(400, 'prefs must be an object of true/false flags');
     }
-    prefs = JSON.stringify(p);
+    // A guest's flags can only turn public pushes off; the rest mean nothing.
+    prefs = JSON.stringify(who ? p : Object.fromEntries(Object.entries(p).filter(([k]) => GUEST_PREFS.has(k))));
   }
+  const follow = followFrom(body);
+  const email = who ? who.email : null;
 
   const existing = await env.DB.prepare('SELECT email FROM push_subscriptions WHERE endpoint = ?').bind(endpoint).first();
   if (!existing) {
-    const mine = await env.DB.prepare('SELECT COUNT(*) AS n FROM push_subscriptions WHERE email = ?').bind(who.email).first();
-    if (mine.n >= MAX_SUBSCRIPTIONS_PER_USER) throw new HttpError(400, `at most ${MAX_SUBSCRIPTIONS_PER_USER} devices per user`);
+    if (who) {
+      const mine = await env.DB.prepare('SELECT COUNT(*) AS n FROM push_subscriptions WHERE email = ?').bind(email).first();
+      if (mine.n >= MAX_SUBSCRIPTIONS_PER_USER) throw new HttpError(400, `at most ${MAX_SUBSCRIPTIONS_PER_USER} devices per user`);
+    } else {
+      const guests = await env.DB.prepare('SELECT COUNT(*) AS n FROM push_subscriptions WHERE email IS NULL').first();
+      if (guests && guests.n >= MAX_GUEST_SUBSCRIPTIONS) throw new HttpError(503, 'no room for more guest subscriptions right now');
+    }
   }
-  // The endpoint belongs to whoever is signed in on that device now.
+  // The endpoint belongs to whoever is signed in on that device now (a guest: no one).
   await env.DB.prepare(
-    `INSERT INTO push_subscriptions (endpoint, email, p256dh, auth, created_at, prefs)
-     VALUES (?, ?, ?, ?, ?, ?)
+    `INSERT INTO push_subscriptions (endpoint, email, p256dh, auth, created_at, prefs, topics, countries)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(endpoint) DO UPDATE SET email = excluded.email, p256dh = excluded.p256dh,
-       auth = excluded.auth, prefs = excluded.prefs`
-  ).bind(endpoint, who.email, keys.p256dh, keys.auth, new Date().toISOString(), prefs).run();
-  return json({ ok: true }, existing ? 200 : 201);
+       auth = excluded.auth, prefs = excluded.prefs,
+       topics = COALESCE(excluded.topics, push_subscriptions.topics),
+       countries = COALESCE(excluded.countries, push_subscriptions.countries)`
+  ).bind(endpoint, email, keys.p256dh, keys.auth, new Date().toISOString(), prefs,
+    follow.topics ? JSON.stringify(follow.topics) : null,
+    follow.countries ? JSON.stringify(follow.countries) : null).run();
+  return json({ ok: true, guest: !who }, existing ? 200 : 201);
 }
 
 async function unsubscribePush(request, env, who) {
@@ -1999,10 +2072,43 @@ async function unsubscribePush(request, env, who) {
   if (!body || typeof body !== 'object' || typeof body.endpoint !== 'string' || body.endpoint.length > 1024) {
     throw new HttpError(400, 'endpoint is required');
   }
-  // Only your own devices.
-  const res = await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ? AND email = ?')
-    .bind(body.endpoint, who.email).run();
+  // Only your own devices; a guest only a guest subscription.
+  const res = await (who
+    ? env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ? AND email = ?').bind(body.endpoint, who.email)
+    : env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ? AND email IS NULL').bind(body.endpoint)
+  ).run();
   return json({ ok: true, removed: res.meta?.changes || 0 });
+}
+
+/** POST /api/push/prefs {endpoint, topics?, countries?}: what event pushes this device follows. */
+async function pushFollow(request, env, who) {
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body) || typeof body.endpoint !== 'string' || body.endpoint.length > 1024) {
+    throw new HttpError(400, 'endpoint is required');
+  }
+  const follow = followFrom(body);
+  if (!follow.topics && !follow.countries) throw new HttpError(400, 'give topics or countries (an empty list follows everything)');
+  const row = await (who
+    ? env.DB.prepare('SELECT topics, countries FROM push_subscriptions WHERE endpoint = ? AND email = ?').bind(body.endpoint, who.email)
+    : env.DB.prepare('SELECT topics, countries FROM push_subscriptions WHERE endpoint = ? AND email IS NULL').bind(body.endpoint)
+  ).first();
+  if (!row) throw new HttpError(404, 'no such subscription on this device');
+  const parse = (v) => { try { const a = JSON.parse(v || '[]'); return Array.isArray(a) ? a : []; } catch { return []; } };
+  const topics = follow.topics ?? parse(row.topics);
+  const countries = follow.countries ?? parse(row.countries);
+  await env.DB.prepare('UPDATE push_subscriptions SET topics = ?, countries = ? WHERE endpoint = ?')
+    .bind(JSON.stringify(topics), JSON.stringify(countries), body.endpoint).run();
+  return json({ ok: true, topics, countries });
+}
+
+/** Does a subscription following topics/countries want a push about these events? */
+function followsMatch(sub, match) {
+  if (!match) return true;   // not an event push: everyone
+  const parse = (v) => { try { const a = JSON.parse(v || '[]'); return Array.isArray(a) ? a : []; } catch { return []; } };
+  const topics = parse(sub.topics);
+  const countries = parse(sub.countries);
+  if (!topics.length && !countries.length) return true;
+  return topics.some((t) => match.topics.includes(t)) || countries.some((c) => match.countries.includes(c));
 }
 
 const svNum = (v) => v.toFixed(1).replace('.', ',');
@@ -2054,7 +2160,13 @@ async function reportPush(env, body, date) {
   } else {
     payload = { title: `${high.length} nya händelser med poäng 9–10`, body: eventTitle(high[0]), url: '/#/' };
   }
-  return pushTo(env, { adminsOnly: false, pref: 'report' }, payload, indexTrigger ? 'high' : 'normal');
+  // An index move is for everyone; an event push only for those following
+  // its topics or countries (or nothing in particular). Guests get both.
+  const match = indexTrigger ? null : {
+    topics: [...new Set(high.flatMap((e) => (Array.isArray(e.topics) ? e.topics : [])))],
+    countries: [...new Set(high.flatMap((e) => (Array.isArray(e.countries) ? e.countries : [])))],
+  };
+  return pushTo(env, { adminsOnly: false, pref: 'report', guests: true, match }, payload, indexTrigger ? 'high' : 'normal');
 }
 
 function inQuietHours(ms) {
@@ -2101,10 +2213,10 @@ async function getPushQueue(env) {
 
 /** Queues a push for every matching subscription and sends the first batch.
  *  During quiet hours the push is held until 07:00 instead. */
-async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal', budget = newBudget()) {
+async function pushTo(env, { adminsOnly, pref, guests = false, match = null }, payload, urgency = 'normal', budget = newBudget()) {
   if (inQuietHours(Date.now())) {
     const held = await getDeferred(env);
-    held.push({ target: { adminsOnly, pref }, payload, urgency });
+    held.push({ target: { adminsOnly, pref, guests, match }, payload, urgency });
     await setMeta(env, 'push_deferred', JSON.stringify(held.slice(-20)));
     return { sent: 0, deferred: true, reason: 'quiet hours' };
   }
@@ -2115,10 +2227,10 @@ async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal', bu
   const owner = ownerEmail(env);
   const { results } = await env.DB.prepare(
     adminsOnly
-      ? `SELECT p.endpoint, p.prefs FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
+      ? `SELECT p.endpoint, p.prefs, p.topics, p.countries FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
          WHERE p.email = ? OR (u.role = 'admin' AND u.active = 1)`
-      : `SELECT p.endpoint, p.prefs FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
-         WHERE p.email = ? OR u.active = 1`
+      : `SELECT p.endpoint, p.prefs, p.topics, p.countries FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
+         WHERE p.email = ? OR u.active = 1${guests && !adminsOnly ? ' OR p.email IS NULL' : ''}`
   ).bind(owner).all();
   const devAllow = devPushAllow(env);
   const endpoints = [];
@@ -2126,6 +2238,7 @@ async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal', bu
     let prefs = {};
     try { prefs = s.prefs ? JSON.parse(s.prefs) : {}; } catch { prefs = {}; }
     if (pref && prefs[pref] === false) continue;
+    if (!followsMatch(s, match)) continue;
     // Stored endpoints were checked on subscribe; checked again before any request.
     if (!allowedEndpoint(s.endpoint, devAllow)) continue;
     endpoints.push(s.endpoint);
@@ -2770,4 +2883,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
+export const _test = { reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
