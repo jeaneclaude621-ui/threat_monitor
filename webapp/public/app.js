@@ -1186,7 +1186,7 @@ async function viewEvent(date, id) {
   const op = e.operator || null;
   const trace = op && Array.isArray(op.trace) ? op.trace : [];
   const changed = e.model_score != null && Number(e.model_score) !== Number(e.score);
-  const known = Array.isArray(e.known_sv) ? e.known_sv.filter(Boolean) : [];
+  const known = knownItems(e);
   const unknown = Array.isArray(e.unknown_sv) ? e.unknown_sv.filter(Boolean) : [];
   const reportHref = isLatest ? '#/' : `#/rapport/${encodeURIComponent(date)}`;
   const outcome = laterOutcome(e, date, reports);
@@ -1216,7 +1216,7 @@ async function viewEvent(date, id) {
     known.length || unknown.length ? h('section', { class: 'kv2' },
       known.length ? h('div', { class: 'card card-pad' },
         h('h2', { class: 'kicker' }, 'Vad vi vet'),
-        h('ul', { class: 'bullets' }, known.map((k) => h('li', null, k)))) : null,
+        h('ul', { class: 'bullets' }, known.map((k) => h('li', null, k.text, refLinks(k.refs, e))))) : null,
       unknown.length ? h('div', { class: 'card card-pad' },
         h('h2', { class: 'kicker amber' }, 'Vad vi inte vet'),
         h('ul', { class: 'bullets' }, unknown.map((k) => h('li', null, k)))) : null) : null,
@@ -1241,6 +1241,28 @@ async function viewEvent(date, id) {
         e.articles.length && e.sources ? h('p', { class: 'small muted' }, `Källunderlag: ${e.sources}`) : null)),
     relatedSection(e, date, reports),
   );
+}
+
+// known_sv is [{text, refs: [article id]}] since #9, or plain strings in
+// older reports; both are shown, refs as small links to the event's articles.
+function knownItems(e) {
+  if (!Array.isArray(e.known_sv)) return [];
+  return e.known_sv.map((k) => (typeof k === 'string' ? { text: k, refs: [] }
+    : k && typeof k.text === 'string' ? { text: k.text, refs: Array.isArray(k.refs) ? k.refs : [] } : null))
+    .filter((k) => k && k.text.trim());
+}
+
+function refLinks(refs, e) {
+  const all = e.articles || [];
+  const arts = [...new Set(refs || [])].map((id) => all.findIndex((a) => a && a.id === id)).filter((i) => i >= 0);
+  if (!arts.length) return null;
+  return h('span', { class: 'refs' }, arts.map((i) => {
+    const a = all[i];
+    const label = `[${i + 1}] ${a.outlet || hostOf(a.url) || 'källa'}`;
+    return a.url && hostOf(a.url)
+      ? h('button', { class: 'ref', type: 'button', 'aria-label': `Källa: ${a.outlet || hostOf(a.url)}`, onclick: () => openExternal(a.url, { outlet: a.outlet, tier: a.tier, date: a.fetched_at || a.date }) }, label)
+      : h('span', { class: 'ref' }, label);
+  }));
 }
 
 function threadSection(e, date, reports, threadUpdates) {
