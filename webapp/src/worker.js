@@ -512,7 +512,7 @@ const PUBLIC_PATHS = new Set(['/api/me', '/api/reports', '/api/assessments', '/a
 const GUEST = Object.freeze({ kind: 'guest' });
 const GUEST_CACHE_MS = 60000;
 const GUEST_CACHE_MAX = 200;
-const guestCache = new Map();   // per isolate: path+query -> {at, body}
+const guestCache = new Map();   // per isolate: normalized path+query -> {at, body}, oldest first
 const EMAIL_IN_TEXT = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 
 function isPublicPath(path) {
@@ -547,21 +547,70 @@ function pseudonymize(data) {
   return walk(data);
 }
 
+// Version 3.22: the cache key keeps only the parameters a public read uses,
+// so /api/reports?x=1, ?x=2 ... cannot each miss and read D1.
+const GUEST_PARAMS = ['side', 'since', 'p'];
+function guestKey(path, search) {
+  const q = new URLSearchParams(search);
+  const kept = new URLSearchParams();
+  for (const k of GUEST_PARAMS) {
+    const v = q.get(k);
+    if (v !== null && v !== '') kept.set(k, v.slice(0, 64));
+  }
+  const s = kept.toString();
+  return s ? `${path}?${s}` : path;
+}
+
+/** Least recently used first out; the whole map is never emptied at once. */
+function guestCachePut(key, entry) {
+  guestCache.delete(key);
+  while (guestCache.size >= GUEST_CACHE_MAX) guestCache.delete(guestCache.keys().next().value);
+  guestCache.set(key, entry);
+}
+
+// The Cache API (caches.default) is shared by every isolate in a data
+// centre. It works on a custom domain; on workers.dev it is a no-op.
+function edgeCache() {
+  try {
+    return typeof caches !== 'undefined' && caches.default ? caches.default : null;
+  } catch {
+    return null;
+  }
+}
+const edgeCacheUrl = (origin, key) => `${origin}/__guest-cache${key}`;
+
 /** A guest's read: the same answer as a user's, without names, cached a minute. */
 async function guestRead(req, path) {
-  const key = path + req.url.search;
+  const key = guestKey(path, req.url.search);
   const now = Date.now();
   const hit = guestCache.get(key);
   let body;
   if (hit && now - hit.at < GUEST_CACHE_MS) {
     body = hit.body;
+    guestCache.delete(key);
+    guestCache.set(key, hit);   // most recently used last
   } else {
-    const res = await dispatch(req, path, req.request.method, GUEST);
-    if (!res.ok) return res;
-    const text = await res.text();
-    body = text === 'null' ? text : JSON.stringify(pseudonymize(JSON.parse(text)));
-    if (guestCache.size >= GUEST_CACHE_MAX) guestCache.clear();
-    guestCache.set(key, { at: now, body });
+    const edge = edgeCache();
+    const edgeReq = edge ? new Request(edgeCacheUrl(req.url.origin, key)) : null;
+    let cached = null;
+    if (edge) {
+      try { cached = await edge.match(edgeReq); } catch { cached = null; }
+    }
+    if (cached) {
+      body = await cached.text();
+    } else {
+      const res = await dispatch(req, path, 'GET', GUEST);
+      if (!res.ok) return res;
+      const text = await res.text();
+      body = text === 'null' ? text : JSON.stringify(pseudonymize(JSON.parse(text)));
+      if (edge) {
+        const put = edge.put(edgeReq, new Response(body, {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': `public, max-age=${GUEST_CACHE_MS / 1000}` },
+        })).catch(() => {});
+        if (req.ctx && req.ctx.waitUntil) req.ctx.waitUntil(put); else await put;
+      }
+    }
+    guestCachePut(key, { at: now, body });
   }
   const headers = apiHeaders();
   headers['Cache-Control'] = 'public, max-age=60';
@@ -2227,4 +2276,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
+export const _test = { guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
