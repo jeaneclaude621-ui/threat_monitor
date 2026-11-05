@@ -109,7 +109,7 @@ history.replaceState = (...args) => {
 
 const ROUTE_LABEL = { '': 'Idag', rapport: 'Rapporten', handelse: 'Händelsen', arkiv: 'Arkiv', amnen: 'Ämnen', karta: 'Karta',
   narrativ: 'Narrativ', trender: 'Narrativ', myndigheter: 'Myndigheter', handlingsalternativ: 'Handlingsalternativ',
-  styrkor: 'Styrkor', bedom: 'Bedöm', mina: 'Mina bedömningar', kalla: 'Källan', admin: 'Administration', om: 'Om' };
+  styrkor: 'Styrkor', bedom: 'Bedöm', mina: 'Mina bedömningar', kalla: 'Källan', admin: 'Administration', om: 'Om', rattelser: 'Rättelser' };
 function labelOf(hash) {
   const first = hash.replace(/^#\/?/, '').split(/[/?]/)[0];
   if (first === 'styrkor' && /[?&](sys|unit)=/.test(hash)) return 'Förbandet';
@@ -251,6 +251,7 @@ async function route({ keepScroll = false } = {}) {
     case 'kalla': view = () => viewSource(rest.join('/')); break;
     case 'admin': tab = ''; view = () => viewAdmin(q); break;
     case 'om': tab = ''; view = () => viewAbout(); break;
+    case 'rattelser': tab = ''; view = () => viewCorrections(); break;
     default: view = () => viewReport(null, q);
   }
   setTab(tab);
@@ -4014,6 +4015,7 @@ function viewAbout() {
       h('p', null, disclaimerText()),
       h('p', null, 'Har du hittat ett fel, vill du att något rättas eller tas bort, eller har du en fråga? Skriv ett ärende på projektets sida på GitHub: ',
         contactLink('öppna ärenden (issues)'), '. Ärenden där är offentliga, så skriv inga personuppgifter som inte behövs.'),
+      h('p', null, 'Fel som har rättats visas överst på händelsen och samlas under ', h('a', { href: '#/rattelser' }, 'Rättelser'), '.'),
       h('h2', { class: 'title-m' }, 'Källor'),
       h('p', null, 'Rysk statsmedia och Telegram används inte som nyhetskällor. Under Narrativ visas den ryska sidan bara som våra svenska sammanfattningar, utan länkar dit.'),
       h('h2', { class: 'title-m' }, 'Integritet'),
@@ -4024,6 +4026,27 @@ function viewAbout() {
       guest ? h('p', null, h('a', { class: 'btn primary', href: '/login' }, 'Logga in'), ' ',
         h('span', { class: 'small muted' }, 'för notiser och för att bedöma källor (kräver konto).')) : null),
     privacySection());
+}
+
+// #/rattelser: every event in the loaded reports that carries a correction.
+async function viewCorrections() {
+  const reports = await searchableReports();
+  const items = [];
+  for (const r of reports) for (const e of r.events || []) if (hasCorrection(e)) items.push({ r, e });
+  items.sort((a, b) => ((a.e.correction.date || a.r.date) < (b.e.correction.date || b.r.date) ? 1 : -1));
+  return frag(
+    backLink('#/om', 'Om'),
+    h('header', { class: 'page-head' }, h('div', null, h('h1', { class: 'title-xl' }, 'Rättelser'))),
+    h('p', { class: 'small muted' }, 'När en uppgift i en händelse visar sig vara fel rättas händelsen, och rättelsen visas överst på den. Här är alla rättelser.'),
+    items.length
+      ? h('div', { class: 'card list' }, items.map(({ r, e }) => h('a', { class: 'row', href: eventHref(r.date, e.id) },
+        h('span', { class: 'small muted date-col' }, dateShort(e.correction.date || r.date)),
+        h('span', { class: 'row-main' },
+          h('span', { class: 'row-title' }, e.title_sv || e.title),
+          h('span', { class: 'row-sub' }, e.correction.note_sv)),
+        chevRight())))
+      : emptyState('Inga rättelser.'),
+    olderReportsNote());
 }
 
 // Integritetspolicy (review G2): what is kept, why, for how long, who helps.
