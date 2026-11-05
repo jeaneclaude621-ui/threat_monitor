@@ -126,7 +126,57 @@ class SocialNeverAloneInForces(unittest.TestCase):
             part[0]["refs"] = ["A1", "A2"]
         night = forces.apply(st, result, self.REFS, date(2026, 11, 5))
         self.assertEqual((len(night["follow_ups"]), len(night["changes"])), (1, 1))
+        # One independent news source: a claim, the holdings stay.
+        self.assertEqual(night["changes"][0]["kind"], "uppgift")
+        self.assertEqual(st["bases"][0]["equipment"], ["Su-34"])
+
+
+class TwoSourcesToRemoveOrMove(unittest.TestCase):
+    REFS = {"A1": {"url": "https://kyivindependent.com/a", "outlet": "Kyiv Independent", "title": "Su-34s leave Marinovka"},
+            "A2": {"url": "https://www.reuters.com/b", "outlet": "Reuters", "title": "Satellite images show empty airfield"},
+            "A3": {"url": "https://www.msn.com/c", "outlet": "MSN", "title": "Russian jets moved from base"},
+            "A4": {"url": "https://news.yahoo.com/d", "outlet": "Yahoo News", "title": "Bombers relocated, images show"}}
+
+    def state(self):
+        base = lambda i: {"id": i, "name": i, "curated": True, "events": [], "changes": [],  # noqa: E731
+                          "units": ["22 GvTBAD"], "equipment": ["Su-34"]}
+        return {"bases": [base("Q1"), base("Q2")]}
+
+    def run_change(self, kind, refs, **kw):
+        from datetime import date
+        import forces
+        st = self.state()
+        c = {"base": "Q1", "category": "materiel", "what": "Su-34", "kind": kind, "text_sv": "x", "refs": refs, **kw}
+        night = forces.apply(st, {"changes": [c]}, self.REFS, date(2026, 11, 5))
+        return st, night
+
+    def test_move_on_one_source_is_a_claim(self):
+        st, night = self.run_change("flyttat", ["A1"], to_base="Q2")
+        ch = night["changes"][0]
+        self.assertEqual((ch["kind"], ch["claimed_kind"], ch["to_base"]), ("uppgift", "flyttat", "Q2"))
+        self.assertEqual(st["bases"][0]["equipment"], ["Su-34"])
+        self.assertEqual(st["bases"][1]["changes"], [])
+
+    def test_removal_on_one_source_is_a_claim(self):
+        st, night = self.run_change("borta", ["A2"])
+        self.assertEqual(night["changes"][0]["kind"], "uppgift")
+        self.assertEqual(st["bases"][0]["equipment"], ["Su-34"])
+        self.assertEqual(st["bases"][0]["changes"][0]["claimed_kind"], "borta")
+
+    def test_aggregators_count_once(self):
+        st, night = self.run_change("borta", ["A3", "A4"])
+        self.assertEqual(night["changes"][0]["kind"], "uppgift")
+
+    def test_two_independent_sources_move(self):
+        st, night = self.run_change("flyttat", ["A1", "A2"], to_base="Q2")
+        self.assertEqual(night["changes"][0]["kind"], "flyttat")
         self.assertEqual(st["bases"][0]["equipment"], [])
+        self.assertEqual(st["bases"][1]["changes"][0]["kind"], "tillfört")
+
+    def test_adding_needs_one_source(self):
+        st, night = self.run_change("tillfört", ["A1"], what="Tu-22M3")
+        self.assertEqual(night["changes"][0]["kind"], "tillfört")
+        self.assertIn("Tu-22M3", st["bases"][0]["equipment"])
 
 
 class Independence(unittest.TestCase):
