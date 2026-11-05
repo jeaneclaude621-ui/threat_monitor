@@ -789,6 +789,7 @@ async function viewReport(date, q) {
     // The figures and the news first; what is new for me, the controls
     // and the device cards come after or fold away.
     heroCard(r),
+    aiLine(),
     top ? h('section', { class: 'section' },
       h('div', { class: 'kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
       h('p', { class: 'lead' }, top)) : null,
@@ -893,6 +894,14 @@ function updateRow(u, reports) {
 
 const CLASS_SV = { NEW_DEVELOPMENT: 'Ny utveckling', CORRECTION: 'Rättelse', NARRATIVE_SHIFT: 'Ändrad berättelse', NO_CHANGE: 'Ingen förändring' };
 function classLabel(c) { return CLASS_SV[c] || c; }
+
+// EU AI Act art. 50.4: text an AI wrote to inform the public is marked
+// where it is shown, not only on Om.
+function aiTag() { return h('span', { class: 'ai-tag' }, 'AI-sammanfattning'); }
+function aiLine() {
+  return h('p', { class: 'ai-line' }, 'AI-genererad sammanställning ur öppna källor. Kan innehålla fel. ',
+    h('a', { href: '#/om' }, 'Läs mer'));
+}
 
 function heroCard(r) {
   const oi = r.operator_influence;
@@ -1060,7 +1069,8 @@ async function viewEvent(date, id) {
         h('span', { class: scoreClass(e.score), style: 'width:auto;height:auto;padding:3px 8px;border-radius:8px;font-size:13px' }, `${fmtScore(e.score)}/10`),
         changed ? h('span', null, `Modellens poäng ${fmtScore(e.model_score)}`) : null,
         h('a', { href: reportHref }, dateLong(date)),
-        stateBadge(state)),
+        stateBadge(state),
+        aiTag()),
       outcome ? h('p', { class: 'outcome' },
         h('span', { class: `rel rel-${OUTCOME[outcome.outcome][1]}` }, OUTCOME[outcome.outcome][0]),
         ' ', outcome.note || '',
@@ -1676,7 +1686,7 @@ async function viewCourses() {
   const jump = (id) => (ev) => { ev.preventDefault(); document.getElementById(`coa-${id}`).scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   return frag(back,
     h('header', { class: 'page-head' }, h('div', null,
-      h('div', { class: 'kicker' }, `Bedömt ${dateShort(a.date)}`),
+      h('div', { class: 'kicker' }, `Bedömt ${dateShort(a.date)} `, aiTag()),
       h('h1', { class: 'title-l' }, 'Rysslands handlingsalternativ'))),
     h('p', { class: 'hint' }, 'Hur Ryssland kan flytta fram sina positioner, splittra Europa och skapa buffertzoner – med våld, hot eller ombud.'),
     a.changed_sv ? h('p', { class: 'newline' }, h('span', null, h('b', null, 'Sedan i går: '), a.changed_sv)) : null,
@@ -1727,7 +1737,7 @@ async function viewAuthorities(q) {
   const older = part.items.filter((i) => !i.fresh);
   return frag(back,
     h('header', { class: 'page-head' }, h('div', null,
-      h('div', { class: 'kicker' }, `Sammanställt ${tsFmt(new Date(brief.generated_at))}`),
+      h('div', { class: 'kicker' }, `Sammanställt ${tsFmt(new Date(brief.generated_at))} `, aiTag()),
       h('h1', { class: 'title-l' }, 'Sverige och Nato'))),
     h('div', { class: 'seg', role: 'group', 'aria-label': 'Vems uppgifter' },
       h('button', { type: 'button', 'aria-pressed': String(!isNato), onclick: () => { location.hash = '#/myndigheter'; } }, 'Svenska myndigheter'),
@@ -1809,7 +1819,7 @@ async function viewTrends(q) {
     h('button', { type: 'button', 'aria-pressed': String(!ru), onclick: () => { location.hash = '#/narrativ'; } }, 'Öppna källor'),
     h('button', { type: 'button', 'aria-pressed': String(ru), class: 'seg-ru', onclick: () => { location.hash = '#/narrativ?s=ru'; } }, 'Rysk sida'));
   const head = frag(
-    h('header', { class: 'page-head' }, h('h1', { class: 'title-l' }, 'Narrativ')),
+    h('header', { class: 'page-head' }, h('div', null, h('div', { class: 'kicker' }, aiTag()), h('h1', { class: 'title-l' }, 'Narrativ'))),
     h('p', { class: 'hint' }, 'Det som sprids just nu. Inte bedömt och inte bekräftat – påverkar inte rapporten, trådarna eller index.'),
     seg);
   if (ru && !showRussian()) return frag(head, russianGate());

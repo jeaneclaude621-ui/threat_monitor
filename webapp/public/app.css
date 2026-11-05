@@ -864,3 +864,8 @@ img.zoomable { cursor: zoom-in; -webkit-touch-callout: none; -webkit-user-select
 .feat-new { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 8px; background: var(--amber-soft); color: var(--amber); }
 .feat-area > summary { cursor: pointer; font-weight: 600; padding: 8px 0 4px; display: flex; align-items: center; gap: 6px; }
 .feat-count { font-size: 11px; font-weight: 500; opacity: 0.6; }
+
+/* AI marking (EU AI Act art. 50.4) */
+.ai-tag { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; line-height: 1.3; padding: 1px 7px; border-radius: 6px; border: 1px solid var(--line); background: var(--chip); color: var(--ink-2); vertical-align: baseline; }
+.ai-line { font-size: 13px; color: var(--muted); line-height: 1.4; margin: 8px 2px 0; }
+.ai-line a { color: var(--link); font-weight: 600; }
