@@ -635,6 +635,13 @@ def find_site(o: dict, town: dict, overpass=None):
     return {"lat": round(best[0], 5), "lon": round(best[1], 5), "precision": "site", "osm_name": best[2][:120] or None}
 
 
+def _nominatim(q: str):
+    req = urllib.request.Request(NOMINATIM.format(q=urllib.parse.quote(q)), headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        rows = json.loads(r.read().decode("utf-8"))
+    return rows[0] if rows else None
+
+
 def locate_other(state: dict, lookup=None, pause: float = 1.1, overpass=None, again: bool = False) -> int:
     """Coordinates for the recent "other" strikes, from OpenStreetMap's
     Nominatim (one request a second, as its policy asks): the facility when

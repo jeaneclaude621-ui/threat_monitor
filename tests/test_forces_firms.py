@@ -133,3 +133,10 @@ class Sites(unittest.TestCase):
         import forces
         self.assertTrue(forces._overloaded(RuntimeError("503 UNAVAILABLE high demand")))
         self.assertFalse(forces._overloaded(RuntimeError("429 RESOURCE_EXHAUSTED")))
+
+
+class Names(unittest.TestCase):
+    def test_lookups_exist(self):
+        import forces
+        for name in ("_nominatim", "_overpass", "find_site", "locate_other", "retry_if_due", "relocate"):
+            self.assertTrue(callable(getattr(forces, name, None)), name)
