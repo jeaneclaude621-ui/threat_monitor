@@ -786,7 +786,10 @@ async function shareMeta(env, path) {
     if (!e) return null;
     const title = clean(e.title_sv || e.title).slice(0, 160) || `Händelse ${svDate(date)}`;
     const first = firstSentence(e.summary_sv) || firstSentence(e.title_sv || e.title);
-    return { title, description: `${first} · ${AI_LABEL} · ${SITE_NAME}`, path: `/h/${date}/${encodeURIComponent(id)}`, date };
+    return {
+      title, description: `${first} · ${AI_LABEL} · ${SITE_NAME}`, path: `/h/${date}/${encodeURIComponent(id)}`, date,
+      article: eventArticle(date, e, title),
+    };
   }
   m = path.match(/^\/d\/([^/]+)$/);
   if (m) {
@@ -799,9 +802,50 @@ async function shareMeta(env, path) {
     const top = topEvent(data);
     const first = firstSentence(data.executive_sv && data.executive_sv.top)
       || firstSentence(data.top_development) || firstSentence(top && (top.summary_sv || top.title_sv));
-    return { title, description: `${first || SITE_TAGLINE} · ${AI_LABEL} · ${SITE_NAME}`, path: `/d/${date}`, date };
+    return {
+      title, description: `${first || SITE_TAGLINE} · ${AI_LABEL} · ${SITE_NAME}`, path: `/d/${date}`, date,
+      article: dayArticle(date, data, title),
+    };
   }
   return undefined;   // not a share path
+}
+
+// Version 3.23: the text itself as plain HTML in <main id="view">, for
+// search engines and for readers without JavaScript. The app replaces it
+// when it renders. Every string is escaped; links stay inside the app.
+const AI_NOTE = 'AI-genererad sammanställning ur öppna källor. Kan innehålla fel. Hotmonitor är ett privat projekt och ingen myndighet.';
+const escHtml = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const scoreText = (v) => (typeof v === 'number' ? `${Number.isInteger(v) ? v : svIndex(v)}/10` : '');
+
+function eventArticle(date, e, title) {
+  const parts = [`<article id="ssr" lang="sv">`, `<p class="ssr-label">${escHtml(AI_LABEL)} · ${escHtml(svDate(date))}${e.score !== undefined ? ` · trovärdighet ${escHtml(scoreText(e.score))}` : ''}</p>`,
+    `<h1>${escHtml(title)}</h1>`];
+  const summary = clean(e.summary_sv);
+  if (summary) parts.push(`<p>${escHtml(summary)}</p>`);
+  const tags = [...(Array.isArray(e.topics) ? e.topics : []), ...(Array.isArray(e.countries) ? e.countries : [])].filter((t) => typeof t === 'string').slice(0, 20);
+  if (tags.length) parts.push(`<p>${escHtml(tags.join(' · '))}</p>`);
+  const outlets = [...new Set((Array.isArray(e.articles) ? e.articles : []).map((a) => a && clean(a.outlet)).filter(Boolean))].slice(0, 20);
+  if (outlets.length) parts.push(`<p>Källor: ${escHtml(outlets.join(', '))}</p>`);
+  parts.push(`<p><a href="/d/${escHtml(date)}">Hela lägesbilden ${escHtml(svDate(date))}</a></p>`, `<p><small>${escHtml(AI_NOTE)}</small></p>`, '</article>');
+  return parts.join('\n');
+}
+
+function dayArticle(date, data, title) {
+  const parts = [`<article id="ssr" lang="sv">`, `<p class="ssr-label">${escHtml(AI_LABEL)}</p>`, `<h1>${escHtml(title)}</h1>`];
+  const top = clean((data.executive_sv && data.executive_sv.top) || data.top_development);
+  if (top) parts.push(`<p>${escHtml(top)}</p>`);
+  const events = (Array.isArray(data.events) ? data.events : [])
+    .filter((e) => e && typeof e.id === 'string' && EVENT_ID_RE.test(e.id) && (e.title_sv || e.title))
+    .sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 50);
+  if (events.length) {
+    parts.push('<h2>Händelser</h2>', '<ul>');
+    for (const e of events) {
+      parts.push(`<li><a href="/h/${escHtml(date)}/${escHtml(encodeURIComponent(e.id))}">${escHtml(clean(e.title_sv || e.title).slice(0, 160))}</a>${e.score !== undefined ? ` (${escHtml(scoreText(e.score))})` : ''}</li>`);
+    }
+    parts.push('</ul>');
+  }
+  parts.push(`<p><small>${escHtml(AI_NOTE)}</small></p>`, '</article>');
+  return parts.join('\n');
 }
 
 const escAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -846,6 +890,7 @@ async function sharePage(request, env, url, meta) {
     .on('title', { element(el) { el.setInnerContent(`${meta.title} · ${SITE_NAME}`); } })
     .on('meta[name="description"]', { element(el) { el.setAttribute('content', meta.description); } })
     .on('head', { element(el) { el.append(tags, { html: true }); } })
+    .on('main#view', { element(el) { if (meta.article) el.setInnerContent(meta.article, { html: true }); } })
     .transform(new Response(page.body, { status: 200, headers }));
   return request.method === 'HEAD' ? new Response(null, { status: 200, headers: out.headers }) : out;
 }

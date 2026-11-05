@@ -116,7 +116,7 @@ const report = {
 db.reports.set(today, { date: today, threat_index: 6.4, threat_index_30d: 6.0, top_sv: report.executive_sv.top, data: JSON.stringify(report) });
 
 const INDEX_HTML = '<!doctype html><html lang="sv"><head><meta charset="utf-8"><title>Hotmonitor</title>'
-  + '<meta name="description" content="Daglig bedömning."></head><body><main id="view"></main></body></html>';
+  + '<meta name="description" content="Daglig bedömning."></head><body><main id="view"><p>Laddar…</p></main></body></html>';
 const env = {
   PUBLIC_READ: '1', TEAM_DOMAIN: 'team.cloudflareaccess.com', ACCESS_AUD: 'aud', DB: db,
   ASSETS: { fetch: async (req) => new Response(new URL(req.url).pathname === '/' ? INDEX_HTML
@@ -164,6 +164,8 @@ globalThis.HTMLRewriter = class {
           h.element({ setInnerContent(t) { html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(t)}</title>`); } });
         } else if (sel === 'meta[name="description"]') {
           h.element({ setAttribute(_k, v) { html = html.replace(/(<meta name="description" content=")[^"]*(")/, `$1${esc(v).replace(/"/g, '&quot;')}$2`); } });
+        } else if (sel === 'main#view') {
+          h.element({ setInnerContent(t) { html = html.replace(/(<main id="view">)[\s\S]*?(<\/main>)/, `$1${t}$2`); } });
         } else if (sel === 'head') {
           h.element({ append(t) { html = html.replace('</head>', `${t}</head>`); } });
         }
@@ -199,8 +201,14 @@ r = await get(`/h/${today}/${today}-e1`);
 expect('second view from the cache, OG intact', metaOf(await r.text(), 'og:title'), 'Kabel skadad i Östersjön');
 expect('second view reads no D1', db.reads, 0);
 
+const ssr = (h) => (h.match(/<article id="ssr"[\s\S]*?<\/article>/) || [''])[0];
+expect('event text in the page (SSR)', ssr(html).includes('En kabel mellan Finland och Estland skadades i natt. Polisen utreder.'), true);
+expect('SSR is AI-labelled', ssr(html).includes('AI-sammanfattning'), true);
+expect('SSR replaces the loading text', html.includes('Laddar…'), false);
+expect('SSR links to the day', ssr(html).includes(`href="/d/${today}"`), true);
 r = await get(`/h/${today}/${today}-e2`);
 html = await r.text();
+expect('SSR escapes markup', ssr(html).includes('&lt;script&gt;') && !ssr(html).includes('<script>'), true);
 expect('markup in a title is escaped', html.includes('<script>'), false);
 expect('empty summary: the title is the description', metaOf(html, 'og:description').startsWith('Desinformation om val &lt;script&gt;'), true);
 
@@ -210,12 +218,15 @@ expect('day page 200', r.status, 200);
 expect('day og:title has the index', metaOf(html, 'og:title').endsWith('· hotindex 6,4'), true);
 expect('day og:description', metaOf(html, 'og:description'), 'Sabotage mot en kabel i Östersjön. · AI-sammanfattning · Hotmonitor');
 expect('day og:url', metaOf(html, 'og:url'), `${ORIGIN}/d/${today}`);
+expect('day SSR lists the events, highest first', ssr(html).indexOf(`${today}-e1`) > 0 && ssr(html).indexOf(`${today}-e1`) < ssr(html).indexOf(`${today}-e2`), true);
+expect('day SSR has the top line', ssr(html).includes('Sabotage mot en kabel i Östersjön.'), true);
 
 for (const bad of [`/h/${today}/nope`, '/h/2026-13-40/x-e1', '/d/1999-01-01', '/d/not-a-date', `/h/${today}/a%20b`, `/h/${today}/%E0%A4%A`, `/h/${today}/x/extra`]) {
   r = await get(bad);
   html = await r.text();
   expect(`404 for ${bad}`, r.status, 404);
   expect(`no OG tags on ${bad}`, html.includes('og:title'), false);
+  expect(`no SSR on ${bad}`, html.includes('id="ssr"'), false);
 }
 r = await worker.fetch(new Request(`${ORIGIN}/d/${today}`), { ...env, PUBLIC_READ: '0' }, { waitUntil: () => {} });
 html = await r.text();
