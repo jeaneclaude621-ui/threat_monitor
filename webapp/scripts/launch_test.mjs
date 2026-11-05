@@ -436,5 +436,29 @@ expect('at most three requests a day', r.status, 429);
   globalThis.fetch = realFetch;
 }
 
+// --- /api/public/latest (Version 3.23) -----------------------------------------
+_test.resetPublicLatest();
+edgeStore.clear();
+db.reports.set(today, { ...db.reports.get(today), data: JSON.stringify({ ...report, note: 'av someone@example.org' }) });
+db.reads = 0;
+r = await get('/api/public/latest');
+let pl = await r.json();
+expect('public/latest 200', r.status, 200);
+expect('long cache', r.headers.get('cache-control'), 'public, max-age=300');
+expect('index included, newest first', pl.index[0].date, today);
+expect('newest report included', pl.latest.date, today);
+expect('no e-mail addresses', JSON.stringify(pl).includes('@'), false);
+expect('in caches.default', edgeStore.has(`${ORIGIN}/__public-cache/api/public/latest`), true);
+const readsNow = db.reads;
+r = await get('/api/public/latest?x=1');
+expect('second call: no D1 read', db.reads, readsNow);
+_test.resetPublicLatest();
+r = await get('/api/public/latest');
+expect('another isolate: from caches.default', db.reads, readsNow);
+r = await worker.fetch(new Request(`${ORIGIN}/api/public/latest`), { ...env, PUBLIC_READ: '0' }, { waitUntil: () => {} });
+expect('PUBLIC_READ off: not public', r.status, 401);
+r = await get('/api/public/latest', { method: 'POST' });
+expect('only GET', r.status, 405);
+
 console.log(`\nlaunch_test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -176,6 +176,11 @@ async function route(req) {
   if (id.kind === 'user') req.email = id.email;
   // Before the 401, so an unauthenticated flood is limited per IP too.
   rateLimit(req, id);
+  // Version 3.23: one small, long-cached package for guests (K3, step one).
+  if (path === '/api/public/latest' && env.PUBLIC_READ === '1') {
+    if (method !== 'GET' && method !== 'HEAD') throw new HttpError(405, 'method not allowed');
+    return publicLatest(req);
+  }
   // Version 3.17: with PUBLIC_READ on, anyone may read the public views as a
   // guest, without logging in. Everything else still needs a login.
   const guestOk = env.PUBLIC_READ === '1' && (method === 'GET' || method === 'HEAD') && isPublicPath(path);
@@ -688,6 +693,49 @@ async function guestWrite(req, path) {
   w.n += 1;
   if (w.n > GUEST_WRITES_PER_HOUR) throw new HttpError(429, 'too many requests', throttledReason(req, R.rateLimited));
   return dispatch(req, path, 'POST', GUEST);
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/public/latest (Version 3.23)
+// ---------------------------------------------------------------------------
+// The report index and the newest report, without e-mail addresses, in one
+// answer cached five minutes (per isolate, in caches.default and in the
+// browser). The same for everyone, so a guest's first view needs one call.
+const PUBLIC_LATEST_S = 300;
+let publicLatestMemo = null;   // {at, body}
+
+async function publicLatest(req) {
+  const { request, env, url, ctx } = req;
+  const now = Date.now();
+  let body = publicLatestMemo && now - publicLatestMemo.at < PUBLIC_LATEST_S * 1000 ? publicLatestMemo.body : null;
+  const edge = body ? null : edgeCache();
+  const key = new Request(`${url.origin}/__public-cache/api/public/latest`);
+  if (edge) {
+    try { const hit = await edge.match(key); if (hit) body = await hit.text(); } catch { /* build it */ }
+  }
+  if (!body) {
+    const { results } = await env.DB.prepare(
+      'SELECT date, threat_index, threat_index_30d, top_sv FROM reports ORDER BY date DESC'
+    ).all();
+    let latest = null;
+    if (results.length) {
+      const row = await env.DB.prepare('SELECT data FROM reports WHERE date = ?').bind(results[0].date).first();
+      if (row) {
+        try { latest = JSON.parse(row.data); } catch { latest = null; }
+      }
+    }
+    body = JSON.stringify(pseudonymize({ generated_at: new Date(now).toISOString(), index: results, latest }));
+    if (edge) {
+      const put = edge.put(key, new Response(body, {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': `public, max-age=${PUBLIC_LATEST_S}` },
+      })).catch(() => {});
+      if (ctx && ctx.waitUntil) ctx.waitUntil(put); else await put;
+    }
+  }
+  publicLatestMemo = { at: now, body };
+  const headers = apiHeaders();
+  headers['Cache-Control'] = `public, max-age=${PUBLIC_LATEST_S}`;
+  return new Response(request.method === 'HEAD' ? null : body, { status: 200, headers });
 }
 
 function requireUser(who) {
@@ -2928,4 +2976,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
+export const _test = { resetPublicLatest: () => { publicLatestMemo = null; }, reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
