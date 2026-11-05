@@ -2,7 +2,7 @@
 // assessments and the admin/status pages. All data is rendered as text
 // (textContent / createElement), never as HTML.
 import {
-  store, onChange, isAdmin, isGuest, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
+  store, onChange, isAdmin, isGuest, loadMe, loadIndex, loadReport, loadAllReports, loadReportsRange, loadedReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
   reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes,
@@ -160,6 +160,7 @@ function firstSentence(text, max = 180) {
 // ---------------------------------------------------------------- router
 let renderSeq = 0;
 let currentRoute = '';
+let hasNavigated = false;   // the first render keeps the browser's own focus
 let assessmentsReady = Promise.resolve();
 
 function parseHash() {
@@ -236,6 +237,16 @@ async function route({ keepScroll = false } = {}) {
   } else {
     window.scrollTo(0, keepScroll ? y : 0);
   }
+  // A1: a new page (not a redraw of the same one) moves focus to its heading,
+  // so a screen reader starts there; <main> is no longer a live region.
+  if (!keepScroll && hasNavigated) {
+    const h1 = main.querySelector('h1');
+    if (h1) { h1.setAttribute('tabindex', '-1'); h1.focus({ preventScroll: true }); }
+  }
+  hasNavigated = true;
+  // #/om?s=integritet and the like: open Om at that section.
+  const anchor = currentRoute === 'om' && q.get('s') ? document.getElementById(`om-${q.get('s')}`) : null;
+  if (anchor && !keepScroll) anchor.scrollIntoView({ block: 'start' });
 }
 
 function rerender() { if (!isDragging() && !document.querySelector('dialog[open]')) route({ keepScroll: true }); }
@@ -259,10 +270,24 @@ function errorView(e) {
       h('button', { class: 'btn', type: 'button', onclick: () => route() }, 'Försök igen'));
   }
   console.error(e);
+  const [title, text] = friendlyError(e);
   return h('div', { class: 'empty' },
-    h('p', { class: 'title-m' }, 'Något gick fel'),
-    h('p', { class: 'muted small' }, String((e && e.message) || e)),
+    h('h1', { class: 'title-m' }, title),
+    text ? h('p', { class: 'muted' }, text) : null,
+    // The server's own (English, technical) words only for administrators.
+    isAdmin() ? h('p', { class: 'muted small' }, `Tekniskt: ${String((e && e.message) || e)}`) : null,
     h('button', { class: 'btn', type: 'button', onclick: () => route() }, 'Försök igen'));
+}
+
+// U8: known failures in Swedish; the technical text stays out of sight.
+const BUSY = 'Hotmonitor har många besökare just nu, försök igen om en stund.';
+function friendlyError(e) {
+  const status = e instanceof HttpError ? e.status : 0;
+  if (status === 429 || /1027/.test(String(e && e.message))) return ['Många besökare just nu', BUSY];
+  if (status === 404) return ['Hittades inte', 'Sidan eller uppgiften finns inte, eller har inte publicerats än.'];
+  if (status === 503) return ['Tillfälligt otillgängligt', 'Tjänsten är tillfälligt otillgänglig. Försök igen om en stund.'];
+  if (status >= 500) return ['Fel på servern', 'Något gick fel hos Hotmonitor. Försök igen om en stund.'];
+  return ['Något gick fel', 'Sidan kunde inte visas. Försök igen.'];
 }
 
 function emptyState(text, ...extra) { return h('div', { class: 'empty' }, h('p', null, text), ...extra); }
@@ -607,13 +632,31 @@ const SCOPE_DAYS = 7;
 let scopeStart = '';            // first report date inside the news window
 const badgeCounts = { idag: 0, arkiv: 0, bedom: 0 };
 
+// U6: a guest's first visit draws a line at "now": everything published
+// before it counts as read, so a newcomer is not met by "30 olästa".
+// The badges and the "nya funktioner" chip start with the second visit.
+const FLOOR_KEY = 'hm.readFloor';
+let readFloor = null;          // { ts, date }: first visit and the latest report then
+let firstVisitNow = false;     // the floor was drawn during this page load
+try { readFloor = JSON.parse(localStorage.getItem(FLOOR_KEY) || 'null'); } catch { readFloor = null; }
+function ensureReadFloor(index) {
+  if (readFloor || !isGuest() || !index.length) return;
+  readFloor = { ts: new Date().toISOString(), date: index[0].date };
+  firstVisitNow = true;
+  try { localStorage.setItem(FLOOR_KEY, JSON.stringify(readFloor)); } catch { /* private mode: this visit only */ }
+}
+const belowFloor = (date) => isGuest() && readFloor && date <= readFloor.date;
+
+function updateIsNew(u) { return !isRead(u.id) && !(isGuest() && readFloor && u.ts <= readFloor.ts); }
+
 function updatesInScope() {
   const cutoff = Date.now() - SCOPE_DAYS * 86400000;
-  return store.updates.filter((u) => new Date(u.ts).getTime() >= cutoff);
+  return store.updates.filter((u) => new Date(u.ts).getTime() >= cutoff
+    && !(isGuest() && readFloor && u.ts <= readFloor.ts));
 }
 function unreadUpdates() { return updatesInScope().filter((u) => !isRead(u.id)); }
 function eventState(date, e) {
-  if (!scopeStart || date < scopeStart) return null;
+  if (!scopeStart || date < scopeStart || belowFloor(date)) return null;
   if (!isRead(e.id)) return 'new';
   if (e.thread_id && unreadUpdates().some((u) => u.thread_id === e.thread_id)) return 'updated';
   return null;
@@ -629,11 +672,14 @@ async function computeBadges() {
     const index = await loadIndex();
     if (!index.length) return;
     const latest = index[0].date;
-    scopeStart = addDays(latest, -(SCOPE_DAYS - 1));
+    ensureScope(index);
     let idag = unreadUpdates().length;
     let arkiv = 0;
     for (const item of index) {
       if (item.date < scopeStart) break;
+      // A guest's badges count what is already loaded; fetching the week
+      // for them would add six requests to every first visit (review K1).
+      if (isGuest() && item.date !== latest && !store.reports.has(item.date)) continue;
       const r = await loadReport(item.date);
       const n = r.events.filter((e) => eventState(r.date, e) === 'new').length;
       if (item.date === latest) idag += n; else arkiv += n;
@@ -717,10 +763,25 @@ function setFacets(sel) { updateHash((q) => { q.delete('t'); if (sel.length) q.s
 const facetHref = (base, k) => `${base}?f=${encodeURIComponent(k)}`;
 
 // ---------------------------------------------------------------- Idag / rapport
-const FACET_DAYS = 30;          // the filter bar on Idag and Bedöm ranks over this window
+const FACET_DAYS = 30;          // Bedöm's filter bar, and how far back Ämnen, Karta and Källa look first
+
+// Review K1: a view loads the reports it shows, not the whole archive. Ämnen,
+// Karta and Källa start with the last FACET_DAYS; the reader can ask for all.
+let wholeArchive = false;
+async function searchableReports() {
+  if (wholeArchive) return loadAllReports();
+  const index = await loadIndex();
+  if (!index.length) return [];
+  return loadReportsRange(addDays(index[0].date, -(FACET_DAYS - 1)), index[0].date);
+}
+function olderReportsNote() {
+  if (wholeArchive) return null;
+  return h('p', { class: 'small muted' }, `Visar de senaste ${FACET_DAYS} dagarna. `,
+    h('button', { class: 'linkbtn', type: 'button', onclick: () => { wholeArchive = true; rerender(); } }, 'Ta med hela arkivet'));
+}
 const openUpdates = new Set();
 
-function ensureScope(index) { if (index.length) scopeStart = addDays(index[0].date, -(SCOPE_DAYS - 1)); }
+function ensureScope(index) { if (index.length) scopeStart = addDays(index[0].date, -(SCOPE_DAYS - 1)); ensureReadFloor(index); }
 
 // The live feed on Idag shows its newest few until the reader asks for all.
 const FEED_PREVIEW = 3;
@@ -733,12 +794,14 @@ async function viewReport(date, q) {
   const latest = index[0].date;
   const d = date || latest;
   const archived = d !== latest;
-  const [r, reports, brief, courses] = await Promise.all([loadReport(d), loadAllReports(),
+  // Only this report: the filter bar counts the events listed below, and a
+  // first visit costs a handful of requests (review K1).
+  const [r, brief, courses] = await Promise.all([loadReport(d),
     archived ? null : loadAuthorities().catch(() => null), archived ? null : loadCourses().catch(() => null)]);
+  const reports = loadedReports();
   const top = (r.executive_sv && r.executive_sv.top) || r.top_development;
   const selected = parseFacets(q);
-  const windowStart = addDays(d, -(FACET_DAYS - 1));
-  const facetEvents = reports.filter((x) => x.date >= windowStart && x.date <= d).flatMap((x) => x.events);
+  const facetEvents = r.events;
   const events = r.events.filter((e) => matchesFacets(e, selected));
 
   // Updates shown with this report: today's (or, for an archived report,
@@ -769,6 +832,8 @@ async function viewReport(date, q) {
     // The figures and the news first; what is new for me, the controls
     // and the device cards come after or fold away.
     heroCard(r),
+    aiLine(),
+    fallbackNote(r),
     top ? h('section', { class: 'section' },
       h('div', { class: 'kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
       h('p', { class: 'lead' }, top)) : null,
@@ -777,6 +842,7 @@ async function viewReport(date, q) {
     archived ? null : newBox(latest, r),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Dygnets händelser'),
+      h('p', { class: 'hint' }, 'Siffran vid varje händelse är trovärdighet: hur väl uppgiften är bekräftad av källorna (1–10), inte hur allvarlig den är.'),
       // Into the Narrativ tab's Russian side, which still asks first.
       archived ? null : h('a', { class: 'ru-link', href: '#/narrativ?s=ru' },
         h('span', { class: 'ru-label' }, 'Rysk sida'), ' Visa det ryska narrativet', chevRight()),
@@ -805,6 +871,7 @@ async function viewReport(date, q) {
     executiveBlock(r.executive_sv),
     archived ? null : installCard(),
     archived ? null : pushNudge(),
+    archived ? null : siteFooter(),
   );
 }
 
@@ -844,7 +911,7 @@ function newBox(latest, r) {
 }
 
 function updateRow(u, reports) {
-  const read = isRead(u.id);
+  const read = !updateIsNew(u);
   const open = openUpdates.has(u.id);
   const t = new Date(u.ts);
   const time = Number.isNaN(t.getTime()) ? '' : t.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
@@ -874,6 +941,23 @@ function updateRow(u, reports) {
 const CLASS_SV = { NEW_DEVELOPMENT: 'Ny utveckling', CORRECTION: 'Rättelse', NARRATIVE_SHIFT: 'Ändrad berättelse', NO_CHANGE: 'Ingen förändring' };
 function classLabel(c) { return CLASS_SV[c] || c; }
 
+// EU AI Act art. 50.4: text an AI wrote to inform the public is marked
+// where it is shown, not only on Om.
+function aiTag() { return h('span', { class: 'ai-tag' }, 'AI-sammanfattning'); }
+function aiLine() {
+  return h('p', { class: 'ai-line' }, 'AI-genererad sammanställning ur öppna källor. Kan innehålla fel. ',
+    h('a', { href: '#/om' }, 'Läs mer'));
+}
+
+// Marks the pipeline puts in the data (shown, never computed here).
+const isUnverified = (e) => e.unverified === true;
+const noLinkedSources = (e) => !e.articles.some((a) => a && a.url && hostOf(a.url));
+function fallbackNote(r) {
+  return r && r.generated_by && r.generated_by.fallback_used === true
+    ? h('p', { class: 'mark-note' }, 'Skriven av reservmodell – lägre säkerhet') : null;
+}
+function markTag(text) { return h('span', { class: 'mark-tag' }, text); }
+
 function heroCard(r) {
   const oi = r.operator_influence;
   const hasF = r.threat_index_30d != null;
@@ -885,12 +969,13 @@ function heroCard(r) {
         h('div', { class: 'hero-value' }, fmt1(r.threat_index), h('small', null, ' /10')),
         h('div', { class: 'hero-sub' }, [r.index_band ? `Band ${r.index_band}` : null, TREND[r.trend_label] || r.trend_label].filter(Boolean).join(' · '))),
       hasF ? h('div', null,
-        h('div', { class: 'hero-label amber' }, '30 DAGAR'),
+        h('div', { class: 'hero-label amber' }, 'OM 30 DAGAR (PROGNOS)'),
         h('div', { class: 'hero-value amber' }, fmt1(r.threat_index_30d), h('small', null, ' /10')),
-        h('div', { class: 'hero-sub' }, [r.index_band_30d ? `Band ${r.index_band_30d}` : null, 'Prognos'].filter(Boolean).join(' · '))) : null),
+        h('div', { class: 'hero-sub' }, r.index_band_30d ? `Band ${r.index_band_30d}` : '')) : null),
     h('div', { class: 'scale', role: 'img', 'aria-label': `Skala 0 till 10: i dag ${fmt1(r.threat_index)}${hasF ? `, prognos ${fmt1(r.threat_index_30d)}` : ''}` },
       h('div', { class: 'scale-fill', style: `width:${pct(r.threat_index)}` }),
       hasF ? h('div', { class: 'scale-tick', style: `left:${pct(r.threat_index_30d)}` }) : null),
+    h('a', { class: 'hero-help', href: '#/om?s=index' }, 'Vad betyder siffran?'),
     heroMore(r, oi));
 }
 
@@ -900,7 +985,7 @@ function heroMore(r, oi) {
   const notes = [
     oi && Number(oi.index_delta)
       ? h('div', { class: 'hero-note' },
-        h('strong', null, 'Operatörens påverkan: '),
+        h('strong', null, 'Mänsklig justering: '),
         `${signed(oi.index_delta)} på index. `,
         oi.note_sv || '',
         Array.isArray(oi.trace) && oi.trace.length
@@ -951,10 +1036,11 @@ function eventRow(date, e) {
   const sub = [e.topics.join(' · '), e.countries.map(countryName).join(', ')].filter(Boolean).join(' · ');
   const state = eventState(date, e);
   return h('a', { class: `row${state ? ' unread' : ''}`, href: eventHref(date, e.id) },
-    h('span', { class: scoreClass(e.score), 'aria-label': `Trovärdighet ${fmtScore(e.score)} av 10` }, fmtScore(e.score)),
+    h('span', { class: scoreClass(e.score) }, h('span', { class: 'sr-only' }, 'Trovärdighet '), fmtScore(e.score), h('span', { class: 'sr-only' }, ' av 10')),
     h('span', { class: 'row-main' },
       h('span', { class: 'row-title' }, e.title_sv || e.title),
-      sub ? h('span', { class: 'row-sub' }, sub) : null),
+      sub ? h('span', { class: 'row-sub' }, sub) : null,
+      isUnverified(e) ? h('span', { class: 'row-sub mark-text' }, 'Obekräftad – ingen hämtad källa') : null),
     stateBadge(state),
     chevRight());
 }
@@ -962,7 +1048,7 @@ function eventRow(date, e) {
 function executiveBlock(ex) {
   if (!ex || !Array.isArray(ex.sections) || !ex.sections.length) return null;
   return h('section', { class: 'section' },
-    h('h2', { class: 'kicker' }, 'Kort om allt · Svensk Super Executive'),
+    h('h2', { class: 'kicker' }, 'Kort om allt'),
     ex.index_line ? h('p', { class: 'small muted' }, ex.index_line) : null,
     h('div', { class: 'card acc' }, ex.sections.map((s, i) => h('details', i === 0 ? { open: true } : null,
       h('summary', null,
@@ -991,7 +1077,10 @@ const RELATION = { bekräftar: 'Bekräftar', motsäger: 'Motsäger', tillför: '
 function relationChip(rel) { return RELATION[rel] ? h('span', { class: `rel rel-${rel === 'bekräftar' ? 'ok' : rel === 'motsäger' ? 'no' : 'add'}` }, RELATION[rel]) : null; }
 
 async function viewEvent(date, id) {
-  const [r, reports, index] = await Promise.all([loadReport(date), loadAllReports(), loadIndex(), assessmentsReady]);
+  // The event's own report and the two after it (where its re-check lands);
+  // thread and related events come from what is already loaded.
+  const [r, , index] = await Promise.all([loadReport(date), loadReportsRange(date, addDays(date, 2)), loadIndex(), assessmentsReady]);
+  const reports = loadedReports();
   ensureScope(index);
   const e = r.events.find((x) => x.id === id);
   const isLatest = index.length && index[0].date === date;
@@ -1034,10 +1123,12 @@ async function viewEvent(date, id) {
         e.countries.map((c) => h('a', { class: 'chip', href: `#/karta?p=all&c=${encodeURIComponent(c)}` }, countryName(c)))),
       h('h1', { class: 'title-l' }, e.title_sv || e.title),
       h('div', { class: 'small muted meta-line' },
-        h('span', { class: scoreClass(e.score), style: 'width:auto;height:auto;padding:3px 8px;border-radius:8px;font-size:13px' }, `${fmtScore(e.score)}/10`),
+        h('span', { class: scoreClass(e.score), style: 'width:auto;height:auto;padding:3px 8px;border-radius:8px;font-size:13px' }, `Trovärdighet ${fmtScore(e.score)}/10`),
         changed ? h('span', null, `Modellens poäng ${fmtScore(e.model_score)}`) : null,
         h('a', { href: reportHref }, dateLong(date)),
-        stateBadge(state)),
+        stateBadge(state),
+        aiTag(),
+        isUnverified(e) ? markTag('Obekräftad – ingen hämtad källa') : null),
       outcome ? h('p', { class: 'outcome' },
         h('span', { class: `rel rel-${OUTCOME[outcome.outcome][1]}` }, OUTCOME[outcome.outcome][0]),
         ' ', outcome.note || '',
@@ -1054,6 +1145,7 @@ async function viewEvent(date, id) {
         h('ul', { class: 'bullets' }, unknown.map((k) => h('li', null, k)))) : null) : null,
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Källor och artiklar'),
+      e.articles.length && noLinkedSources(e) ? h('p', { class: 'small muted' }, 'Äldre format: källor utan länk') : null,
       e.articles.length
         ? h('div', { class: 'srcp-list' }, e.articles.map((a) => articleRow({ article: a, event: e, date }, r.favicons)))
         : h('p', { class: 'muted small' }, e.sources || 'Inga källor registrerade.')),
@@ -1091,7 +1183,7 @@ function threadSection(e, date, reports, threadUpdates) {
     h('ol', { class: 'timeline' }, items.slice(0, 12).map((it) => h('li', { class: it.self ? 'self' : null },
       h('span', { class: 'tl-when' }, it.update ? tsFmt(it.update.ts) : dateShort(it.date)),
       it.update
-        ? h('span', { class: 'tl-what' }, it.update.title_sv || firstSentence(it.update.summary_sv, 120), isRead(it.update.id) ? null : h('span', { class: 'nbadge' }, 'Ny'))
+        ? h('span', { class: 'tl-what' }, it.update.title_sv || firstSentence(it.update.summary_sv, 120), updateIsNew(it.update) ? h('span', { class: 'nbadge' }, 'Ny') : null)
         : it.self
           ? h('span', { class: 'tl-what' }, h('b', null, 'Denna händelse: '), it.event.title_sv || it.event.title)
           : h('a', { class: 'tl-what', href: eventHref(it.date, it.event.id) }, it.event.title_sv || it.event.title)))));
@@ -1234,12 +1326,12 @@ function currentAllByOperator() {
 }
 
 async function viewSource(name) {
-  const [reports] = await Promise.all([loadAllReports(), assessmentsReady]);
+  const [reports] = await Promise.all([searchableReports(), assessmentsReady]);
   const key = norm(name);
   const hits = [];
   for (const r of reports) for (const e of r.events) for (const a of e.articles) if (norm(a.outlet) === key) hits.push({ r, e, a });
   const back = h('a', { class: 'back', href: '#/', onclick: (ev) => { if (history.length > 1) { ev.preventDefault(); history.back(); } } }, icon(['M12.5 4l-6 6 6 6'], '', '0 0 20 20'), 'Tillbaka');
-  if (!hits.length) return frag(back, emptyState(`Ingen källa som heter ”${name}” finns i rapporterna.`));
+  if (!hits.length) return frag(back, emptyState(`Ingen källa som heter ”${name}” finns i rapporterna.`), olderReportsNote());
   const tiers = new Map();
   for (const { a } of hits) if (a.tier) tiers.set(a.tier, (tiers.get(a.tier) || 0) + 1);
   const tier = [...tiers.entries()].sort((x, y) => y[1] - x[1])[0];
@@ -1273,6 +1365,7 @@ async function viewSource(name) {
           others.length ? countBy(others).map(([v, n], i) => frag(i ? ' ' : '', verdictPill(v), ` ${n}`)) : 'inga ännu'))),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Förekommer i'),
+      olderReportsNote(),
       h('div', { class: 'card list' }, [...events.values()].sort((x, y) => (x.r.date < y.r.date ? 1 : -1)).map(({ r, e, a }) => {
         const v = mine.get(a.id);
         return h('div', { class: 'row' },
@@ -1303,8 +1396,7 @@ async function viewArchive(q) {
   const index = await loadIndex();
   if (!index.length) return emptyState('Inga rapporter ännu.');
   ensureScope(index);
-  const [latest, reports] = await Promise.all([loadReport(index[0].date), loadAllReports()]);
-  const byReport = new Map(reports.map((r) => [r.date, r]));
+  const latest = await loadReport(index[0].date);
   // The latest report carries the recalibrated history; older report files
   // may still hold the values they were first published with.
   const hist = new Map((latest.threat_index_history || []).map((x) => [x.date, x]));
@@ -1322,6 +1414,12 @@ async function viewArchive(q) {
 
   const selected = parseFacets(q);
   const filtering = selected.length > 0;
+  // The bars come from the index; reports are loaded for the period shown
+  // (the filter bar), and older days are listed from the index alone until
+  // the reader picks a longer period (review K1).
+  await loadReportsRange(start, last);
+  const reports = loadedReports();
+  const byReport = new Map(reports.map((r) => [r.date, r]));
   const inRange = reports.filter((r) => r.date >= start);
   const matchesOn = (d) => { const r = byReport.get(d); return r ? r.events.filter((e) => matchesFacets(e, selected)) : []; };
 
@@ -1368,7 +1466,9 @@ async function viewArchive(q) {
     h('div', { class: 'chart', role: 'img', 'aria-label': days.map((d) => `${dateShort(d)}: ${filtering ? matchesOn(d).length : valueOf(d) == null ? 'ingen rapport' : fmt1(valueOf(d))}`).join(', ') }, bars),
     h('div', { class: 'chart-days', 'aria-hidden': 'true' },
       days.map((d, i) => h('span', null, (days.length - 1 - i) % every === 0 ? String(toDate(d).getUTCDate()) : ''))),
-    h('p', { class: 'small muted' }, filtering ? `Antal händelser per dag, 0–${hi}` : `Skala ${lo}–${hi}`));
+    h('p', { class: 'small muted' }, filtering ? `Antal händelser per dag, 0–${hi}` : `Skala ${lo}–${hi}`,
+      !filtering && days.some((d) => { const hh = hist.get(d); return hh && hh.original_value != null; })
+        ? h('span', { class: 'mark-tag', title: 'Värdena räknades om med dagens metod; rapporten visade först ett annat värde.' }, 'äldre värden omräknade') : null));
 
   const rows = [];
   for (let d = last; d >= first; d = addDays(d, -1)) {
@@ -1436,7 +1536,7 @@ function highlight(text, terms) {
 }
 
 async function viewTopics(q) {
-  const [reports, index] = await Promise.all([loadAllReports(), loadIndex()]);
+  const [reports, index] = await Promise.all([searchableReports(), loadIndex()]);
   ensureScope(index);
   let query = q.get('q') || '';
   let selected = parseFacets(q);
@@ -1473,7 +1573,7 @@ async function viewTopics(q) {
     }
     const terms = query.trim().split(/\s+/).filter(Boolean);
     if (!terms.length && !selected.length) {
-      results.replaceChildren(h('p', { class: 'hint' }, 'Välj ett eller flera områden ovan, eller sök i alla rapporter.'));
+      results.replaceChildren(h('p', { class: 'hint' }, 'Välj ett eller flera områden ovan, eller sök i rapporterna.'), olderReportsNote() || '');
       return;
     }
     const nterms = terms.map(norm);
@@ -1482,6 +1582,7 @@ async function viewTopics(q) {
       h('div', { style: 'display:flex;justify-content:space-between;align-items:baseline;gap:8px' },
         h('h2', { class: 'title-m' }, selected.length ? selected.map(facetLabel).join(' + ') : 'Sökträffar'),
         h('span', { class: 'small muted' }, plural(hits.length, 'träff', 'träffar'))),
+      olderReportsNote(),
       hits.length ? null : h('p', { class: 'muted' }, 'Inga träffar.'),
       hits.slice(0, 100).map(({ r, e, outlets }) => {
         const state = eventState(r.date, e);
@@ -1645,7 +1746,7 @@ async function viewCourses() {
   const jump = (id) => (ev) => { ev.preventDefault(); document.getElementById(`coa-${id}`).scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   return frag(back,
     h('header', { class: 'page-head' }, h('div', null,
-      h('div', { class: 'kicker' }, `Bedömt ${dateShort(a.date)}`),
+      h('div', { class: 'kicker' }, `Bedömt ${dateShort(a.date)} `, aiTag()),
       h('h1', { class: 'title-l' }, 'Rysslands handlingsalternativ'))),
     h('p', { class: 'hint' }, 'Hur Ryssland kan flytta fram sina positioner, splittra Europa och skapa buffertzoner – med våld, hot eller ombud.'),
     a.changed_sv ? h('p', { class: 'newline' }, h('span', null, h('b', null, 'Sedan i går: '), a.changed_sv)) : null,
@@ -1696,7 +1797,7 @@ async function viewAuthorities(q) {
   const older = part.items.filter((i) => !i.fresh);
   return frag(back,
     h('header', { class: 'page-head' }, h('div', null,
-      h('div', { class: 'kicker' }, `Sammanställt ${tsFmt(new Date(brief.generated_at))}`),
+      h('div', { class: 'kicker' }, `Sammanställt ${tsFmt(new Date(brief.generated_at))} `, aiTag()),
       h('h1', { class: 'title-l' }, 'Sverige och Nato'))),
     h('div', { class: 'seg', role: 'group', 'aria-label': 'Vems uppgifter' },
       h('button', { type: 'button', 'aria-pressed': String(!isNato), onclick: () => { location.hash = '#/myndigheter'; } }, 'Svenska myndigheter'),
@@ -1778,7 +1879,7 @@ async function viewTrends(q) {
     h('button', { type: 'button', 'aria-pressed': String(!ru), onclick: () => { location.hash = '#/narrativ'; } }, 'Öppna källor'),
     h('button', { type: 'button', 'aria-pressed': String(ru), class: 'seg-ru', onclick: () => { location.hash = '#/narrativ?s=ru'; } }, 'Rysk sida'));
   const head = frag(
-    h('header', { class: 'page-head' }, h('h1', { class: 'title-l' }, 'Narrativ')),
+    h('header', { class: 'page-head' }, h('div', null, h('div', { class: 'kicker' }, aiTag()), h('h1', { class: 'title-l' }, 'Narrativ'))),
     h('p', { class: 'hint' }, 'Det som sprids just nu. Inte bedömt och inte bekräftat – påverkar inte rapporten, trådarna eller index.'),
     seg);
   if (ru && !showRussian()) return frag(head, russianGate());
@@ -2709,10 +2810,13 @@ async function viewStrikes() {
 
 // ---------------------------------------------------------------- Karta
 async function viewMap(q) {
-  const [reports, index] = await Promise.all([loadAllReports(), loadIndex()]);
-  ensureScope(index);
-  if (!reports.length) return emptyState('Inga rapporter ännu.');
   const period = ['7', '30', 'all'].includes(q.get('p')) ? q.get('p') : '7';
+  const index = await loadIndex();
+  ensureScope(index);
+  if (!index.length) return emptyState('Inga rapporter ännu.');
+  const reports = period === 'all' ? await loadAllReports()
+    : await loadReportsRange(addDays(index[0].date, -(Number(period) - 1)), index[0].date);
+  if (!reports.length) return emptyState('Inga rapporter ännu.');
   const ref = reports[0].date;
   const cutoff = period === 'all' ? '' : addDays(ref, -(Number(period) - 1));
   const byCountry = new Map();
@@ -3651,7 +3755,7 @@ function newFeatures() {
 }
 
 function featuresChip() {
-  const n = newFeatures().length;
+  const n = firstVisitNow ? 0 : newFeatures().length;
   return h('button', { class: 'feat-chip', type: 'button', onclick: () => openFeatures(),
     'aria-label': n ? `Funktioner, ${n} nya` : 'Funktioner', title: 'Funktioner och nyheter' },
     n ? h('span', { class: 'feat-dot', 'aria-hidden': 'true' }) : null, n ? `${n} nya funktioner` : 'Funktioner');
@@ -3712,6 +3816,38 @@ function openFeatures() {
 
 // ---------------------------------------------------------------- about (Version 3.17)
 // What Hotmonitor is, that AI writes much of it, and what a guest leaves behind.
+// The bands of the threat index in plain Swedish (config/methodology.json, index_anchors).
+const INDEX_SCALE = [
+  [1, 'Fred', 'Normala diplomatiska och ekonomiska förbindelser, inga påtryckningar.'],
+  [2, 'Friktion', 'Fientlig retorik och vanligt spionage, men inga operationer mot Nato- eller EU-mål.'],
+  [3, 'Politisk krigföring', 'Ihållande desinformation och valpåverkan, men inga fysiska följder.'],
+  [4, 'Gråzon', 'Sabotage som kan förnekas, GPS-störningar, kränkningar av luftrum. Inga dödsoffer på Nato- eller EU-mark.'],
+  [5, 'Aktiv hybridkonflikt', 'Statsstyrt sabotage på Nato- eller EU-mark som regeringar pekar ut Ryssland för; pågående ombudskrig.'],
+  [6, 'Skärpt hybridkonflikt', 'Nato-länder svarar militärt (avvisningar, nedskjutningar), sabotage med risk för dödsoffer, ändrad styrkeplacering.'],
+  [7, 'Förkris', 'Konsultationer enligt artikel 4, eller militära incidenter på Nato-territorium utan dödsoffer; synliga förstärkningar.'],
+  [8, 'Kris', 'Dödsoffer på Nato- eller EU-territorium genom rysk handling, eller begränsad direkt eldväxling mellan ryska styrkor och Nato.'],
+  [9, 'Randen till krig', 'Ihållande direkta strider mellan Ryssland och ett Nato-land; artikel 5 övervägs.'],
+  [10, 'Krig', 'Öppet krig mellan Ryssland och Nato/EU.'],
+];
+
+const DISCLAIMER = 'Hotmonitor är ett privat projekt och ingen myndighet. Innehållet är inte råd eller officiell information. Vid kris, följ myndigheternas besked på krisinformation.se.';
+const ISSUES_URL = 'https://github.com/jeaneclaude621-ui/threat_monitor/issues';
+function crisisLink() {
+  return h('button', { class: 'linkbtn inline', type: 'button', onclick: () => openExternal('https://www.krisinformation.se/', { outlet: 'Krisinformation.se' }) }, 'krisinformation.se');
+}
+function disclaimerText() {
+  return frag('Hotmonitor är ett privat projekt och ingen myndighet. Innehållet är inte råd eller officiell information. Vid kris, följ myndigheternas besked på ', crisisLink(), '.');
+}
+function contactLink(label = 'Kontakt och rättelser') {
+  return h('button', { class: 'linkbtn inline', type: 'button', onclick: () => openExternal(ISSUES_URL, { outlet: 'GitHub' }) }, label);
+}
+// The footer of Idag: who is behind it, what it is not, and how to reach them.
+function siteFooter() {
+  return h('footer', { class: 'site-foot' },
+    h('p', null, disclaimerText()),
+    h('p', null, contactLink(), ' · ', h('a', { href: '#/om' }, 'Om Hotmonitor')));
+}
+
 function viewAbout() {
   const guest = isGuest();
   return frag(
@@ -3722,14 +3858,58 @@ function viewAbout() {
       h('p', null, 'Hotmonitor sammanställer varje dag öppna uppgifter om ryska hybridhot mot Nato, EU och Ukraina: nyheter, myndigheters lägesbilder, styrkor och anfall. Det är ett privat projekt, inte en myndighets bedömning.'),
       h('h2', { class: 'title-m' }, 'AI-genererat innehåll'),
       h('p', null, 'Sammanfattningar, översättningar, hotindex och trovärdighetsvärden tas fram automatiskt med hjälp av en AI-modell (Google Gemini) utifrån öppna källor. Texterna kan innehålla fel och ska läsas tillsammans med källorna som länkas. Bedömningar som en människa har gjort visas som bedömare utan namn.'),
+      h('h2', { class: 'title-m', id: 'om-index' }, 'Vad betyder siffran?'),
+      h('p', null, 'Hotindex är en AI-bedömning, varje dag, av hur spänt läget är mellan Ryssland och Nato/EU, på en skala från 1 till 10. Det mäter vad som händer Nato- och EU-länder, inte hur hårda striderna i Ukraina är. ”Om 30 dagar” är modellens prognos för läget en månad framåt. Indexet är inte Säpos, Försvarsmaktens eller någon annan myndighets bedömning.'),
+      h('ol', { class: 'scale-list' }, INDEX_SCALE.map(([n, name, text]) => h('li', null, h('b', null, `${n} ${name}. `), text))),
+      h('p', null, 'Inom ett band placeras värdet lågt, mitt i eller högt efter hur tydligt bandets villkor är uppfyllda.'),
+      h('h3', { class: 'about-h3' }, 'Siffran vid varje händelse'),
+      h('p', null, 'Den färgade rutan vid en händelse är trovärdighet, 1–10: hur väl uppgiften är bekräftad av oberoende och pålitliga källor. Den säger inget om hur allvarlig händelsen är.'),
+      h('h2', { class: 'title-m', id: 'om-ansvar' }, 'Ansvar och kontakt'),
+      h('p', null, disclaimerText()),
+      h('p', null, 'Har du hittat ett fel, vill du att något rättas eller tas bort, eller har du en fråga? Skriv ett ärende på projektets sida på GitHub: ',
+        contactLink('öppna ärenden (issues)'), '. Ärenden där är offentliga, så skriv inga personuppgifter som inte behövs.'),
       h('h2', { class: 'title-m' }, 'Källor'),
       h('p', null, 'Rysk statsmedia och Telegram används inte som nyhetskällor. Under Narrativ visas den ryska sidan bara som våra svenska sammanfattningar, utan länkar dit.'),
       h('h2', { class: 'title-m' }, 'Integritet'),
       h('p', null, guest
-        ? 'Du läser utan att logga in. Hotmonitor sätter inga egna kakor, har ingen spårning och hämtar inget från tredje part när du läser. Vad du har läst sparas bara i den här webbläsaren. Servern ser din IP-adress för att stoppa överbelastning, men den sparas inte med det du läser.'
-        : 'Du är inloggad med din e-postadress via Cloudflare Access. Adressen syns bara för administratörer.'),
+        ? 'Du läser utan att logga in. Vad du har läst sparas bara i den här webbläsaren.'
+        : 'Du är inloggad med din e-postadress. Adressen syns bara för administratörer.'),
+      h('p', null, h('a', { href: '#/om?s=integritet' }, 'Läs integritetspolicyn'), ' nedan.'),
       guest ? h('p', null, h('a', { class: 'btn primary', href: '/login' }, 'Logga in'), ' ',
-        h('span', { class: 'small muted' }, 'för notiser och för att bedöma källor (kräver konto).')) : null));
+        h('span', { class: 'small muted' }, 'för notiser och för att bedöma källor (kräver konto).')) : null),
+    privacySection());
+}
+
+// Integritetspolicy (review G2): what is kept, why, for how long, who helps.
+function privacySection() {
+  const li = (...kids) => h('li', null, ...kids);
+  return h('section', { class: 'card card-pad about', id: 'om-integritet', 'aria-labelledby': 'integritet-h' },
+    h('h2', { class: 'title-m', id: 'integritet-h' }, 'Integritetspolicy'),
+    h('p', null, 'Personuppgiftsansvarig är projektets ägare. Hotmonitor är ett privat projekt utan kommersiellt syfte.'),
+    h('h3', { class: 'about-h3' }, 'Om du läser utan att logga in'),
+    h('ul', { class: 'bullets' },
+      li('Inga kakor, ingen analys och ingen spårning. Typsnitt och allt annat hämtas från Hotmonitor själv.'),
+      li('Vad du har läst och dina inställningar sparas bara i din webbläsare (localStorage) och lämnar den inte.'),
+      li('Servern ser din IP-adress när du hämtar en sida. Den hålls i minnet en kort stund för att stoppa överbelastning och sparas inte. Vid misstänkt missbruk loggas bara land, sökväg och tid.')),
+    h('h3', { class: 'about-h3' }, 'Om du är inloggad'),
+    h('ul', { class: 'bullets' },
+      li('E-postadress och roll (läsare eller administratör), för att ge dig rätt behörighet.'),
+      li('Senaste besök, för att kunna visa vad som är nytt sedan sist.'),
+      li('Läsmarkeringar: vilka händelser och uppdateringar du har öppnat.'),
+      li('Push-prenumerationer, om du har slagit på notiser: en adress hos din webbläsares notistjänst.'),
+      li('Bedömningar av källor, om du är bedömare. Andra ser dem bara som ”Bedömare N”, utan namn eller adress.'),
+      li('Enhet och plattform (t.ex. iPhone, hemskärm eller webbläsare), för att kunna ge rätt hjälp med notiser.'),
+      li('Säkerhetslogg över nekade eller misstänkta inloggningsförsök (e-post, land, sökväg, tid). Den sparas i 90 dagar.')),
+    h('h3', { class: 'about-h3' }, 'Ändamål och rättslig grund'),
+    h('p', null, 'Uppgifterna används bara för att driva tjänsten: inloggning, behörighet, notiser, vad som är nytt och skydd mot missbruk. Den rättsliga grunden är berättigat intresse (artikel 6.1 f i dataskyddsförordningen). Inget säljs eller används för reklam.'),
+    h('h3', { class: 'about-h3' }, 'Biträden'),
+    h('ul', { class: 'bullets' },
+      li(h('b', null, 'Cloudflare'), ': driftar appen och databasen och sköter inloggningen (Cloudflare Access loggar inloggningar, även IP-adress).'),
+      li(h('b', null, 'GitHub'), ': kod och den dagliga körningen som gör rapporterna. Inga användaruppgifter skickas dit.'),
+      li(h('b', null, 'Google Gemini'), ': AI-modellen får bara nyhetstext ur öppna källor, aldrig uppgifter om användare.')),
+    h('h3', { class: 'about-h3' }, 'Dina rättigheter'),
+    h('p', null, 'Du har rätt att få veta vilka uppgifter som finns om dig (utdrag), få dem rättade och få dem raderade, och att klaga hos Integritetsskyddsmyndigheten (IMY). Be om utdrag eller radering genom ',
+      contactLink('ett ärende på GitHub'), '. Skriv inte din e-postadress i ärendet, eftersom det är offentligt. Skriv att du vill bli kontaktad, så ordnar vi en säker väg.'));
 }
 
 // ---------------------------------------------------------------- chrome
@@ -3778,6 +3958,17 @@ onChange(() => {
   rerenderQueued = true;
   Promise.resolve().then(() => { rerenderQueued = false; rerender(); });
 });
+
+// Short status messages ("Länken är kopierad") go to #ptr, a role=status
+// region, instead of making the whole page a live region (review A1).
+let announceTimer = 0;
+function announce(text, ms = 2500) {
+  const ptr = document.getElementById('ptr');
+  if (!ptr || refreshing) return;
+  ptr.textContent = text; ptr.hidden = false;
+  clearTimeout(announceTimer);
+  announceTimer = setTimeout(() => { ptr.hidden = true; }, ms);
+}
 
 // ---------------------------------------------------------------- refresh
 let refreshing = null;

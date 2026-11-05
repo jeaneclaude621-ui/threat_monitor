@@ -39,8 +39,17 @@ async function getJSON(url, opts = {}) {
   }
   if (res.status === 401) throw new AuthError(`HTTP ${res.status}`);
   const type = res.headers.get('content-type') || '';
-  // An expired Access session answers with a redirect to its login page.
-  if (!type.includes('application/json')) throw new AuthError('not json');
+  if (!type.includes('application/json')) {
+    // Cloudflare's own error pages (1027: the daily quota is used up, or an
+    // overloaded origin) are HTML with a 429 or 5xx: not a login problem.
+    if (res.status === 429 || res.status >= 500) {
+      let text = '';
+      try { text = await res.text(); } catch { /* the status is enough */ }
+      throw new HttpError(res.status, /\b1027\b/.test(text) ? 'Cloudflare 1027 (kvoten slut)' : `HTTP ${res.status}`);
+    }
+    // An expired Access session answers with a redirect to its login page.
+    throw new AuthError('not json');
+  }
   const body = await res.json();
   if (res.status === 403) {
     const reason = String((body && (body.reason || body.error)) || '');
@@ -137,8 +146,24 @@ export async function loadReport(date) {
   });
 }
 
-export async function loadAllReports() {
+// The reports dated from..to (inclusive, ISO dates) that the index lists.
+// Views load only the window they show: a first visit to Idag must not
+// cost one request per report ever published (review K1).
+export async function loadReportsRange(from, to) {
   const index = await loadIndex();
+  return loadMany(index.filter((x) => (!from || x.date >= from) && (!to || x.date <= to)));
+}
+
+// Reports already in memory, newest first; never fetches.
+export function loadedReports() {
+  return [...store.reports.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+export async function loadAllReports() {
+  return loadMany(await loadIndex());
+}
+
+async function loadMany(index) {
   const out = [];
   const queue = [...index];
   async function worker() {
@@ -154,7 +179,8 @@ export async function loadAllReports() {
 }
 
 export async function loadAssessments() {
-  const rows = await getJSON('/api/assessments');
+  // Guests are always answered [] (verdicts are not public): skip the request.
+  const rows = isGuest() ? [] : await getJSON('/api/assessments');
   const serverClientIds = new Set(rows.map((r) => r.client_id).filter(Boolean));
   // Anything the server already has was uploaded before a reload: drop it.
   store.outbox = store.outbox.filter((o) => !serverClientIds.has(o.client_id));
@@ -310,10 +336,22 @@ export async function loadUpdates() {
   return store.updates;
 }
 
+// Side data asked for by every redraw of Idag: one request per few minutes,
+// not one per redraw. A failure is remembered for a minute.
+const memo = new Map();
+function memoized(key, fn, ttl = 5 * 60000) {
+  const hit = memo.get(key);
+  if (hit && Date.now() < hit.until) return hit.promise;
+  const promise = fn();
+  memo.set(key, { promise, until: Date.now() + ttl });
+  promise.catch(() => { const m = memo.get(key); if (m && m.promise === promise) m.until = Date.now() + 60000; });
+  return promise;
+}
+
 // --- Russia's courses of action (Version 3.11) ----------------------------------
 
 export function loadCourses() {
-  return getJSON('/api/courses', { cache: 'no-store' });
+  return memoized('courses', () => getJSON('/api/courses', { cache: 'no-store' }));
 }
 
 // --- The forces map (Version 3.12) ----------------------------------------------
@@ -329,7 +367,7 @@ export function loadForces() {
 // --- The Swedish authorities' brief (Version 3.10) ------------------------------
 
 export function loadAuthorities() {
-  return getJSON('/api/authorities', { cache: 'no-store' });
+  return memoized('authorities', () => getJSON('/api/authorities', { cache: 'no-store' }));
 }
 
 // --- Trends (Version 3.9) ------------------------------------------------------
