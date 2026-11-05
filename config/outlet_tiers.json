@@ -1,0 +1,29 @@
+{
+  "note": "Source tier by outlet, used in code (src/app_data.py, review 1 #2) instead of the tier the model gives. Looked up after config/feeds.json (by feed name and site) and methodology.named_sources. Keys in 'outlets' are canonical outlet names (app_data.canonical_outlet); 'domains' match the article's site and its subdomains. Tiers as in methodology.tiers: 1 wire/primary, 2 major outlets and official bodies, 3 interested-party press, 4 opinion/analysis. Outlets not listed have no tier and count as tier 3 for the caps.",
+  "outlets": {
+    "Reuters": 1, "AP": 1, "AFP": 1, "BBC": 1, "TT": 1, "Bloomberg": 1, "dpa": 1, "NTB": 1, "Ritzau": 1, "STT": 1,
+    "Guardian": 2, "DW": 2, "Al Jazeera": 2, "Euronews": 2, "PBS NewsHour": 2, "France 24": 2, "New York Times": 2,
+    "Washington Post": 2, "Wall Street Journal": 2, "Financial Times": 2, "The Economist": 2, "Politico": 2,
+    "CNN": 2, "NPR": 2, "Le Monde": 2, "Der Spiegel": 2, "FAZ": 2, "NRK": 2, "Yle": 2, "ERR": 2, "LSM": 2, "LRT": 2,
+    "DR": 2, "Helsingin Sanomat": 2, "SVT": 2, "Sveriges Radio": 2, "DN": 2, "SvD": 2, "Defense News": 2,
+    "Maritime Executive": 2, "Stars & Stripes": 2, "NATO": 2, "EUvsDisinfo": 2, "Försvarsmakten": 2, "FOI": 2,
+    "Säkerhetspolisen": 2, "TVP World": 2, "Notes from Poland": 3, "US News": 2, "Fox News": 3,
+    "RFE/RL": 3, "Kyiv Independent": 3, "Kyiv Post": 3, "Moscow Times": 3, "Meduza": 3, "The Insider": 3,
+    "Ukrainska Pravda": 3, "Ukrinform": 3, "Euromaidan Press": 3, "Militarnyi": 3, "Mezha": 3, "UA News": 3,
+    "The War Zone": 3, "Estonian World": 3, "Expressen": 3, "Aftonbladet": 3, "Interfax-Ukraine": 3,
+    "Cornucopia?": 4, "Substack": 4, "ISW": 4
+  },
+  "domains": {
+    "reuters.com": 1, "apnews.com": 1, "afp.com": 1, "bbc.com": 1, "bbc.co.uk": 1, "tt.se": 1, "bloomberg.com": 1,
+    "theguardian.com": 2, "dw.com": 2, "aljazeera.com": 2, "euronews.com": 2, "pbs.org": 2, "france24.com": 2,
+    "nytimes.com": 2, "washingtonpost.com": 2, "wsj.com": 2, "ft.com": 2, "economist.com": 2, "politico.eu": 2,
+    "politico.com": 2, "cnn.com": 2, "npr.org": 2, "lemonde.fr": 2, "spiegel.de": 2, "faz.net": 2, "nrk.no": 2,
+    "yle.fi": 2, "err.ee": 2, "lsm.lv": 2, "lrt.lt": 2, "dr.dk": 2, "hs.fi": 2, "svt.se": 2, "sverigesradio.se": 2,
+    "dn.se": 2, "svd.se": 2, "defensenews.com": 2, "maritime-executive.com": 2, "stripes.com": 2, "nato.int": 2,
+    "euvsdisinfo.eu": 2, "forsvarsmakten.se": 2, "foi.se": 2, "sakerhetspolisen.se": 2, "tvpworld.com": 2,
+    "rferl.org": 3, "kyivindependent.com": 3, "kyivpost.com": 3, "themoscowtimes.com": 3, "meduza.io": 3,
+    "theins.ru": 3, "pravda.com.ua": 3, "ukrinform.net": 3, "euromaidanpress.com": 3, "mil.in.ua": 3,
+    "twz.com": 3, "expressen.se": 3, "aftonbladet.se": 3, "interfax.com.ua": 3,
+    "cornucopia.se": 4, "substack.com": 4, "understandingwar.org": 4
+  }
+}

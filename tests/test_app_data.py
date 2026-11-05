@@ -160,6 +160,55 @@ class Independence(unittest.TestCase):
         self.assertEqual(ev["independent_sources"], 0)
 
 
+class Credibility(unittest.TestCase):
+    def test_tier_from_config_not_model(self):
+        self.assertEqual(app_data.source_tier("BBC", None, "BBC World"), 1)          # feeds.json
+        self.assertEqual(app_data.source_tier("TT", "https://www.tt.se/x"), 1)        # named_sources
+        self.assertEqual(app_data.source_tier("X", "https://news.err.ee/1"), 2)       # outlet_tiers domain
+        self.assertEqual(app_data.source_tier("Kyiv Independent"), 3)
+        self.assertIsNone(app_data.source_tier("Some Blog", "https://someblog.example/x"))
+        ev = app_data.enrich_events([event({"ref": "A1", "tier": 4})], "2026-11-05", LIST)[0]
+        self.assertEqual(ev["articles"][0]["tier"], 1)
+
+    def cap(self, score, *outlets):
+        results = [{"ref": f"A{n}", "url": f"https://site{n}.example/a", "title": ["Drones seen over air base", "Moscow denies involvement",
+                    "Estonia summons ambassador", "Police investigate"][n - 1],
+                    "outlet": o, "published": "2026-11-05", "via": "google"} for n, o in enumerate(outlets, 1)]
+        ev = event(*({"ref": r["ref"]} for r in results))
+        ev["score"] = score
+        return app_data.enrich_events([ev], "2026-11-05", results)[0]
+
+    def test_one_tier1_source_max_6(self):
+        ev = self.cap(9, "Reuters")
+        self.assertEqual((ev["score"], ev["model_score"]), (6, 9))
+        self.assertIn("en oberoende källa", ev["score_capped_reason"])
+
+    def test_one_tier3_source_max_5(self):
+        self.assertEqual(self.cap(8, "Kyiv Independent")["score"], 5)
+        self.assertEqual(self.cap(8, "Unknown Local Site")["score"], 5)
+
+    def test_seven_needs_two_origins_one_tier_1_2(self):
+        self.assertEqual(self.cap(8, "Kyiv Independent", "Meduza")["score"], 6)
+        self.assertEqual(self.cap(8, "Reuters", "Meduza")["score"], 8)
+        self.assertNotIn("score_capped_reason", self.cap(8, "Reuters", "Meduza"))
+
+    def test_nine_needs_three(self):
+        self.assertEqual(self.cap(9.5, "Reuters", "Meduza")["score"], 8)
+        self.assertEqual(self.cap(9.5, "Reuters", "Meduza", "ERR News")["score"], 9.5)
+
+    def test_syndicated_copies_do_not_lift_the_cap(self):
+        results = [{"ref": f"A{n}", "url": f"https://site{n}.example/a", "title": "Drones over Danish airport",
+                    "outlet": o, "published": "2026-11-05", "via": "google"}
+                   for n, o in enumerate(("AP", "Washington Post", "Guardian"), 1)]
+        ev = event(*({"ref": r["ref"]} for r in results))
+        ev["score"] = 9
+        ev = app_data.enrich_events([ev], "2026-11-05", results)[0]
+        self.assertEqual((ev["independent_sources"], ev["score"]), (1, 6))
+
+    def test_unverified_max_4(self):
+        self.assertEqual(self.cap(7)["score"], 4)
+
+
 class PoolDates(unittest.TestCase):
     def test_since(self):
         from datetime import datetime

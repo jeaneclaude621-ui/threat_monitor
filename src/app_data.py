@@ -133,7 +133,8 @@ WIRE_CREDITS = [
 AGGREGATORS = re.compile(r"(^|\b)(msn|yahoo|devdiscourse|newsbreak|head ?topics|ground ?news|flipboard|newsnow|"
                          r"biztoc|opera news|news ?now|newsoftheworld|latestly|inkl)(\b|$)|"
                          r"(^|[./])(msn\.com|yahoo\.com|devdiscourse\.com|newsbreak\.com|headtopics\.com)", re.I)
-TITLE_SAME = 0.5      # word overlap (Jaccard) at which two headlines are one text
+TITLE_SAME = 0.6      # word overlap (Jaccard) at which two headlines are one text ...
+TITLE_SAME_WORDS = 4  # ... and at least this many words in common
 
 
 def _title_words(title: str) -> set:
@@ -166,11 +167,97 @@ def independent_sources(articles: list) -> int:
     words = [_title_words(a.get("title")) for a in items]
     for i in range(len(items)):
         for j in range(i):
-            same_title = (len(words[i]) >= 3 and len(words[j]) >= 3
-                          and len(words[i] & words[j]) / len(words[i] | words[j]) >= TITLE_SAME)
+            common = words[i] & words[j]
+            same_title = (len(common) >= TITLE_SAME_WORDS
+                          and len(common) / len(words[i] | words[j]) >= TITLE_SAME)
             if keys[i] & keys[j] or same_title:
                 parent[find(i)] = find(j)
     return len({find(i) for i in range(len(items))})
+
+
+# --------------------------------------------------------------------------
+# Credibility in code (#2)
+# --------------------------------------------------------------------------
+CONFIG_DIR = None   # set lazily to config/
+_TIERS = None
+
+
+def _tier_tables() -> tuple:
+    """({name lower: tier}, {domain: tier}) from config/feeds.json (feed
+    names and sites), methodology.named_sources and config/outlet_tiers.json;
+    the earlier one wins."""
+    global _TIERS
+    if _TIERS is None:
+        import json
+        from pathlib import Path
+        cfg = CONFIG_DIR or Path(__file__).resolve().parent.parent / "config"
+        names, domains = {}, {}
+
+        def load(name):
+            try:
+                return json.loads((cfg / name).read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                return {}
+        for f in load("feeds.json").get("feeds", []):
+            if isinstance(f.get("tier"), int):
+                names.setdefault(f["name"].lower(), f["tier"])
+        for n in load("methodology.json").get("named_sources", []):
+            if isinstance(n.get("tier"), int):
+                names.setdefault(n["name"].lower(), n["tier"])
+                domains.setdefault(n["domain"].lower(), n["tier"])
+        table = load("outlet_tiers.json")
+        for k, v in table.get("outlets", {}).items():
+            names.setdefault(k.lower(), v)
+        for k, v in table.get("domains", {}).items():
+            domains.setdefault(k.lower(), v)
+        _TIERS = (names, domains)
+    return _TIERS
+
+
+def source_tier(outlet: str = None, url: str = None, listed: str = None):
+    """The tier (1-4) of an article from config, never from the model:
+    by the name in the article list (a feed's name), the canonical outlet,
+    then the site. None when unknown."""
+    names, domains = _tier_tables()
+    for name in (listed, outlet, canonical_outlet(listed or "")):
+        if name and name.strip().lower() in names:
+            return names[name.strip().lower()]
+    host = _domain(url or "")
+    while host:
+        if host in domains:
+            return domains[host]
+        host = host.partition(".")[2] if host.count(".") > 1 else ""
+    return None
+
+
+def credibility_cap(articles: list, independent: int) -> tuple:
+    """(cap, reason): the highest score the event's verified sources carry.
+    1 independent source: at most 6, and at most 5 when it is tier 3-4 or
+    of unknown tier; 7 or more needs two independent origins of which one
+    tier 1-2; 9 or more needs three. No verified news source: at most 4."""
+    import blocklist
+    high = any(a.get("tier") in (1, 2) for a in articles if blocklist.is_news(a))
+    if independent == 0:
+        return 4, "ingen verifierad nyhetskälla: högst 4"
+    if independent == 1:
+        return (6, "en oberoende källa: högst 6") if high else \
+               (5, "en oberoende källa på nivå 3-4: högst 5")
+    if not high:
+        return 6, "ingen källa på nivå 1-2: högst 6"
+    if independent == 2:
+        return 8, "två oberoende källor: högst 8 (9 kräver tre)"
+    return 10, None
+
+
+def apply_credibility(ev: dict) -> None:
+    """The model's score is a proposal: it is held to the cap the sources
+    carry. model_score keeps the proposal; score_capped_reason says why."""
+    cap, reason = credibility_cap(ev.get("articles") or [], ev.get("independent_sources") or 0)
+    score = ev.get("score")
+    ev.pop("score_capped_reason", None)
+    if isinstance(score, (int, float)) and not isinstance(score, bool) and score > cap:
+        ev["score"] = cap
+        ev["score_capped_reason"] = reason
 
 
 def _outlet_for(a: dict, match: dict) -> str:
@@ -249,13 +336,13 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
                 dropped += 1
                 continue
             url = decode_google_link(match["url"])
-            tier = a.get("tier")
             item = {
                 "id": article_id(report_date, i, outlet, url),
                 "outlet": outlet,
                 "title": match.get("title") or a.get("title"),
                 "url": url,
-                "tier": tier if isinstance(tier, int) and 1 <= tier <= 4 else None,
+                # From config, not the model (#2).
+                "tier": source_tier(outlet, url, match.get("outlet")),
             }
             if a.get("summary_sv"):
                 item["summary_sv"] = a["summary_sv"]
@@ -278,6 +365,7 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
         ev["articles"] = [a for a in clean if not (a["id"] in seen or seen.add(a["id"]))]
         ev["independent_sources"] = independent_sources(
             [{**a, "text": texts.get(a["id"], "")} for a in ev["articles"]])
+        apply_credibility(ev)
         # Video and social posts may stand beside a news source, never alone (#15).
         if any(blocklist.is_news(a) for a in ev["articles"]):
             ev.pop("unverified", None)
