@@ -111,6 +111,11 @@ export default {
       return new Response(null, { status: 302, headers: { Location: '/', 'Cache-Control': 'no-store' } });
     }
     if (!url.pathname.startsWith('/api/')) {
+      // Version 3.22: share links, the feed and the sitemap (run_worker_first).
+      if (request.method === 'GET' || request.method === 'HEAD') {
+        const page = await publicPage(request, env, ctx, url);
+        if (page) return page;
+      }
       return env.ASSETS.fetch(request);
     }
     const req = { request, env, ctx, url, who: null, email: null };
@@ -632,6 +637,188 @@ function requireReader(who) {
 function requireMachine(who) {
   if (!who) throw new HttpError(401, 'not authenticated');
   if (who.kind !== 'machine') throw new HttpError(403, 'forbidden');
+}
+
+// ---------------------------------------------------------------------------
+// Public pages (Version 3.22): share links with Open Graph tags
+// ---------------------------------------------------------------------------
+// /h/<date>/<event id> and /d/<date> serve index.html with the event's or
+// the day's title and first sentence in <title> and the Open Graph tags, so
+// a link shared in a chat or on social media shows what it is about. The
+// app turns the path into its own hash route. Rendered pages are cached ten
+// minutes in caches.default; a crawler's preview is one cheap D1 read at most.
+const SITE_NAME = 'Hotmonitor';
+const SITE_TAGLINE = 'AI-sammanställning av ryska hybridhot ur öppna källor';
+const AI_LABEL = 'AI-sammanfattning';
+const PAGE_CACHE_S = 600;
+const FEED_CACHE_S = 900;
+const FEED_DAYS = 14;
+const FEED_MIN_SCORE = 8;
+const SITEMAP_DAYS = 90;
+const EVENT_ID_RE = /^[\w.:-]{1,64}$/;
+const REPORT_CACHE_MAX = 30;
+const reportCache = new Map();   // per isolate: date -> {at, data|null}, oldest first
+
+/** The day's report, parsed, cached ten minutes per isolate; null if none. */
+async function reportData(env, date) {
+  const now = Date.now();
+  const hit = reportCache.get(date);
+  if (hit && now - hit.at < PAGE_CACHE_S * 1000) return hit.data;
+  const row = await env.DB.prepare('SELECT data FROM reports WHERE date = ?').bind(date).first();
+  let data = null;
+  if (row) {
+    try { data = pseudonymize(JSON.parse(row.data)); } catch { data = null; }
+  }
+  reportCache.delete(date);
+  while (reportCache.size >= REPORT_CACHE_MAX) reportCache.delete(reportCache.keys().next().value);
+  reportCache.set(date, { at: now, data });
+  return data;
+}
+
+const clean = (v) => String(v ?? '').replace(EMAIL_IN_TEXT, 'Bedömare').replace(/\s+/g, ' ').trim();
+
+/** The first sentence, at most ~200 characters. */
+function firstSentence(text) {
+  const t = clean(text);
+  if (!t) return '';
+  const m = t.match(/^.+?[.!?](?=\s|$)/);
+  let out = m ? m[0] : t;
+  if (out.length > 200) out = `${out.slice(0, 197).replace(/\s+\S*$/, '')}…`;
+  return out;
+}
+
+const svIndex = (v) => (typeof v === 'number' && Number.isFinite(v) ? v.toFixed(1).replace('.', ',') : null);
+const svDate = (date) => new Date(`${date}T12:00:00Z`).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+/** The event that matters most in a report: highest score first. */
+function topEvent(data) {
+  const events = Array.isArray(data && data.events) ? data.events.filter((e) => e && typeof e === 'object') : [];
+  return events.reduce((best, e) => (typeof e.score === 'number' && (!best || e.score > best.score) ? e : best), null);
+}
+
+function realDate(date) {
+  if (!DATE_RE.test(date)) return false;
+  const d = new Date(`${date}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === date;
+}
+
+/** Title, description and canonical path for a share path, or null (404). */
+async function shareMeta(env, path) {
+  let m = path.match(/^\/h\/([^/]+)\/([^/]+)$/);
+  if (m) {
+    const date = decodeURIComponent(m[1]);
+    const id = decodeURIComponent(m[2]);
+    if (!realDate(date) || !EVENT_ID_RE.test(id)) return null;
+    const data = await reportData(env, date);
+    const events = Array.isArray(data && data.events) ? data.events : [];
+    const e = events.find((x) => x && x.id === id);
+    if (!e) return null;
+    const title = clean(e.title_sv || e.title).slice(0, 160) || `Händelse ${svDate(date)}`;
+    const first = firstSentence(e.summary_sv) || firstSentence(e.title_sv || e.title);
+    return { title, description: `${first} · ${AI_LABEL} · ${SITE_NAME}`, path: `/h/${date}/${encodeURIComponent(id)}`, date };
+  }
+  m = path.match(/^\/d\/([^/]+)$/);
+  if (m) {
+    const date = decodeURIComponent(m[1]);
+    if (!realDate(date)) return null;
+    const data = await reportData(env, date);
+    if (!data) return null;
+    const idx = svIndex(data.threat_index);
+    const title = `Lägesbild ${svDate(date)}${idx ? ` · hotindex ${idx}` : ''}`;
+    const top = topEvent(data);
+    const first = firstSentence(data.executive_sv && data.executive_sv.top)
+      || firstSentence(data.top_development) || firstSentence(top && (top.summary_sv || top.title_sv));
+    return { title, description: `${first || SITE_TAGLINE} · ${AI_LABEL} · ${SITE_NAME}`, path: `/d/${date}`, date };
+  }
+  return undefined;   // not a share path
+}
+
+const escAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const escXml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+
+/** The day's own image when the deploy has one (public/og/<date>.png), else the default. */
+async function ogImage(env, origin, date) {
+  try {
+    const res = await env.ASSETS.fetch(new Request(`${origin}/og/${date}.png`, { method: 'HEAD' }));
+    if (res.ok && (res.headers.get('Content-Type') || '').startsWith('image/')) return `${origin}/og/${date}.png`;
+  } catch { /* the default below */ }
+  return `${origin}/og/default.png`;
+}
+
+async function indexHtml(env, origin) {
+  return env.ASSETS.fetch(new Request(`${origin}/`, { method: 'GET' }));
+}
+
+async function sharePage(request, env, url, meta) {
+  const page = await indexHtml(env, url.origin);
+  const headers = new Headers(page.headers);
+  headers.delete('Content-Length');
+  headers.delete('ETag');
+  if (!meta) {
+    headers.set('Cache-Control', 'no-store');
+    return new Response(request.method === 'HEAD' ? null : page.body, { status: 404, headers });
+  }
+  headers.set('Cache-Control', `public, max-age=${PAGE_CACHE_S}`);
+  const canonical = `${url.origin}${meta.path}`;
+  const image = await ogImage(env, url.origin, meta.date);
+  const tags = [
+    ['property', 'og:type', 'article'], ['property', 'og:site_name', SITE_NAME], ['property', 'og:locale', 'sv_SE'],
+    ['property', 'og:title', meta.title], ['property', 'og:description', meta.description],
+    ['property', 'og:url', canonical], ['property', 'og:image', image],
+    ['property', 'og:image:width', '1200'], ['property', 'og:image:height', '630'],
+    ['name', 'twitter:card', 'summary_large_image'], ['name', 'twitter:title', meta.title],
+    ['name', 'twitter:description', meta.description], ['name', 'twitter:image', image],
+    ['name', 'ai-generated', 'true'],
+  ].map(([k, n, v]) => `<meta ${k}="${n}" content="${escAttr(v)}">`).join('\n')
+    + `\n<link rel="canonical" href="${escAttr(canonical)}">\n`;
+  const out = new HTMLRewriter()
+    .on('title', { element(el) { el.setInnerContent(`${meta.title} · ${SITE_NAME}`); } })
+    .on('meta[name="description"]', { element(el) { el.setAttribute('content', meta.description); } })
+    .on('head', { element(el) { el.append(tags, { html: true }); } })
+    .transform(new Response(page.body, { status: 200, headers }));
+  return request.method === 'HEAD' ? new Response(null, { status: 200, headers: out.headers }) : out;
+}
+
+/** Serves a public page from caches.default, or builds and stores it. */
+async function cachedPage(request, ctx, url, build) {
+  const edge = edgeCache();
+  const key = `${url.origin}${url.pathname}`;
+  if (edge) {
+    try {
+      const hit = await edge.match(new Request(key));
+      if (hit) return request.method === 'HEAD' ? new Response(null, { status: hit.status, headers: hit.headers }) : hit;
+    } catch { /* build it */ }
+  }
+  const res = await build();
+  if (edge && res.status === 200 && request.method === 'GET') {
+    const [a, b] = res.body ? res.body.tee() : [null, null];
+    const put = edge.put(new Request(key), new Response(b, { status: 200, headers: res.headers })).catch(() => {});
+    if (ctx && ctx.waitUntil) ctx.waitUntil(put); else await put;
+    return new Response(a, { status: 200, headers: res.headers });
+  }
+  return res;
+}
+
+/** Share links, /feed.xml and /sitemap.xml; null for anything else. */
+async function publicPage(request, env, ctx, url) {
+  const path = url.pathname.replace(/\/+$/, '');
+  const isShare = /^\/[hd]\//.test(path);
+  if (!isShare) return null;   //PUBLIC_PATHS_MORE
+  // With the public views off (PUBLIC_READ), nothing is told to the outside.
+  if (env.PUBLIC_READ !== '1') {
+    if (isShare) return sharePage(request, env, url, null).then((r) => new Response(r.body, { status: 200, headers: r.headers }));
+    return new Response('not found', { status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
+  }
+  try {
+    if (isShare) {
+      return await cachedPage(request, ctx, url, async () => sharePage(request, env, url, await shareMeta(env, path)));
+    }
+    //FEED_SITEMAP
+  } catch (err) {
+    console.error('public page failed', err && err.stack ? err.stack : err);
+    if (isShare) return env.ASSETS.fetch(new Request(`${url.origin}/`));
+    return new Response('temporarily unavailable', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '60' } });
+  }
 }
 
 // ---------------------------------------------------------------------------

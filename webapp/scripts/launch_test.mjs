@@ -85,7 +85,7 @@ const INDEX_HTML = '<!doctype html><html lang="sv"><head><meta charset="utf-8"><
   + '<meta name="description" content="Daglig bedömning."></head><body><main id="view"></main></body></html>';
 const env = {
   PUBLIC_READ: '1', TEAM_DOMAIN: 'team.cloudflareaccess.com', ACCESS_AUD: 'aud', DB: db,
-  ASSETS: { fetch: async (req) => new Response(new URL(req.url).pathname === '/index.html' ? INDEX_HTML : 'asset', { headers: { 'Content-Type': 'text/html; charset=utf-8' } }) },
+  ASSETS: { fetch: async (req) => new Response(new URL(req.url).pathname === '/' ? INDEX_HTML : 'asset', { headers: { 'Content-Type': 'text/html; charset=utf-8' } }) },
 };
 
 // caches.default, as on a custom domain.
@@ -114,6 +114,77 @@ for (let i = 0; i < 205; i++) await get(`/api/updates?since=${ts(i)}`);
 expect('the cache is bounded', guestCache.size, 200);
 expect('the oldest entry went first', guestCache.has('/api/reports'), false);
 expect('recent entries stay', guestCache.has(`/api/updates?${new URLSearchParams({ since: ts(204) })}`), true);
+
+// --- Share links (/h/<date>/<id>, /d/<date>) --------------------------------
+// Node has no HTMLRewriter: a stand-in for the three selectors the Worker uses.
+globalThis.HTMLRewriter = class {
+  constructor() { this.handlers = []; }
+  on(sel, h) { this.handlers.push([sel, h]); return this; }
+  transform(res) {
+    const handlers = this.handlers;
+    const esc = (v) => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const body = res.text().then((html) => {
+      for (const [sel, h] of handlers) {
+        if (sel === 'title') {
+          h.element({ setInnerContent(t) { html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(t)}</title>`); } });
+        } else if (sel === 'meta[name="description"]') {
+          h.element({ setAttribute(_k, v) { html = html.replace(/(<meta name="description" content=")[^"]*(")/, `$1${esc(v).replace(/"/g, '&quot;')}$2`); } });
+        } else if (sel === 'head') {
+          h.element({ append(t) { html = html.replace('</head>', `${t}</head>`); } });
+        }
+      }
+      return html;
+    });
+    const stream = new ReadableStream({ async start(c) { c.enqueue(new TextEncoder().encode(await body)); c.close(); } });
+    return new Response(stream, { status: res.status, headers: res.headers });
+  }
+};
+const metaOf = (html, prop) => {
+  const m = html.match(new RegExp(`<meta (?:property|name)="${prop}" content="([^"]*)"`));
+  return m ? m[1] : null;
+};
+
+r = await get(`/h/${today}/${today}-e1`);
+let html = await r.text();
+expect('event page 200', r.status, 200);
+expect('event <title>', html.match(/<title>([^<]*)<\/title>/)[1], 'Kabel skadad i Östersjön · Hotmonitor');
+expect('og:title', metaOf(html, 'og:title'), 'Kabel skadad i Östersjön');
+expect('og:description is the first sentence, AI-labelled', metaOf(html, 'og:description'),
+  'En kabel mellan Finland och Estland skadades i natt. · AI-sammanfattning · Hotmonitor');
+expect('description meta too', metaOf(html, 'description'), metaOf(html, 'og:description'));
+expect('og:type', metaOf(html, 'og:type'), 'article');
+expect('og:url', metaOf(html, 'og:url'), `${ORIGIN}/h/${today}/${today}-e1`);
+expect('og:image falls back to the default', metaOf(html, 'og:image'), `${ORIGIN}/og/default.png`);
+expect('twitter:card', metaOf(html, 'twitter:card'), 'summary_large_image');
+expect('canonical', (html.match(/<link rel="canonical" href="([^"]*)"/) || [])[1], `${ORIGIN}/h/${today}/${today}-e1`);
+expect('page cached in caches.default', edgeStore.has(`${ORIGIN}/h/${today}/${today}-e1`), true);
+expect('page may be cached', r.headers.get('cache-control'), 'public, max-age=600');
+db.reads = 0;
+r = await get(`/h/${today}/${today}-e1`);
+expect('second view from the cache, OG intact', metaOf(await r.text(), 'og:title'), 'Kabel skadad i Östersjön');
+expect('second view reads no D1', db.reads, 0);
+
+r = await get(`/h/${today}/${today}-e2`);
+html = await r.text();
+expect('markup in a title is escaped', html.includes('<script>'), false);
+expect('empty summary: the title is the description', metaOf(html, 'og:description').startsWith('Desinformation om val &lt;script&gt;'), true);
+
+r = await get(`/d/${today}`);
+html = await r.text();
+expect('day page 200', r.status, 200);
+expect('day og:title has the index', metaOf(html, 'og:title').endsWith('· hotindex 6,4'), true);
+expect('day og:description', metaOf(html, 'og:description'), 'Sabotage mot en kabel i Östersjön. · AI-sammanfattning · Hotmonitor');
+expect('day og:url', metaOf(html, 'og:url'), `${ORIGIN}/d/${today}`);
+
+for (const bad of [`/h/${today}/nope`, '/h/2026-13-40/x-e1', '/d/1999-01-01', '/d/not-a-date', `/h/${today}/a%20b`]) {
+  r = await get(bad);
+  html = await r.text();
+  expect(`404 for ${bad}`, r.status, 404);
+  expect(`no OG tags on ${bad}`, html.includes('og:title'), false);
+}
+r = await worker.fetch(new Request(`${ORIGIN}/d/${today}`), { ...env, PUBLIC_READ: '0' }, { waitUntil: () => {} });
+html = await r.text();
+expect('PUBLIC_READ off: the plain app, no OG tags', html.includes('og:title'), false);
 
 console.log(`\nlaunch_test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
