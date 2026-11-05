@@ -192,7 +192,7 @@ expect('day og:title has the index', metaOf(html, 'og:title').endsWith('· hotin
 expect('day og:description', metaOf(html, 'og:description'), 'Sabotage mot en kabel i Östersjön. · AI-sammanfattning · Hotmonitor');
 expect('day og:url', metaOf(html, 'og:url'), `${ORIGIN}/d/${today}`);
 
-for (const bad of [`/h/${today}/nope`, '/h/2026-13-40/x-e1', '/d/1999-01-01', '/d/not-a-date', `/h/${today}/a%20b`]) {
+for (const bad of [`/h/${today}/nope`, '/h/2026-13-40/x-e1', '/d/1999-01-01', '/d/not-a-date', `/h/${today}/a%20b`, `/h/${today}/%E0%A4%A`, `/h/${today}/x/extra`]) {
   r = await get(bad);
   html = await r.text();
   expect(`404 for ${bad}`, r.status, 404);

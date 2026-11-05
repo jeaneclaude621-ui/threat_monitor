@@ -666,3 +666,77 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   `/fonts/` (latin, latin-ext, cyrillic), not Google Fonts: reading the
   app sends nothing to a third party. CSP `style-src 'self'; font-src
   'self'`. The About page says so. Service worker hm-v3.37.
+
+# Version 3.22 (5 Nov 2026) - before the public launch: share links, feed, access requests
+
+Worker:
+- **Guest cache.** The key keeps only the query parameters a public read
+  uses (`side`, `since`, `p`, in that order); `?x=1` and the like hit the
+  same entry. At 200 entries the least recently used goes, not all of
+  them. Guests' answers are also put in `caches.default` for 60 s, shared
+  by every isolate in a data centre (only on a custom domain; a no-op on
+  `workers.dev`).
+- **Share links.** `GET /h/<date>/<event id>` and `GET /d/<date>`
+  (`run_worker_first`) answer `index.html` with, from the report in D1:
+  `<title>` (`<title> · Hotmonitor`), `meta description`, `og:title`,
+  `og:description` (the first sentence of the event's `summary_sv`, or of
+  `title_sv` when that is empty; for a day the first sentence of
+  `executive_sv.top`, then `" · AI-sammanfattning · Hotmonitor"`),
+  `og:url` and `<link rel="canonical">` (the share path), `og:type`
+  `article`, `og:image` (`/og/<date>.png` when the deploy has it, else
+  `/og/default.png`, 1200x630), `twitter:card` `summary_large_image` and
+  `meta name="ai-generated" content="true"`. A day's `og:title` is
+  `Lägesbild <d month yyyy> · hotindex <x,x>`. Cached 10 min
+  (`Cache-Control: public, max-age=600`, and `caches.default`). A
+  malformed or impossible date, an unknown id or a day without a report
+  answers **404** with the plain `index.html` (no OG tags). With
+  `PUBLIC_READ` off the paths answer the plain app.
+- **`GET /feed.xml`**: RSS 2.0, the last 14 days. Per report an item
+  `Hotindex <x,x> · <top event's title_sv>` linking `/d/<date>`, and per
+  event scored 8 or more `<title_sv> (<score>/10)` linking
+  `/h/<date>/<id>`. Every description starts `AI-sammanfattning: `.
+  Cached 15 min.
+- **`GET /sitemap.xml`**: `/`, every `/d/<date>` and `/h/<date>/<id>` of
+  the last 90 days. **`/robots.txt`** (static, `public/robots.txt`)
+  allows everything but `/api/`; the Worker writes this host into its
+  `Sitemap:` line.
+- **U7.** `GET /api/me` for a verified Access address without an account
+  (with `PUBLIC_READ` on): `{ email: null, role: 'guest', is_owner: false,
+  alarm: null, refresh: null, verified_no_account: true,
+  access_request: null | { status, ts } }`, never cached. Everything else
+  still reads as a guest, pseudonymized as before.
+- **`POST /api/access-request`** (no body): needs a verified Access
+  identity, not a guest (401) or the machine (403), and the app's Origin.
+  201 with `{ id, email, ts, status: 'requested', decided_at: null,
+  decided_by: null }`; 200 with the same row if one is already open; 409
+  if the address already has access; 429 after three in a day; 503 with
+  500 open in all. Migration `0014_access_requests.sql`: `access_requests
+  (id PK, email, ts, status 'requested' | 'approved' | 'denied',
+  decided_at, decided_by)`.
+- **`GET /api/admin/access-requests[?status=requested]`** (admin): rows,
+  newest first, at most 500. **`POST
+  /api/admin/access-requests/<id>`** (admin) body `{ decision: 'approve' |
+  'deny', invite?: boolean }` -> `{ request, user }`. Approving makes a
+  reader through the same path as `POST /api/admin/users` (an invite is
+  queued unless `invite: false`); `user` is null on deny. 409 once
+  decided. Audit actions `access_request`, `access_approved`,
+  `access_denied`.
+- **Push in batches.** A push is queued in meta `push_queue` (the
+  matching endpoints) and sent 40 at a time: the first 40 at once, the
+  rest by a new cron every 10 min (`*/10 * * * *`). The free plan allows
+  50 subrequests per invocation. Pushes in one invocation share the 40.
+  meta `last_push` gains `queued`.
+- CSP: `object-src 'none'`, `upgrade-insecure-requests`.
+
+For the app (another session):
+- Turn `/h/<date>/<id>` into `#/handelse/<date>/<id>` and `/d/<date>`
+  into `#/rapport/<date>` at start, and use the share
+  paths in a Dela button (`navigator.share`, copy as fallback).
+- Add `<link rel="alternate" type="application/rss+xml"
+  title="Hotmonitor" href="/feed.xml">` to `index.html`'s `<head>`.
+- When `/api/me` has `verified_no_account`, say that the address has no
+  account yet and offer *Be om tillgång* (`POST /api/access-request`),
+  showing `access_request.status` once asked. The admin page lists
+  `GET /api/admin/access-requests?status=requested` with Godkänn / Avslå.
+- A 404 on a share path loads the app normally; it should show its own
+  "finns inte" page for the route.

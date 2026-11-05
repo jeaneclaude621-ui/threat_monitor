@@ -726,6 +726,10 @@ function topEvent(data) {
   return events.reduce((best, e) => (typeof e.score === 'number' && (!best || e.score > best.score) ? e : best), null);
 }
 
+function safeDecode(s) {
+  try { return decodeURIComponent(s); } catch { return ''; }
+}
+
 function realDate(date) {
   if (!DATE_RE.test(date)) return false;
   const d = new Date(`${date}T00:00:00Z`);
@@ -736,8 +740,8 @@ function realDate(date) {
 async function shareMeta(env, path) {
   let m = path.match(/^\/h\/([^/]+)\/([^/]+)$/);
   if (m) {
-    const date = decodeURIComponent(m[1]);
-    const id = decodeURIComponent(m[2]);
+    const date = safeDecode(m[1]);
+    const id = safeDecode(m[2]);
     if (!realDate(date) || !EVENT_ID_RE.test(id)) return null;
     const data = await reportData(env, date);
     const events = Array.isArray(data && data.events) ? data.events : [];
@@ -749,7 +753,7 @@ async function shareMeta(env, path) {
   }
   m = path.match(/^\/d\/([^/]+)$/);
   if (m) {
-    const date = decodeURIComponent(m[1]);
+    const date = safeDecode(m[1]);
     if (!realDate(date)) return null;
     const data = await reportData(env, date);
     if (!data) return null;
