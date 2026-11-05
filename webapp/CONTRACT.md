@@ -640,3 +640,13 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
 - App: every attack has a "Satellitkarta, bränder" button that opens NASA
   FIRMS's map at the place, on the attack day and the next. Styrkor shows
   the week's other strikes. Service worker hm-v3.33.
+
+# Version 3.19 (5 Nov 2026) - functions menu
+
+- App only: a small chip beside "Hotläget" on Idag ("15 nya", or
+  "Funktioner" when nothing is new) opens a sheet with every function:
+  the last 10 days' new ones first, then all of them by area, and a search
+  field that filters on every letter. Selecting one goes there. The list
+  is `webapp/public/features.js`: add a row (with the day it reached the
+  app) whenever a function is added. Admin-only rows are hidden for
+  others, login-only rows for guests. Service worker hm-v3.34.

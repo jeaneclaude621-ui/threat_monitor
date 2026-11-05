@@ -841,3 +841,26 @@ img.zoomable { cursor: zoom-in; -webkit-touch-callout: none; -webkit-user-select
 .friver { fill: none; stroke: #A9C1DA; stroke-width: 1; vector-effect: non-scaling-stroke; stroke-linecap: round; pointer-events: none; }
 @media (prefers-color-scheme: dark) { .flake { fill: #13203A; stroke: #2C3E62; } .friver { stroke: #2F4A75; } .fregion { stroke: rgba(200,140,120,.3); } }
 .about h2 { margin-top: 10px; }
+
+/* Functions menu (Version 3.19) */
+.title-row { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+.page-head > div:first-child { min-width: 0; }
+.feat-chip { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--card); color: inherit; font: inherit; font-size: 12px; font-weight: 500;
+  line-height: 1; cursor: pointer; white-space: nowrap; }
+.feat-chip:active { transform: scale(0.97); }
+.feat-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber-mid); }
+.feat-search { width: 100%; box-sizing: border-box; font: inherit; font-size: 16px; padding: 9px 12px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--card); color: inherit; margin: 4px 0 8px; }
+.feat-list { max-height: 60vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.feat-h { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; margin: 12px 0 4px; opacity: 0.75; }
+.feat-ul { list-style: none; margin: 0; padding: 0; }
+.feat-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; width: 100%; text-align: left;
+  padding: 8px 4px; border: 0; border-bottom: 1px solid var(--line); background: none; color: inherit; font: inherit; cursor: pointer; }
+.feat-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.feat-title { font-weight: 600; font-size: 14px; }
+.feat-desc { font-size: 13px; color: var(--muted); }
+.feat-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; font-size: 11px; opacity: 0.8; white-space: nowrap; }
+.feat-new { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 8px; background: var(--amber-soft); color: var(--amber); }
+.feat-area > summary { cursor: pointer; font-weight: 600; padding: 8px 0 4px; display: flex; align-items: center; gap: 6px; }
+.feat-count { font-size: 11px; font-weight: 500; opacity: 0.6; }

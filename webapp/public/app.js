@@ -8,6 +8,7 @@ import {
   reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
+import { FEATURES, AREAS, NEW_DAYS } from './features.js';
 
 // ---------------------------------------------------------------- constants
 const TOPICS = ['Drönare', 'Sabotage', 'IT-hot', 'Skuggflotta', 'Sanktioner', 'Diplomati', 'Arktis', 'Desinformation', 'Kinetiskt'];
@@ -690,7 +691,9 @@ async function viewReport(date, q) {
     h('header', { class: 'page-head' },
       h('div', null,
         h('div', { class: 'kicker' }, dateLong(d)),
-        h('h1', { class: 'title-xl' }, archived ? 'Rapport' : 'Hotläget')),
+        h('div', { class: 'title-row' },
+          h('h1', { class: 'title-xl' }, archived ? 'Rapport' : 'Hotläget'),
+          archived ? null : featuresChip())),
       h('div', { class: 'head-actions' },
         date ? null : h('a', { class: 'head-link', href: '#/arkiv' }, 'Tidigare dagar'),
         date || isGuest() ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
@@ -3566,6 +3569,80 @@ async function adminAudit() {
       h('span', { class: 'row-title' }, `${ACTION_SV[r.action] || r.action || 'Ändring'} ${r.target || ''}`.trim()),
       h('span', { class: 'row-sub' }, [whenFmt(r.ts), r.actor ? `av ${r.actor}` : null].filter(Boolean).join(' · ')),
       detailText(r.detail) ? h('span', { class: 'row-sub' }, detailText(r.detail)) : null))));
+}
+
+// ---------------------------------------------------------------- functions menu (Version 3.19)
+// A small chip beside "Hotläget": what is new the last NEW_DAYS days, and
+// every function in order, searchable letter by letter (features.js).
+const FEATURE_ACTIONS = { settings: () => openSettings(), install: () => openInstall(), features: () => openFeatures() };
+
+function visibleFeatures() {
+  return FEATURES.filter((f) => (!f.admin || isAdmin()) && (!f.user || !isGuest()));
+}
+
+function newFeatures() {
+  const since = new Date(Date.now() - NEW_DAYS * 86400000).toISOString().slice(0, 10);
+  return visibleFeatures().filter((f) => f.added >= since).sort((a, b) => (a.added < b.added ? 1 : -1));
+}
+
+function featuresChip() {
+  const n = newFeatures().length;
+  return h('button', { class: 'feat-chip', type: 'button', onclick: () => openFeatures(),
+    'aria-label': n ? `Funktioner, ${n} nya` : 'Funktioner', title: 'Funktioner och nyheter' },
+    n ? h('span', { class: 'feat-dot', 'aria-hidden': 'true' }) : null, n ? `${n} nya` : 'Funktioner');
+}
+
+function openFeatures() {
+  openSheet((close) => {
+    const areaName = Object.fromEntries(AREAS);
+    const go = (f) => {
+      close();
+      if (f.action) { setTimeout(() => FEATURE_ACTIONS[f.action] && FEATURE_ACTIONS[f.action](), 0); return; }
+      if (location.hash === f.href || (f.href === '#/' && !location.hash)) route(); else location.hash = f.href;
+    };
+    const row = (f, terms, showArea) => h('li', null, h('button', { class: 'feat-row', type: 'button', onclick: () => go(f) },
+      h('span', { class: 'feat-main' },
+        h('span', { class: 'feat-title' }, highlight(f.title, terms)),
+        h('span', { class: 'feat-desc' }, highlight(f.desc, terms))),
+      h('span', { class: 'feat-meta' }, showArea ? areaName[f.area] : null,
+        f.added >= newSince ? h('span', { class: 'feat-new' }, `Ny ${dateShort(f.added)}`) : null)));
+    const newSince = new Date(Date.now() - NEW_DAYS * 86400000).toISOString().slice(0, 10);
+    const list = h('div', { class: 'feat-list' });
+    const input = h('input', { type: 'search', class: 'feat-search', placeholder: 'Sök funktion …', 'aria-label': 'Sök funktion',
+      autocomplete: 'off', spellcheck: 'false' });
+    const draw = () => {
+      const terms = norm(input.value).split(/\s+/).filter(Boolean);
+      const all = visibleFeatures();
+      if (terms.length) {
+        const hits = all.filter((f) => {
+          const hay = norm(`${f.title} ${f.desc} ${f.keywords || ''} ${areaName[f.area] || ''}`);
+          return terms.every((t) => hay.includes(t));
+        });
+        list.replaceChildren(hits.length
+          ? h('ul', { class: 'feat-ul' }, hits.map((f) => row(f, terms, true)))
+          : h('p', { class: 'small muted' }, `Ingen funktion matchar ”${input.value}”.`));
+        return;
+      }
+      const fresh = newFeatures();
+      list.replaceChildren(
+        fresh.length ? h('section', null, h('h3', { class: 'feat-h' }, `Nytt senaste ${NEW_DAYS} dagarna`),
+          h('ul', { class: 'feat-ul' }, fresh.map((f) => row(f, [], true)))) : null,
+        h('h3', { class: 'feat-h' }, 'Alla funktioner'),
+        ...AREAS.map(([key, label]) => {
+          const items = all.filter((f) => f.area === key);
+          return items.length ? h('details', { class: 'feat-area', open: true },
+            h('summary', null, label, h('span', { class: 'feat-count' }, String(items.length))),
+            h('ul', { class: 'feat-ul' }, items.map((f) => row(f, [], false)))) : null;
+        }));
+    };
+    input.addEventListener('input', draw);
+    draw();
+    return frag(
+      h('h2', { class: 'title-m' }, 'Funktioner'),
+      input,
+      list,
+      h('div', { class: 'sheet-actions' }, h('button', { class: 'btn', type: 'button', onclick: close }, 'Stäng')));
+  }, { label: 'Funktioner' });
 }
 
 // ---------------------------------------------------------------- about (Version 3.17)
