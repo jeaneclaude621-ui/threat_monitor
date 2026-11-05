@@ -80,6 +80,12 @@ export const FEATURES = [
   // Appen
   { id: 'tillbaka', area: 'app', title: 'Pil bakåt på alla sidor', href: '#/arkiv', added: '2026-11-05',
     desc: 'Pilen uppe till vänster tar dig tillbaka dit du var, på samma ställe på sidan.', keywords: 'tillbaka bakåt pil navigering' },
+  { id: 'dela', area: 'app', title: 'Dela en händelse eller dagens läge', href: '#/', added: '2026-11-05',
+    desc: 'Knappen Dela på händelsesidan och på Idag skickar en länk, eller kopierar den.', keywords: 'dela länk skicka kopiera' },
+  { id: 'siffran', area: 'idag', title: 'Vad betyder siffran?', href: '#/om?s=index', added: '2026-11-05',
+    desc: 'Hotindex skala 1–10 i klartext, och att händelsernas siffra är trovärdighet.', keywords: 'hotindex skala trovärdighet poäng förklaring' },
+  { id: 'integritet', area: 'app', title: 'Integritetspolicy', href: '#/om?s=integritet', added: '2026-11-05',
+    desc: 'Vilka uppgifter som sparas, varför, hur länge och vem som hjälper till.', keywords: 'integritet gdpr personuppgifter radera utdrag' },
   { id: 'funktioner', area: 'app', title: 'Funktioner och nyheter', action: 'features', added: '2026-11-05',
     desc: 'Den här menyn: det nya först, sedan allt, sökbart.', keywords: 'meny hjälp sök funktioner' },
   { id: 'gast', area: 'app', title: 'Läs utan att logga in', href: '#/om', added: '2026-11-03',

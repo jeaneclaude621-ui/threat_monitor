@@ -141,6 +141,45 @@ const tsFmt = (ts) => { const x = new Date(ts); return Number.isNaN(x.getTime())
 const countryName = (c) => COUNTRY[c] || c;
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const eventHref = (date, id) => `#/handelse/${encodeURIComponent(date)}/${encodeURIComponent(id)}`;
+
+// Shared links are real paths the Worker answers with Open Graph tags:
+// /h/<date>/<event id> and /d/<date>. The app itself routes on the hash.
+const shareEventUrl = (date, id) => `${location.origin}/h/${encodeURIComponent(date)}/${encodeURIComponent(id)}`;
+const shareDayUrl = (date) => `${location.origin}/d/${encodeURIComponent(date)}`;
+function translateSharePath() {
+  const m = location.pathname.match(/^\/(h|d)\/(\d{4}-\d{2}-\d{2})(?:\/([^/]+))?\/?$/);
+  if (!m) return;
+  let id = m[3] || '';
+  try { id = decodeURIComponent(id); } catch { /* keep as is */ }
+  const hash = m[1] === 'h' && id ? eventHref(m[2], id) : m[1] === 'd' ? `#/rapport/${encodeURIComponent(m[2])}` : '#/';
+  history.replaceState(null, '', `/${hash}`);
+}
+
+// navigator.share where there is one (phones), otherwise copy the link.
+async function shareLink({ title, text, url }) {
+  if (navigator.share) {
+    try { await navigator.share({ title, text, url }); return; } catch (e) {
+      if (e && e.name === 'AbortError') return;   // the reader closed the share sheet
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    announce('Länken är kopierad');
+  } catch {
+    openSheet((close) => frag(
+      h('h2', { class: 'title-m' }, 'Dela'),
+      h('p', { class: 'small muted' }, 'Kopiera länken:'),
+      h('input', { class: 'share-url', type: 'text', readonly: true, value: url, autofocus: true, onfocus: (ev) => ev.target.select() }),
+      h('div', { class: 'sheet-actions' }, h('button', { class: 'btn', type: 'button', onclick: close }, 'Stäng'))),
+    { label: 'Dela' });
+  }
+}
+function shareIcon() {
+  return icon(['M12 3v12', 'M7.5 7.5L12 3l4.5 4.5', 'M5 13v6h14v-6'], '', '0 0 24 24');
+}
+function shareButton(info, label = 'Dela') {
+  return h('button', { class: 'share-btn', type: 'button', onclick: () => shareLink(info) }, shareIcon(), label);
+}
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 function scoreClass(s) { const n = Number(s); return n >= 8 ? 'score' : n >= 5 ? 'score mid' : 'score low'; }
 function verdictPill(value, pending) {
@@ -826,14 +865,20 @@ async function viewReport(date, q) {
         date ? null : h('a', { class: 'head-link', href: '#/arkiv' }, 'Tidigare dagar'),
         date || isGuest() ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
         date ? null : h('a', { class: 'head-link', href: '#/om' }, 'Om'),
-        isGuest() && !date ? h('a', { class: 'head-link', href: '/login' }, 'Logga in') : null,
+        isGuest() && !date && !noAccount() ? h('a', { class: 'head-link', href: '/login' }, 'Logga in') : null,
         admin ? h('a', { class: 'icon-btn', href: '#/admin', 'aria-label': 'Status och administration', title: 'Status och administration' }, gearIcon()) : null)),
     archived ? null : noticeCards(),
+    archived ? null : noAccountCard(),
     // The figures and the news first; what is new for me, the controls
     // and the device cards come after or fold away.
     heroCard(r),
     aiLine(),
     fallbackNote(r),
+    h('div', { class: 'share-row' }, shareButton({
+      title: `Hotläget ${dateLong(d)} · Hotmonitor`,
+      text: `Hotindex ${fmt1(r.threat_index)} av 10. ${firstSentence(top || '', 140)} (AI-sammanfattning · Hotmonitor)`,
+      url: shareDayUrl(d),
+    }, archived ? 'Dela rapporten' : 'Dela dagens läge')),
     top ? h('section', { class: 'section' },
       h('div', { class: 'kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
       h('p', { class: 'lead' }, top)) : null,
@@ -873,6 +918,37 @@ async function viewReport(date, q) {
     archived ? null : pushNudge(),
     archived ? null : siteFooter(),
   );
+}
+
+// U7: signed in with a verified address that has no account. /api/me says
+// so (verified_no_account); explain it, and offer to ask for access.
+const ACCESS_KEY = 'hm.accessRequested';
+const noAccount = () => !!(store.me && store.me.verified_no_account);
+function noAccountCard() {
+  if (!noAccount()) return null;
+  let asked = false;
+  try { asked = !!localStorage.getItem(ACCESS_KEY); } catch { /* private mode */ }
+  const msg = h('p', { class: 'small', role: 'status' }, asked ? 'Tack! Vi har fått din förfrågan och hör av oss.' : '');
+  const btn = asked ? null : h('button', {
+    class: 'btn', type: 'button',
+    onclick: async (ev) => {
+      const b = ev.currentTarget;
+      b.disabled = true;
+      try {
+        await adminSend('POST', '/api/access-request', null);
+        try { localStorage.setItem(ACCESS_KEY, new Date().toISOString()); } catch { /* the thanks shows anyway */ }
+        b.remove();
+        msg.textContent = 'Tack! Vi har fått din förfrågan och hör av oss.';
+      } catch (e) {
+        b.disabled = false;
+        msg.textContent = e instanceof OfflineError ? 'Ingen anslutning – försök igen.' : friendlyError(e)[1];
+      }
+    },
+  }, 'Vill du hjälpa till att bedöma källor?');
+  return h('section', { class: 'card card-pad nudge', 'aria-labelledby': 'noacc-title' },
+    h('h2', { class: 'kicker', id: 'noacc-title' }, 'Inget konto'),
+    h('p', { class: 'small' }, 'Du är inloggad men har inget konto. Du kan läsa allt som gäst.'),
+    btn, msg);
 }
 
 function gearIcon() {
@@ -1135,7 +1211,8 @@ async function viewEvent(date, id) {
         h('span', { class: 'small muted' }, ` · självkontroll ${dateShort(outcome.checked)}`)) : null),
     e.summary_sv ? h('p', { class: 'body-serif' }, e.summary_sv) : null,
     detailP,
-    toggle ? h('div', null, toggle) : null,
+    h('div', { class: 'btn-row' }, toggle,
+      shareButton({ title: e.title_sv || e.title, text: `${firstSentence(e.summary_sv || e.detail || '', 160)} (AI-sammanfattning · Hotmonitor)`, url: shareEventUrl(date, e.id) })),
     known.length || unknown.length ? h('section', { class: 'kv2' },
       known.length ? h('div', { class: 'card card-pad' },
         h('h2', { class: 'kicker' }, 'Vad vi vet'),
@@ -4176,6 +4253,7 @@ async function init() {
   if (currentRoute !== 'amnen') rerender();
 }
 
+translateSharePath();
 init();
 
 // Exposed for tests and debugging only.
