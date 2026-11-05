@@ -6,7 +6,7 @@ news_sources.Pool, news_sources.blocked_source, forces.is_news and
 common.extract_json. The tests describe the behaviour EXPECTED after the
 launch fixes: only verified sources (#1), one block list on host and
 outlet name (#3), the date check (#13) and social media never alone (#15).
-Tests that main does not meet yet are marked expectedFailure, so the
+Tests main does not meet by design are marked expectedFailure, so the
 suite stays green; the comment says when the mark goes.
 """
 import copy
@@ -50,7 +50,7 @@ def pool_items(items: list) -> list:
 
 
 def _unconfirmed(ev: dict) -> bool:
-    if ev.get("unconfirmed") is True or ev.get("verified") is False:
+    if ev.get("unconfirmed") is True or ev.get("unverified") is True or ev.get("verified") is False:
         return True
     text = " ".join(str(ev.get(k) or "") for k in ("status", "label", "flag", "badge_sv")).lower()
     return "obekräftad" in text or "unconfirmed" in text
@@ -82,14 +82,10 @@ class FabricatedRef(unittest.TestCase):
                 if a["outlet"] == "BBC" or ev["title"].startswith("Cable"):
                     self.assertIsNone(a.get("url"))
 
-    # tas bort när lansering-a1 är mergad (#1: bara verifierade källor)
-    @unittest.expectedFailure
     def test_fabricated_article_is_dropped(self):
         ev = carried(enrich(self.case), "Drones over Danish air base")
         self.assertEqual(outlets(ev), ["Reuters"])
 
-    # tas bort när lansering-a1 är mergad (#1: händelse utan verifierad artikel)
-    @unittest.expectedFailure
     def test_event_with_only_fabricated_refs_is_not_carried(self):
         self.assertIsNone(carried(enrich(self.case), "Cable cut off Gotland"))
 
@@ -100,13 +96,9 @@ class TassViaGoogleNews(unittest.TestCase):
     def test_tass_host_is_blocked(self):
         self.assertTrue(news_sources.blocked_source("https://tass.com/world/1999999"))
 
-    # tas bort när lansering-a1 är mergad (#3: spärrlista på utgivarnamn i Pool.add)
-    @unittest.expectedFailure
     def test_pool_refuses_tass_by_outlet_name(self):
         self.assertEqual(news_sources.Pool().add(pool_items(self.case["pool_items"])).items, [])
 
-    # tas bort när lansering-a1 är mergad (#3: spärrlistan gäller även modellens artiklar)
-    @unittest.expectedFailure
     def test_tass_article_never_reaches_the_app(self):
         for ev in enrich(self.case):
             self.assertNotIn("TASS", outlets(ev))
@@ -124,8 +116,6 @@ class LoneYouTube(unittest.TestCase):
         self.assertIsNotNone(ev)
         self.assertIn("SVT", outlets(ev))
 
-    # tas bort när lansering-a1 är mergad (#15: sociala medier aldrig ensamma)
-    @unittest.expectedFailure
     def test_lone_youtube_does_not_carry_an_event(self):
         self.assertIsNone(carried(enrich(self.case), "Russian submarine off Stockholm"))
 
@@ -137,14 +127,13 @@ class SyndicatedAP(unittest.TestCase):
         pool = news_sources.Pool().add(pool_items(self.case["pool_items_same_title"]))
         self.assertEqual(len(pool.items), 1)
 
-    # tas bort när #12 (oberoendekontroll) är gjord - ingår inte i lansering-a1
+    # By design the pool keeps syndicated copies; their common origin is
+    # counted per event instead (test_one_origin_caps_the_score).
     @unittest.expectedFailure
     def test_varied_titles_same_ap_lead_are_one_origin(self):
         pool = news_sources.Pool().add(pool_items(self.case["pool_items_varied_titles"]))
         self.assertEqual(len(pool.items), 1)
 
-    # tas bort när #2 och #12 (poäng i kod, oberoendekontroll) är gjorda - ingår inte i lansering-a1
-    @unittest.expectedFailure
     def test_one_origin_caps_the_score(self):
         ev = enrich(self.case)[0]
         self.assertLessEqual(ev["score"], 6)
@@ -157,8 +146,6 @@ class OldNewsNewDate(unittest.TestCase):
         pool = news_sources.Pool().add(pool_items(self.case["pool_items"]))
         self.assertEqual(pool.since(datetime(2026, 11, 4)).items, [])
 
-    # tas bort när lansering-a1 är mergad (#13: datumkontroll)
-    @unittest.expectedFailure
     def test_published_comes_from_the_article_not_the_model(self):
         art = enrich(self.case)[0]["articles"][0]
         self.assertEqual(art.get("published"), "2025-03-01")
@@ -182,8 +169,6 @@ class LiteModelShortened(unittest.TestCase):
         ev = carried(events, "Narva border queue")
         self.assertEqual(ev["articles"][0]["url"], "https://www.err.ee/1609999999/narva")
 
-    # tas bort när lansering-a1 är mergad (#1: händelse utan verifierad artikel)
-    @unittest.expectedFailure
     def test_event_without_articles_is_not_carried(self):
         self.assertIsNone(carried(enrich(fixture("lite_shortened.json")), "Estonia border"))
 
