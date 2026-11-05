@@ -932,3 +932,9 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 .vpill { display: inline-block; min-width: 28px; text-align: center; padding: 0 6px; border-radius: 6px; font-size: 12px; font-weight: 700; }
 .vpill.vp { background: var(--pos-bg, #DCEFE2); color: var(--pos-fg, #1E5B33); }
 .vpill.vn { background: var(--neg-bg); color: var(--neg-fg); }
+
+/* notices: follow topics and countries */
+.follow { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line-2); padding-top: 10px; }
+.follow .about-h3 { margin: 0; }
+.fchip { font: inherit; cursor: pointer; min-height: 36px; }
+.fchip[aria-pressed="true"] { background: var(--ink, #15203B); color: var(--bg, #fff); border-color: transparent; }

@@ -505,6 +505,8 @@ export async function pushKey() {
 }
 export const pushSubscribe = (sub) => sendJSON('POST', '/api/push/subscribe', sub);
 export const pushUnsubscribe = (endpoint) => sendJSON('POST', '/api/push/unsubscribe', { endpoint });
+// Version 3.23: follow topics or countries; empty lists follow everything.
+export const pushPrefs = (endpoint, topics, countries) => sendJSON('POST', '/api/push/prefs', { endpoint, topics, countries });
 
 function sendJSON(method, path, body) {
   return getJSON(path, {

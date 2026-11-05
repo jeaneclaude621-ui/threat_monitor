@@ -5,7 +5,7 @@ import {
   store, onChange, isAdmin, isGuest, loadMe, loadIndex, loadReport, loadAllReports, loadReportsRange, loadedReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
-  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes,
+  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, pushPrefs, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
 import { FEATURES, AREAS, NEW_DAYS } from './features.js';
@@ -504,12 +504,88 @@ async function enablePush() {
   const perm = await Notification.requestPermission();
   if (perm !== 'granted') throw new Error(perm === 'denied' ? 'blocked' : 'dismissed');
   const reg = await navigator.serviceWorker.ready;
-  const key = await pushKey();
+  // Guests subscribe without a login (Version 3.23). Before the database is
+  // upgraded the Worker answers 503 (or, older, asks for a login).
+  const notYet = (e) => e instanceof HttpError && e.status === 503 || (isGuest() && (e instanceof AuthError || (e instanceof HttpError && [403, 404].includes(e.status))));
+  let key;
+  try { key = await pushKey(); } catch (e) { throw notYet(e) ? new Error('guest-soon') : e; }
   if (!key) throw new Error('nokey');
   const old = await reg.pushManager.getSubscription();
   if (old) await old.unsubscribe().catch(() => {});
   const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(key) });
-  await pushSubscribe(sub.toJSON());
+  const { topics, countries } = savedFollow();
+  try {
+    await pushSubscribe({ ...sub.toJSON(), topics, countries });
+  } catch (e) {
+    await sub.unsubscribe().catch(() => {});
+    throw notYet(e) ? new Error('guest-soon') : e;
+  }
+}
+
+function pushErrorText(e) {
+  const m = String((e && e.message) || e);
+  return m === 'blocked' ? 'Notiser är blockerade. Tillåt dem för Hotmonitor i enhetens inställningar.'
+    : m === 'dismissed' ? 'Du valde att inte tillåta notiser.'
+      : m === 'guest-soon' ? 'Notiser för gäster öppnar snart.'
+        : 'Det gick inte att ändra notiserna just nu. Försök igen.';
+}
+
+// The topics and countries this device follows; kept here too, since the
+// server takes them but does not hand them back.
+const FOLLOW_KEY = 'hm.follow';
+function savedFollow() {
+  try {
+    const v = JSON.parse(localStorage.getItem(FOLLOW_KEY) || '{}');
+    return { topics: Array.isArray(v.topics) ? v.topics : [], countries: Array.isArray(v.countries) ? v.countries : [] };
+  } catch { return { topics: [], countries: [] }; }
+}
+function saveFollow(f) { try { localStorage.setItem(FOLLOW_KEY, JSON.stringify(f)); } catch { /* private mode */ } }
+
+function followChoices() {
+  const topics = new Set(); const countries = new Set();
+  for (const r of loadedReports()) for (const e of r.events || []) {
+    for (const t of e.topics || []) if (TOPICS.includes(t)) topics.add(t);
+    for (const c of e.countries || []) if (/^[A-Z]{2}$/.test(c)) countries.add(c);
+  }
+  const f = savedFollow();
+  f.topics.forEach((t) => TOPICS.includes(t) && topics.add(t));
+  f.countries.forEach((c) => countries.add(c));
+  return { topics: TOPICS.filter((t) => topics.has(t)), countries: [...countries].sort((a, b) => countryName(a).localeCompare(countryName(b), 'sv')) };
+}
+
+// Topic and country chips; each change goes to /api/push/prefs at once.
+function followSection(status) {
+  const { topics, countries } = followChoices();
+  if (!topics.length && !countries.length) return null;
+  const f = savedFollow();
+  const sel = { topics: new Set(f.topics), countries: new Set(f.countries) };
+  const send = async () => {
+    const next = { topics: [...sel.topics], countries: [...sel.countries] };
+    saveFollow(next);
+    const sub = await currentSubscription();
+    if (!sub) { status.textContent = 'Sparat. Det gäller när notiserna är på.'; return; }
+    status.textContent = 'Sparar…';
+    try {
+      await pushPrefs(sub.endpoint, next.topics, next.countries);
+      status.textContent = next.topics.length || next.countries.length ? 'Du följer dina val.' : 'Du följer allt.';
+    } catch (e) {
+      status.textContent = e instanceof HttpError && e.status === 503 ? 'Att följa ämnen öppnar snart.' : 'Valet kunde inte sparas just nu. Försök igen.';
+    }
+  };
+  const chip = (set, value, label) => {
+    const b = h('button', { class: 'chip fchip', type: 'button', 'aria-pressed': String(set.has(value)) }, label);
+    b.addEventListener('click', () => {
+      if (set.has(value)) set.delete(value); else set.add(value);
+      b.setAttribute('aria-pressed', String(set.has(value)));
+      send();
+    });
+    return b;
+  };
+  return h('div', { class: 'follow' },
+    h('h3', { class: 'about-h3' }, 'Följ ämnen och länder'),
+    h('p', { class: 'small muted' }, 'Notiser om händelser bara när de rör det du väljer. Inget valt: allt. Notiser om hotindex kommer alltid.'),
+    topics.length ? h('div', { class: 'chips', role: 'group', 'aria-label': 'Ämnen' }, topics.map((t) => chip(sel.topics, t, t))) : null,
+    countries.length ? h('div', { class: 'chips', role: 'group', 'aria-label': 'Länder' }, countries.map((c) => chip(sel.countries, c, countryName(c)))) : null);
 }
 
 async function disablePush() {
@@ -542,10 +618,7 @@ function openSettings() {
           status.textContent = on ? 'Notiser är på för den här enheten.' : 'Notiser är avstängda.';
         }).catch((e) => {
           toggle.checked = !on;
-          const m = String((e && e.message) || e);
-          status.textContent = m === 'blocked' ? 'Notiser är blockerade. Tillåt dem för Hotmonitor i enhetens inställningar.'
-            : m === 'dismissed' ? 'Du valde att inte tillåta notiser.'
-              : 'Det gick inte att ändra notiserna just nu. Försök igen.';
+          status.textContent = pushErrorText(e);
         }).finally(() => { toggle.disabled = false; });
       });
       currentSubscription().then((sub) => {
@@ -559,7 +632,9 @@ function openSettings() {
           toggle),
         h('p', { class: 'small' }, 'Du får en notis när hotindex ändras med 0,5 eller mer, eller när en ny händelse får 9–10 i trovärdighet.'),
         isAdmin() ? h('p', { class: 'small muted' }, 'Som administratör får du också ett larm om morgonrapporten uteblir.') : null,
-        h('p', { class: 'small muted' }, 'Inställningen gäller den här enheten.'));
+        isGuest() ? h('p', { class: 'small muted' }, 'Du behöver inget konto. Notisen går till den här webbläsaren; vi får ingen e-postadress.') : null,
+        h('p', { class: 'small muted' }, 'Inställningen gäller den här enheten.'),
+        followSection(status));
     }
     return frag(
       h('h2', { class: 'title-m' }, 'Notiser'),
@@ -620,9 +695,7 @@ function pushNudge() {
       btn.disabled = true; msg.textContent = 'Slår på…';
       enablePush().then(() => { pushState = 'on'; nudgeMsg = ''; rerender(); })
         .catch((e) => {
-          const m = String((e && e.message) || e);
-          nudgeMsg = m === 'blocked' ? 'Notiser är blockerade. Tillåt dem för Hotmonitor i enhetens inställningar.'
-            : m === 'dismissed' ? 'Du valde att inte tillåta notiser.' : 'Det gick inte att slå på notiser just nu.';
+          nudgeMsg = pushErrorText(e);
           msg.textContent = nudgeMsg; btn.disabled = false;
         });
     },
@@ -910,7 +983,7 @@ async function viewReport(date, q) {
           archived ? null : featuresChip())),
       h('div', { class: 'head-actions' },
         date ? null : h('a', { class: 'head-link', href: '#/arkiv' }, 'Tidigare dagar'),
-        date || isGuest() ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
+        date ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
         date ? null : h('a', { class: 'head-link', href: '#/om' }, 'Om'),
         isGuest() && !date && !noAccount() ? h('a', { class: 'head-link', href: '/login' }, 'Logga in') : null,
         admin ? h('a', { class: 'icon-btn', href: '#/admin', 'aria-label': 'Status och administration', title: 'Status och administration' }, gearIcon()) : null)),
@@ -4388,7 +4461,7 @@ async function init() {
     loadNotices().catch((e) => { console.warn('notices', e); }),
     loadReads().catch((e) => { console.warn('reads', e); }),
   ]);
-  if (!isGuest()) refreshPushState().catch(() => {});
+  refreshPushState().catch(() => {});
   window.addEventListener('hashchange', () => { noteNav(); route(); });
   window.addEventListener('offline', updateChrome);
   window.addEventListener('online', () => { loadMe().catch(() => {}).finally(updateChrome); });
