@@ -3,7 +3,38 @@
 *Gjord 2026-11-05 05:45–07:00 UTC. Bara läsning: ingen kod i main och
 ingenting i `threat_monitor-data` har ändrats.*
 
-## 0. Underlag och begränsningar (läs först)
+## Sammanfattning
+
+Innehållet i `data/` och `reports/` (punkt 2 och fördelningen i punkt 3)
+analyseras separat i `docs/review/3b-data-innehall.md` på grenen
+`oversyn-data-innehall`. Den här filen täcker körningarnas pålitlighet ur
+Actions-loggarna och koden bakom punkt 3 och 4.
+
+**Morgonrapporten, 29 okt–5 nov** (tidigare dagar finns inte i Actions):
+
+| Dag | Mejl (UTC) | Utfall |
+|---|---|---|
+| 29 okt | 09:48 | Sen (+5 h 48 min), GitHubs schema |
+| 30 okt | – | Ingen morgonkörning identifierad |
+| 31 okt | 07:47 | Sen (+3 h 47 min), startad för hand |
+| 1 nov | 03:10 | I tid |
+| 2 nov | 03:08 | I tid; Styrkor föll (429) |
+| 3 nov | – | **Föll (429), ingen rapport** |
+| 4 nov | 03:13 | Mejl i tid; lite-modell i 5 anrop; **401 på alla uppladdningar** |
+| 5 nov | 03:13 | I tid; lite-modell i 2 anrop; Styrkor föll (503) |
+
+**De viktigaste slutsatserna** (alla tio finns i avsnitt 5):
+
+1. Körningar blir gröna trots 401, 429 och fallna delar. Statussidan
+   visar då "ok" när det inte är det.
+2. Styrkor gav ingen fungerande uppdatering under någon av nätterna
+   2–5 nov.
+3. Bedömarnas effekt på index är avrundningsbrus: +0,04 blir 0 och
+   +0,06 blir +0,1, och taket band +0,1 kan stoppa den helt.
+4. Kvoten på 20 anrop och 503 gör att delar tyst går på lite-modellen,
+   och GDELT saknades varje dag. Inget av det syns i rapporten.
+
+## 0. Underlag och begränsningar
 
 **Det privata datarepot `threat_monitor-data` gick inte att läsa i den här
 granskningen.** Att lägga till repot i sessionen nekades, och en direkt
