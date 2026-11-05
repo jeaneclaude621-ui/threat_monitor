@@ -39,8 +39,17 @@ async function getJSON(url, opts = {}) {
   }
   if (res.status === 401) throw new AuthError(`HTTP ${res.status}`);
   const type = res.headers.get('content-type') || '';
-  // An expired Access session answers with a redirect to its login page.
-  if (!type.includes('application/json')) throw new AuthError('not json');
+  if (!type.includes('application/json')) {
+    // Cloudflare's own error pages (1027: the daily quota is used up, or an
+    // overloaded origin) are HTML with a 429 or 5xx: not a login problem.
+    if (res.status === 429 || res.status >= 500) {
+      let text = '';
+      try { text = await res.text(); } catch { /* the status is enough */ }
+      throw new HttpError(res.status, /\b1027\b/.test(text) ? 'Cloudflare 1027 (kvoten slut)' : `HTTP ${res.status}`);
+    }
+    // An expired Access session answers with a redirect to its login page.
+    throw new AuthError('not json');
+  }
   const body = await res.json();
   if (res.status === 403) {
     const reason = String((body && (body.reason || body.error)) || '');

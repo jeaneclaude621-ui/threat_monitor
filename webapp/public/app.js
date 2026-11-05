@@ -270,10 +270,24 @@ function errorView(e) {
       h('button', { class: 'btn', type: 'button', onclick: () => route() }, 'Försök igen'));
   }
   console.error(e);
+  const [title, text] = friendlyError(e);
   return h('div', { class: 'empty' },
-    h('p', { class: 'title-m' }, 'Något gick fel'),
-    h('p', { class: 'muted small' }, String((e && e.message) || e)),
+    h('h1', { class: 'title-m' }, title),
+    text ? h('p', { class: 'muted' }, text) : null,
+    // The server's own (English, technical) words only for administrators.
+    isAdmin() ? h('p', { class: 'muted small' }, `Tekniskt: ${String((e && e.message) || e)}`) : null,
     h('button', { class: 'btn', type: 'button', onclick: () => route() }, 'Försök igen'));
+}
+
+// U8: known failures in Swedish; the technical text stays out of sight.
+const BUSY = 'Hotmonitor har många besökare just nu, försök igen om en stund.';
+function friendlyError(e) {
+  const status = e instanceof HttpError ? e.status : 0;
+  if (status === 429 || /1027/.test(String(e && e.message))) return ['Många besökare just nu', BUSY];
+  if (status === 404) return ['Hittades inte', 'Sidan eller uppgiften finns inte, eller har inte publicerats än.'];
+  if (status === 503) return ['Tillfälligt otillgängligt', 'Tjänsten är tillfälligt otillgänglig. Försök igen om en stund.'];
+  if (status >= 500) return ['Fel på servern', 'Något gick fel hos Hotmonitor. Försök igen om en stund.'];
+  return ['Något gick fel', 'Sidan kunde inte visas. Försök igen.'];
 }
 
 function emptyState(text, ...extra) { return h('div', { class: 'empty' }, h('p', null, text), ...extra); }
