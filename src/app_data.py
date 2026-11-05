@@ -194,7 +194,15 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
             }
             if a.get("summary_sv"):
                 item["summary_sv"] = a["summary_sv"]
-            if isinstance(a.get("published"), str) and DATE_RE.match(a["published"]):
+            # The date is the article list's, never the model's (#13). An
+            # undated article stands only when it was added in the app.
+            if "published" in match:
+                if match["published"]:
+                    item["published"] = match["published"]
+                elif match.get("via") != "app":
+                    dropped += 1
+                    continue
+            elif isinstance(a.get("published"), str) and DATE_RE.match(a["published"]):
                 item["published"] = a["published"]
             if a.get("relation") in RELATIONS:
                 item["relation"] = a["relation"]

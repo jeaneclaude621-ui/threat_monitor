@@ -213,6 +213,23 @@ def fetch_article(source: dict) -> dict:
     return item
 
 
+# A date in the link: 14.03.2026, /2026/03/14/, 2026-03-14 (as src/authorities.py).
+URL_DATES = [re.compile(r"(?<!\d)(?P<d>\d{2})\.(?P<m>\d{2})\.(?P<y>20\d{2})(?!\d)"),
+             re.compile(r"/(?P<y>20\d{2})/(?P<m>\d{1,2})/(?P<d>\d{1,2})(?:/|$)"),
+             re.compile(r"(?<!\d)(?P<y>20\d{2})-(?P<m>\d{2})-(?P<d>\d{2})(?!\d)")]
+
+
+def url_date(url: str):
+    for rx in URL_DATES:
+        m = rx.search(url or "")
+        if m:
+            try:
+                return datetime(int(m["y"]), int(m["m"]), int(m["d"]))
+            except ValueError:
+                pass
+    return None
+
+
 # --------------------------------------------------------------------------
 # Article pool -> numbered prompt block
 # --------------------------------------------------------------------------
@@ -239,8 +256,18 @@ class Pool:
         return self
 
     def since(self, when: datetime):
-        """Drop dated articles older than `when` (undated ones stay)."""
-        self.items = [a for a in self.items if a.get("published") is None or a["published"] > when]
+        """Drop articles older than `when`, by their date or, when the link
+        carries one (/2026/03/14/), by that too: an old story with a fresh
+        feed date is still old. Undated articles stay only when added in
+        the app - anything else undated may be an old story."""
+        def fresh(a):
+            day = url_date(a.get("link"))
+            if day and day.date() < when.date():
+                return False
+            if a.get("published") is None:
+                return a.get("via") == "app"
+            return a["published"] > when
+        self.items = [a for a in self.items if fresh(a)]
         return self
 
     def prompt_block(self, limit: int, record: bool = True) -> str:
@@ -252,7 +279,11 @@ class Pool:
         results, lines = [], []
         for i, a in enumerate(items, start=1):
             ref = f"A{i}"
-            results.append({"ref": ref, "url": a.get("link"), "title": a.get("title"), "outlet": a.get("source")})
+            # The article's real date and route, so enrich_events can overwrite
+            # the date the model gives and count independent origins.
+            results.append({"ref": ref, "url": a.get("link"), "title": a.get("title"), "outlet": a.get("source"),
+                            "published": a["published"].strftime("%Y-%m-%d") if a.get("published") else None,
+                            "via": a.get("via") or "feed", "summary": (a.get("summary") or "")[:SUMMARY_CHARS]})
             when = a["published"].strftime("%Y-%m-%d %H:%M") if a.get("published") else "undated"
             summary = (a.get("summary") or "")[:ARTICLE_TEXT_CHARS if a.get("via") == "app" else SUMMARY_CHARS]
             lines.append(f"[{ref}] {a.get('source') or '?'} · {when} · {a.get('title')}"

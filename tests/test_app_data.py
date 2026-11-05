@@ -72,5 +72,44 @@ class VerifiedOnly(unittest.TestCase):
         self.assertTrue(ev["unverified"])
 
 
+class RealDates(unittest.TestCase):
+    def test_model_date_is_overwritten(self):
+        """An old story given today's date by the model keeps its real date."""
+        results = [{"ref": "A1", "url": "https://www.bbc.com/news/old", "title": "Old story", "outlet": "BBC World",
+                    "published": "2026-10-01", "via": "feed"}]
+        ev = app_data.enrich_events([event({"ref": "A1", "outlet": "BBC", "published": "2026-11-05"})],
+                                    "2026-11-05", results)[0]
+        self.assertEqual(ev["articles"][0]["published"], "2026-10-01")
+
+    def test_undated_only_from_the_app(self):
+        results = [{"ref": "A1", "url": "https://example.org/a", "title": "Undated feed item", "outlet": "Example",
+                    "published": None, "via": "feed"},
+                   {"ref": "A2", "url": "https://example.org/b", "title": "Undated app article", "outlet": "Example",
+                    "published": None, "via": "app"}]
+        ev = app_data.enrich_events([event({"ref": "A1", "published": "2026-11-05"}, {"ref": "A2", "published": "2026-11-05"})],
+                                    "2026-11-05", results)[0]
+        self.assertEqual([a["title"] for a in ev["articles"]], ["Undated app article"])
+        self.assertNotIn("published", ev["articles"][0])
+
+
+class PoolDates(unittest.TestCase):
+    def test_since(self):
+        from datetime import datetime
+        import news_sources
+        p = news_sources.Pool().add([
+            {"title": "fresh", "link": "https://a.example/x", "published": datetime(2026, 11, 5, 1), "via": "google"},
+            {"title": "old", "link": "https://a.example/y", "published": datetime(2026, 10, 1), "via": "google"},
+            {"title": "old link, fresh date", "link": "https://a.example/2025/03/14/story",
+             "published": datetime(2026, 11, 5, 2), "via": "feed"},
+            {"title": "undated feed", "link": "https://a.example/z", "published": None, "via": "feed"},
+            {"title": "undated app", "link": "https://a.example/w", "published": None, "via": "app"},
+        ]).since(datetime(2026, 11, 4, 4))
+        self.assertEqual([a["title"] for a in p.items], ["fresh", "undated app"])
+        p.prompt_block(10)
+        import common
+        dated = {r["title"]: r["published"] for r in common.LAST_SEARCH_RESULTS}
+        self.assertEqual(dated, {"fresh": "2026-11-05", "undated app": None})
+
+
 if __name__ == "__main__":
     unittest.main()
