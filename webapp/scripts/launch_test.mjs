@@ -37,6 +37,9 @@ class MockD1 {
         if (/FROM meta WHERE key = '(\w+)'/.test(sql)) { const k = sql.match(/key = '(\w+)'/)[1]; return db.meta.has(k) ? { value: db.meta.get(k) } : null; }
         if (/^SELECT COUNT\(\*\) AS n FROM users/.test(sql)) return { n: db.users.size };
         if (/FROM users WHERE email = \?/.test(sql)) { const u = db.users.get(args[0]); return u ? { email: args[0], ...u } : null; }
+        if (/WHERE u\.email = \?/.test(sql)) { const u = db.users.get(args[0]); return u ? { email: args[0], role: u.role, active: u.active } : null; }
+        if (/FROM access_requests WHERE email = \? ORDER BY/.test(sql)) return db.requests.filter((r) => r.email === args[0]).at(-1) || null;
+        if (/COUNT\(\*\) AS n FROM access_requests WHERE email/.test(sql)) return { n: db.requests.filter((r) => r.email === args[0] && r.ts > args[1]).length };
         if (/FROM access_requests WHERE email = \? AND status = 'requested'/.test(sql)) return db.requests.find((r) => r.email === args[0] && r.status === 'requested') || null;
         if (/FROM access_requests WHERE id = \?/.test(sql)) return db.requests.find((r) => r.id === args[0]) || null;
         if (/COUNT\(\*\) AS n FROM access_requests/.test(sql)) return { n: db.requests.filter((r) => r.status === 'requested').length };
@@ -231,6 +234,66 @@ expect('sitemap lists the day', sitemap.includes(`<loc>${ORIGIN}/d/${today}</loc
 expect('sitemap lists every event', sitemap.includes(`<loc>${ORIGIN}/h/${today}/${today}-e2</loc>`), true);
 expect('sitemap keeps 20 days back', sitemap.includes(`/d/${old}<`), true);
 expect('sitemap stops at 90 days', sitemap.includes(old2), false);
+
+// --- U7 and access requests ------------------------------------------------------
+// The local dev identity stands in for a verified Access address.
+const LOCAL = 'http://localhost:8787';
+const devEnv = { ...env, OWNER: 'owner@example.org', DEV_AUTH_EMAIL: 'owner@example.org' };
+async function as(email, path, { method = 'GET', body, origin = LOCAL } = {}) {
+  const headers = { 'X-Dev-Email': email };
+  if (origin) headers.Origin = origin;
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const res = await worker.fetch(new Request(`${LOCAL}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) }), devEnv, { waitUntil: () => {} });
+  const type = res.headers.get('content-type') || '';
+  return { status: res.status, body: type.includes('json') ? await res.json() : null, res };
+}
+const stranger = 'new.person@example.net';
+r = await as(stranger, '/api/me');
+expect('verified, no account: guest', r.body.role, 'guest');
+expect('verified, no account: flagged', r.body.verified_no_account, true);
+expect('verified, no account: no address echoed', r.body.email, null);
+expect('verified, no account: not cached', r.res.headers.get('cache-control'), 'no-store');
+expect('no request yet', r.body.access_request, null);
+r = await as(stranger, '/api/access-request', { method: 'POST', origin: 'https://evil.example' });
+expect('access request from another origin refused', r.status, 403);
+r = await as(stranger, '/api/access-request', { method: 'POST' });
+expect('access request created', r.status, 201);
+expect('access request is requested', r.body.status, 'requested');
+const reqId = r.body.id;
+r = await as(stranger, '/api/access-request', { method: 'POST' });
+expect('asking again returns the same request', r.body.id, reqId);
+r = await as(stranger, '/api/me');
+expect('/api/me shows the open request', r.body.access_request && r.body.access_request.status, 'requested');
+r = await get('/api/access-request', { method: 'POST' });
+expect('a guest cannot ask', r.status, 401);
+r = await as('owner@example.org', '/api/access-request', { method: 'POST' });
+expect('someone with an account cannot ask', r.status, 409);
+r = await as(stranger, '/api/admin/access-requests');
+expect('a stranger cannot list requests', r.status, 403);
+r = await as('owner@example.org', '/api/admin/access-requests');
+expect('admin lists requests', r.status, 200);
+expect('admin sees the address', r.body[0] && r.body[0].email, stranger);
+r = await as('owner@example.org', `/api/admin/access-requests/${reqId}`, { method: 'POST', body: { decision: 'maybe' } });
+expect('a bad decision is refused', r.status, 400);
+r = await as('owner@example.org', `/api/admin/access-requests/${reqId}`, { method: 'POST', body: { decision: 'approve', invite: false } });
+expect('approve', r.status, 200);
+expect('approved', r.body.request.status, 'approved');
+expect('a reader account was made', db.users.get(stranger) && db.users.get(stranger).role, 'reader');
+r = await as(stranger, '/api/me');
+expect('the new reader is a reader', r.body.role, 'reader');
+r = await as('owner@example.org', `/api/admin/access-requests/${reqId}`, { method: 'POST', body: { decision: 'deny' } });
+expect('decided once only', r.status, 409);
+const other = 'someone.else@example.net';
+r = await as(other, '/api/access-request', { method: 'POST' });
+r = await as('owner@example.org', `/api/admin/access-requests/${r.body.id}`, { method: 'POST', body: { decision: 'deny' } });
+expect('deny', r.body.request.status, 'denied');
+expect('no account on deny', db.users.has(other), false);
+await as(other, '/api/access-request', { method: 'POST' });
+db.requests.filter((x) => x.email === other).forEach((x) => { x.status = 'denied'; });
+await as(other, '/api/access-request', { method: 'POST' });
+db.requests.filter((x) => x.email === other).forEach((x) => { x.status = 'denied'; });
+r = await as(other, '/api/access-request', { method: 'POST' });
+expect('at most three requests a day', r.status, 429);
 
 console.log(`\nlaunch_test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

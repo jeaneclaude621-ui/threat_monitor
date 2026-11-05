@@ -183,12 +183,22 @@ async function route(req) {
     }
   }
 
+  // Version 3.22: a verified address without an account may ask for one.
+  if (path === '/api/access-request') {
+    allow(method, 'POST');
+    if (id.kind !== 'user') throw new HttpError(403, 'log in with your e-mail address to ask for access');
+    return requestAccess(env, id.email);
+  }
+
   let who;
   try {
     who = id.kind === 'user' ? await userFor(id.email, req) : id;
   } catch (e) {
-    // A verified address without an account reads like everyone else.
-    if (guestOk && e instanceof HttpError && e.status === 403) return guestRead(req, path);
+    // A verified address without an account reads like everyone else,
+    // and /api/me tells the app so (U7), never from the shared cache.
+    if (guestOk && e instanceof HttpError && e.status === 403) {
+      return path === '/api/me' ? meWithoutAccount(env, id.email) : guestRead(req, path);
+    }
     throw e;
   }
   req.who = who;
@@ -451,6 +461,17 @@ async function routeAdmin(req, path, method) {
     if (method === 'PATCH') return patchUser(request, env, who, target);
     allow(method, 'DELETE');
     return changeUser(env, who, target, { active: false });
+  }
+
+  if (path === '/api/admin/access-requests') {
+    allow(method, 'GET');
+    return listAccessRequests(env, url);
+  }
+
+  const ar = path.match(/^\/api\/admin\/access-requests\/([^/]+)$/);
+  if (ar) {
+    allow(method, 'POST');
+    return decideAccessRequest(request, env, who, ar[1]);
   }
 
   if (path === '/api/admin/security') {
@@ -1176,20 +1197,118 @@ async function addUser(request, env, actor) {
   if (body.role !== 'admin' && body.role !== 'reader') throw new HttpError(400, "role must be 'admin' or 'reader'");
   if (body.invite !== undefined && typeof body.invite !== 'boolean') throw new HttpError(400, 'invite must be true or false');
 
+  return grantAccess(env, actor, email, body.role, body.invite);
+}
+
+/** Adds a user, or changes an existing one's role or reactivates them.
+ *  invite: undefined mails a new user only, true always, false never. */
+async function grantAccess(env, actor, email, role, invite) {
   const existing = await env.DB.prepare('SELECT role, active FROM users WHERE email = ?').bind(email).first();
   const now = new Date().toISOString();
   if (existing) {
     // Someone already in the list gets mail only when asked for explicitly.
-    if (body.invite === true) await queueInvite(env, actor, email, body.role);
-    if (existing.active && existing.role === body.role) return json(await userRow(env, email), 200);
-    return changeUser(env, actor, email, { role: body.role, active: true });
+    if (invite === true) await queueInvite(env, actor, email, role);
+    if (existing.active && existing.role === role) return json(await userRow(env, email), 200);
+    return changeUser(env, actor, email, { role, active: true });
   }
   await env.DB.prepare(
     'INSERT INTO users (email, role, active, created_at, created_by) VALUES (?, ?, 1, ?, ?)'
-  ).bind(email, body.role, now, actor.email).run();
-  await audit(env, actor.email, 'add', email, { role: body.role });
-  if (body.invite !== false) await queueInvite(env, actor, email, body.role);
+  ).bind(email, role, now, actor.email).run();
+  await audit(env, actor.email, 'add', email, { role });
+  if (invite !== false) await queueInvite(env, actor, email, role);
   return json(await userRow(env, email), 201);
+}
+
+// ---------------------------------------------------------------------------
+// Access requests (Version 3.22)
+// ---------------------------------------------------------------------------
+// Someone who has proved an address through Access but has no account may
+// ask for one. Only the address and the time are kept; an admin approves
+// (a reader account, through grantAccess) or denies.
+const ACCESS_REQUESTS_PER_DAY = 3;
+const ACCESS_REQUESTS_OPEN_MAX = 500;
+const ACCESS_REQUEST_ID_RE = /^[0-9a-f-]{36}$/;
+const ACCESS_REQUEST_FIELDS = 'id, email, ts, status, decided_at, decided_by';
+
+async function latestAccessRequest(env, email) {
+  return env.DB.prepare(
+    `SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests WHERE email = ? ORDER BY ts DESC LIMIT 1`
+  ).bind(email).first();
+}
+
+/** /api/me for a verified address without an account: a guest who may ask. */
+async function meWithoutAccount(env, email) {
+  let request = null;
+  try {
+    const r = await latestAccessRequest(env, email);
+    if (r) request = { status: r.status, ts: r.ts };
+  } catch { /* the table may not be migrated yet */ }
+  return json({
+    email: null, role: 'guest', is_owner: false, alarm: null, refresh: null,
+    verified_no_account: true, access_request: request,
+  });
+}
+
+async function requestAccess(env, email) {
+  if (!EMAIL_RE.test(email)) throw new HttpError(400, 'the verified address is not a valid address');
+  if (email === ownerEmail(env)) throw new HttpError(409, 'this account already has access');
+  const user = await env.DB.prepare('SELECT active FROM users WHERE email = ?').bind(email).first();
+  if (user && user.active) throw new HttpError(409, 'this account already has access');
+
+  const open = await env.DB.prepare(
+    `SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests WHERE email = ? AND status = 'requested' ORDER BY ts DESC LIMIT 1`
+  ).bind(email).first();
+  if (open) return json(open, 200);   // asked already: the same request
+
+  const dayAgo = new Date(Date.now() - 86400000).toISOString();
+  const recent = await env.DB.prepare(
+    'SELECT COUNT(*) AS n FROM access_requests WHERE email = ? AND ts > ?'
+  ).bind(email, dayAgo).first();
+  if (recent && recent.n >= ACCESS_REQUESTS_PER_DAY) throw new HttpError(429, 'too many access requests today', R.rateLimited);
+  const waiting = await env.DB.prepare(
+    "SELECT COUNT(*) AS n FROM access_requests WHERE status = 'requested'"
+  ).first();
+  if (waiting && waiting.n >= ACCESS_REQUESTS_OPEN_MAX) throw new HttpError(503, 'too many open access requests, try later');
+
+  const row = { id: crypto.randomUUID(), email, ts: new Date().toISOString(), status: 'requested', decided_at: null, decided_by: null };
+  await env.DB.prepare(
+    "INSERT INTO access_requests (id, email, ts, status) VALUES (?, ?, ?, 'requested')"
+  ).bind(row.id, row.email, row.ts).run();
+  await audit(env, email, 'access_request', email, null);
+  return json(row, 201);
+}
+
+async function listAccessRequests(env, url) {
+  const status = url.searchParams.get('status');
+  if (status && !['requested', 'approved', 'denied'].includes(status)) {
+    throw new HttpError(400, "status must be 'requested', 'approved' or 'denied'");
+  }
+  const { results } = await (status
+    ? env.DB.prepare(`SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests WHERE status = ? ORDER BY ts DESC LIMIT 500`).bind(status)
+    : env.DB.prepare(`SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests ORDER BY ts DESC LIMIT 500`)
+  ).all();
+  return json(results);
+}
+
+async function decideAccessRequest(request, env, actor, id) {
+  if (!ACCESS_REQUEST_ID_RE.test(id)) throw new HttpError(400, 'bad access request id');
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'body must be a JSON object');
+  if (body.decision !== 'approve' && body.decision !== 'deny') throw new HttpError(400, "decision must be 'approve' or 'deny'");
+  if (body.invite !== undefined && typeof body.invite !== 'boolean') throw new HttpError(400, 'invite must be true or false');
+  const row = await env.DB.prepare(`SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests WHERE id = ?`).bind(id).first();
+  if (!row) throw new HttpError(404, 'no such access request');
+  if (row.status !== 'requested') throw new HttpError(409, `already ${row.status}`);
+  const status = body.decision === 'approve' ? 'approved' : 'denied';
+  const now = new Date().toISOString();
+  await env.DB.prepare('UPDATE access_requests SET status = ?, decided_at = ?, decided_by = ? WHERE id = ?')
+    .bind(status, now, actor.email, id).run();
+  await audit(env, actor.email, `access_${status}`, row.email, null);
+  const decided = { ...row, status, decided_at: now, decided_by: actor.email };
+  if (status === 'denied') return json({ request: decided, user: null });
+  // The person proved the address when asking; they become a reader.
+  const res = await grantAccess(env, actor, row.email, 'reader', body.invite);
+  return json({ request: decided, user: await res.json() }, 200);
 }
 
 // ---------------------------------------------------------------------------
