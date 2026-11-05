@@ -160,6 +160,7 @@ function firstSentence(text, max = 180) {
 // ---------------------------------------------------------------- router
 let renderSeq = 0;
 let currentRoute = '';
+let hasNavigated = false;   // the first render keeps the browser's own focus
 let assessmentsReady = Promise.resolve();
 
 function parseHash() {
@@ -236,6 +237,13 @@ async function route({ keepScroll = false } = {}) {
   } else {
     window.scrollTo(0, keepScroll ? y : 0);
   }
+  // A1: a new page (not a redraw of the same one) moves focus to its heading,
+  // so a screen reader starts there; <main> is no longer a live region.
+  if (!keepScroll && hasNavigated) {
+    const h1 = main.querySelector('h1');
+    if (h1) { h1.setAttribute('tabindex', '-1'); h1.focus({ preventScroll: true }); }
+  }
+  hasNavigated = true;
   // #/om?s=integritet and the like: open Om at that section.
   const anchor = currentRoute === 'om' && q.get('s') ? document.getElementById(`om-${q.get('s')}`) : null;
   if (anchor && !keepScroll) anchor.scrollIntoView({ block: 'start' });
@@ -3918,6 +3926,17 @@ onChange(() => {
   rerenderQueued = true;
   Promise.resolve().then(() => { rerenderQueued = false; rerender(); });
 });
+
+// Short status messages ("Länken är kopierad") go to #ptr, a role=status
+// region, instead of making the whole page a live region (review A1).
+let announceTimer = 0;
+function announce(text, ms = 2500) {
+  const ptr = document.getElementById('ptr');
+  if (!ptr || refreshing) return;
+  ptr.textContent = text; ptr.hidden = false;
+  clearTimeout(announceTimer);
+  announceTimer = setTimeout(() => { ptr.hidden = true; }, ms);
+}
 
 // ---------------------------------------------------------------- refresh
 let refreshing = null;
