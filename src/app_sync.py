@@ -237,6 +237,8 @@ def push_updates(entries: list) -> bool:
             "title_sv": e.get("title_sv") or e["thread_label"],
             "summary_sv": e.get("summary_sv") or e.get("summary", ""),
             "outlets": e.get("outlets", [])[:5],
+            # Verified articles the update rests on (#14).
+            "refs": e.get("refs", []),
             "report_date": None,
         })
     try:
