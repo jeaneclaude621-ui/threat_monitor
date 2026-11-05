@@ -445,7 +445,7 @@ name; contradicted ones are left out:
 {older_desc}
 
 Produce:
-1. The most important events from the last 24h, at most {n_events}, each scored
+1. Up to {n_events} of the most important events from the last 24h, each scored
    for credibility per the tiers above, with the corroborating outlets named.
    {count_rule}
    {SWEEP_EVENT_FIELDS}
