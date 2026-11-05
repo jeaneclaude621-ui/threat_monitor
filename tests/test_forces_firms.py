@@ -48,7 +48,11 @@ class Firms(unittest.TestCase):
         self.assertEqual(n, 1)
         self.assertEqual(st["bases"][0]["events"][0]["firms"]["count"], 2)   # the same rows from each satellite source count once
         self.assertNotIn("firms", st["bases"][0]["events"][1])               # follow-ups are not checked
-        self.assertTrue(all("/TEST/" in u and "/2/2026-10-30" in u for u in urls))
+        self.assertTrue(all("/TEST/" in u for u in urls))
+        # The window after the attack, and the normal level in the 7 days
+        # before it (two requests per source: the API takes at most 5 days).
+        self.assertEqual(sorted({u.rsplit("/", 2)[-2] + "/" + u.rsplit("/", 1)[-1] for u in urls}),
+                         ["2/2026-10-28", "2/2026-10-30", "5/2026-10-23"])
 
     def test_old_attacks_are_not_checked(self):
         st = state("2026-10-01")

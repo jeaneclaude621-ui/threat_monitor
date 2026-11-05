@@ -1,11 +1,16 @@
 """
-Satellite confirmation of attacks on bases: NASA FIRMS fire detections.
+Fire seen by satellite at attacked bases: NASA FIRMS fire detections.
 
-For each attack on a base in the last ATTACK_DAYS days that has not been
-checked, ask FIRMS's area API (VIIRS, near real time) for fire detections
-within RADIUS_KM of the base in the WINDOW_DAYS after the attack. A hit
-marks the event with firms: {date, count, confidence}, and the app shows
-"brand sedd av satellit (NASA FIRMS)". No model calls.
+This is "fire seen", never confirmation of an attack: refineries and
+industry flare day and night, so a detection near one proves nothing by
+itself. For each attack on a base in the last ATTACK_DAYS days that has
+not been checked, ask FIRMS's area API (VIIRS, near real time) for fire
+detections within RADIUS_KM of the base in the WINDOW_DAYS after the
+attack, and for the normal level: the BASELINE_DAYS before the attack,
+same radius. Only a count clearly above that normal level (fire_seen)
+marks the event with firms: {date, count, confidence, radius_km,
+baseline}, and the app shows "brand sedd av satellit (NASA FIRMS)". No
+model calls.
 
 Needs FIRMS_MAP_KEY (a free key from NASA FIRMS, set as a repository
 secret by the owner). Without it the module logs a line and does nothing.
@@ -26,6 +31,13 @@ SOURCES = ["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT", "VIIRS_NOAA21_NRT"]
 ATTACK_DAYS = 3
 WINDOW_DAYS = 2          # the attack day and the next: 48 hours
 RADIUS_KM = 3.0
+BASELINE_DAYS = 7        # the normal level: the week before the attack, same radius
+API_MAX_DAYS = 5         # the area API's longest day range per request
+# Fire is "seen" when the detections after the attack reach
+# 1 + EXCESS_FACTOR x what the baseline rate predicts for the window: any
+# detection where there are none normally, several times the usual at a
+# site that flares every day.
+EXCESS_FACTOR = 3.0
 MAX_CHECKS = 20          # requests are cheap, but stay polite
 UA = "threat-monitor/1 (https://github.com/jeaneclaude621-ui/threat_monitor)"
 CONFIDENCE = {"l": "låg", "n": "normal", "h": "hög", "low": "låg", "nominal": "normal", "high": "hög"}
@@ -51,10 +63,12 @@ def parse(text: str) -> list:
     return list(csv.DictReader(io.StringIO(text)))
 
 
-def match(rows: list, lat: float, lon: float, start: date, radius_km: float = RADIUS_KM) -> dict:
+def match(rows: list, lat: float, lon: float, start: date, radius_km: float = RADIUS_KM,
+          end: date = None) -> dict:
     """{date, count, confidence} for the detections within RADIUS_KM of the
-    base on the attack day or the WINDOW_DAYS - 1 days after, else None."""
-    end = start + timedelta(days=WINDOW_DAYS - 1)
+    base on the attack day or the WINDOW_DAYS - 1 days after (or up to
+    `end`), else None."""
+    end = end or start + timedelta(days=WINDOW_DAYS - 1)
     hits, seen = [], set()
     for r in rows:
         k = (r.get("latitude"), r.get("longitude"), r.get("acq_date"), r.get("acq_time"))
@@ -73,6 +87,35 @@ def match(rows: list, lat: float, lon: float, start: date, radius_km: float = RA
     order = ["låg", "normal", "hög"]
     best = max((c for _, c in hits), key=lambda c: order.index(c) if c in order else -1)
     return {"date": min(d for d, _ in hits).isoformat(), "count": len(hits), "confidence": best, "radius_km": radius_km}
+
+
+def baseline(rows: list, lat: float, lon: float, start: date, radius_km: float = RADIUS_KM) -> dict:
+    """The normal level before the attack: detections within the radius in
+    the BASELINE_DAYS before `start`."""
+    first = start - timedelta(days=BASELINE_DAYS)
+    hit = match(rows, lat, lon, first, radius_km, end=start - timedelta(days=1))
+    return {"days": BASELINE_DAYS, "from": first.isoformat(),
+            "to": (start - timedelta(days=1)).isoformat(), "count": hit["count"] if hit else 0}
+
+
+def expected(base: dict) -> float:
+    """Detections the baseline rate predicts for the window after the attack."""
+    return base["count"] * WINDOW_DAYS / base["days"]
+
+
+def fire_seen(count: int, base: dict) -> bool:
+    """True when `count` detections after the attack clearly exceed the
+    normal level."""
+    return count >= 1 + EXCESS_FACTOR * expected(base)
+
+
+def _ranges(start: date, days: int):
+    """(first day, days) requests covering `days` days from `start`,
+    each within the API's API_MAX_DAYS."""
+    while days > 0:
+        n = min(days, API_MAX_DAYS)
+        yield start, n
+        start, days = start + timedelta(days=n), days - n
 
 
 def _get(url: str) -> str:
@@ -103,8 +146,33 @@ def pending(state: dict, today: date) -> list:
     return out[:MAX_CHECKS]
 
 
+class KeyRefused(Exception):
+    pass
+
+
+def _fetch(get, key, lat, lon, radius, first: date, days: int):
+    """FIRMS rows for `days` days from `first`, all sources; None when
+    every request failed."""
+    rows, ok = [], False
+    for source in SOURCES:
+        for d0, n in _ranges(first, days):
+            url = API.format(key=key, source=source, area=area(lat, lon, radius), days=n, date=d0.isoformat())
+            try:
+                text = get(url)
+                if text.lstrip().lower().startswith("invalid"):
+                    raise KeyRefused(text.strip()[:60])
+                rows += parse(text)
+                ok = True
+            except KeyRefused:
+                raise
+            except Exception as ex:
+                print(f"  ! FIRMS {source}: {type(ex).__name__}")
+    return rows if ok else None
+
+
 def run(state: dict, today: date = None, key: str = None, get=None, dry_run: bool = False) -> int:
-    """Checks the recent attacks; returns how many FIRMS confirmed."""
+    """Checks the recent attacks; returns how many had fire seen clearly
+    above the normal level before the attack."""
     today = today or date.today()
     key = key if key is not None else os.environ.get("FIRMS_MAP_KEY", "")
     todo = pending(state, today)
@@ -118,26 +186,34 @@ def run(state: dict, today: date = None, key: str = None, get=None, dry_run: boo
         if dry_run:
             print(f"  FIRMS: would check {b.get('name')} {e['date']}")
             continue
-        rows = []
-        for source in SOURCES:
-            url = API.format(key=key, source=source, area=area(b["lat"], b["lon"], radius), days=WINDOW_DAYS, date=start.isoformat())
-            try:
-                text = get(url)
-                if text.lstrip().lower().startswith("invalid"):
-                    print(f"  ! FIRMS: the key was refused ({text.strip()[:60]})")
-                    return found
-                rows += parse(text)
-            except Exception as ex:
-                print(f"  ! FIRMS {source}: {type(ex).__name__}")
+        try:
+            rows = _fetch(get, key, b["lat"], b["lon"], radius, start, WINDOW_DAYS) or []
+            before = _fetch(get, key, b["lat"], b["lon"], radius, start - timedelta(days=BASELINE_DAYS), BASELINE_DAYS)
+        except KeyRefused as ex:
+            print(f"  ! FIRMS: the key was refused ({ex})")
+            return found
+        if before is None:
+            # Without the normal level a detection means nothing: checked
+            # again next night.
+            print(f"  ! FIRMS: no baseline for {b.get('name')} {e['date']}; checked again next run")
+            continue
+        base = baseline(before, b["lat"], b["lon"], start, radius)
         hit = match(rows, b["lat"], b["lon"], start, radius)
+        final = start + timedelta(days=WINDOW_DAYS) <= today
         # A check is final once the whole window is in the past; until then
         # a miss is checked again the next night.
-        if hit:
-            e["firms"] = hit
+        if hit and fire_seen(hit["count"], base):
+            e["firms"] = dict(hit, baseline=base, fire_seen=True)
             found += 1
-        elif start + timedelta(days=WINDOW_DAYS) <= today:
+        elif final:
             e["firms"] = None
-    print(f"  FIRMS: {len(todo)} recent attacks checked, {found} with fire seen by satellite")
+            if hit:
+                # Fire there, but no more than usual: kept for the record,
+                # not shown as fire seen.
+                e["firms_normal"] = dict(hit, baseline=base, fire_seen=False)
+                print(f"  FIRMS: {b.get('name')} {e['date']}: {hit['count']} detections, "
+                      f"normal level {base['count']} in {BASELINE_DAYS} days - not counted as fire seen")
+    print(f"  FIRMS: {len(todo)} recent attacks checked, {found} with fire seen by satellite above the normal level")
     return found
 
 
