@@ -25,7 +25,8 @@ from pptx_builder import build_deck
 from mailer import send_daily_email
 from reply_checker import check_replies
 from executive_sv import build_executive_safe
-from app_data import enrich_events, add_favicons, SWEEP_EVENT_FIELDS, SWEEP_EVENT_JSON, _norm_url
+from app_data import enrich_events, add_favicons, _norm_url
+import app_data
 from app_sync import pull_assessments, push_report, backup_app
 import common
 import feed_prefilter
@@ -68,40 +69,95 @@ information either way).
 
 Respond as strict JSON:
 {{
-  "results": [{{"id": "the claim's id, copied", "title": "...", "outcome": "CONFIRMED|CONTRADICTED|UNRESOLVED", "note": "short reason"}}],
-  "confirmed_count": 0,
-  "contradicted_count": 0,
-  "unresolved_count": 0,
-  "accuracy_pct": 0,
+  "results": [{{"id": "the claim's id, copied", "title": "...", "outcome": "CONFIRMED|CONTRADICTED|UNRESOLVED",
+               "note": "short reason", "note_sv": "the reason in one or two Swedish sentences",
+               "refs": ["A3"]}}],
   "summary_sentence": "one sentence summarizing the self-check for a status slide"
 }}
+
+"refs" are the refs ([A1], [A2] ...) of the articles above the outcome
+rests on, copied exactly - required for CONFIRMED and CONTRADICTED. A
+CONTRADICTED claim is published as a correction to yesterday's report,
+with "note_sv" as its text and the refs as its sources.
 
 Do NOT write any analysis, commentary or per-claim reasoning before the
 JSON - put short reasons in each "note" field. Your entire reply must be
 the JSON object."""
+    listed = list(common.LAST_SEARCH_RESULTS)
     try:
-        # Six claims x reasoning + JSON does not fit in ~2k tokens; the
+        # Ten claims x reasoning + JSON does not fit in ~2k tokens; the
         # response was getting truncated before the JSON.
-        result = ask_model_json(prompt, system=SYSTEM, max_tokens=6000)
+        result = ask_model_json(prompt, system=SYSTEM, max_tokens=9000)
     except Exception as e:
         return {"summary": f"Self-check failed to run ({e}).", "log_entry": None}
 
-    log_entry = {
-        "date": date.today().isoformat(),
-        "accuracy_pct": result.get("accuracy_pct"),
-        "confirmed": result.get("confirmed_count"),
-        "contradicted": result.get("contradicted_count"),
-        "unresolved": result.get("unresolved_count"),
-    }
+    # Per-event outcomes, for the app and the operator's track record;
+    # refs checked against the articles the model was given.
+    ids = {e.get("id") for e in yesterday_report.get("events", [])}
+    today = date.today().isoformat()
+    results = []
+    for r in result.get("results", []):
+        if not isinstance(r, dict) or r.get("id") not in ids or \
+                r.get("outcome") not in ("CONFIRMED", "CONTRADICTED", "UNRESOLVED"):
+            continue
+        row = {"event_id": r["id"], "outcome": r["outcome"], "note": r.get("note", "")}
+        if isinstance(r.get("note_sv"), str) and r["note_sv"].strip():
+            row["note_sv"] = r["note_sv"].strip()
+        row["refs"] = verified_refs(r.get("refs"), today, listed)
+        results.append(row)
+    log_entry = dict(date=today, **self_check_counts(results))
     state["self_eval_log"].append(log_entry)
     state["self_eval_log"] = state["self_eval_log"][-90:]
-    # Per-event outcomes, for the app and the operator's track record.
-    ids = {e.get("id") for e in yesterday_report.get("events", [])}
-    results = [{"event_id": r.get("id"), "outcome": r.get("outcome"), "note": r.get("note", "")}
-               for r in result.get("results", [])
-               if r.get("id") in ids and r.get("outcome") in ("CONFIRMED", "CONTRADICTED", "UNRESOLVED")]
     return {"summary": result.get("summary_sentence", "Self-check complete."), "log_entry": log_entry,
             "results": results}
+
+
+def self_check_counts(results: list) -> dict:
+    """The self-check's counts and accuracy, counted in code from its
+    per-event results (#10), not taken from the model. accuracy_pct is
+    the share of resolved claims (confirmed or contradicted) that held;
+    None when none was resolved."""
+    n = {o: sum(1 for r in results if r.get("outcome") == o)
+         for o in ("CONFIRMED", "CONTRADICTED", "UNRESOLVED")}
+    resolved = n["CONFIRMED"] + n["CONTRADICTED"]
+    return {"accuracy_pct": round(100 * n["CONFIRMED"] / resolved) if resolved else None,
+            "confirmed": n["CONFIRMED"], "contradicted": n["CONTRADICTED"], "unresolved": n["UNRESOLVED"]}
+
+
+def apply_corrections(report: dict, results: list, today: str) -> int:
+    """Puts correction {date, note_sv, refs} on each event of `report`
+    (yesterday's) that the self-check found CONTRADICTED (#8). Only with
+    a verified ref and a Swedish note; a correction already there from
+    an earlier run of the same day is replaced. Returns how many."""
+    by_id = {e.get("id"): e for e in report.get("events", [])}
+    n = 0
+    for r in results:
+        ev = by_id.get(r.get("event_id"))
+        if ev is None or r.get("outcome") != "CONTRADICTED":
+            continue
+        if not r.get("refs") or not r.get("note_sv"):
+            print(f"  ! {r.get('event_id')} contradicted, but no verified ref or Swedish note - no correction published")
+            continue
+        ev["correction"] = {"date": today, "note_sv": r["note_sv"], "refs": r["refs"]}
+        n += 1
+    return n
+
+
+def publish_corrections(results: list, today: date = None) -> bool:
+    """Corrections on yesterday's saved report, which is then saved and
+    uploaded again (app_sync.push_report, as `app_sync.py repush`)."""
+    today = today or date.today()
+    path = OUTPUT_DIR / f"{(today - timedelta(days=1)).isoformat()}_report_data.json"
+    if not path.exists():
+        return False
+    with open(path, "r", encoding="utf-8") as f:
+        report = json.load(f)
+    if not apply_corrections(report, results, today.isoformat()):
+        return False
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2, ensure_ascii=False)
+    print(f"  Corrections put on {report.get('date')}'s report; uploading it again")
+    return push_report(report)
 
 
 # --------------------------------------------------------------------------
@@ -181,6 +237,22 @@ INDEX_JSON_FIELDS = """  "threat_index": 0.0,
   "next_band_partial_30d": ["..."],
   "threat_index_30d_justification": "...",
   "forecast_drivers": [{"when": "date or window", "driver": "...", "direction": "up|down"}],"""
+
+# known_sv with refs (#9): each sentence names the refs of the articles
+# it rests on; app_data.known_with_refs keeps only sentences with a
+# verified ref. The event fields are app_data's, with known_sv asked for
+# in that form (the asserts fail loudly if app_data's wording changes).
+_KNOWN_FIELD = '   - "known_sv": 2-4 short Swedish sentences - what is established;'
+_KNOWN_FIELD_REFS = '''   - "known_sv": 2-4 short Swedish sentences - what is established -
+     each {"text": "...", "refs": ["A3"]}, refs being the refs of the
+     event's articles that establish it, copied exactly. A sentence
+     without a ref to one of the event's articles is left out;'''
+_KNOWN_JSON = '"known_sv": ["..."]'
+_KNOWN_JSON_REFS = '"known_sv": [{"text": "...", "refs": ["A1"]}]'
+assert _KNOWN_FIELD in app_data.SWEEP_EVENT_FIELDS and _KNOWN_JSON in app_data.SWEEP_EVENT_JSON
+SWEEP_EVENT_FIELDS = app_data.SWEEP_EVENT_FIELDS.replace(_KNOWN_FIELD, _KNOWN_FIELD_REFS)
+SWEEP_EVENT_JSON = app_data.SWEEP_EVENT_JSON.replace(_KNOWN_JSON, _KNOWN_JSON_REFS)
+
 
 MIN_BAND_SCORE = 7      # credibility an event needs to hold up a band
 PLACEMENT_CAP = 0.1     # highest placement above the band without a next-band condition
@@ -333,9 +405,12 @@ def evaluate_forecasts(history):
 # --------------------------------------------------------------------------
 # The sweep on the reserve (light) model, when the main model cannot take
 # it: fewer articles and events, so a smaller model has less to mix up
-# (review 1, #18).
-SWEEP_ARTICLES, SWEEP_EVENTS = 450, 6
+# (review 1, #18). The main sweep gives a varying number of events: about
+# SWEEP_EVENTS_TYPICAL on an ordinary day, up to SWEEP_EVENTS when the
+# news warrants it; what does not make it goes in also_reported.
+SWEEP_ARTICLES, SWEEP_EVENTS, SWEEP_EVENTS_TYPICAL = 450, 10, 6
 RESERVE_SWEEP_ARTICLES, RESERVE_SWEEP_EVENTS = 200, 4
+ALSO_REPORTED_MAX = 8
 # Days of earlier reports whose events a standing condition may name.
 STANDING_WINDOW_DAYS = 30
 
@@ -384,6 +459,11 @@ def run_broad_sweep(state, hourly_entries, pool, contradicted=(), forecast_accur
                            for n in named) or "(none)"
 
     def build(n_articles, n_events):
+        if n_events > SWEEP_EVENTS_TYPICAL:
+            count_rule = (f"About {SWEEP_EVENTS_TYPICAL} on an ordinary day; give more, up to {n_events}, only "
+                          f"when the day's news has that many separate, significant events - never pad.")
+        else:
+            count_rule = "Fewer is fine when the day has fewer significant events - never pad."
         return f"""Below is the last 24 hours of reporting gathered from news feeds,
 Google News and GDELT, newest first, each with a ref ([A1], [A2] ...).
 From it, assess Russia's hybrid activity, threats, and posture toward
@@ -439,6 +519,7 @@ name; contradicted ones are left out:
 Produce:
 1. Up to {n_events} of the most important events from the last 24h, each scored
    for credibility per the tiers above, with the corroborating outlets named.
+   {count_rule}
    {SWEEP_EVENT_FIELDS}
    Watchlist threads (for "thread_id"):
 {threads_desc}
@@ -447,6 +528,9 @@ Produce:
 4. Up to 4 "deception watch" items - recurring Kremlin narrative/denial
    patterns observed in the last 24h (not scored, tracked separately).
 5. Up to 3 "key signals" - short phrases for a sidebar.
+6. "also_reported": up to {ALSO_REPORTED_MAX} other relevant stories from the list
+   that did not make it into the events - each a short Swedish title and
+   the refs of the articles that report it (e.g. ["A7"]), copied exactly.
 
 Respond as strict JSON:
 {{
@@ -454,7 +538,8 @@ Respond as strict JSON:
 {INDEX_JSON_FIELDS}
   "top_development": "...",
   "deception_items": [{{"heading": "...", "body": "..."}}],
-  "key_signals": ["..."]
+  "key_signals": ["..."],
+  "also_reported": [{{"title_sv": "...", "refs": ["A1"]}}]
 }}"""
     # The escalation/de-escalation/delta fields pushed this past 5000, the
     # 30-day forecast another 1500, the app fields (Swedish text, topics,
@@ -466,7 +551,8 @@ Respond as strict JSON:
     reserve = common.lite_model()
     result = None
     try:
-        result = ask_model_json(build(SWEEP_ARTICLES, SWEEP_EVENTS), system=SYSTEM, max_tokens=22000,
+        # Up to ten events instead of six: about 1500 tokens each more.
+        result = ask_model_json(build(SWEEP_ARTICLES, SWEEP_EVENTS), system=SYSTEM, max_tokens=30000,
                                 model=common.MODEL, fallback=False)
     except common.NoModelAvailable as e:
         if not reserve or reserve == common.MODEL:
@@ -478,6 +564,7 @@ Respond as strict JSON:
                                 max_tokens=22000, model=reserve, fallback=False)
         result["events"] = (result.get("events") or [])[:RESERVE_SWEEP_EVENTS]
         result["sweep_reduced"] = True
+    result["events"] = (result.get("events") or [])[:SWEEP_EVENTS]
     by = common.generated_by(mark)
     result["sweep_generated_by"] = {"models": by["models"], "reserve": bool(result.get("sweep_reduced")),
                                     "articles": RESERVE_SWEEP_ARTICLES if result.get("sweep_reduced") else SWEEP_ARTICLES}
@@ -486,6 +573,8 @@ Respond as strict JSON:
     enrich_events(result.get("events", []), date.today().isoformat(), common.LAST_SEARCH_RESULTS,
                   {t["id"] for t in state["watchlist"]})
     drop_repeated_articles(result.get("events", []), recent)
+    result["also_reported"] = verify_also_reported(result.get("also_reported"), date.today().isoformat(),
+                                                   common.LAST_SEARCH_RESULTS, result.get("events", []))
     trace = operator_weight.apply_to_events(result.get("events", []))
     apply_index_rules(result, result.get("events", []), set(known_ids))
     result["operator_influence"] = operator_weight.apply_to_index(result, trace)
@@ -495,6 +584,41 @@ Respond as strict JSON:
     if not result.get("deescalation_factors"):
         print("  ! No de-escalation factors identified - index may be drifting upward unchecked")
     return result
+
+
+def verified_refs(refs, report_date, search_results) -> list:
+    """Refs ("A3") to the articles of the list the model was given, as
+    {id, outlet, title, url, tier, published}, checked exactly as an
+    event's articles are (app_data.enrich_events); an unknown ref is
+    left out."""
+    refs = [refs] if isinstance(refs, str) else (refs if isinstance(refs, list) else [])
+    probe = {"title": "", "articles": [{"ref": str(r)} for r in refs if r]}
+    if not probe["articles"]:
+        return []
+    enrich_events([probe], report_date, search_results or [])
+    return [{k: a[k] for k in ("id", "outlet", "title", "url", "tier", "published") if k in a}
+            for a in probe["articles"] if a.get("url")]
+
+
+def verify_also_reported(items, report_date, search_results, events=()) -> list:
+    """also_reported as [{title_sv, refs}], refs being verified articles
+    ({id, outlet, title, url, tier, published}) checked against the
+    article list exactly as an event's are (app_data.enrich_events). An
+    item with no verified ref is left out, and so is an article already
+    cited by one of today's events."""
+    cited = {a.get("url") for e in events for a in e.get("articles", []) if a.get("url")}
+    out, dropped = [], 0
+    for x in (items or [])[:ALSO_REPORTED_MAX]:
+        if not isinstance(x, dict) or not isinstance(x.get("title_sv"), str) or not x["title_sv"].strip():
+            continue
+        arts = [a for a in verified_refs(x.get("refs"), report_date, search_results) if a["url"] not in cited]
+        if arts:
+            out.append({"title_sv": x["title_sv"].strip(), "refs": arts})
+        else:
+            dropped += 1
+    if dropped:
+        print(f"  Left out {dropped} also_reported item(s) without a verified ref")
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -624,14 +748,38 @@ def drop_repeated_articles(events: list, recent: list):
         return _norm_url(url) + ("#" + url.split("#", 1)[1] if "#" in url else "")
     cited = {key(a["url"]) for _, r in recent for e in r.get("events", [])
              for a in e.get("articles", []) if a.get("url")}
-    dropped = 0
+    dropped = sentences = 0
     for ev in events:
         fresh = [a for a in ev.get("articles", []) if not (a.get("url") and key(a["url"]) in cited)]
         if fresh and len(fresh) < len(ev.get("articles", [])):
             dropped += len(ev["articles"]) - len(fresh)
             ev["articles"] = fresh
+            sentences += prune_known(ev)
     if dropped:
         print(f"  Left out {dropped} article(s) already cited in the last {REPEAT_WINDOW_DAYS} days' reports")
+    if sentences:
+        print(f"  Left out {sentences} known_sv sentence(s) whose refs were all among them")
+
+
+def prune_known(ev: dict) -> int:
+    """known_sv {text, refs} after articles were taken out of the event:
+    refs to articles no longer on it are dropped, and a sentence left
+    with no ref is dropped. Plain strings (reports from before refs) are
+    kept. Returns how many sentences were dropped."""
+    if not isinstance(ev.get("known_sv"), list):
+        return 0
+    ids = {a.get("id") for a in ev.get("articles", [])}
+    out = []
+    for x in ev["known_sv"]:
+        if isinstance(x, dict):
+            refs = [r for r in x.get("refs") or [] if r in ids]
+            if not refs:
+                continue
+            x = {**x, "refs": refs}
+        out.append(x)
+    n = len(ev["known_sv"]) - len(out)
+    ev["known_sv"] = out
+    return n
 
 
 RECALIBRATION_PATH = common.DATA_DIR / "recalibration.json"
@@ -704,6 +852,7 @@ def run_daily_report():
 
     yesterday_report = load_yesterday_report()
     self_check = run_self_check(state, yesterday_report, pool)
+    publish_corrections(self_check.get("results", []), today)
 
     hourly_entries = load_hourly_log(today) + load_hourly_log(today - timedelta(days=1))
     # Yesterday's events the self-check found contradicted, so today's
@@ -746,8 +895,11 @@ def run_daily_report():
         "forecast_drivers": sweep.get("forecast_drivers", []),
         "self_check_summary": self_check["summary"],
         "self_check_results": self_check.get("results", []),
+        # Counted in code from the results (#10).
+        "self_check_counts": self_check.get("log_entry"),
         "top_development": sweep.get("top_development", ""),
         "events": sweep.get("events", []),
+        "also_reported": sweep.get("also_reported", []),
         "threat_index_history": history_with_originals(state["threat_index_history"]),
         "key_signals": sweep.get("key_signals", []),
         "narrative_stability": narrative_rows,

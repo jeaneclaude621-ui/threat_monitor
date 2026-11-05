@@ -14,7 +14,9 @@ Caps are enforced here in code, never left to the model:
 - a verdict counts once per event, even when the event has several
   articles from its outlet;
 - an event's score moves at most +/-1 from the model's own score, kept
-  to one decimal so that small effects (an outlet verdict, a +1) show;
+  to one decimal so that small effects (an outlet verdict, a +1) show,
+  and is then held to the credibility cap its verified sources carry
+  (app_data.credibility_cap);
 - the index moves at most +/-0.3 for operator reasons, computed here
   from the events' signals, and never out of its anchor band (the same
   room up as down; see index_bounds). The band itself is checked on the
@@ -27,7 +29,7 @@ import json
 from datetime import datetime, timezone
 
 from common import DATA_DIR
-from app_data import canonical_outlet
+from app_data import canonical_outlet, credibility_cap
 
 ASSESSMENTS_PATH = DATA_DIR / "operator_assessments.jsonl"
 
@@ -80,6 +82,15 @@ def _norm_outlet(name: str) -> str:
     return canonical_outlet(name).lower()
 
 
+def credibility_limit(ev: dict) -> tuple:
+    """(cap, reason) from app_data.credibility_cap for an event checked
+    against the article list (it has independent_sources); (None, None)
+    for one that was not (backfill of old reports)."""
+    if "independent_sources" not in ev:
+        return None, None
+    return credibility_cap(ev.get("articles") or [], ev.get("independent_sources") or 0)
+
+
 def apply_to_events(events: list, rows: list = None, now: datetime = None) -> list:
     """Adds `operator` {delta, divergent, trace} to each event and moves
     `score` from `model_score` by at most MAX_EVENT_DELTA. Returns every
@@ -126,11 +137,21 @@ def apply_to_events(events: list, rows: list = None, now: datetime = None) -> li
         delta = max(-MAX_EVENT_DELTA, min(MAX_EVENT_DELTA, signal))
         divergent = isinstance(model, (int, float)) and (
             (model >= 7 and signal <= -DIVERGENCE) or (model <= 4 and signal >= DIVERGENCE))
+        capped = False
         if isinstance(model, (int, float)):
             score = round(max(1.0, min(10.0, model + delta)), 1)
+            # Held to the credibility cap the sources carry (app_data),
+            # after the adjustment: the operator cannot lift an event
+            # above what its verified sources allow.
+            cap, reason = credibility_limit(ev)
+            if cap is not None and score > cap:
+                score, capped = float(cap), True
+                ev["score_capped_reason"] = reason
             ev["score"] = int(score) if score.is_integer() else score   # 9, not 9.0, in deck and mail
         ev["operator"] = {"delta": round(delta, 2), "signal": round(signal, 2),
                           "divergent": bool(divergent), "trace": trace}
+        if capped:
+            ev["operator"]["capped"] = True
         all_trace.extend(trace)
     return all_trace
 
