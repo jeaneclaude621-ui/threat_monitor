@@ -209,6 +209,34 @@ class Credibility(unittest.TestCase):
         self.assertEqual(self.cap(7)["score"], 4)
 
 
+class KnownWithRefs(unittest.TestCase):
+    def run_one(self, known):
+        ev = event({"ref": "A1"}, {"ref": "A2"}, {"ref": "A99"}, known_sv=known)
+        return app_data.enrich_events([ev], "2026-11-05", LIST)[0]
+
+    def test_sentences_carry_verified_article_ids(self):
+        ev = self.run_one([{"text": "Drönare sågs över basen.", "refs": ["A1", "A2"]},
+                           {"text": "Påhittad uppgift.", "refs": ["A99"]},
+                           {"text": "Utan ref.", "refs": []},
+                           {"text": "Delvis verifierad.", "refs": ["[A2]", "A99"]},
+                           "En bar sträng utan ref."])
+        ids = {a["title"]: a["id"] for a in ev["articles"]}
+        self.assertEqual(ev["known_sv"], [
+            {"text": "Drönare sågs över basen.", "refs": [ids["Drones seen over base"], ids["Drönare över basen"]]},
+            {"text": "Delvis verifierad.", "refs": [ids["Drönare över basen"]]}])
+
+    def test_old_string_format_still_works(self):
+        ev = self.run_one(["Drönare sågs.", "", "Basen stängdes."])
+        self.assertEqual(ev["known_sv"], ["Drönare sågs.", "Basen stängdes."])
+
+    def test_refs_to_dropped_blocked_articles_do_not_count(self):
+        results = LIST + [{"ref": "A4", "url": "https://tass.com/x", "title": "Kremlin", "outlet": "TASS",
+                           "published": "2026-11-05", "via": "gdelt"}]
+        ev = event({"ref": "A4"}, known_sv=[{"text": "Enligt TASS ...", "refs": ["A4"]}])
+        ev = app_data.enrich_events([ev], "2026-11-05", results)[0]
+        self.assertEqual(ev["known_sv"], [])
+
+
 class PoolDates(unittest.TestCase):
     def test_since(self):
         from datetime import datetime

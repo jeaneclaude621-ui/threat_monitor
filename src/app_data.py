@@ -305,22 +305,23 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
         ev["topics"] = [t for t in ev.get("topics") or [] if t in TOPICS]
         ev["countries"] = sorted({c.strip().upper() for c in ev.get("countries") or []
                                   if isinstance(c, str) and len(c.strip()) == 2})
-        for key in ("known_sv", "unknown_sv"):
-            if key in ev:
-                ev[key] = [x for x in ev.get(key) or [] if isinstance(x, str) and x.strip()]
+        if "unknown_sv" in ev:
+            ev["unknown_sv"] = [x for x in ev.get("unknown_sv") or [] if isinstance(x, str) and x.strip()]
         if ev.get("direction") not in DIRECTIONS:
             ev["direction"] = "neutral"
         if "thread_id" in ev and (thread_ids is None or ev["thread_id"] not in thread_ids):
             ev["thread_id"] = None
 
         if search_results is None:
+            if "known_sv" in ev:
+                ev["known_sv"] = [x for x in ev.get("known_sv") or [] if isinstance(x, str) and x.strip()]
             ev["articles"] = _legacy_articles(ev, report_date, i)
             ev["unverified"] = True
             ev["independent_sources"] = 0
             continue
 
         # New reports: only the articles list, never the free-text sources line.
-        clean, texts = [], {}
+        clean, texts, ref_ids = [], {}, {}
         for a in ev.get("articles") or []:
             if not isinstance(a, dict):
                 continue
@@ -360,9 +361,12 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
                 item["relation"] = a["relation"]
             clean.append(item)
             texts[item["id"]] = match.get("summary") or ""
+            ref_ids[match["ref"]] = item["id"]
         # Same article twice -> once.
         seen = set()
         ev["articles"] = [a for a in clean if not (a["id"] in seen or seen.add(a["id"]))]
+        if "known_sv" in ev:
+            ev["known_sv"] = known_with_refs(ev.get("known_sv"), ref_ids)
         ev["independent_sources"] = independent_sources(
             [{**a, "text": texts.get(a["id"], "")} for a in ev["articles"]])
         apply_credibility(ev)
@@ -377,6 +381,31 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
     if unverified and search_results is not None:
         print(f"  {unverified} event(s) marked unverified: no verified news source")
     return events
+
+
+def known_with_refs(known, ref_ids: dict) -> list:
+    """known_sv as [{text, refs}], refs being the ids of the event's
+    verified articles (#9). The model gives [{"text", "refs": ["A3"]}];
+    a sentence none of whose refs was verified is left out. A list of
+    plain strings is the format from before refs and is kept as it is
+    (the app reads both); in a list that has objects, a bare string has
+    no ref and is left out."""
+    items = [x for x in known or [] if (isinstance(x, str) and x.strip()) or isinstance(x, dict)]
+    if all(isinstance(x, str) for x in items):
+        return items
+    out = []
+    for x in items:
+        if not isinstance(x, dict) or not isinstance(x.get("text"), str) or not x["text"].strip():
+            continue
+        refs = x.get("refs") or []
+        refs = [refs] if isinstance(refs, str) else refs
+        ids = list(dict.fromkeys(ref_ids[r] for r in (str(r).strip("[] ") for r in refs if r) if r in ref_ids))
+        if ids:
+            out.append({"text": x["text"].strip(), "refs": ids})
+    dropped = len(items) - len(out)
+    if dropped:
+        print(f"  Left out {dropped} known_sv sentence(s) without a verified ref")
+    return out
 
 
 def _legacy_articles(ev: dict, report_date: str, i: int) -> list:
