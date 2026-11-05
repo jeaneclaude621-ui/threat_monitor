@@ -16,7 +16,10 @@ Caps are enforced here in code, never left to the model:
 - an event's score moves at most +/-1 from the model's own score, kept
   to one decimal so that small effects (an outlet verdict, a +1) show;
 - the index moves at most +/-0.3 for operator reasons, computed here
-  from the events' signals, and never out of its anchor band.
+  from the events' signals, and never out of its anchor band (the same
+  room up as down; see index_bounds). The band itself is checked on the
+  model's own event scores, before the operator's adjustment
+  (daily_report.apply_index_rules), so the operator cannot move a band.
 Every effect is recorded in a trace with the assessment ids behind it,
 so the app can show why a score is what it is.
 """
@@ -151,16 +154,38 @@ def _fmt(x: float) -> str:
     return f"{x:+.2f}".replace(".", ",")
 
 
+def index_bounds(idx: float, band) -> tuple:
+    """Where operator input may move the index: at most MAX_INDEX_DELTA
+    either way, and never out of the anchor band (band +/- 0.5). The same
+    room up as down - the placement cap (band + 0.1 without a next-band
+    condition) binds the model's placement, not the operator, and applied
+    to the operator it stopped almost every rise while a fall had 0.5."""
+    lo, hi = idx - MAX_INDEX_DELTA, idx + MAX_INDEX_DELTA
+    if band:
+        lo, hi = max(lo, band - 0.5), min(hi, band + 0.5)
+    return max(1.0, lo), min(10.0, hi)
+
+
+REASONS_SV = {
+    "no_events": "Inga eskalerande eller deeskalerande händelser med operatörsbedömning i dag.",
+    "no_direction": "Bedömningarna tog ut varandra: ingen riktning att flytta index åt.",
+    "cap": "Index ligger redan vid ankarbandets gräns åt det hållet; operatören kan inte flytta det ut ur bandet.",
+    "rounding": "Effekten var för liten för att synas: index visas med en decimal.",
+    "partly_capped": "Effekten begränsades av ankarbandets gräns.",
+    "applied": "Effekten lades på i sin helhet.",
+}
+
+
 def apply_to_index(result: dict, trace: list) -> dict:
     """Moves the general index for operator input, computed here from the
     events' operator signals - the model scores the index on the evidence
     alone. An event the operator finds credible pushes the index its way
     (up for an escalating event, down for a de-escalating one); one the
     operator doubts pushes the other way. The mean over the directional
-    events the operator assessed, times MAX_INDEX_DELTA, is the effect;
-    the anchor band, and the placement rules within it, still hold.
-    Returns the report's operator_influence block. Run after
-    apply_to_events."""
+    events the operator assessed, times MAX_INDEX_DELTA, is the effect,
+    kept inside index_bounds. Returns the report's operator_influence
+    block, with `reason` and `reason_sv`: why the effect is what it is
+    (and in particular why it is 0). Run after apply_to_events."""
     sign = {"escalating": 1, "de-escalating": -1}
     used = [(ev, sign[ev.get("direction")] * ev["operator"]["signal"])
             for ev in result.get("events", [])
@@ -168,27 +193,37 @@ def apply_to_index(result: dict, trace: list) -> dict:
     computed = MAX_INDEX_DELTA * sum(c for _, c in used) / len(used) if used else 0.0
     applied = 0.0
     idx, band = result.get("threat_index"), result.get("index_band")
-    # The placement rules (daily_report.apply_index_rules) may have
-    # narrowed the band's range; operator input stays inside it too.
-    lo, hi = result.get("index_range") or ((band - 0.5, band + 0.5) if band else (1, 10))
-    if idx is not None and computed:
+    reason = "no_events" if not used else ("no_direction" if abs(computed) < 1e-9 else None)
+    if idx is not None and reason is None:
+        lo, hi = index_bounds(idx, band)
         moved = max(lo, min(hi, idx + computed))
         result["threat_index"] = round(moved, 1)
         applied = round(result["threat_index"] - idx, 1)
+        capped = abs(moved - (idx + computed)) > 1e-9
+        if not applied:
+            reason = "cap" if capped and abs(moved - idx) < 0.05 else "rounding"
+        else:
+            reason = "partly_capped" if capped else "applied"
+    elif reason is None:
+        reason = "no_events"
     if not used:
         note = "Operatörens bedömningar berörde ingen eskalerande eller deeskalerande händelse i dag."
     else:
         parts = ", ".join(f"{ev['id'].rsplit('-', 1)[-1]} {_fmt(c)}" for ev, c in used)
         note = f"Beräknat från operatörens bedömningar av {len(used)} händelser ({parts}): {_fmt(computed)} på index"
-        if round(computed, 1) != applied:
-            note += f", begränsat av ankarbandet och reglerna för placering i bandet till {_fmt(applied)}."
-        elif not applied:
+        if reason in ("cap", "partly_capped"):
+            note += f", begränsat av ankarbandet till {_fmt(applied)}."
+        elif reason == "rounding":
             note += ", för lite för att flytta index (en decimal)."
+        elif reason == "no_direction":
+            note += ", bedömningarna tog ut varandra."
         else:
             note += "."
-    if computed:
-        print(f"  Operator effect on index: computed {computed:+.2f}, applied {applied:+.1f}")
-    return {"index_delta": applied, "computed_delta": round(computed, 2), "note_sv": note, "trace": trace}
+    if computed or used:
+        why = "" if applied else f" ({reason})"
+        print(f"  Operator effect on index: computed {computed:+.2f}, applied {applied:+.1f}{why}")
+    return {"index_delta": applied, "computed_delta": round(computed, 2), "note_sv": note,
+            "reason": reason, "reason_sv": REASONS_SV[reason], "trace": trace}
 
 
 def track_record(outcomes: dict, rows: list = None) -> dict:
