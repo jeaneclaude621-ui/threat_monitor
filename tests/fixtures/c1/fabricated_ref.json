@@ -1,0 +1,59 @@
+{
+  "_case": "The model cites refs it was never given (A7, A9). A7 sits beside a real article; A9 is the event's only source.",
+  "search_results": [
+    {
+      "ref": "A1",
+      "url": "https://www.reuters.com/world/europe/drones-over-base-2026-11-04/",
+      "title": "Drones seen over Danish air base",
+      "outlet": "Reuters",
+      "published": "2026-11-04"
+    }
+  ],
+  "events": [
+    {
+      "title": "Drones over Danish air base",
+      "title_sv": "Drönare över dansk flygbas",
+      "score": 6,
+      "topics": [
+        "Drönare"
+      ],
+      "countries": [
+        "DK"
+      ],
+      "articles": [
+        {
+          "ref": "A1",
+          "outlet": "Reuters",
+          "tier": 1
+        },
+        {
+          "ref": "A7",
+          "outlet": "BBC",
+          "title": "Danish base closed after drone sightings",
+          "tier": 1,
+          "url": "https://www.bbc.com/news/world-europe-99999999"
+        }
+      ]
+    },
+    {
+      "title": "Cable cut off Gotland",
+      "title_sv": "Kabel kapad utanför Gotland",
+      "score": 7,
+      "topics": [
+        "Sabotage"
+      ],
+      "countries": [
+        "SE"
+      ],
+      "articles": [
+        {
+          "ref": "A9",
+          "outlet": "Reuters",
+          "title": "Baltic cable damaged near Gotland",
+          "tier": 1,
+          "url": "https://www.reuters.com/world/europe/baltic-cable-gotland-2026-11-04/"
+        }
+      ]
+    }
+  ]
+}
