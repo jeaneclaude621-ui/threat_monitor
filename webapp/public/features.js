@@ -78,6 +78,8 @@ export const FEATURES = [
     desc: 'Nekade inloggningar och vad administratörerna har gjort.', keywords: 'säkerhet logg' },
 
   // Appen
+  { id: 'tillbaka', area: 'app', title: 'Pil bakåt på alla sidor', href: '#/arkiv', added: '2026-11-05',
+    desc: 'Pilen uppe till vänster tar dig tillbaka dit du var, på samma ställe på sidan.', keywords: 'tillbaka bakåt pil navigering' },
   { id: 'funktioner', area: 'app', title: 'Funktioner och nyheter', action: 'features', added: '2026-11-05',
     desc: 'Den här menyn: det nya först, sedan allt, sökbart.', keywords: 'meny hjälp sök funktioner' },
   { id: 'gast', area: 'app', title: 'Läs utan att logga in', href: '#/om', added: '2026-11-03',

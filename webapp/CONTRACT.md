@@ -650,3 +650,12 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   is `webapp/public/features.js`: add a row (with the day it reached the
   app) whenever a function is added. Admin-only rows are hidden for
   others, login-only rows for guests. Service worker hm-v3.34.
+
+# Version 3.20 (5 Nov 2026) - back on every page
+
+- App only: every page but Idag has an arrow back at the top. It goes back
+  where you came from within the app (history.back), to the same scroll
+  position, and is labelled with that page ("Styrkor", "Händelsen" ...).
+  A page opened from outside falls back to its tab or Idag. Filters that
+  change the address in place keep the way back in step. Service worker
+  hm-v3.36.

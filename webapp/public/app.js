@@ -75,7 +75,58 @@ const chevRight = () => icon(['M6 3l5 5-5 5']);
 const chevDown = () => icon(['M4 6l4 4 4-4']);
 const extIcon = () => icon(['M6 3h7v7', 'M13 3L4 12'], '');
 const searchIcon = () => { const s = icon(['M20 20l-4.2-4.2'], '', '0 0 24 24'); const c = document.createElementNS(SVG_NS, 'circle'); c.setAttribute('cx', '11'); c.setAttribute('cy', '11'); c.setAttribute('r', '6.5'); s.prepend(c); return s; };
-function backLink(href, label) { return h('a', { class: 'back', href }, icon(['M12.5 4l-6 6 6 6'], '', '0 0 20 20'), label); }
+// ---------------------------------------------------------------- back (Version 3.20)
+// The way here within the app, so the arrow goes back where you came from
+// (and to the same scroll position), not to a fixed parent. A link opened
+// from outside, with nothing before it, falls back to the page's parent.
+const NAV_KEY = 'hm.nav';
+let navStack = (() => { try { return JSON.parse(sessionStorage.getItem(NAV_KEY)) || []; } catch { return []; } })();
+const scrollMemo = new Map();
+let navBack = false;
+const curHash = () => (location.hash && location.hash !== '#' ? location.hash : '#/');
+function saveNav() { try { sessionStorage.setItem(NAV_KEY, JSON.stringify(navStack.slice(-50))); } catch { /* ignore */ } }
+let lastHash = curHash();
+function noteNav() {
+  const now = curHash();
+  const prevHash = lastHash;
+  lastHash = now;
+  if (prevHash) scrollMemo.set(prevHash, window.scrollY);
+  navBack = navStack.length > 1 && navStack[navStack.length - 2] === now;
+  if (navBack) navStack.pop();
+  else if (navStack[navStack.length - 1] !== now) navStack.push(now);
+  saveNav();
+}
+if (!navStack.length || navStack[navStack.length - 1] !== curHash()) { navStack.push(curHash()); saveNav(); }
+// Filters change the address in place (history.replaceState): the way back
+// follows, so the arrow returns to the page as it was left.
+const replaceStateRaw = history.replaceState.bind(history);
+history.replaceState = (...args) => {
+  replaceStateRaw(...args);
+  lastHash = curHash();
+  if (navStack.length) navStack[navStack.length - 1] = lastHash; else navStack.push(lastHash);
+  saveNav();
+};
+
+const ROUTE_LABEL = { '': 'Idag', rapport: 'Rapporten', handelse: 'Händelsen', arkiv: 'Arkiv', amnen: 'Ämnen', karta: 'Karta',
+  narrativ: 'Narrativ', trender: 'Narrativ', myndigheter: 'Myndigheter', handlingsalternativ: 'Handlingsalternativ',
+  styrkor: 'Styrkor', bedom: 'Bedöm', mina: 'Mina bedömningar', kalla: 'Källan', admin: 'Administration', om: 'Om' };
+function labelOf(hash) {
+  const first = hash.replace(/^#\/?/, '').split(/[/?]/)[0];
+  if (first === 'styrkor' && /[?&](sys|unit)=/.test(hash)) return 'Förbandet';
+  if (first === 'styrkor' && /[?&]s=anfall/.test(hash)) return 'Anfall mot Ukraina';
+  return ROUTE_LABEL[first] || 'Tillbaka';
+}
+
+function goBack(fallback) {
+  if (navStack.length > 1) history.back();
+  else location.hash = fallback || '#/';
+}
+
+function backLink(href, label) {
+  const prev = navStack.length > 1 ? navStack[navStack.length - 2] : null;
+  return h('a', { class: 'back', href: prev || href, onclick: (ev) => { ev.preventDefault(); goBack(href); } },
+    icon(['M12.5 4l-6 6 6 6'], '', '0 0 20 20'), prev ? labelOf(prev) : label);
+}
 
 // ---------------------------------------------------------------- formatting
 const fmt1 = (v) => (v == null || Number.isNaN(Number(v)) ? '–' : Number(v).toFixed(1).replace('.', ','));
@@ -169,8 +220,22 @@ async function route({ keepScroll = false } = {}) {
   let node;
   try { node = await view(); } catch (e) { node = errorView(e); }
   if (seq !== renderSeq) return;
+  // Every page but Idag itself has the arrow back.
+  if (currentRoute !== '' && node && !(node.querySelector && node.querySelector('.back'))) {
+    const fallback = tab && tab !== 'idag' && currentRoute !== tab ? `#/${tab}` : '#/';
+    const wrap = document.createDocumentFragment();
+    wrap.append(backLink(fallback, labelOf(fallback)), node);
+    node = wrap;
+  }
   main.replaceChildren(node);
-  window.scrollTo(0, keepScroll ? y : 0);
+  const back = navBack && scrollMemo.has(curHash()) ? scrollMemo.get(curHash()) : null;
+  navBack = false;
+  if (back != null) {
+    window.scrollTo(0, back);
+    requestAnimationFrame(() => window.scrollTo(0, back));   // after late layout (maps, images)
+  } else {
+    window.scrollTo(0, keepScroll ? y : 0);
+  }
 }
 
 function rerender() { if (!isDragging() && !document.querySelector('dialog[open]')) route({ keepScroll: true }); }
@@ -3900,7 +3965,7 @@ async function init() {
     loadReads().catch((e) => { console.warn('reads', e); }),
   ]);
   if (!isGuest()) refreshPushState().catch(() => {});
-  window.addEventListener('hashchange', () => route());
+  window.addEventListener('hashchange', () => { noteNav(); route(); });
   window.addEventListener('offline', updateChrome);
   window.addEventListener('online', () => { loadMe().catch(() => {}).finally(updateChrome); });
   document.addEventListener('visibilitychange', () => {
