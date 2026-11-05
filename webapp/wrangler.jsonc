@@ -50,5 +50,7 @@
   // CET and CEST. Then the cron that starts the scheduled runs on GitHub
   // Actions (DISPATCH_CRON in worker.js, which must match it): both UTC
   // hours of 04:00, 07:00, 08:00, 12:00, 16:00, 17:00 and 21:00 Stockholm time.
-  "triggers": { "crons": ["*/30 3-9 * * *", "0 2,3,5,6,7,10,11,14,15,16,19,20 * * *"] }
+  // Last, every 10 min: the rest of a large push, 40 subscriptions at a time
+  // (PUSH_QUEUE_CRON in worker.js, which must match it; Version 3.22).
+  "triggers": { "crons": ["*/30 3-9 * * *", "0 2,3,5,6,7,10,11,14,15,16,19,20 * * *", "*/10 * * * *"] }
 }

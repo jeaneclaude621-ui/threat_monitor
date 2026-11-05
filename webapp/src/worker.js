@@ -133,16 +133,25 @@ export default {
   },
 
   // Cron (wrangler.jsonc triggers): DISPATCH_CRON starts the scheduled
-  // runs; the other sends pushes held over the night, then the
-  // missing-report alarm.
+  // runs; PUSH_QUEUE_CRON sends the rest of large pushes; the other sends
+  // pushes held over the night, then the missing-report alarm.
   async scheduled(event, env, ctx) {
     const now = event.scheduledTime || Date.now();
     if (event.cron === DISPATCH_CRON) {
       ctx.waitUntil(startDueRuns(env, now));
       return;
     }
-    ctx.waitUntil(flushDeferredPushes(env, now)
-      .then(() => checkMissingReport(env, now))
+    // Version 3.22: the rest of a large push, PUSH_BATCH at a time.
+    if (event.cron === PUSH_QUEUE_CRON) {
+      ctx.waitUntil(drainPushQueue(env).catch((err) => {
+        console.error('push queue failed', err && err.stack ? err.stack : err);
+      }));
+      return;
+    }
+    const budget = newBudget();
+    ctx.waitUntil(flushDeferredPushes(env, now, budget)
+      .then(() => checkMissingReport(env, now, budget))
+      .then(() => drainPushQueue(env, budget))
       .catch((err) => {
         console.error('scheduled check failed', err && err.stack ? err.stack : err);
       }));
@@ -1848,6 +1857,8 @@ async function dispatchWorkflow(env, workflow, inputs) {
  * that fails raises an admin alarm.
  */
 async function startDueRuns(env, nowMs) {
+  // Each start is a fetch too: leave room for them under the 50 subrequests.
+  const budget = { left: PUSH_BATCH - Object.keys(RUN_JOBS).length };
   const hour = Math.floor(stockholmClock(nowMs).minutes / 60);
   for (const [job, spec] of Object.entries(RUN_JOBS)) {
     if (!spec.hours.includes(hour)) continue;
@@ -1863,7 +1874,7 @@ async function startDueRuns(env, nowMs) {
         title: `${spec.label} kunde inte startas`,
         body: `Körningen ${String(hour).padStart(2, '0')}:00 startade inte: ${err.message.slice(0, 120)}`,
         url: '/#/admin',
-      }, 'high');
+      }, 'high', budget);
     }
   }
 }
@@ -1898,7 +1909,7 @@ async function getAlarm(env) {
 }
 
 /** Past 07:00 Stockholm time with no report for today: raise the alarm once per date. */
-async function checkMissingReport(env, nowMs) {
+async function checkMissingReport(env, nowMs, budget = newBudget()) {
   const { date, minutes } = stockholmClock(nowMs);
   if (minutes < ALARM_AFTER_MINUTES) return { checked: false, date };
   const report = await env.DB.prepare('SELECT 1 AS ok FROM reports WHERE date = ?').bind(date).first();
@@ -1911,7 +1922,7 @@ async function checkMissingReport(env, nowMs) {
     title: 'Dagens rapport har inte kommit',
     body: `Ingen morgonrapport för ${date} kl. 07:00. Se Systemstatus.`,
     url: '/#/admin',
-  }, 'high');
+  }, 'high', budget);
   return { checked: true, date, missing: true, raised: true };
 }
 
@@ -2053,7 +2064,7 @@ async function getDeferred(env) {
 }
 
 /** Sends the pushes held over quiet hours, once they have ended. */
-async function flushDeferredPushes(env, nowMs) {
+async function flushDeferredPushes(env, nowMs, budget = newBudget()) {
   if (inQuietHours(nowMs)) return { sent: 0, reason: 'quiet hours' };
   const held = await getDeferred(env);
   if (!held.length) return { sent: 0 };
@@ -2061,16 +2072,32 @@ async function flushDeferredPushes(env, nowMs) {
   await env.DB.prepare("DELETE FROM meta WHERE key = 'push_deferred'").run();
   let sent = 0;
   for (const p of held) {
-    const r = await pushTo(env, p.target, p.payload, p.urgency);
+    const r = await pushTo(env, p.target, p.payload, p.urgency, budget);
     sent += r.sent || 0;
   }
   await audit(env, 'system', 'push_deferred_sent', null, { pushes: held.length, sent });
   return { sent };
 }
 
-/** Sends to every matching subscription; dead ones (404/410) are deleted.
+// Version 3.22: one fetch per subscription, and the free plan allows 50
+// subrequests per invocation. So a push is queued (meta 'push_queue', the
+// matching endpoints) and sent PUSH_BATCH at a time: the first batch at
+// once, the rest by PUSH_QUEUE_CRON, every ten minutes. `budget` is shared
+// by every push of one invocation, so together they stay under the limit.
+const PUSH_BATCH = 40;
+const PUSH_QUEUE_CRON = '*/10 * * * *';
+const PUSH_QUEUE_MAX_JOBS = 20;
+const newBudget = () => ({ left: PUSH_BATCH });
+
+async function getPushQueue(env) {
+  const row = await env.DB.prepare("SELECT value FROM meta WHERE key = 'push_queue'").first();
+  if (!row || !row.value) return [];
+  try { const q = JSON.parse(row.value); return Array.isArray(q) ? q : []; } catch { return []; }
+}
+
+/** Queues a push for every matching subscription and sends the first batch.
  *  During quiet hours the push is held until 07:00 instead. */
-async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal') {
+async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal', budget = newBudget()) {
   if (inQuietHours(Date.now())) {
     const held = await getDeferred(env);
     held.push({ target: { adminsOnly, pref }, payload, urgency });
@@ -2084,39 +2111,97 @@ async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal') {
   const owner = ownerEmail(env);
   const { results } = await env.DB.prepare(
     adminsOnly
-      ? `SELECT p.* FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
+      ? `SELECT p.endpoint, p.prefs FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
          WHERE p.email = ? OR (u.role = 'admin' AND u.active = 1)`
-      : `SELECT p.* FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
+      : `SELECT p.endpoint, p.prefs FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
          WHERE p.email = ? OR u.active = 1`
   ).bind(owner).all();
-
-  const vapid = { subject: `mailto:${owner}`, publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY };
   const devAllow = devPushAllow(env);
-  let sent = 0, failed = 0, removed = 0;
+  const endpoints = [];
   for (const s of results) {
     let prefs = {};
     try { prefs = s.prefs ? JSON.parse(s.prefs) : {}; } catch { prefs = {}; }
     if (pref && prefs[pref] === false) continue;
-    // Stored endpoints were checked on subscribe; check again before any request.
+    // Stored endpoints were checked on subscribe; checked again before any request.
     if (!allowedEndpoint(s.endpoint, devAllow)) continue;
+    endpoints.push(s.endpoint);
+  }
+  if (!endpoints.length) {
+    const summary = { at: new Date().toISOString(), title: payload.title, sent: 0, failed: 0, removed: 0, queued: 0 };
+    await setMeta(env, 'last_push', JSON.stringify(summary));
+    return summary;
+  }
+  const queue = await getPushQueue(env);
+  queue.push({ id: crypto.randomUUID(), at: new Date().toISOString(), payload, urgency, endpoints, sent: 0, failed: 0, removed: 0 });
+  await setMeta(env, 'push_queue', JSON.stringify(queue.slice(-PUSH_QUEUE_MAX_JOBS)));
+  return drainPushQueue(env, budget);
+}
+
+/** Sends up to budget.left queued messages, oldest push first; dead
+ *  subscriptions (404/410) are deleted. */
+async function drainPushQueue(env, budget = newBudget()) {
+  if (inQuietHours(Date.now())) return { sent: 0, reason: 'quiet hours' };
+  if (budget.left <= 0) return { sent: 0, reason: 'no budget left' };
+  const queue = await getPushQueue(env);
+  if (!queue.length) return { sent: 0, queued: 0 };
+  if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) return { sent: 0, reason: 'not configured' };
+
+  // Claimed (and written back) before sending, so an overlapping run cannot send twice.
+  const batch = [];
+  for (const job of queue) {
+    while (job.endpoints.length && batch.length < budget.left) batch.push({ job, endpoint: job.endpoints.shift() });
+  }
+  budget.left -= batch.length;
+  await setMeta(env, 'push_queue', JSON.stringify(queue.filter((j) => j.endpoints.length)));
+
+  const subs = new Map();
+  const list = batch.map((b) => b.endpoint);
+  for (let i = 0; i < list.length; i += 40) {
+    const part = list.slice(i, i + 40);
+    const { results } = await env.DB.prepare(
+      `SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE endpoint IN (${part.map(() => '?').join(', ')})`
+    ).bind(...part).all();
+    for (const r of results) subs.set(r.endpoint, r);
+  }
+
+  const owner = ownerEmail(env);
+  const vapid = { subject: `mailto:${owner}`, publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY };
+  const done = new Map();   // job id -> { sent, failed, removed }
+  let sent = 0, failed = 0, removed = 0;
+  for (const { job, endpoint } of batch) {
+    const c = done.get(job.id) || { sent: 0, failed: 0, removed: 0 };
+    done.set(job.id, c);
+    const s = subs.get(endpoint);
+    if (!s) continue;   // unsubscribed since it was queued
     try {
-      const r = await sendPush({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, vapid, { urgency });
-      if (r.ok) sent++;
-      else {
-        failed++;
+      const r = await sendPush({ endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, job.payload, vapid, { urgency: job.urgency });
+      if (r.ok) { sent++; c.sent++; } else {
+        failed++; c.failed++;
         if (r.gone) {
-          await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').bind(s.endpoint).run();
-          removed++;
+          await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').bind(endpoint).run();
+          removed++; c.removed++;
         }
       }
     } catch (err) {
-      failed++;
+      failed++; c.failed++;
       console.error('push send failed', err && err.message);
     }
   }
-  const summary = { at: new Date().toISOString(), title: payload.title, sent, failed, removed };
-  await setMeta(env, 'last_push', JSON.stringify(summary));
-  return summary;
+
+  // Running totals onto the jobs still queued; the last one touched is the summary.
+  const rest = await getPushQueue(env);
+  let summary = null;
+  for (const job of batch.length ? [...new Set(batch.map((b) => b.job))] : []) {
+    const c = done.get(job.id);
+    const left = rest.find((j) => j.id === job.id);
+    const total = { sent: job.sent + c.sent, failed: job.failed + c.failed, removed: job.removed + c.removed };
+    if (left) Object.assign(left, total);
+    summary = { at: new Date().toISOString(), title: job.payload && job.payload.title, ...total, queued: left ? left.endpoints.length : 0 };
+  }
+  if (rest.length) await setMeta(env, 'push_queue', JSON.stringify(rest));
+  if (summary) await setMeta(env, 'last_push', JSON.stringify(summary));
+  const queued = rest.reduce((n, j) => n + j.endpoints.length, 0);
+  return { sent, failed, removed, queued };
 }
 
 // ---------------------------------------------------------------------------
@@ -2681,4 +2766,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
+export const _test = { pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };

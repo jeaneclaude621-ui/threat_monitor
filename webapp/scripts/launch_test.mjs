@@ -75,6 +75,7 @@ class MockD1 {
           return { results: since ? rows.filter((r) => r.date >= since) : rows };
         }
         if (/FROM access_requests/.test(sql)) return { results: [...db.requests].reverse() };
+        if (/WHERE endpoint IN/.test(sql)) return { results: db.subs.filter((x) => args.includes(x.endpoint)) };
         if (/FROM push_subscriptions/.test(sql)) return { results: db.subs };
         return { results: [] };
       },
@@ -294,6 +295,58 @@ await as(other, '/api/access-request', { method: 'POST' });
 db.requests.filter((x) => x.email === other).forEach((x) => { x.status = 'denied'; });
 r = await as(other, '/api/access-request', { method: 'POST' });
 expect('at most three requests a day', r.status, 429);
+
+// --- Push in batches of 40 --------------------------------------------------------
+{
+  const { b64uEncode } = await import('../src/webpush.js');
+  const { pushTo, drainPushQueue } = _test;
+  const realNow = Date.now;
+  Date.now = () => Date.parse('2026-11-05T12:00:00Z');   // 13:00 Stockholm, not quiet hours
+  const ua = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  const p256dh = b64uEncode(await crypto.subtle.exportKey('raw', ua.publicKey));
+  const auth = b64uEncode(crypto.getRandomValues(new Uint8Array(16)));
+  const vk = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  const pushEnv = { ...env, OWNER: 'owner@example.org',
+    VAPID_PUBLIC_KEY: b64uEncode(await crypto.subtle.exportKey('raw', vk.publicKey)),
+    VAPID_PRIVATE_KEY: (await crypto.subtle.exportKey('jwk', vk.privateKey)).d };
+  db.subs = Array.from({ length: 100 }, (_, n) => ({ endpoint: `https://fcm.googleapis.com/fcm/send/s${n}`, p256dh, auth, prefs: null }));
+  db.subs[5].prefs = JSON.stringify({ report: false });
+  const hits = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (u) => { hits.push(String(u)); return new Response(null, { status: String(u).endsWith('/s7') ? 410 : 201 }); };
+
+  let p = await pushTo(pushEnv, { adminsOnly: false, pref: 'report' }, { title: 'Test', body: 'x', url: '/#/' });
+  expect('first batch: 40 requests, no more', hits.length, 40);
+  expect('the rest is queued', p.queued, 59);
+  expect('a dead subscription is removed', db.subs.some((x) => x.endpoint.endsWith('/s7')), false);
+  expect('an opted-out subscription is skipped', hits.some((u) => u.endsWith('/s5')), false);
+  p = await drainPushQueue(pushEnv);
+  expect('next cron run: 40 more', hits.length, 80);
+  p = await drainPushQueue(pushEnv);
+  expect('then the last 19', hits.length, 99);
+  expect('queue empty', p.queued, 0);
+  expect('every subscriber once', new Set(hits).size, 99);
+  const last = JSON.parse(db.meta.get('last_push'));
+  expect('summary counts the whole push', last.sent + last.failed, 99);
+  p = await drainPushQueue(pushEnv);
+  expect('nothing left to send', hits.length, 99);
+
+  // Two pushes in one invocation share the 40.
+  hits.length = 0;
+  const budget = { left: 40 };
+  await pushTo(pushEnv, { adminsOnly: false, pref: 'report' }, { title: 'A' }, 'normal', budget);
+  await pushTo(pushEnv, { adminsOnly: false, pref: 'report' }, { title: 'B' }, 'normal', budget);
+  expect('one invocation stays at 40', hits.length, 40);
+  while ((await drainPushQueue(pushEnv)).queued) { /* the cron, again and again */ }
+  expect('both pushes reach everyone in the end', hits.length, 98 * 2);
+
+  Date.now = () => Date.parse('2026-11-05T23:00:00Z');   // 00:00 Stockholm: quiet
+  hits.length = 0;
+  p = await pushTo(pushEnv, { adminsOnly: false, pref: 'report' }, { title: 'Natt' });
+  expect('quiet hours: held, nothing sent', hits.length, 0);
+  Date.now = realNow;
+  globalThis.fetch = realFetch;
+}
 
 console.log(`\nlaunch_test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
