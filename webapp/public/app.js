@@ -632,13 +632,31 @@ const SCOPE_DAYS = 7;
 let scopeStart = '';            // first report date inside the news window
 const badgeCounts = { idag: 0, arkiv: 0, bedom: 0 };
 
+// U6: a guest's first visit draws a line at "now": everything published
+// before it counts as read, so a newcomer is not met by "30 olästa".
+// The badges and the "nya funktioner" chip start with the second visit.
+const FLOOR_KEY = 'hm.readFloor';
+let readFloor = null;          // { ts, date }: first visit and the latest report then
+let firstVisitNow = false;     // the floor was drawn during this page load
+try { readFloor = JSON.parse(localStorage.getItem(FLOOR_KEY) || 'null'); } catch { readFloor = null; }
+function ensureReadFloor(index) {
+  if (readFloor || !isGuest() || !index.length) return;
+  readFloor = { ts: new Date().toISOString(), date: index[0].date };
+  firstVisitNow = true;
+  try { localStorage.setItem(FLOOR_KEY, JSON.stringify(readFloor)); } catch { /* private mode: this visit only */ }
+}
+const belowFloor = (date) => isGuest() && readFloor && date <= readFloor.date;
+
+function updateIsNew(u) { return !isRead(u.id) && !(isGuest() && readFloor && u.ts <= readFloor.ts); }
+
 function updatesInScope() {
   const cutoff = Date.now() - SCOPE_DAYS * 86400000;
-  return store.updates.filter((u) => new Date(u.ts).getTime() >= cutoff);
+  return store.updates.filter((u) => new Date(u.ts).getTime() >= cutoff
+    && !(isGuest() && readFloor && u.ts <= readFloor.ts));
 }
 function unreadUpdates() { return updatesInScope().filter((u) => !isRead(u.id)); }
 function eventState(date, e) {
-  if (!scopeStart || date < scopeStart) return null;
+  if (!scopeStart || date < scopeStart || belowFloor(date)) return null;
   if (!isRead(e.id)) return 'new';
   if (e.thread_id && unreadUpdates().some((u) => u.thread_id === e.thread_id)) return 'updated';
   return null;
@@ -654,7 +672,7 @@ async function computeBadges() {
     const index = await loadIndex();
     if (!index.length) return;
     const latest = index[0].date;
-    scopeStart = addDays(latest, -(SCOPE_DAYS - 1));
+    ensureScope(index);
     let idag = unreadUpdates().length;
     let arkiv = 0;
     for (const item of index) {
@@ -763,7 +781,7 @@ function olderReportsNote() {
 }
 const openUpdates = new Set();
 
-function ensureScope(index) { if (index.length) scopeStart = addDays(index[0].date, -(SCOPE_DAYS - 1)); }
+function ensureScope(index) { if (index.length) scopeStart = addDays(index[0].date, -(SCOPE_DAYS - 1)); ensureReadFloor(index); }
 
 // The live feed on Idag shows its newest few until the reader asks for all.
 const FEED_PREVIEW = 3;
@@ -893,7 +911,7 @@ function newBox(latest, r) {
 }
 
 function updateRow(u, reports) {
-  const read = isRead(u.id);
+  const read = !updateIsNew(u);
   const open = openUpdates.has(u.id);
   const t = new Date(u.ts);
   const time = Number.isNaN(t.getTime()) ? '' : t.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
@@ -1165,7 +1183,7 @@ function threadSection(e, date, reports, threadUpdates) {
     h('ol', { class: 'timeline' }, items.slice(0, 12).map((it) => h('li', { class: it.self ? 'self' : null },
       h('span', { class: 'tl-when' }, it.update ? tsFmt(it.update.ts) : dateShort(it.date)),
       it.update
-        ? h('span', { class: 'tl-what' }, it.update.title_sv || firstSentence(it.update.summary_sv, 120), isRead(it.update.id) ? null : h('span', { class: 'nbadge' }, 'Ny'))
+        ? h('span', { class: 'tl-what' }, it.update.title_sv || firstSentence(it.update.summary_sv, 120), updateIsNew(it.update) ? h('span', { class: 'nbadge' }, 'Ny') : null)
         : it.self
           ? h('span', { class: 'tl-what' }, h('b', null, 'Denna händelse: '), it.event.title_sv || it.event.title)
           : h('a', { class: 'tl-what', href: eventHref(it.date, it.event.id) }, it.event.title_sv || it.event.title)))));
@@ -3737,7 +3755,7 @@ function newFeatures() {
 }
 
 function featuresChip() {
-  const n = newFeatures().length;
+  const n = firstVisitNow ? 0 : newFeatures().length;
   return h('button', { class: 'feat-chip', type: 'button', onclick: () => openFeatures(),
     'aria-label': n ? `Funktioner, ${n} nya` : 'Funktioner', title: 'Funktioner och nyheter' },
     n ? h('span', { class: 'feat-dot', 'aria-hidden': 'true' }) : null, n ? `${n} nya funktioner` : 'Funktioner');
