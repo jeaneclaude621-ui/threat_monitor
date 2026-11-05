@@ -891,3 +891,9 @@ img.zoomable { cursor: zoom-in; -webkit-touch-callout: none; -webkit-user-select
 .tile { color: #5D6477; }
 @media (prefers-color-scheme: dark) { .tile:not(.h1):not(.h2):not(.h3) { color: var(--faint); } }
 h1[tabindex="-1"]:focus { outline: none; }
+
+/* Dela */
+.share-row { display: flex; justify-content: flex-end; margin-top: 4px; }
+.share-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.share-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.share-url { width: 100%; font: inherit; font-size: 14px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); margin-bottom: 12px; }
