@@ -165,6 +165,20 @@ rate limit ~120 requests/min, per IP address without a login (guests)
 
 Per event: `known_sv` [strings], `unknown_sv` [strings], `thread_id`
 (one of the watchlist thread ids, or null).
+Since 5 Nov 2026 (src/app_data.py), per event:
+- `known_sv`: `[{text, refs: [article id]}]`, each sentence tied to the
+  event's own verified articles; reports from before keep plain strings.
+  Readers must accept both.
+- `unverified`: `true` when no verified news source backs the event (all
+  reports 19-30 Sep, and new events whose cited articles were dropped or
+  are only video/social posts). Absent otherwise. Shown as "Obekräftad –
+  ingen hämtad källa"; the event is kept, not removed.
+- `independent_sources`: integer, the number of independent outlets among
+  the verified articles (0 for legacy reports).
+- `score_capped_reason`: string, set when the credibility score was capped
+  (e.g. one source only); shown next to the score.
+- `correction { date, note_sv, refs }` and per report `also_reported
+  [{title_sv, refs}]`: see Version 3.39 below.
 Per article: `summary_sv` (2-3 sentences, what this article says),
 `published` (YYYY-MM-DD or null), `relation` one of
 `bekräftar` | `motsäger` | `tillför` | null.
