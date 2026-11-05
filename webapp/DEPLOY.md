@@ -420,3 +420,16 @@ To close it again: set `PUBLIC_READ` to `"0"` and deploy; guests then get
 
 Above that, Workers Paid is $5 a month (10 million requests). The rate
 limit of 120 requests a minute per IP still applies to guests.
+
+## Deploying from GitHub Actions
+
+`.github/workflows/deploy.yml` deploys the web app when a push to main
+changes `webapp/`, or by hand (Actions -> Deploy web app -> Run workflow).
+It runs the Worker tests first. It needs two repository secrets, which only
+the owner adds (Settings -> Secrets and variables -> Actions):
+
+- `CLOUDFLARE_API_TOKEN`: dash.cloudflare.com -> My Profile -> API Tokens
+  -> Create Token -> template *Edit Cloudflare Workers* -> your account.
+- `CLOUDFLARE_ACCOUNT_ID`: Workers & Pages -> the Account ID on the right.
+
+Database migrations are still run by hand (`npm run migrate:remote`).
