@@ -902,3 +902,16 @@ h1[tabindex="-1"]:focus { outline: none; }
 .refs { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 6px; vertical-align: baseline; }
 .ref { font: inherit; font-size: 11px; line-height: 1.3; padding: 1px 6px; border-radius: 6px; border: 1px solid var(--line, rgba(127,127,127,.35)); background: transparent; color: var(--muted, inherit); cursor: pointer; }
 span.ref { cursor: default; }
+
+/* credibility note, correction box, also reported */
+.cred-note { margin: 6px 0 0; color: var(--muted); }
+.cred-note b { color: var(--ink, inherit); font-weight: 600; }
+.correction { margin: 8px 0 4px; padding: 10px 12px; border-radius: 12px; border-left: 4px solid var(--neg-fg); background: var(--neg-bg); }
+.correction .kicker { color: var(--neg-fg); margin: 0 0 4px; }
+.correction p { margin: 0; font-size: 15px; line-height: 1.45; }
+details.also { margin-top: 10px; }
+details.also summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 14px; cursor: pointer; }
+details.also summary::-webkit-details-marker { display: none; }
+details.also summary .acc-h { flex-grow: 1; font-size: 15px; font-weight: 600; }
+details.also[open] summary .chev { transform: rotate(90deg); }
+.also-body { padding: 0 14px 14px 32px; }

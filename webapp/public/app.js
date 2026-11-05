@@ -898,7 +898,8 @@ async function viewReport(date, q) {
           ? h('div', { class: 'card card-pad' },
             h('p', { class: 'small' }, `Inga händelser ${archived ? 'den dagen' : 'i dag'} för ${selected.map(facetLabel).join(' + ')}.`),
             h('a', { class: 'btn', href: `#/arkiv?f=${encodeURIComponent(selected.join(','))}&r=30` }, 'Visa i arkivet'))
-          : h('p', { class: 'muted' }, 'Inga händelser registrerade.')),
+          : h('p', { class: 'muted' }, 'Inga händelser registrerade.'),
+      alsoReported(r, archived)),
     feed.length || !archived ? h('section', { class: 'section' },
       h('div', { class: 'sec-head' },
         h('h2', { class: 'kicker' }, feedTitle),
@@ -1033,6 +1034,30 @@ function fallbackNote(r) {
     ? h('p', { class: 'mark-note' }, 'Skriven av reservmodell – lägre säkerhet') : null;
 }
 function markTag(text) { return h('span', { class: 'mark-tag' }, text); }
+const hasCorrection = (e) => !!(e && e.correction && typeof e.correction.note_sv === 'string' && e.correction.note_sv.trim());
+
+// How many independent origins the sources have, and why the score was
+// held down (src/app_data.py credibility_cap), shown at the score.
+function credibilityNote(e) {
+  const n = Number.isInteger(e.independent_sources) ? e.independent_sources : null;
+  let reason = typeof e.score_capped_reason === 'string' ? e.score_capped_reason.trim() : '';
+  // "en oberoende källa: högst 6" reads "Högst 6: en oberoende källa".
+  const m = /^(.*?):\s*(högst \d+)(.*)$/i.exec(reason);
+  if (m) reason = `${m[2]}: ${m[1]}${m[3]}`;
+  const text = reason ? `${reason.charAt(0).toUpperCase()}${reason.slice(1)}.`
+    : n == null ? '' : n === 0 ? 'Ingen oberoende källa.' : `${plural(n, 'oberoende källa', 'oberoende källor')}.`;
+  if (!text) return null;
+  return h('p', { class: 'cred-note small' }, reason ? h('b', null, text) : text, ' ', h('a', { href: '#/om?s=index' }, 'Hur trovärdighet sätts'));
+}
+
+// A correction the pipeline made to an earlier version of the event.
+function correctionBox(e) {
+  if (!hasCorrection(e)) return null;
+  const c = e.correction;
+  return h('section', { class: 'correction', role: 'note', 'aria-label': 'Rättelse' },
+    h('h2', { class: 'kicker' }, `Rättelse${c.date ? ` ${dateShort(c.date)}` : ''}`),
+    h('p', null, c.note_sv, refLinks(c.refs, e)));
+}
 
 function heroCard(r) {
   const oi = r.operator_influence;
@@ -1108,6 +1133,16 @@ function forecastNote(r) {
       : null);
 }
 
+// Stories the model saw but did not make events of (report.also_reported).
+function alsoReported(r, archived) {
+  const items = Array.isArray(r.also_reported) ? r.also_reported.filter((x) => x && x.title_sv) : [];
+  if (!items.length) return null;
+  const pool = { articles: r.events.flatMap((e) => e.articles || []) };
+  return h('details', { class: 'card also' },
+    h('summary', null, h('span', { class: 'acc-h' }, `Fler händelser ${archived ? 'den dagen' : 'i dag'} (${items.length})`), chevRight()),
+    h('ul', { class: 'bullets also-body' }, items.map((x) => h('li', null, x.title_sv, refLinks(x.refs, pool, false)))));
+}
+
 function eventRow(date, e) {
   const sub = [e.topics.join(' · '), e.countries.map(countryName).join(', ')].filter(Boolean).join(' · ');
   const state = eventState(date, e);
@@ -1116,7 +1151,8 @@ function eventRow(date, e) {
     h('span', { class: 'row-main' },
       h('span', { class: 'row-title' }, e.title_sv || e.title),
       sub ? h('span', { class: 'row-sub' }, sub) : null,
-      isUnverified(e) ? h('span', { class: 'row-sub mark-text' }, 'Obekräftad – ingen hämtad källa') : null),
+      isUnverified(e) ? h('span', { class: 'row-sub mark-text' }, 'Obekräftad – ingen hämtad källa') : null,
+      hasCorrection(e) ? h('span', { class: 'row-sub mark-text' }, `Rättad ${e.correction.date ? dateShort(e.correction.date) : ''}`.trim()) : null),
     stateBadge(state),
     chevRight());
 }
@@ -1193,6 +1229,7 @@ async function viewEvent(date, id) {
 
   return frag(
     back,
+    correctionBox(e),
     h('div', { class: 'section' },
       h('div', { class: 'chips' },
         e.topics.map((t) => h('a', { class: 'chip', href: facetHref('#/amnen', t) }, t)),
@@ -1205,6 +1242,7 @@ async function viewEvent(date, id) {
         stateBadge(state),
         aiTag(),
         isUnverified(e) ? markTag('Obekräftad – ingen hämtad källa') : null),
+      credibilityNote(e),
       outcome ? h('p', { class: 'outcome' },
         h('span', { class: `rel rel-${OUTCOME[outcome.outcome][1]}` }, OUTCOME[outcome.outcome][0]),
         ' ', outcome.note || '',
@@ -1252,13 +1290,13 @@ function knownItems(e) {
     .filter((k) => k && k.text.trim());
 }
 
-function refLinks(refs, e) {
+function refLinks(refs, e, numbered = true) {
   const all = e.articles || [];
   const arts = [...new Set(refs || [])].map((id) => all.findIndex((a) => a && a.id === id)).filter((i) => i >= 0);
   if (!arts.length) return null;
   return h('span', { class: 'refs' }, arts.map((i) => {
     const a = all[i];
-    const label = `[${i + 1}] ${a.outlet || hostOf(a.url) || 'källa'}`;
+    const label = `${numbered ? `[${i + 1}] ` : ''}${a.outlet || hostOf(a.url) || 'källa'}`;
     return a.url && hostOf(a.url)
       ? h('button', { class: 'ref', type: 'button', 'aria-label': `Källa: ${a.outlet || hostOf(a.url)}`, onclick: () => openExternal(a.url, { outlet: a.outlet, tier: a.tier, date: a.fetched_at || a.date }) }, label)
       : h('span', { class: 'ref' }, label);
@@ -2026,7 +2064,14 @@ const FORCE_BRANCH = {
   luftvärn: ['Luftvärn', 'L', '#6B4E8B'], robot: ['Robot', 'R', '#8A3B12'], fallskärm: ['Fallskärm', 'V', '#7A5A1F'],
 };
 const FORCE_STATUS = { anfallen: 'Anfallen senaste 30 dagarna', aktiv: 'Aktiv', 'okänd': 'Status okänd' };
-const FORCE_CHANGE = { 'tillfört': 'Tillfört', flyttat: 'Flyttat', borta: 'Borta', 'ändrat': 'Ändrat' };
+const FORCE_CHANGE = { 'tillfört': 'Tillfört', flyttat: 'Flyttat', borta: 'Borta', 'ändrat': 'Ändrat', uppgift: 'Uppgift' };
+// 'uppgift': a removal or move with one independent source, kept as a claim
+// (src/forces.py); the lists stay as they were.
+function forceChangeText(c) {
+  if (c.kind !== 'uppgift') return `${FORCE_CHANGE[c.kind] || c.kind} ${c.what}`;
+  const claimed = FORCE_CHANGE[c.claimed_kind] ? `: ${FORCE_CHANGE[c.claimed_kind].toLowerCase()}` : '';
+  return `Uppgift${claimed} ${c.what} (en källa, listan oförändrad)`;
+}
 const FX = (lon) => (lon + 25) * 5.3;      // equirectangular, squeezed for latitude ~58
 const FY = (lat) => (82 - lat) * 10;
 const FULL = { x: 0, y: 0, w: FX(192), h: FY(34) };
@@ -2066,7 +2111,9 @@ function firmsMapUrl(lat, lon, day) {
 
 function firmsLine(f) {
   return f ? h('span', { class: 'small' }, h('br'), h('b', null, 'Brand sedd av satellit (NASA FIRMS)'),
-    `: ${plural(f.count, 'brandpunkt', 'brandpunkter')} inom ${String(f.radius_km || 3).replace('.', ',')} km från ${dateShort(f.date)}, konfidens ${f.confidence}.`) : null;
+    `: ${plural(f.count, 'brandpunkt', 'brandpunkter')} inom ${String(f.radius_km || 3).replace('.', ',')} km från ${dateShort(f.date)}, konfidens ${f.confidence}.`,
+    f.baseline && Number.isFinite(Number(f.baseline.count))
+      ? ` Normalt ${plural(Number(f.baseline.count), 'brandpunkt', 'brandpunkter')} ${Number(f.baseline.days) === 7 || !f.baseline.days ? 'veckan' : `de ${f.baseline.days} dagarna`} före.` : null) : null;
 }
 
 function firmsButton(lat, lon, day) {
@@ -2664,7 +2711,7 @@ async function viewForces() {
         [orig.units.join(', '), orig.equipment.join(', ')].filter(Boolean).join(' · ') || 'inget') : null,
       changes.length ? h('div', null, h('h3', { class: 'fsub' }, 'Ändringar i styrkan'),
         h('ul', { class: 'coa-signs' }, changes.map((c) => h('li', { class: 'coa-sign part' }, h('i'),
-          h('span', null, h('b', null, `${dateShort(c.date)}: ${FORCE_CHANGE[c.kind] || c.kind} ${c.what}`),
+          h('span', null, h('b', null, `${dateShort(c.date)}: ${forceChangeText(c)}`),
             c.to_base ? ` → ${otherBase(c.to_base)}` : '', c.from_base ? ` (från ${otherBase(c.from_base)})` : '',
             h('br'), c.text_sv, ' ', forceSources(c.sources)))))) : null,
       events.length ? h('div', null, h('h3', { class: 'fsub' }, 'Anfall och uppföljningar'),
@@ -2698,7 +2745,7 @@ async function viewForces() {
   const nightRows = night ? [
     ...night.attacks.map((e) => h('li', { class: 'coa-sign obs' }, h('i'), h('span', null, h('b', null, 'Anfall: '), baseBtn(e.base), ` (${dateShort(e.date)}). `, e.text_sv, ' ', forceSources(e.sources)))),
     ...night.follow_ups.map((e) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, 'Uppföljning: '), baseBtn(e.base), '. ', e.text_sv, ' ', forceSources(e.sources)))),
-    ...night.changes.map((c) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, `${FORCE_CHANGE[c.kind] || c.kind} ${c.what}: `), baseBtn(c.base),
+    ...night.changes.map((c) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, `${forceChangeText(c)}: `), baseBtn(c.base),
       c.to_base ? [' → ', baseBtn(c.to_base)] : '', '. ', c.text_sv, ' ', forceSources(c.sources)))),
     ...night.other.map(otherStrikeRow),
   ] : [];
