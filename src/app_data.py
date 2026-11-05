@@ -111,6 +111,68 @@ RELATIONS = {"bekräftar", "motsäger", "tillför"}
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
+# --------------------------------------------------------------------------
+# Independent origins (#12)
+# --------------------------------------------------------------------------
+# Agency copy credited in the title or opening text: "(AP) -", "Reuters
+# reported", "(TT)". One agency text in twenty papers is one origin.
+WIRE_CREDITS = [
+    ("AP", re.compile(r"\(AP\)|\bAssociated Press\b|\bAP\s+[-—–]|[-—–]\s*AP\b|\bAP reported\b")),
+    ("Reuters", re.compile(r"\bReuters\b")),
+    ("AFP", re.compile(r"\bAFP\b|\bAgence France[- ]Presse\b")),
+    ("TT", re.compile(r"\(TT\)|\bTT Nyhetsbyrån\b|/TT\b")),
+    ("dpa", re.compile(r"\bdpa\b")),
+    ("NTB", re.compile(r"\(NTB\)|\bNTB\b")),
+    ("Ritzau", re.compile(r"\bRitzau\b")),
+    ("STT", re.compile(r"\(STT\)|\bSTT\b")),
+    ("PAP", re.compile(r"\(PAP\)|\bPAP\b")),
+    ("ANP", re.compile(r"\(ANP\)|\bANP\b")),
+    ("Bloomberg", re.compile(r"\(Bloomberg\)|\bBloomberg News\b")),
+]
+# Aggregators republish others' reporting; together they are one origin.
+AGGREGATORS = re.compile(r"(^|\b)(msn|yahoo|devdiscourse|newsbreak|head ?topics|ground ?news|flipboard|newsnow|"
+                         r"biztoc|opera news|news ?now|newsoftheworld|latestly|inkl)(\b|$)|"
+                         r"(^|[./])(msn\.com|yahoo\.com|devdiscourse\.com|newsbreak\.com|headtopics\.com)", re.I)
+TITLE_SAME = 0.5      # word overlap (Jaccard) at which two headlines are one text
+
+
+def _title_words(title: str) -> set:
+    return {w for w in re.findall(r"\w+", (title or "").lower()) if len(w) > 2}
+
+
+def independent_sources(articles: list) -> int:
+    """How many independent origins the news articles have: the same
+    outlet, the same agency text (credited, or with nearly the same
+    headline) and every aggregator count once. Video and social posts
+    count not at all. Each article is {outlet, url, title, text}."""
+    import blocklist
+    items = [a for a in articles if blocklist.is_news(a)]
+    parent = list(range(len(items)))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    keys = []
+    for a in items:
+        outlet = canonical_outlet(a.get("outlet") or "")
+        where = f"{outlet} {a.get('url') or ''}"
+        wire = next((w for w, rx in WIRE_CREDITS if w == outlet or rx.search(f"{a.get('title') or ''} "
+                                                                                f"{a.get('text') or ''}")), None)
+        keys.append({"outlet:" + outlet.lower(), "wire:" + wire if wire else None,
+                     "aggregator" if AGGREGATORS.search(where) else None} - {None})
+    words = [_title_words(a.get("title")) for a in items]
+    for i in range(len(items)):
+        for j in range(i):
+            same_title = (len(words[i]) >= 3 and len(words[j]) >= 3
+                          and len(words[i] & words[j]) / len(words[i] | words[j]) >= TITLE_SAME)
+            if keys[i] & keys[j] or same_title:
+                parent[find(i)] = find(j)
+    return len({find(i) for i in range(len(items))})
+
+
 def _outlet_for(a: dict, match: dict) -> str:
     """The outlet of a verified article: the name the article list gave,
     so the model cannot put "Reuters" on a Devdiscourse copy. The model's
@@ -167,10 +229,11 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
         if search_results is None:
             ev["articles"] = _legacy_articles(ev, report_date, i)
             ev["unverified"] = True
+            ev["independent_sources"] = 0
             continue
 
         # New reports: only the articles list, never the free-text sources line.
-        clean = []
+        clean, texts = [], {}
         for a in ev.get("articles") or []:
             if not isinstance(a, dict):
                 continue
@@ -209,9 +272,12 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
             if a.get("relation") in RELATIONS:
                 item["relation"] = a["relation"]
             clean.append(item)
+            texts[item["id"]] = match.get("summary") or ""
         # Same article twice -> once.
         seen = set()
         ev["articles"] = [a for a in clean if not (a["id"] in seen or seen.add(a["id"]))]
+        ev["independent_sources"] = independent_sources(
+            [{**a, "text": texts.get(a["id"], "")} for a in ev["articles"]])
         # Video and social posts may stand beside a news source, never alone (#15).
         if any(blocklist.is_news(a) for a in ev["articles"]):
             ev.pop("unverified", None)

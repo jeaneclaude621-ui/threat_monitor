@@ -129,6 +129,37 @@ class SocialNeverAloneInForces(unittest.TestCase):
         self.assertEqual(st["bases"][0]["equipment"], [])
 
 
+class Independence(unittest.TestCase):
+    def count(self, *arts):
+        return app_data.independent_sources([dict(zip(("outlet", "title", "text", "url"), a)) for a in arts])
+
+    def test_one_ap_text_in_many_papers_is_one(self):
+        self.assertEqual(self.count(
+            ("AP", "Drones spotted over Danish airport", "", "https://apnews.com/x"),
+            ("Washington Post", "Drones spotted over Danish airport, police say", "COPENHAGEN (AP) - Police said", ""),
+            ("ABC News", "Police: drones seen over airport in Denmark", "COPENHAGEN (AP) - Police", ""),
+            ("Seattle Times", "Drones spotted over Danish airport", "", "")), 1)
+
+    def test_aggregators_are_one_origin(self):
+        self.assertEqual(self.count(
+            ("MSN", "Russia warns Baltic states", "", "https://www.msn.com/a"),
+            ("Yahoo News", "Kremlin issues warning to Baltics", "", "https://news.yahoo.com/b"),
+            ("Devdiscourse", "Moscow sends message to Baltic capitals", "", "https://www.devdiscourse.com/c")), 1)
+
+    def test_independent_outlets_and_social(self):
+        self.assertEqual(self.count(
+            ("Reuters", "Cable damaged in Baltic Sea", "", ""),
+            ("ERR", "Estonia investigates undersea cable", "", ""),
+            ("YouTube", "Cable footage", "", "https://youtube.com/watch?v=1"),
+            ("Reuters", "Finland seizes ship after cable break", "", "")), 2)
+
+    def test_stored_per_event(self):
+        ev = app_data.enrich_events([event({"ref": "A1"}, {"ref": "A2"}, {"ref": "A3"})], "2026-11-05", LIST)[0]
+        self.assertEqual(ev["independent_sources"], 2)
+        ev = app_data.enrich_events([event({"ref": "A3"})], "2026-11-05", LIST)[0]
+        self.assertEqual(ev["independent_sources"], 0)
+
+
 class PoolDates(unittest.TestCase):
     def test_since(self):
         from datetime import datetime
