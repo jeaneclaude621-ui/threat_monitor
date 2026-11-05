@@ -62,6 +62,10 @@ export const FEATURES = [
   // Bedöm
   { id: 'bedom', area: 'bedom', title: 'Bedöm källor', href: '#/bedom', added: '2026-10-01', admin: true,
     desc: 'Svep för att bedöma nyheternas trovärdighet; påverkar hotindex.', keywords: 'bedömning svep trovärdighet' },
+  { id: 'bedom-skala', area: 'bedom', title: 'Skalan i Bedöm förklarad', href: '#/bedom', added: '2026-11-05', admin: true,
+    desc: 'Bedöm om påståendet stämmer enligt källan, inte om utgivaren är seriös. En mening per värde.', keywords: 'bedöm skala värde trovärdig tveksam' },
+  { id: 'styrkor-uppgift', area: 'styrkor', title: 'Uppgifter med en källa och normal brandnivå', href: '#/styrkor', added: '2026-11-05',
+    desc: 'Ändringar med bara en källa visas som uppgift och listan ändras inte. Vid satellitbränder står hur många brandpunkter som är normalt veckan före.', keywords: 'styrkor uppgift källa brand satellit firms normalt' },
   { id: 'mina', area: 'bedom', title: 'Mina bedömningar', href: '#/mina', added: '2026-10-01', admin: true,
     desc: 'Det du har bedömt, och hur det stämde.', keywords: 'bedömningar historik' },
 
@@ -78,6 +82,20 @@ export const FEATURES = [
     desc: 'Nekade inloggningar och vad administratörerna har gjort.', keywords: 'säkerhet logg' },
 
   // Appen
+  { id: 'introduktion', area: 'app', title: 'Kort introduktion', action: 'intro', added: '2026-11-05',
+    desc: 'Tre kort om vad Hotmonitor är, hur siffrorna läses och hur du får notiser.', keywords: 'introduktion välkommen hjälp kom igång' },
+  { id: 'rattelser', area: 'app', title: 'Rättelser', href: '#/rattelser', added: '2026-11-05',
+    desc: 'Händelser där en uppgift har rättats. Rättelsen står också överst på händelsen.', keywords: 'rättelse fel ändring korrigering' },
+  { id: 'kallhanvisning', area: 'idag', title: 'Källa vid varje uppgift', href: '#/', added: '2026-11-05',
+    desc: 'Under Vad vi vet visar små länkar vilken artikel varje uppgift kommer från.', keywords: 'källa hänvisning vad vi vet artikel' },
+  { id: 'trovardighetstak', area: 'idag', title: 'Varför trovärdigheten är begränsad', href: '#/om?s=index', added: '2026-11-05',
+    desc: 'Vid poängen står hur många oberoende källor det finns, t.ex. ”Högst 6: en oberoende källa”.', keywords: 'trovärdighet oberoende källor högst tak poäng' },
+  { id: 'fler-handelser', area: 'idag', title: 'Fler händelser i dag', href: '#/', added: '2026-11-05',
+    desc: 'Mindre nyheter från dygnet, hopfällda under händelselistan.', keywords: 'fler händelser nyheter övrigt' },
+  { id: 'folj', area: 'app', title: 'Notiser utan konto, följ ämnen och länder', action: 'settings', added: '2026-11-05',
+    desc: 'Slå på notiser utan att logga in, och välj vilka ämnen och länder du vill få notiser om.', keywords: 'notis gäst följ ämne land push' },
+  { id: 'rss', area: 'app', title: 'RSS-flöde', href: '#/om?s=rss', added: '2026-11-05',
+    desc: 'Dagens rapport i din nyhetsläsare.', keywords: 'rss flöde nyhetsläsare feed' },
   { id: 'tillbaka', area: 'app', title: 'Pil bakåt på alla sidor', href: '#/arkiv', added: '2026-11-05',
     desc: 'Pilen uppe till vänster tar dig tillbaka dit du var, på samma ställe på sidan.', keywords: 'tillbaka bakåt pil navigering' },
   { id: 'dela', area: 'app', title: 'Dela en händelse eller dagens läge', href: '#/', added: '2026-11-05',

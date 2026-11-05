@@ -800,3 +800,28 @@ For the app (another session):
   reload the page).
 - Workers' sources blocklist matches `src/blocklist.py`; access requests
   and guest push answer 503 naming the migration until 0014/0015 have run.
+
+# Version 3.39 (5 Nov 2026) - the app shows refs, caps, corrections; guest notices
+
+App only (webapp/public); no new endpoints.
+- `known_sv` is read as `[{text, refs: [article id]}]` or plain strings;
+  refs become small links to the event's own articles (matched on `id`).
+- At the event's score: `score_capped_reason` (shown as "Högst N: ...") or,
+  without one, `independent_sources` ("2 oberoende källor").
+- `event.correction { date, note_sv, refs }`: a "Rättelse" box at the top of
+  the event and "Rättad <datum>" on its row. `#/rattelser` lists every
+  corrected event in the loaded reports (last 30 days, or all on request),
+  linked from Om.
+- `report.also_reported [{ title_sv, refs }]`: a folded "Fler händelser i
+  dag" under the event list; refs match articles of any event that day.
+- Forces: `firms.baseline { days, count }` adds "Normalt N brandpunkter
+  veckan före"; change kind `uppgift` (with `claimed_kind`) reads "Uppgift:
+  <kind> <what> (en källa, listan oförändrad)".
+- Notices: the bell shows for guests too. Subscribe sends `topics` and
+  `countries` (kept in localStorage `hm.follow`); chips in the settings post
+  `/api/push/prefs { endpoint, topics, countries }`. A 503 (or, for a guest,
+  401/403/404 from an older Worker) shows "Notiser för gäster öppnar snart".
+- First visit: three intro cards (`hm.introSeen` in localStorage).
+- `<link rel="alternate" type="application/rss+xml" href="/feed.xml">` and
+  a link on Om; the Worker or the run must serve `/feed.xml`.
+- Service worker cache `hm-v3.39`.

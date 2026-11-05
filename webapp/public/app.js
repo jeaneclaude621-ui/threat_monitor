@@ -4027,7 +4027,7 @@ async function adminAudit() {
 // ---------------------------------------------------------------- functions menu (Version 3.19)
 // A small chip beside "Hotläget": what is new the last NEW_DAYS days, and
 // every function in order, searchable letter by letter (features.js).
-const FEATURE_ACTIONS = { settings: () => openSettings(), install: () => openInstall(), features: () => openFeatures() };
+const FEATURE_ACTIONS = { settings: () => openSettings(), install: () => openInstall(), features: () => openFeatures(), intro: () => openIntro() };
 
 function visibleFeatures() {
   return FEATURES.filter((f) => (!f.admin || isAdmin()) && (!f.user || !isGuest()));
