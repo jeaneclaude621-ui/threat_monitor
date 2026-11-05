@@ -25,7 +25,8 @@ from pptx_builder import build_deck
 from mailer import send_daily_email
 from reply_checker import check_replies
 from executive_sv import build_executive_safe
-from app_data import enrich_events, add_favicons, SWEEP_EVENT_FIELDS, SWEEP_EVENT_JSON, _norm_url
+from app_data import enrich_events, add_favicons, _norm_url
+import app_data
 from app_sync import pull_assessments, push_report, backup_app
 import common
 import feed_prefilter
@@ -236,6 +237,22 @@ INDEX_JSON_FIELDS = """  "threat_index": 0.0,
   "next_band_partial_30d": ["..."],
   "threat_index_30d_justification": "...",
   "forecast_drivers": [{"when": "date or window", "driver": "...", "direction": "up|down"}],"""
+
+# known_sv with refs (#9): each sentence names the refs of the articles
+# it rests on; app_data.known_with_refs keeps only sentences with a
+# verified ref. The event fields are app_data's, with known_sv asked for
+# in that form (the asserts fail loudly if app_data's wording changes).
+_KNOWN_FIELD = '   - "known_sv": 2-4 short Swedish sentences - what is established;'
+_KNOWN_FIELD_REFS = '''   - "known_sv": 2-4 short Swedish sentences - what is established -
+     each {"text": "...", "refs": ["A3"]}, refs being the refs of the
+     event's articles that establish it, copied exactly. A sentence
+     without a ref to one of the event's articles is left out;'''
+_KNOWN_JSON = '"known_sv": ["..."]'
+_KNOWN_JSON_REFS = '"known_sv": [{"text": "...", "refs": ["A1"]}]'
+assert _KNOWN_FIELD in app_data.SWEEP_EVENT_FIELDS and _KNOWN_JSON in app_data.SWEEP_EVENT_JSON
+SWEEP_EVENT_FIELDS = app_data.SWEEP_EVENT_FIELDS.replace(_KNOWN_FIELD, _KNOWN_FIELD_REFS)
+SWEEP_EVENT_JSON = app_data.SWEEP_EVENT_JSON.replace(_KNOWN_JSON, _KNOWN_JSON_REFS)
+
 
 MIN_BAND_SCORE = 7      # credibility an event needs to hold up a band
 PLACEMENT_CAP = 0.1     # highest placement above the band without a next-band condition
