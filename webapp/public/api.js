@@ -87,9 +87,24 @@ export function isAdmin() { return !!store.me && store.me.role === 'admin'; }
 // Version 3.17: read without logging in. Read marks stay on the device.
 export function isGuest() { return !!store.me && store.me.role === 'guest'; }
 
+// S5: the service worker keeps API answers for offline use. When who is
+// signed in changes (guest -> admin, logout, another account), drop them,
+// so one person's data does not linger for the next on a shared device.
+const who = (me) => (me ? `${me.role || ''}|${me.email || ''}` : '');
+function clearDataCache() {
+  store.reports.clear();
+  store.index = null;
+  try {
+    const sw = navigator.serviceWorker && navigator.serviceWorker.controller;
+    if (sw) sw.postMessage({ type: 'hm-clear-data' });
+  } catch { /* no service worker: nothing cached */ }
+}
+
 export async function loadMe() {
   try {
+    const before = lsGet(ME_KEY, null);
     store.me = await getJSON('/api/me', { cache: 'no-store' });
+    if (before && who(before) !== who(store.me)) clearDataCache();
     lsSet(ME_KEY, store.me);
     store.stale = false;
   } catch (e) {
