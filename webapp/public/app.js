@@ -236,6 +236,9 @@ async function route({ keepScroll = false } = {}) {
   } else {
     window.scrollTo(0, keepScroll ? y : 0);
   }
+  // #/om?s=integritet and the like: open Om at that section.
+  const anchor = currentRoute === 'om' && q.get('s') ? document.getElementById(`om-${q.get('s')}`) : null;
+  if (anchor && !keepScroll) anchor.scrollIntoView({ block: 'start' });
 }
 
 function rerender() { if (!isDragging() && !document.querySelector('dialog[open]')) route({ keepScroll: true }); }
@@ -3791,12 +3794,45 @@ function viewAbout() {
         contactLink('öppna ärenden (issues)'), '. Ärenden där är offentliga, så skriv inga personuppgifter som inte behövs.'),
       h('h2', { class: 'title-m' }, 'Källor'),
       h('p', null, 'Rysk statsmedia och Telegram används inte som nyhetskällor. Under Narrativ visas den ryska sidan bara som våra svenska sammanfattningar, utan länkar dit.'),
-      h('h2', { class: 'title-m' }, 'Integritet'),
       h('p', null, guest
-        ? 'Du läser utan att logga in. Hotmonitor sätter inga egna kakor, har ingen spårning och hämtar inget från tredje part när du läser. Vad du har läst sparas bara i den här webbläsaren. Servern ser din IP-adress för att stoppa överbelastning, men den sparas inte med det du läser.'
-        : 'Du är inloggad med din e-postadress via Cloudflare Access. Adressen syns bara för administratörer.'),
+        ? 'Du läser utan att logga in. Vad du har läst sparas bara i den här webbläsaren.'
+        : 'Du är inloggad med din e-postadress. Adressen syns bara för administratörer.'),
+      h('p', null, h('a', { href: '#/om?s=integritet' }, 'Läs integritetspolicyn'), ' nedan.'),
       guest ? h('p', null, h('a', { class: 'btn primary', href: '/login' }, 'Logga in'), ' ',
-        h('span', { class: 'small muted' }, 'för notiser och för att bedöma källor (kräver konto).')) : null));
+        h('span', { class: 'small muted' }, 'för notiser och för att bedöma källor (kräver konto).')) : null),
+    privacySection());
+}
+
+// Integritetspolicy (review G2): what is kept, why, for how long, who helps.
+function privacySection() {
+  const li = (...kids) => h('li', null, ...kids);
+  return h('section', { class: 'card card-pad about', id: 'om-integritet', 'aria-labelledby': 'integritet-h' },
+    h('h2', { class: 'title-m', id: 'integritet-h' }, 'Integritetspolicy'),
+    h('p', null, 'Personuppgiftsansvarig är projektets ägare. Hotmonitor är ett privat projekt utan kommersiellt syfte.'),
+    h('h3', { class: 'about-h3' }, 'Om du läser utan att logga in'),
+    h('ul', { class: 'bullets' },
+      li('Inga kakor, ingen analys och ingen spårning. Typsnitt och allt annat hämtas från Hotmonitor själv.'),
+      li('Vad du har läst och dina inställningar sparas bara i din webbläsare (localStorage) och lämnar den inte.'),
+      li('Servern ser din IP-adress när du hämtar en sida. Den hålls i minnet en kort stund för att stoppa överbelastning och sparas inte. Vid misstänkt missbruk loggas bara land, sökväg och tid.')),
+    h('h3', { class: 'about-h3' }, 'Om du är inloggad'),
+    h('ul', { class: 'bullets' },
+      li('E-postadress och roll (läsare eller administratör), för att ge dig rätt behörighet.'),
+      li('Senaste besök, för att kunna visa vad som är nytt sedan sist.'),
+      li('Läsmarkeringar: vilka händelser och uppdateringar du har öppnat.'),
+      li('Push-prenumerationer, om du har slagit på notiser: en adress hos din webbläsares notistjänst.'),
+      li('Bedömningar av källor, om du är bedömare. Andra ser dem bara som ”Bedömare N”, utan namn eller adress.'),
+      li('Enhet och plattform (t.ex. iPhone, hemskärm eller webbläsare), för att kunna ge rätt hjälp med notiser.'),
+      li('Säkerhetslogg över nekade eller misstänkta inloggningsförsök (e-post, land, sökväg, tid). Den sparas i 90 dagar.')),
+    h('h3', { class: 'about-h3' }, 'Ändamål och rättslig grund'),
+    h('p', null, 'Uppgifterna används bara för att driva tjänsten: inloggning, behörighet, notiser, vad som är nytt och skydd mot missbruk. Den rättsliga grunden är berättigat intresse (artikel 6.1 f i dataskyddsförordningen). Inget säljs eller används för reklam.'),
+    h('h3', { class: 'about-h3' }, 'Biträden'),
+    h('ul', { class: 'bullets' },
+      li(h('b', null, 'Cloudflare'), ': driftar appen och databasen och sköter inloggningen (Cloudflare Access loggar inloggningar, även IP-adress).'),
+      li(h('b', null, 'GitHub'), ': kod och den dagliga körningen som gör rapporterna. Inga användaruppgifter skickas dit.'),
+      li(h('b', null, 'Google Gemini'), ': AI-modellen får bara nyhetstext ur öppna källor, aldrig uppgifter om användare.')),
+    h('h3', { class: 'about-h3' }, 'Dina rättigheter'),
+    h('p', null, 'Du har rätt att få veta vilka uppgifter som finns om dig (utdrag), få dem rättade och få dem raderade, och att klaga hos Integritetsskyddsmyndigheten (IMY). Be om utdrag eller radering genom ',
+      contactLink('ett ärende på GitHub'), '. Skriv inte din e-postadress i ärendet, eftersom det är offentligt. Skriv att du vill bli kontaktad, så ordnar vi en säker väg.'));
 }
 
 // ---------------------------------------------------------------- chrome

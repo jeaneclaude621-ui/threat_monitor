@@ -875,3 +875,6 @@ img.zoomable { cursor: zoom-in; -webkit-touch-callout: none; -webkit-user-select
 .site-foot { margin: 28px 2px 8px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); line-height: 1.45; }
 .site-foot p + p { margin-top: 6px; }
 .site-foot a { color: var(--link); font-weight: 600; }
+.about-h3 { font-size: 15px; font-weight: 600; margin: 14px 0 4px; }
+#om-integritet, #om-ansvar, #om-index { scroll-margin-top: 16px; }
+.about + .about { margin-top: 14px; }
