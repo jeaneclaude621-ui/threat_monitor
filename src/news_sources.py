@@ -30,6 +30,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import blocklist
 import common
 import feed_prefilter
 
@@ -151,17 +152,11 @@ def gdelt(query: str, hours: int = 24, limit: int = 40) -> list:
     return out
 
 
-# Never a source for the analysis: Telegram and Russian state media. The
-# Worker refuses them in the Sources tab (Version 3.16); this is the second lock.
-BLOCKED_HOSTS = ("t.me", "telegram.me", "telegram.org", "telegra.ph", "telesco.pe", "tass.ru", "tass.com",
-                 "rt.com", "ria.ru", "sputniknews.com", "sputniknews.ru", "sputnikglobe.com", "sputnik.by",
-                 "sputnik.kz", "iz.ru", "tvzvezda.ru", "rg.ru")
-
-
-def blocked_source(url: str) -> bool:
-    from urllib.parse import urlparse
-    host = (urlparse(url or "").hostname or "").lower().rstrip(".")
-    return any(host == b or host.endswith("." + b) for b in BLOCKED_HOSTS)
+# Never a source for the analysis: Telegram, Russian state media and the
+# pro-Kremlin network (src/blocklist.py). The Worker refuses them in the
+# Sources tab (Version 3.16); this and Pool.add are the second lock.
+def blocked_source(url: str, outlet: str = None) -> bool:
+    return blocklist.blocked(url, outlet)
 
 
 def app_sources() -> list:
@@ -224,9 +219,17 @@ def fetch_article(source: dict) -> dict:
 class Pool:
     def __init__(self):
         self.items, self._seen = [], set()
+        self.blocked = 0
 
     def add(self, items):
+        """Adds articles once each (same link or same title), never one
+        from Telegram, Russian state media or the pro-Kremlin network -
+        by link or by publisher name, as Google News links all go to
+        news.google.com (src/blocklist.py)."""
         for it in items:
+            if blocklist.blocked_item(it):
+                self.blocked += 1
+                continue
             key = (it.get("link") or "").split("?oc=")[0] or None
             tkey = re.sub(r"\W+", " ", (it.get("title") or "").lower()).strip()
             if not tkey or key in self._seen or tkey in self._seen:

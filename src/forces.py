@@ -51,6 +51,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import DATA_DIR, OUTPUT_DIR
+from blocklist import is_news
+import blocklist
 
 ROOT = Path(__file__).resolve().parent.parent
 CURATED = ROOT / "config" / "forces_curated.json"
@@ -100,9 +102,6 @@ QUERIES = [
 # Searched first among the night's articles: what speaks of a strike.
 STRIKE_WORDS = re.compile(r"(drone|strike|struck|attack|explosion|blast|fire|hit|missile|refinery|depot|"
                           r"destroyed|damaged|shot down)", re.I)
-# Russian state media stay out, as everywhere in the analysis.
-STATE_MEDIA = re.compile(r"\b(tass|rt\b|russia today|ria\b|ria novosti|sputnik|izvestia|zvezda|rossiyskaya|"
-                         r"rg\.ru|kommersant|interfax|pravda\.ru|tvzvezda)", re.I)
 TOPIC = re.compile(r"(air ?base|airfield|aerodrome|naval base|base\b|fleet|brigade|division|regiment|"
                    r"troops|forces|deploy|redeploy|iskander|s-[34]00|tu-\d|su-\d|depot|strike|drone)", re.I)
 
@@ -336,7 +335,8 @@ def articles(state: dict, report: dict = None, pool=None) -> list:
     if pool is not None:
         p.add(a for a in pool.items if TOPIC.search(f"{a.get('title', '')} {a.get('summary', '')}"))
     p.since(datetime.now() - timedelta(hours=28))
-    items = [a for a in p.items if not STATE_MEDIA.search(f"{a.get('source', '')} {a.get('link', '')}")]
+    # Pool.add keeps Russian state media out (src/blocklist.py); this is the second lock.
+    items = [a for a in p.items if not blocklist.blocked_item(a)]
     # Strikes first, then the newest: the cap must not cut the attacks.
     items.sort(key=lambda a: (bool(STRIKE_WORDS.search(a.get("title") or "")), a.get("published") or datetime.max), reverse=True)
     return items[:MAX_ARTICLES]
@@ -441,14 +441,8 @@ Respond as strict JSON:
 # --------------------------------------------------------------------------
 # Applying the answer
 # --------------------------------------------------------------------------
-# Not news: video and social posts. An attack rests on at least one news
-# source; these may stand beside one but never alone.
-NOT_NEWS = re.compile(r"(youtube|youtu\.be|\bx\.com|twitter|facebook|instagram|tiktok|telegram|\bt\.me\b|"
-                      r"reddit|\bvk\.com|vkontakte|rumble|odysee)", re.I)
-
-
-def is_news(src: dict) -> bool:
-    return not NOT_NEWS.search(f"{src.get('outlet') or ''} {src.get('url') or ''}")
+# Not news: video and social posts (blocklist.is_news). An entry rests on
+# at least one news source; these may stand beside one but never alone.
 
 
 def _sources(entry: dict, refs: dict) -> list:

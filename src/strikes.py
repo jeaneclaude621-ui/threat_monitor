@@ -40,6 +40,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import DATA_DIR
+import blocklist
 
 DATASET = "piterfm/massive-missile-attacks-on-ukraine"
 URL = f"https://www.kaggle.com/api/v1/datasets/download/{DATASET}"
@@ -197,7 +198,6 @@ PRELIM_QUERIES = [
     'Russia attacked Ukraine overnight drones missiles air force',
 ]
 PRELIM_MAX_NIGHTS = 7
-STATE_MEDIA = re.compile(r"\b(tass|rt\b|russia today|ria\b|ria novosti|sputnik|izvestia|zvezda|rossiyskaya|rg\.ru)", re.I)
 KIND_NAMES = {"drönare", "kryssningsrobot", "ballistisk robot"}
 
 
@@ -212,7 +212,7 @@ def headlines(days: int) -> dict:
             title = (a.get("title") or "").strip()
             if not title or title in seen or not a.get("published"):
                 continue
-            if STATE_MEDIA.search(f"{a.get('source', '')} {a.get('link', '')}"):
+            if blocklist.blocked_item(a):
                 continue
             seen.add(title)
             pub = a["published"]
@@ -257,7 +257,7 @@ def preliminary(kaggle_newest: str, previous: dict, today: date) -> list:
     missing = [w for w in wanted if w not in kept]
     if not missing:
         return [kept[w] for w in wanted if w in kept]
-    from common import lite_model, ask_model_json, MODEL
+    from common import lite_model, ask_model_json
     model = lite_model()
     if not model:
         print("  Strikes: no light model; nights after the dataset stay empty")
