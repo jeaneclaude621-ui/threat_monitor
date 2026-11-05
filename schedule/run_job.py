@@ -36,12 +36,15 @@ reply check that leaves the mail unread.
 
 Every real run is reported to the app (PUT /api/ingest/runs/<id>) when it
 starts and when it ends, with the job's "!" warning lines, for the status
-page's green/yellow/red lights.
+page's green/yellow/red lights. A run that exits 0 but whose warnings show
+that part of it fell (401, 429, 503, "failed") is reported "partial", not
+"ok": on 4 Nov a run with 401 on every upload looked green.
 """
 import argparse
 import fcntl
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -220,6 +223,51 @@ def run_and_watch(script: list) -> tuple:
     return proc.wait(), warnings
 
 
+# Warning lines that mean part of the run fell: refused access (401), a
+# spent quota (429), an overloaded service (503), or a step that failed.
+PARTIAL_MARKERS = re.compile(r"\b(401|429|503)\b|failed", re.IGNORECASE)
+
+
+def partial_reasons(warnings: list) -> list:
+    """The markers (401, 429, 503, failed) found in the job's warning
+    lines, each once, in order of first appearance."""
+    found = []
+    for w in warnings:
+        for m in PARTIAL_MARKERS.finditer(w):
+            k = m.group(0).lower()
+            if k not in found:
+                found.append(k)
+    return found
+
+
+def run_status(code: int, warnings: list) -> str:
+    """'failed' on a non-zero exit, 'partial' when it exited 0 but the
+    warnings show part of it fell, else 'ok'."""
+    if code != 0:
+        return "failed"
+    return "partial" if partial_reasons(warnings) else "ok"
+
+
+def report_finished(run: dict, push=None):
+    """report_run for the final status. An app that does not yet know
+    "partial" refuses it (HTTP 400): the run is then sent as "ok" with
+    partial: true, so it is not left "running" on the status page."""
+    if push is None:
+        from app_sync import push_run as push
+    try:
+        push(run)
+        return
+    except Exception as e:
+        if run.get("status") != "partial" or "400" not in str(e):
+            log(f"! Run status upload failed: {e}")
+            return
+    try:
+        push(dict(run, status="ok"))
+        log("! The app does not accept status 'partial' yet - sent as ok with partial: true")
+    except Exception as e:
+        log(f"! Run status upload failed: {e}")
+
+
 def report_run(run: dict):
     try:
         from app_sync import push_run
@@ -282,8 +330,14 @@ def main() -> int:
     if code != 0:
         log(f"! {args.job} exited with code {code}")
     if not args.test:
-        report_run(dict(run, status="ok" if code == 0 else "failed", exit_code=code, warnings=warnings,
-                        finished_at=datetime.now().astimezone().isoformat(timespec="seconds")))
+        status = run_status(code, warnings)
+        final = dict(run, status=status, exit_code=code, warnings=warnings,
+                     finished_at=datetime.now().astimezone().isoformat(timespec="seconds"))
+        if status == "partial":
+            final["partial"] = True
+            final["partial_reasons"] = partial_reasons(warnings)
+            log(f"! {args.job} finished, but part of it fell ({', '.join(final['partial_reasons'])}) - reported as partial")
+        report_finished(final)
 
     if args.test:
         if has_remote():

@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import load_state, save_state, ask_model_json, append_hourly_entry, lite_model, MODEL
 from reply_checker import check_replies
 from app_sync import push_updates
+import common
 import feed_prefilter
 import news_sources
 
@@ -138,6 +139,7 @@ def run_once():
     ids = [t["id"] for t in state["watchlist"]]
     prompt = PROMPT_TEMPLATE.format(count=len(ids), threads="\n\n".join(blocks),
                                     ids=", ".join(ids))
+    mark = common.calls_mark()
     try:
         # The light model, with its own daily quota, so the main model's
         # 20 calls stay for the morning report and the authorities' brief
@@ -158,6 +160,9 @@ def run_once():
             print(f"  ! {thread['id']}: missing from Gemini's answer")
         results.append(result if isinstance(result, dict) else None)
 
+    # Which model wrote this run's thread updates (fallback_used: the main
+    # model took over from the light one), on every entry it produced.
+    stamp = common.generated_by(mark)
     app_updates = []
     for thread, result in zip(state["watchlist"], results):
         if result is None:
@@ -175,6 +180,7 @@ def run_once():
             "correcting_outlet": result.get("correcting_outlet"),
             "byline": result.get("byline"),
             "summary": result.get("summary", ""),
+            "generated_by": stamp,
         }
         append_hourly_entry(entry, when=now)
         if classification != "NO_CHANGE":

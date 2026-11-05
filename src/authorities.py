@@ -39,6 +39,7 @@ from urllib.parse import urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import DATA_DIR, ask_model_json
+import common
 import feed_prefilter
 import news_sources
 
@@ -200,6 +201,7 @@ def gather(now: datetime) -> dict:
 
 
 def summarise(material: dict, now: datetime) -> dict:
+    mark = common.calls_mark()
     refs, blocks = {}, []
     for name, items in material.items():
         lines = []
@@ -314,6 +316,7 @@ Respond as strict JSON:
         "quiet": [n for n in names if not any(i["agency"] == n for i in items)],
         "nato": {"overall_sv": result.get("nato_overall_sv"), "items": nato_items},
         "found": {n: len(v) for n, v in material.items()},
+        "generated_by": common.generated_by(mark),
     }
 
 
