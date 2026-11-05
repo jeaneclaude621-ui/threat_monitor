@@ -41,6 +41,7 @@ State: data/forces.json. App: PUT /api/ingest/forces.
 import argparse
 import json
 import math
+import os
 import re
 import sys
 import urllib.parse
@@ -559,7 +560,7 @@ SITE_RADIUS_M = 20000   # how far from the town's centre the facility may be
 # without a name match when it is the only one around; the rest only by name.
 SPECIFIC = {"refinery", "power", "aerodrome"}
 # Names that say the kind ("Рязанский НПЗ"): among several features, these come first.
-KIND_NAMES = {"refinery": r"НПЗ|нефтеперераб|refiner|нефтехим",
+KIND_NAMES = {"refinery": r"НПЗ|НПК|нефтеперераб|refiner|нефтехим",
               "oil": r"нефтебаз|нефтепрод|нефт|транснефт|oil|fuel|ГСМ",
               "power": r"ТЭЦ|ГРЭС|ГЭС|АЭС|электростан|power"}
 SITE_KINDS = [
@@ -620,7 +621,8 @@ def find_site(o: dict, town: dict, overpass=None):
     lat, lon = town["lat"], town["lon"]
     q = "[out:json][timeout:60];(" + "".join(f"{s}(around:{SITE_RADIUS_M},{lat},{lon});" for s in selectors) + ");out center tags 300;"
     rows, seen = [], set()
-    for el in overpass(q):
+    els = overpass(q)
+    for el in els:
         c = el.get("center") or el
         key = (el.get("type"), el.get("id")) if el.get("id") is not None else (c.get("lat"), c.get("lon"))
         if "lat" in c and "lon" in c and key not in seen:
@@ -632,8 +634,12 @@ def find_site(o: dict, town: dict, overpass=None):
     dist = lambda r: km({"lat": lat, "lon": lon}, {"lat": r[0], "lon": r[1]})
     # Features whose name says the kind; for a refinery or a power plant only
     # those count, as the query also brings every named industrial area.
+    found = len(rows)
     if kind in KIND_NAMES:
         kinded = [r for r in rows if re.search(KIND_NAMES[kind], r[2], re.I)]
+        if os.environ.get("PLACES_DEBUG"):
+            print(f"    {o.get('place')}: {found} features of kind {kind}, {len(kinded)} named so: "
+                  + "; ".join(r[2] for r in kinded[:8]))
         tagged_only = [r for r in rows if not r[2]] if kind in SPECIFIC else []
         rows = kinded or (tagged_only if kind in SPECIFIC else [])
         if not rows:
@@ -926,6 +932,8 @@ if __name__ == "__main__":
     elif len(sys.argv) == 2 and sys.argv[1] == "retry":
         retry_if_due()
     elif len(sys.argv) >= 2 and sys.argv[1] == "places":
+        if "--debug" in sys.argv:
+            os.environ["PLACES_DEBUG"] = "1"
         relocate(dry_run="--save" not in sys.argv)
     elif len(sys.argv) >= 2 and sys.argv[1] == "survey":
         ap = argparse.ArgumentParser()
