@@ -5,18 +5,19 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 
 ## Att följa upp
 
-### Styrkor: läget 3 nov (läs först)
-*Uppdaterat 2026-11-03.*
+### Styrkor: läget 5 nov (läs först)
+*Uppdaterat 2026-11-05.*
 
-**I produktion (hm-v3.29):**
+**I produktion (hm-v3.40):**
 - Fliken Styrkor har två delar.
   - **Ryska baser:** kartan bygger på grunddatabasen
     (`config/forces_db/`). Vapen- och förbandskort finns på `#/styrkor?sys=`
     och `?unit=`.
   - **Anfall mot Ukraina:** Kaggle-data. Spåren kopplas ihop mellan
     rapportens rader, och vapenkorten visar bild och prestanda.
-- **Grunddatabasen (3 nov):** 325 baser och 487 förband, alla med egna
-  texter; 104 av förbanden är marinfartyg. 132 system (130 med bild).
+- **Grunddatabasen (5 nov):** 325 baser (13 med bild) och 487 förband,
+  alla med egna texter; 104 av förbanden är marinfartyg. 132 system (130
+  med bild).
   Siffror och beslut i `config/forces_db/README.md`.
 - **Nattjobb efter 04:00-rapporten:**
   - `src/forces.py`: anfall, uppföljningar och truppändringar. Faller
@@ -24,14 +25,18 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
   - Veckosökningen (`src/forces_survey.py`): 3 anrop flash-lite per natt.
   - ISW-läsningen (`src/forces_isw.py`): läser nattens bedömning (via
     criticalthreats.org) och uppdaterar förbandens status. Högst ett
-    lite-anrop per dygn, inget när inget känt förband nämns.
-  - NASA FIRMS (`src/forces_firms.py`): brand sedd av satellit vid anfall.
-    Använder repo-hemligheten `FIRMS_MAP_KEY`, inga modellanrop.
+    lite-anrop per dygn, inget när inget känt förband nämns. Fungerar:
+    6 förband ur bedömningen 2 nov, 4 ur bedömningen 4 nov.
+  - NASA FIRMS (`src/forces_firms.py`): brand sedd av satellit vid anfall,
+    jämfört med normalnivån de 7 dagarna före. Använder repo-hemligheten
+    `FIRMS_MAP_KEY`, inga modellanrop. Nyckeln fungerar; hittills 0 anfall
+    med brand över normalnivån.
   - `src/strikes.py`: hämtar Kaggle-datan, utan modellanrop.
 - **Statusens ålder** syns på förbands- och baskort ("uppdaterad <datum>").
   Status äldre än 60 dagar tonas ner och märks "ej bekräftad sedan".
-- **Bildjobbet `forces_images`** körs onsdagar 13:17 UTC och committar
-  bilder till `main`. Inga modellanrop.
+- **Bildjobbet `forces_images`** körs onsdagar (schema 13:17 UTC) och
+  committar bilder till `main`. Inga modellanrop. Första körningen 4 nov
+  gav 4 basbilder: plesetsk, pusjkin, severomorsk-3 och sokol.
 - **Tester** i `tests/`: `python3 -m unittest discover -s tests` (utan nät).
 - **Kartorna (2 nov):**
   - Djup zoom. Grupper efter skärmavstånd som löses upp när man zoomar.
@@ -54,7 +59,10 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
   (`zoomableImg`), med upphovsperson och licens.
 - Nattjobbet ser nu tidigare nätters "Övrigt", så att samma händelse inte
   tas upp igen (Rostov kom tillbaka 2 nov).
-- **Driftsättning:** behörighetsregler finns (`/permissions`). Kör
+- **Driftsättning:** sker av sig själv i GitHub Actions (`deploy.yml`) vid
+  push till `main` som ändrar `webapp/` och efter varje körning av
+  Scheduled jobs. Bildjobbets bilder kommer alltså ut utan manuell
+  driftsättning. För hand: behörighetsregler finns (`/permissions`); kör
   `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy` som ett eget
   kommando med arbetsmappen `webapp/`.
 
@@ -65,16 +73,10 @@ Användaren vill använda molnkrediterna. Starta därför långa jobb som en ege
 session på claude.ai/code, och skriv instruktionen till en fil i grenen.
 
 **Kvar att göra:**
-1. **Nattloggen 4 nov:** kontrollera raderna `ISW:` och `FIRMS:` i
-   Actions → Scheduled jobs → steget "Run". En schemalagd molnsession gör
-   den kontrollen 4 nov på morgonen.
-2. **Bildjobbet** körs första gången onsdag 4 nov 13:17 UTC. Granska
-   loggen och ta bort bilder som inte visar en bas, ett flygplan eller ett
-   fartyg.
-3. **Viktigt:** bilderna som jobbet committar till `main` syns inte i appen
-   förrän nästa `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy` från
-   `webapp/`. Driftsätt därför efter en onsdag då jobbet lagt till bilder.
-4. Valfritt: frontlinjen som kartlager, om DeepStateMap ger skriftligt
+1. Nästa bildjobb körs onsdag 11 nov. Granska loggen och bilderna
+   efteråt; ta bort bilder som inte visar en bas, ett flygplan eller ett
+   fartyg, och deras `image` i `bases.json`.
+2. Valfritt: frontlinjen som kartlager, om DeepStateMap ger skriftligt
    tillstånd att återpublicera geometrin (steg 5 i
    `config/forces_db/TREDJE_OMGANGEN.md`).
 
@@ -132,6 +134,14 @@ Inga just nu.
 
 ## Klart
 
+- 2026-11-05: Nattloggarna kontrollerade. ISW läste bedömningen 2 nov
+  (6 förband) natten till 4 nov och bedömningen 4 nov (4 förband) 5 nov.
+  FIRMS-nyckeln fungerar: 0–4 anfall kontrollerade per natt, inget med
+  brand över normalnivån. Styrkeuppdateringen kl. 03 UTC 5 nov föll på 503
+  hos huvudmodellen och kördes om 04:43 UTC utan fel. Bildjobbet 4 nov gav
+  4 basbilder (plesetsk, pusjkin, severomorsk-3, sokol), alla public
+  domain; granskade, alla visar ett flygfält eller flygplan och får vara
+  kvar. De driftsätts av sig själva.
 - 2026-11-04: Styrkor ser alla anfall i Ryssland och ockuperade områden
   (Version 3.18, hm-v3.33). Nattsökningen letade efter baserna med de
   svenska namnen ("Achtubinsk", "Voronezj", "Tichoretsk (719:e
