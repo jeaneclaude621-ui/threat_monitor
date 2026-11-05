@@ -115,11 +115,12 @@ const report = {
 };
 db.reports.set(today, { date: today, threat_index: 6.4, threat_index_30d: 6.0, top_sv: report.executive_sv.top, data: JSON.stringify(report) });
 
+const assetImages = new Set();   // og images the 'deploy' has
 const INDEX_HTML = '<!doctype html><html lang="sv"><head><meta charset="utf-8"><title>Hotmonitor</title>'
   + '<meta name="description" content="Daglig bedömning."></head><body><main id="view"><p>Laddar…</p></main></body></html>';
 const env = {
   PUBLIC_READ: '1', TEAM_DOMAIN: 'team.cloudflareaccess.com', ACCESS_AUD: 'aud', DB: db,
-  ASSETS: { fetch: async (req) => new Response(new URL(req.url).pathname === '/' ? INDEX_HTML
+  ASSETS: { fetch: async (req) => assetImages.has(new URL(req.url).pathname) ? new Response(null, { headers: { 'Content-Type': 'image/png' } }) : new Response(new URL(req.url).pathname === '/' ? INDEX_HTML
     : new URL(req.url).pathname === '/robots.txt' ? (await import('node:fs')).readFileSync(new URL('../public/robots.txt', import.meta.url), 'utf8') : 'asset', { headers: { 'Content-Type': 'text/html; charset=utf-8' } }) },
 };
 
@@ -459,6 +460,107 @@ r = await worker.fetch(new Request(`${ORIGIN}/api/public/latest`), { ...env, PUB
 expect('PUBLIC_READ off: not public', r.status, 401);
 r = await get('/api/public/latest', { method: 'POST' });
 expect('only GET', r.status, 405);
+
+// --- Sources blocklist, the same as src/blocklist.py ---------------------------------
+{
+  const { blockedSource, blockedOutlet } = _test;
+  for (const u of ['https://t.me/x', 'https://tass.ru/a', 'https://www.rt.com/', 'https://lenta.ru/news', 'https://m.gazeta.ru/',
+    'https://www.kp.ru/', 'https://aif.ru/', 'https://ukraina.ru/', 'https://www.kommersant.ru/', 'https://interfax.ru/',
+    'https://news-front.su/', 'https://news-pravda.com/', 'https://pravda-se.com/', 'https://sv.pravda-xyz.com/',
+    'https://inosmi.ru/', 'https://smotrim.ru/', 'https://southfront.press/', 'https://www.pravda.ru/']) {
+    expect(`blocked ${u}`, blockedSource(u), true);
+  }
+  for (const u of ['https://www.pravda.com.ua/', 'https://interfax.com.ua/news', 'https://www.svt.se/', 'https://yle.fi/',
+    'https://notlenta.ru.example.com/', 'https://reuters.com/']) {
+    expect(`allowed ${u}`, blockedSource(u), false);
+  }
+  for (const n of ['TASS', 'RT', 'Lenta.ru', 'Коммерсантъ', 'Interfax', 'News Front', 'Pravda SE', 'gazeta.ru', 'Sputnik Globe']) {
+    expect(`blocked outlet ${n}`, blockedOutlet(n), true);
+  }
+  for (const n of ['Art Daily', 'Interfax-Ukraine', 'Ukrainska Pravda', 'SVT Nyheter', 'Reuters']) {
+    expect(`allowed outlet ${n}`, blockedOutlet(n), false);
+  }
+}
+
+// --- Migrations 0014/0015 not run yet: 503, and push still works -------------------
+{
+  class OldD1 extends MockD1 {
+    prepare(sql) {
+      const stmt = super.prepare(sql);
+      let missing = null;
+      if (/access_requests/.test(sql)) missing = 'no such table: access_requests: SQLITE_ERROR';
+      else if (/INSERT INTO push_subscriptions[^)]*topics/.test(sql)) missing = 'table push_subscriptions has no column named topics: SQLITE_ERROR';
+      else if (/push_subscriptions/.test(sql) && /topics|countries/.test(sql)) missing = 'no such column: p.topics: SQLITE_ERROR';
+      else if (/email IS NULL/.test(sql) && /push_subscriptions/.test(sql) && !/^SELECT p\./.test(sql)) missing = null;
+      if (!missing) return stmt;
+      const fail = async () => { throw new Error(`D1_ERROR: ${missing}`); };
+      return { bind() { return this; }, first: fail, run: fail, all: fail };
+    }
+  }
+  const odb = new OldD1();
+  const { b64uEncode } = await import('../src/webpush.js');
+  const ua = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  const p256dh = b64uEncode(await crypto.subtle.exportKey('raw', ua.publicKey));
+  const auth = b64uEncode(crypto.getRandomValues(new Uint8Array(16)));
+  const vk = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  const oenv = { ...env, DB: odb, OWNER: 'owner@example.org', DEV_AUTH_EMAIL: 'owner@example.org',
+    VAPID_PUBLIC_KEY: b64uEncode(await crypto.subtle.exportKey('raw', vk.publicKey)),
+    VAPID_PRIVATE_KEY: (await crypto.subtle.exportKey('jwk', vk.privateKey)).d };
+  const call = async (path, { method = 'GET', body, email = null, base = LOCAL } = {}) => {
+    const headers = { Origin: base, 'CF-Connecting-IP': '203.0.113.9' };
+    if (email) headers['X-Dev-Email'] = email;
+    const res = await worker.fetch(new Request(`${base}${path}`, { method, headers, body: body && JSON.stringify(body) }),
+      email ? oenv : { ...oenv, DEV_AUTH_EMAIL: undefined }, { waitUntil: () => {} });
+    const type = res.headers.get('content-type') || '';
+    return { status: res.status, body: type.includes('json') ? await res.json() : null };
+  };
+  let o = await call('/api/access-request', { method: 'POST', email: 'new@example.net' });
+  expect('access request without 0014: 503', o.status, 503);
+  expect('...with a clear message', /0014_access_requests/.test(o.body.error), true);
+  o = await call('/api/admin/access-requests', { email: 'owner@example.org' });
+  expect('admin list without 0014: 503', o.status, 503);
+  o = await call('/api/me', { email: 'new@example.net' });
+  expect('/api/me without 0014 still answers', o.body && o.body.verified_no_account, true);
+  o = await call('/api/push/subscribe', { method: 'POST', base: ORIGIN, body: { endpoint: 'https://fcm.googleapis.com/fcm/send/g', keys: { p256dh, auth } } });
+  expect('guest subscribe without 0015: 503', o.status, 503);
+  o = await call('/api/push/prefs', { method: 'POST', base: ORIGIN, body: { endpoint: 'https://fcm.googleapis.com/fcm/send/g', topics: [] } });
+  expect('guest prefs without 0015: 503', o.status, 503);
+  o = await call('/api/push/subscribe', { method: 'POST', email: 'owner@example.org', body: { endpoint: 'https://fcm.googleapis.com/fcm/send/u', keys: { p256dh, auth } } });
+  expect('a person still subscribes without 0015', o.status, 201);
+  expect('...stored the old way', odb.subs.length, 1);
+  odb.subs[0].email = 'owner@example.org';
+  const realNow = Date.now, realFetch = globalThis.fetch;
+  Date.now = () => Date.parse('2026-11-05T12:00:00Z');
+  const sent = [];
+  globalThis.fetch = async (u) => { sent.push(String(u)); return new Response(null, { status: 201 }); };
+  const pr = await _test.pushTo(oenv, { adminsOnly: false, pref: 'report', guests: true, match: null }, { title: 'x' });
+  expect('push still goes out without 0015', pr.sent, 1);
+  Date.now = realNow; globalThis.fetch = realFetch;
+}
+
+// --- Shareable images (Version 3.24) ---------------------------------------------
+edgeStore.clear();
+assetImages.add(`/og/${today}.png`);
+r = await get(`/d/${today}`);
+expect('day page uses the day\'s image when deployed', metaOf(await r.text(), 'og:image'), `${ORIGIN}/og/${today}.png`);
+r = await get(`/h/${today}/${today}-e1`);
+expect('event page uses the day\'s image', metaOf(await r.text(), 'og:image'), `${ORIGIN}/og/${today}.png`);
+r = await get('/');
+let home = await r.text();
+expect('start page: default image without latest.png', metaOf(home, 'og:image'), `${ORIGIN}/og/default.png`);
+edgeStore.clear();
+assetImages.add('/og/latest.png');
+r = await get('/');
+home = await r.text();
+expect('start page 200', r.status, 200);
+expect('start page: og/latest.png', metaOf(home, 'og:image'), `${ORIGIN}/og/latest.png`);
+expect('start page: og:type website', metaOf(home, 'og:type'), 'website');
+expect('start page keeps its <title>', home.match(/<title>([^<]*)<\/title>/)[1], 'Hotmonitor');
+expect('start page canonical /', (home.match(/<link rel="canonical" href="([^"]*)"/) || [])[1], `${ORIGIN}/`);
+expect('start page: no SSR article', home.includes('id="ssr"'), false);
+expect('start page: short browser cache', r.headers.get('cache-control'), 'public, max-age=60');
+r = await worker.fetch(new Request(`${ORIGIN}/`), { ...env, PUBLIC_READ: '0' }, { waitUntil: () => {} });
+expect('PUBLIC_READ off: start page untouched', (await r.text()).includes('og:image'), false);
 
 console.log(`\nlaunch_test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

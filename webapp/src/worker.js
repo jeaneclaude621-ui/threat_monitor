@@ -204,7 +204,7 @@ async function route(req) {
   if (path === '/api/access-request') {
     allow(method, 'POST');
     if (id.kind !== 'user') throw new HttpError(403, 'log in with your e-mail address to ask for access');
-    return requestAccess(env, id.email);
+    return requestAccess(env, id.email).catch(notMigrated('0014_access_requests'));
   }
 
   let who;
@@ -252,23 +252,23 @@ async function dispatch(req, path, method, who) {
 
   if (path === '/api/push/subscribe') {
     allow(method, 'POST');
-    if (guest) return subscribePush(request, env, null);
+    if (guest) return subscribePush(request, env, null).catch(notMigrated('0015_guest_push'));
     requireUser(who);
     return subscribePush(request, env, who);
   }
 
   if (path === '/api/push/unsubscribe') {
     allow(method, 'POST');
-    if (guest) return unsubscribePush(request, env, null);
+    if (guest) return unsubscribePush(request, env, null).catch(notMigrated('0015_guest_push'));
     requireUser(who);
     return unsubscribePush(request, env, who);
   }
 
   if (path === '/api/push/prefs') {
     allow(method, 'POST');
-    if (guest) return pushFollow(request, env, null);
+    if (guest) return pushFollow(request, env, null).catch(notMigrated('0015_guest_push'));
     requireUser(who);
-    return pushFollow(request, env, who);
+    return pushFollow(request, env, who).catch(notMigrated('0015_guest_push'));
   }
 
   if (path === '/api/reports') {
@@ -492,13 +492,13 @@ async function routeAdmin(req, path, method) {
 
   if (path === '/api/admin/access-requests') {
     allow(method, 'GET');
-    return listAccessRequests(env, url);
+    return listAccessRequests(env, url).catch(notMigrated('0014_access_requests'));
   }
 
   const ar = path.match(/^\/api\/admin\/access-requests\/([^/]+)$/);
   if (ar) {
     allow(method, 'POST');
-    return decideAccessRequest(request, env, who, ar[1]);
+    return decideAccessRequest(request, env, who, ar[1]).catch(notMigrated('0014_access_requests'));
   }
 
   if (path === '/api/admin/security') {
@@ -548,6 +548,18 @@ async function routeAdmin(req, path, method) {
   }
 
   throw new HttpError(404, 'not found');
+}
+
+// A new table or column whose migration has not run yet (D1's messages):
+// answer a clear 503 rather than a bare 500.
+const SCHEMA_MISSING_RE = /no such (table|column)|has no column named|NOT NULL constraint failed: push_subscriptions\.email/i;
+const schemaMissing = (err) => !!err && SCHEMA_MISSING_RE.test(String(err.message || err));
+function notMigrated(migration) {
+  return (err) => {
+    if (!schemaMissing(err)) throw err;
+    console.error(`migration ${migration} has not run:`, err.message);
+    throw new HttpError(503, `Funktionen är inte i drift än: databasen saknar migrationen ${migration}.`);
+  };
 }
 
 function allow(method, expected) {
@@ -766,6 +778,7 @@ const SITE_NAME = 'Hotmonitor';
 const SITE_TAGLINE = 'AI-sammanställning av ryska hybridhot ur öppna källor';
 const AI_LABEL = 'AI-sammanfattning';
 const PAGE_CACHE_S = 600;
+const HOME_CACHE_S = 60;   // the app's own page: a deploy shows within a minute
 const FEED_CACHE_S = 900;
 const FEED_DAYS = 14;
 const FEED_MIN_SCORE = 8;
@@ -900,10 +913,12 @@ const escAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').
 const escXml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 
 /** The day's own image when the deploy has one (public/og/<date>.png), else the default. */
-async function ogImage(env, origin, date) {
+// The morning run deploys public/og/<date>.png and og/latest.png. A missing
+// file answers index.html (single-page fallback), hence the type check.
+async function ogImage(env, origin, name) {
   try {
-    const res = await env.ASSETS.fetch(new Request(`${origin}/og/${date}.png`, { method: 'HEAD' }));
-    if (res.ok && (res.headers.get('Content-Type') || '').startsWith('image/')) return `${origin}/og/${date}.png`;
+    const res = await env.ASSETS.fetch(new Request(`${origin}/og/${name}.png`, { method: 'HEAD' }));
+    if (res.ok && (res.headers.get('Content-Type') || '').startsWith('image/')) return `${origin}/og/${name}.png`;
   } catch { /* the default below */ }
   return `${origin}/og/default.png`;
 }
@@ -921,11 +936,11 @@ async function sharePage(request, env, url, meta) {
     headers.set('Cache-Control', 'no-store');
     return new Response(request.method === 'HEAD' ? null : page.body, { status: 404, headers });
   }
-  headers.set('Cache-Control', `public, max-age=${PAGE_CACHE_S}`);
+  headers.set('Cache-Control', `public, max-age=${meta.maxAge || PAGE_CACHE_S}`);
   const canonical = `${url.origin}${meta.path}`;
-  const image = await ogImage(env, url.origin, meta.date);
+  const image = await ogImage(env, url.origin, meta.image || meta.date);
   const tags = [
-    ['property', 'og:type', 'article'], ['property', 'og:site_name', SITE_NAME], ['property', 'og:locale', 'sv_SE'],
+    ['property', 'og:type', meta.type || 'article'], ['property', 'og:site_name', SITE_NAME], ['property', 'og:locale', 'sv_SE'],
     ['property', 'og:title', meta.title], ['property', 'og:description', meta.description],
     ['property', 'og:url', canonical], ['property', 'og:image', image],
     ['property', 'og:image:width', '1200'], ['property', 'og:image:height', '630'],
@@ -935,7 +950,7 @@ async function sharePage(request, env, url, meta) {
   ].map(([k, n, v]) => `<meta ${k}="${n}" content="${escAttr(v)}">`).join('\n')
     + `\n<link rel="canonical" href="${escAttr(canonical)}">\n`;
   const out = new HTMLRewriter()
-    .on('title', { element(el) { el.setInnerContent(`${meta.title} · ${SITE_NAME}`); } })
+    .on('title', { element(el) { el.setInnerContent(meta.title === SITE_NAME ? SITE_NAME : `${meta.title} · ${SITE_NAME}`); } })
     .on('meta[name="description"]', { element(el) { el.setAttribute('content', meta.description); } })
     .on('head', { element(el) { el.append(tags, { html: true }); } })
     .on('main#view', { element(el) { if (meta.article) el.setInnerContent(meta.article, { html: true }); } })
@@ -1055,6 +1070,18 @@ async function sitemapXml(env, url) {
 async function publicPage(request, env, ctx, url) {
   const path = url.pathname.replace(/\/+$/, '');
   const isShare = /^\/[hd]\//.test(path);
+  // Version 3.24: the start page shows the latest shareable image when shared.
+  if (url.pathname === '/' && env.PUBLIC_READ === '1') {
+    try {
+      return await cachedPage(request, ctx, url, () => sharePage(request, env, url, {
+        title: SITE_NAME, type: 'website', path: '/', image: 'latest', maxAge: HOME_CACHE_S,
+        description: `${SITE_TAGLINE}, varje morgon. · ${AI_LABEL} · ${SITE_NAME}`,
+      }));
+    } catch (err) {
+      console.error('start page failed', err && err.stack ? err.stack : err);
+      return env.ASSETS.fetch(request);
+    }
+  }
   if (path === '/robots.txt') {
     // A Sitemap line must be absolute: this host, whatever the domain.
     const res = await env.ASSETS.fetch(request);
@@ -2147,7 +2174,7 @@ async function subscribePush(request, env, who) {
     }
   }
   // The endpoint belongs to whoever is signed in on that device now (a guest: no one).
-  await env.DB.prepare(
+  const upsert = () => env.DB.prepare(
     `INSERT INTO push_subscriptions (endpoint, email, p256dh, auth, created_at, prefs, topics, countries)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(endpoint) DO UPDATE SET email = excluded.email, p256dh = excluded.p256dh,
@@ -2157,6 +2184,18 @@ async function subscribePush(request, env, who) {
   ).bind(endpoint, email, keys.p256dh, keys.auth, new Date().toISOString(), prefs,
     follow.topics ? JSON.stringify(follow.topics) : null,
     follow.countries ? JSON.stringify(follow.countries) : null).run();
+  try {
+    await upsert();
+  } catch (err) {
+    // Before migration 0015: a person's plain subscription still works.
+    if (!who || follow.topics || follow.countries || !schemaMissing(err)) throw err;
+    await env.DB.prepare(
+      `INSERT INTO push_subscriptions (endpoint, email, p256dh, auth, created_at, prefs)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT(endpoint) DO UPDATE SET email = excluded.email, p256dh = excluded.p256dh,
+         auth = excluded.auth, prefs = excluded.prefs`
+    ).bind(endpoint, email, keys.p256dh, keys.auth, new Date().toISOString(), prefs).run();
+  }
   return json({ ok: true, guest: !who }, existing ? 200 : 201);
 }
 
@@ -2318,13 +2357,22 @@ async function pushTo(env, { adminsOnly, pref, guests = false, match = null }, p
     return { sent: 0, reason: 'not configured' };
   }
   const owner = ownerEmail(env);
-  const { results } = await env.DB.prepare(
+  const select = (cols) => env.DB.prepare(
     adminsOnly
-      ? `SELECT p.endpoint, p.prefs, p.topics, p.countries FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
+      ? `SELECT ${cols} FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
          WHERE p.email = ? OR (u.role = 'admin' AND u.active = 1)`
-      : `SELECT p.endpoint, p.prefs, p.topics, p.countries FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
+      : `SELECT ${cols} FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
          WHERE p.email = ? OR u.active = 1${guests && !adminsOnly ? ' OR p.email IS NULL' : ''}`
   ).bind(owner).all();
+  let results;
+  try {
+    ({ results } = await select('p.endpoint, p.prefs, p.topics, p.countries'));
+  } catch (err) {
+    // Before migration 0015 (no topics/countries, no guests): push as before.
+    if (!schemaMissing(err)) throw err;
+    console.error('push without migration 0015:', err.message);
+    ({ results } = await select('p.endpoint, p.prefs'));
+  }
   const devAllow = devPushAllow(env);
   const endpoints = [];
   for (const s of results) {
@@ -2476,17 +2524,65 @@ const SOURCE_KINDS = ['auto', 'rss', 'article'];
 // Version 3.16: never a source for the analysis - Telegram and Russian state
 // media (TASS, RT, RIA Novosti, Sputnik, Izvestia, Zvezda, Rossiyskaya
 // Gazeta). A host matches itself and its subdomains.
+// The same list as src/blocklist.py (keep them in step): Telegram, Russian
+// state media and the pro-Kremlin network around them. A host matches itself
+// and its subdomains; a page or feed title is matched as a whole name.
 const BLOCKED_SOURCE_HOSTS = [
+  // Telegram
   't.me', 'telegram.me', 'telegram.org', 'telegra.ph', 'telesco.pe',
+  // State agencies, TV and papers
   'tass.ru', 'tass.com', 'rt.com', 'ria.ru', 'sputniknews.com', 'sputniknews.ru', 'sputnikglobe.com',
-  'sputnik.by', 'sputnik.kz', 'iz.ru', 'tvzvezda.ru', 'rg.ru',
+  'sputnik.by', 'sputnik.kz', 'sputniknews.cn', 'iz.ru', 'tvzvezda.ru', 'rg.ru', '1tv.ru', '1tv.com',
+  'vesti.ru', 'smotrim.ru', 'ren.tv', 'ntv.ru',
+  // Pro-Kremlin outlets
+  'lenta.ru', 'gazeta.ru', 'kp.ru', 'aif.ru', 'ukraina.ru', 'kommersant.ru', 'kommersant.com',
+  'interfax.ru', 'interfax.com', 'pravda.ru', 'news-front.info', 'news-front.su',
+  'southfront.org', 'southfront.press', 'rubaltic.ru', 'baltnews.com', 'eadaily.com', 'regnum.ru',
+  'inosmi.ru', 'rusvesna.su', 'tsargrad.tv', 'topwar.ru', 'reseauinternational.net',
+  // The "Pravda" network (Portal Kombat)
+  'news-pravda.com', 'pravda-en.com', 'pravda-fr.com', 'pravda-de.com', 'pravda-es.com', 'pravda-pl.com',
+  'pravda-fi.com', 'pravda-se.com', 'pravda-nl.com', 'pravda-it.com', 'pravda-pt.com',
 ];
+// pravda-xx.com for any language code, and their subdomains.
+const PORTAL_KOMBAT_RE = /(^|\.)pravda-[a-z]{2,3}\.com$/;
+// Never blocked although they look alike: Ukrainska Pravda, Interfax-Ukraine.
+const ALLOWED_SOURCE_HOSTS = ['pravda.com.ua', 'interfax.com.ua'];
+const BLOCKED_OUTLET_RE = new RegExp('^(?:the\\s+)?(?:' + [
+  'tass(?:\\s+news\\s+agency)?', 'тасс', 'itar[-\\s]tass',
+  'rt(?:\\s+(?:news|international|en\\s+español|en\\s+espanol|france|deutsch|arabic|on\\s+rumble))?', 'russia\\s+today', 'rt\\.com',
+  'ria(?:\\s+novosti)?', 'риа\\s+новости', 'ria\\.ru',
+  'sputnik(?:\\s+(?:news|international|globe|india|africa|brasil|mundo))?', 'sputnikglobe(?:\\.com)?',
+  'izvestia', 'известия', 'iz\\.ru', 'zvezda', 'tv\\s*zvezda', 'звезда',
+  'rossiyskaya\\s+gazeta', 'российская\\s+газета', 'rg\\.ru',
+  'channel\\s+one(?:\\s+russia)?', 'первый\\s+канал', 'vesti(?:\\.ru)?', 'вести', 'ntv\\.ru', 'ren\\s*tv',
+  'lenta\\.ru', 'лента\\.ру', 'gazeta\\.ru', 'газета\\.ру',
+  'komsomolskaya\\s+pravda', 'комсомольская\\s+правда', 'kp\\.ru',
+  'argumenty\\s+i\\s+fakty', 'аргументы\\s+и\\s+факты', 'aif\\.ru',
+  'ukraina\\.ru', 'украина\\.ру', 'kommersant(?:\\.ru)?', 'коммерсантъ?', 'interfax(?:\\.ru)?', 'интерфакс',
+  'pravda\\.ru', 'pravda\\s+(?:en|fr|de|es|pl|fi|se|nl|it|pt)', 'news[-\\s]pravda(?:\\.com)?', 'portal\\s+kombat',
+  'news\\s*front', 'news-front(?:\\.info)?',
+  'south\\s*front', 'inosmi', 'eadaily', 'regnum', 'tsargrad', 'rubaltic', 'baltnews',
+  'telegram', 't\\.me',
+].join('|') + ')$', 'i');
+
+function blockedHost(host) {
+  const h = String(host || '').toLowerCase().replace(/\.$/, '').replace(/^www\./, '');
+  if (!h || ALLOWED_SOURCE_HOSTS.some((a) => h === a || h.endsWith(`.${a}`))) return false;
+  return PORTAL_KOMBAT_RE.test(h) || BLOCKED_SOURCE_HOSTS.some((b) => h === b || h.endsWith(`.${b}`));
+}
 function blockedSource(href) {
   let host;
-  try { host = new URL(href).hostname.toLowerCase().replace(/\.$/, ''); } catch { return false; }
-  return BLOCKED_SOURCE_HOSTS.some((b) => host === b || host.endsWith(`.${b}`));
+  try { host = new URL(href).hostname; } catch { return false; }
+  return blockedHost(host);
 }
-const BLOCKED_SOURCE_MSG = 'Telegram och rysk statsmedia (TASS, RT, RIA, Sputnik, Izvestija, Zvezda, Rossijskaja Gazeta) tas inte emot som källor.';
+/** A publisher's name (a feed or page title), or a bare domain. */
+function blockedOutlet(name) {
+  const n = String(name || '').replace(/\s+/g, ' ').trim();
+  if (!n) return false;
+  if (/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(n) && blockedHost(n)) return true;
+  return BLOCKED_OUTLET_RE.test(n);
+}
+const BLOCKED_SOURCE_MSG = 'Telegram, rysk statsmedia och det prokremlska nätverket runt dem (bl.a. TASS, RT, RIA, Sputnik, Izvestija, Lenta.ru, Gazeta.ru, Kommersant, Interfax, News Front och Pravda-nätverket) tas inte emot som källor.';
 const SOURCE_FETCH_MS = 8000;
 const SOURCE_PEEK_BYTES = 200000;
 
@@ -2601,6 +2697,8 @@ async function addSource(request, env, who) {
     finalKind = 'article';
     title = pageTitle(peek.text) || slugTitle(url) || url.hostname;
   }
+  // A feed names its publisher in its title: "TASS", "Lenta.ru" ...
+  if (finalKind === 'rss' && blockedOutlet(title)) throw new HttpError(422, BLOCKED_SOURCE_MSG);
   if (typeof body.title === 'string' && body.title.trim()) title = body.title.trim().slice(0, 200);
 
   const dup = await env.DB.prepare('SELECT id FROM sources WHERE active = 1 AND url = ?').bind(finalUrl).first();
@@ -2976,4 +3074,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { resetPublicLatest: () => { publicLatestMemo = null; }, reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
+export const _test = { blockedSource, blockedOutlet, resetPublicLatest: () => { publicLatestMemo = null; }, reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };

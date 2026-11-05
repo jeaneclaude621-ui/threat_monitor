@@ -11,8 +11,9 @@
     "binding": "ASSETS",
     // /h/* and /d/* are share links with Open Graph tags, /feed.xml the RSS
     // feed, /sitemap.xml the sitemap, and robots.txt gets
-    // this host in its Sitemap line (Version 3.22).
-    "run_worker_first": ["/api/*", "/login", "/h/*", "/d/*", "/feed.xml", "/sitemap.xml", "/robots.txt"],
+    // this host in its Sitemap line (Version 3.22). "/" gets Open Graph tags
+    // with og/latest.png (Version 3.24): one Worker request per app start.
+    "run_worker_first": ["/", "/api/*", "/login", "/h/*", "/d/*", "/feed.xml", "/sitemap.xml", "/robots.txt"],
     "not_found_handling": "single-page-application"
   },
   "d1_databases": [
