@@ -826,6 +826,7 @@ async function viewReport(date, q) {
     executiveBlock(r.executive_sv),
     archived ? null : installCard(),
     archived ? null : pushNudge(),
+    archived ? null : siteFooter(),
   );
 }
 
@@ -3756,6 +3757,24 @@ function openFeatures() {
 
 // ---------------------------------------------------------------- about (Version 3.17)
 // What Hotmonitor is, that AI writes much of it, and what a guest leaves behind.
+const DISCLAIMER = 'Hotmonitor är ett privat projekt och ingen myndighet. Innehållet är inte råd eller officiell information. Vid kris, följ myndigheternas besked på krisinformation.se.';
+const ISSUES_URL = 'https://github.com/jeaneclaude621-ui/threat_monitor/issues';
+function crisisLink() {
+  return h('button', { class: 'linkbtn inline', type: 'button', onclick: () => openExternal('https://www.krisinformation.se/', { outlet: 'Krisinformation.se' }) }, 'krisinformation.se');
+}
+function disclaimerText() {
+  return frag('Hotmonitor är ett privat projekt och ingen myndighet. Innehållet är inte råd eller officiell information. Vid kris, följ myndigheternas besked på ', crisisLink(), '.');
+}
+function contactLink(label = 'Kontakt och rättelser') {
+  return h('button', { class: 'linkbtn inline', type: 'button', onclick: () => openExternal(ISSUES_URL, { outlet: 'GitHub' }) }, label);
+}
+// The footer of Idag: who is behind it, what it is not, and how to reach them.
+function siteFooter() {
+  return h('footer', { class: 'site-foot' },
+    h('p', null, disclaimerText()),
+    h('p', null, contactLink(), ' · ', h('a', { href: '#/om' }, 'Om Hotmonitor')));
+}
+
 function viewAbout() {
   const guest = isGuest();
   return frag(
@@ -3766,6 +3785,10 @@ function viewAbout() {
       h('p', null, 'Hotmonitor sammanställer varje dag öppna uppgifter om ryska hybridhot mot Nato, EU och Ukraina: nyheter, myndigheters lägesbilder, styrkor och anfall. Det är ett privat projekt, inte en myndighets bedömning.'),
       h('h2', { class: 'title-m' }, 'AI-genererat innehåll'),
       h('p', null, 'Sammanfattningar, översättningar, hotindex och trovärdighetsvärden tas fram automatiskt med hjälp av en AI-modell (Google Gemini) utifrån öppna källor. Texterna kan innehålla fel och ska läsas tillsammans med källorna som länkas. Bedömningar som en människa har gjort visas som bedömare utan namn.'),
+      h('h2', { class: 'title-m', id: 'om-ansvar' }, 'Ansvar och kontakt'),
+      h('p', null, disclaimerText()),
+      h('p', null, 'Har du hittat ett fel, vill du att något rättas eller tas bort, eller har du en fråga? Skriv ett ärende på projektets sida på GitHub: ',
+        contactLink('öppna ärenden (issues)'), '. Ärenden där är offentliga, så skriv inga personuppgifter som inte behövs.'),
       h('h2', { class: 'title-m' }, 'Källor'),
       h('p', null, 'Rysk statsmedia och Telegram används inte som nyhetskällor. Under Narrativ visas den ryska sidan bara som våra svenska sammanfattningar, utan länkar dit.'),
       h('h2', { class: 'title-m' }, 'Integritet'),
