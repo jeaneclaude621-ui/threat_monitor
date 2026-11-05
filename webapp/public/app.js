@@ -635,6 +635,52 @@ function pushNudge() {
     msg);
 }
 
+// ---------------------------------------------------------------- first visit
+// Three short cards the first time: what Hotmonitor is, how to read the
+// figures, notices and the home screen. Skippable; remembered in this browser.
+const INTRO_KEY = 'hm.introSeen';
+function introSeen() { try { return !!localStorage.getItem(INTRO_KEY); } catch { return true; } }
+function markIntroSeen() { try { localStorage.setItem(INTRO_KEY, new Date().toISOString().slice(0, 10)); } catch { /* private mode */ } }
+
+function openIntro() {
+  markIntroSeen();
+  let step = 0;
+  openSheet((close) => {
+    const body = h('div', { class: 'intro-body' });
+    const dots = h('div', { class: 'intro-dots', 'aria-hidden': 'true' });
+    const next = h('button', { class: 'btn primary', type: 'button', autofocus: true });
+    const skip = h('button', { class: 'btn', type: 'button', onclick: close }, 'Hoppa över');
+    const cards = [
+      () => frag(
+        h('div', { class: 'kicker amber' }, '1 av 3'),
+        h('h2', { class: 'title-m', id: 'intro-title' }, 'Välkommen till Hotmonitor'),
+        h('p', null, 'Varje morgon en sammanställning av öppna uppgifter om ryska hybridhot mot Nato, EU och Ukraina: händelser, källor, styrkor och anfall.'),
+        h('p', { class: 'small muted' }, 'Texterna skrivs av en AI-modell ur öppna källor och kan innehålla fel. Hotmonitor är ett privat projekt och ingen myndighet.')),
+      () => frag(
+        h('div', { class: 'kicker amber' }, '2 av 3'),
+        h('h2', { class: 'title-m', id: 'intro-title' }, 'Två siffror att hålla isär'),
+        h('p', null, h('b', null, 'Hotindex 1–10'), ' högst upp: hur spänt läget är mellan Ryssland och Nato/EU i dag, och en prognos 30 dagar framåt.'),
+        h('p', null, h('b', null, 'Trovärdighet 1–10'), ' vid varje händelse: hur väl uppgiften är bekräftad av oberoende källor. Inte hur allvarlig den är. Med bara en oberoende källa blir den högst 6.')),
+      () => frag(
+        h('div', { class: 'kicker amber' }, '3 av 3'),
+        h('h2', { class: 'title-m', id: 'intro-title' }, 'Håll dig uppdaterad'),
+        h('p', null, 'Få en notis när läget ändras mycket eller när en väl bekräftad händelse kommer. Lägg Hotmonitor på hemskärmen för att öppna den som en app.'),
+        h('div', { class: 'btn-row' },
+          pushSupported() ? h('button', { class: 'btn', type: 'button', onclick: () => { close(); openSettings(); } }, bellIcon(), 'Få notiser') : null,
+          canOfferInstall() ? h('button', { class: 'btn', type: 'button', onclick: () => { close(); openInstall(); } }, 'Lägg på hemskärmen') : null)),
+    ];
+    const paint = () => {
+      body.replaceChildren(cards[step]());
+      dots.replaceChildren(...cards.map((_, i) => h('span', { class: i === step ? 'on' : null })));
+      next.textContent = step < cards.length - 1 ? 'Nästa' : 'Kom igång';
+      skip.hidden = step === cards.length - 1;
+    };
+    next.addEventListener('click', () => { if (step < cards.length - 1) { step += 1; paint(); next.focus(); } else close(); });
+    paint();
+    return frag(body, dots, h('div', { class: 'sheet-actions' }, skip, next));
+  }, { label: 'Introduktion' });
+}
+
 function bellIcon() {
   return icon(['M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z', 'M10 20.5a2 2 0 0 0 4 0'], '', '0 0 24 24');
 }
@@ -4338,6 +4384,7 @@ async function init() {
   installPullToRefresh();
   updateChrome();
   route();
+  if (!introSeen() && currentRoute !== 'admin') setTimeout(() => { if (!document.querySelector('dialog[open]')) openIntro(); }, 600);
   await Promise.all([side, assessmentsReady]);
   store.refreshedAt = new Date().toISOString();
   lastRefresh = Date.now();

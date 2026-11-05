@@ -915,3 +915,10 @@ details.also summary::-webkit-details-marker { display: none; }
 details.also summary .acc-h { flex-grow: 1; font-size: 15px; font-weight: 600; }
 details.also[open] summary .chev { transform: rotate(90deg); }
 .also-body { padding: 0 14px 14px 32px; }
+
+/* first-visit intro */
+.intro-body { display: flex; flex-direction: column; gap: 10px; min-height: 210px; }
+.intro-body p { margin: 0; line-height: 1.5; }
+.intro-dots { display: flex; justify-content: center; gap: 6px; }
+.intro-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.intro-dots span.on { background: var(--muted); }
