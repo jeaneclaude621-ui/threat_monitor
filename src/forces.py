@@ -552,24 +552,27 @@ SITE_CLASSES = {"man_made", "industrial", "landuse", "military", "aeroway", "pow
                 "railway", "harbour", "waterway"}
 MAX_LOOKUPS = 15
 OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]
-SITE_RADIUS_M = 25000   # how far from the town's centre the facility may be
+SITE_RADIUS_M = 20000   # how far from the town's centre the facility may be
 # What kind of target -> OpenStreetMap features that are such a facility.
 # The first kind whose words appear in target_sv or search_name is used.
+# A specific kind (a refinery, a power plant, an airfield) may be taken
+# without a name match when it is the only one around; the rest only by name.
+SPECIFIC = {"refinery", "power", "aerodrome"}
 SITE_KINDS = [
-    (r"raffinader|refiner|нпз|oljeförädl", ['nwr["industrial"="refinery"]', 'nwr["man_made"="works"]["product"~"oil|petrol|fuel",i]',
+    ("refinery", r"raffinader|refiner|нпз|oljeförädl", ['nwr["industrial"="refinery"]', 'nwr["man_made"="works"]["product"~"oil|petrol|fuel",i]',
                                             'nwr["man_made"="works"]["name"~"НПЗ|нефтеперераб|refiner",i]',
                                             'nwr["landuse"="industrial"]["name"~"НПЗ|нефтеперераб|refiner",i]']),
-    (r"oljedepå|oljehubb|oljeterminal|bränsledepå|oil depot|oil terminal|fuel depot|tank farm|нефтебаз|pumping|pumpstation",
+    ("oil", r"oljedepå|oljehubb|oljeterminal|bränsledepå|oil depot|oil terminal|fuel depot|tank farm|нефтебаз|pumping|pumpstation",
      ['nwr["industrial"~"oil|fuel|depot|tank_farm",i]', 'nwr["landuse"="industrial"]["name"~"нефтебаз|нефте|oil|транснефть",i]',
       'nwr["man_made"="pumping_station"]["substance"~"oil",i]']),
-    (r"kraftverk|värmeverk|power plant|power station|тэц|грэс|гэс|aэс",
+    ("power", r"kraftverk|värmeverk|power plant|power station|тэц|грэс|гэс|aэс",
      ['nwr["power"="plant"]']),
-    (r"transformator|ställverk|substation", ['nwr["power"="substation"]["voltage"~"[0-9]{6}"]']),
-    (r"hamn|port|terminal|kaj", ['nwr["landuse"="port"]', 'nwr["harbour"="yes"]', 'nwr["industrial"="port"]']),
-    (r"flygfält|flygplats|flygbas|airfield|airport|air base|аэродром",
+    ("substation", r"transformator|ställverk|substation", ['nwr["power"="substation"]["voltage"~"[0-9]{6}"]']),
+    ("port", r"hamn|port|terminal|kaj", ['nwr["landuse"="port"]', 'nwr["harbour"="yes"]', 'nwr["industrial"="port"]']),
+    ("aerodrome", r"flygfält|flygplats|flygbas|airfield|airport|air base|аэродром",
      ['nwr["aeroway"="aerodrome"]']),
-    (r"ammunition|arsenal|vapendepå|munitions", ['nwr["military"~"ammunition|depot",i]', 'nwr["landuse"="military"]']),
-    (r"fabrik|verkstad|anläggning|factory|plant|works|logistik|lager|warehouse|hub",
+    ("ammunition", r"ammunition|arsenal|vapendepå|munitions", ['nwr["military"~"ammunition|depot",i]', 'nwr["landuse"="military"]']),
+    ("works", r"fabrik|verkstad|anläggning|factory|plant|works|logistik|lager|warehouse|hub",
      ['nwr["man_made"="works"]', 'nwr["building"~"warehouse|industrial",i]["name"]', 'nwr["landuse"="industrial"]["name"]']),
 ]
 
@@ -580,46 +583,56 @@ def _overpass(query: str):
     for url in OVERPASS:
         try:
             req = urllib.request.Request(url, data=data, headers={"User-Agent": UA})
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with urllib.request.urlopen(req, timeout=90) as r:
                 return json.loads(r.read().decode("utf-8")).get("elements", [])
         except Exception as e:
             last = e
     raise last
 
 
+# Words in a search name that say what, not which ("Ryazan oil refinery").
+GENERIC_WORDS = {"oil", "refinery", "plant", "power", "station", "depot", "terminal", "port", "hub", "logistics",
+                 "factory", "works", "facility", "storage", "fuel", "airfield", "airport", "base", "military",
+                 "ammunition", "arsenal", "warehouse", "blending", "pumping", "node", "gas", "complex", "company",
+                 "region", "oblast", "krai", "republic", "district", "city", "near", "the", "and"}
+
+
+def _latin(text: str) -> str:
+    return "".join(RU_LATIN.get(c, c) for c in (text or "").lower())
+
+
 def find_site(o: dict, town: dict, overpass=None):
     """The facility near the town, from OpenStreetMap: the features of the
-    target's kind within SITE_RADIUS_M; a name sharing a word with the
-    search name wins, then the nearest. None when the kind is unknown or
-    nothing is found."""
+    target's kind within SITE_RADIUS_M. Taken when its name (romanised)
+    shares a word with the search name - the nearest such - or, for a
+    specific kind (refinery, power plant, airfield), when it is the only
+    one there. Else None: the town stays, and FIRMS looks wider."""
     overpass = overpass or _overpass
     text = f"{o.get('target_sv') or ''} {o.get('search_name') or ''}"
-    selectors = next((sel for words, sel in SITE_KINDS if re.search(words, text, re.I)), None)
+    kind, selectors = next(((k, sel) for k, words, sel in SITE_KINDS if re.search(words, text, re.I)), (None, None))
     if not selectors:
         return None
     lat, lon = town["lat"], town["lon"]
-    q = "[out:json][timeout:40];(" + "".join(f"{s}(around:{SITE_RADIUS_M},{lat},{lon});" for s in selectors) + ");out center tags 40;"
-    rows = []
+    q = "[out:json][timeout:60];(" + "".join(f"{s}(around:{SITE_RADIUS_M},{lat},{lon});" for s in selectors) + ");out center tags 60;"
+    rows, seen = [], set()
     for el in overpass(q):
         c = el.get("center") or el
-        if "lat" in c and "lon" in c:
+        key = (el.get("type"), el.get("id")) if el.get("id") is not None else (c.get("lat"), c.get("lon"))
+        if "lat" in c and "lon" in c and key not in seen:
+            seen.add(key)
             rows.append((float(c["lat"]), float(c["lon"]), (el.get("tags") or {}).get("name") or ""))
     if not rows:
         return None
-    words = {w.lower() for w in re.findall(r"\w{4,}", o.get("search_name") or "")}
-
-    def score(r):
-        named = any(w in r[2].lower() for w in words) or bool(re.search(r"НПЗ|нефтеперераб|refiner", r[2], re.I))
-        return (not named, km({"lat": lat, "lon": lon}, {"lat": r[0], "lon": r[1]}))
-    best = min(rows, key=score)
+    words = {w for w in re.findall(r"[a-z]{4,}", _latin(o.get("search_name") or "")) if w not in GENERIC_WORDS}
+    dist = lambda r: km({"lat": lat, "lon": lon}, {"lat": r[0], "lon": r[1]})
+    named = [r for r in rows if r[2] and any(w[:6] in _latin(r[2]) for w in words)]
+    if named:
+        best = min(named, key=dist)
+    elif kind in SPECIFIC and len(rows) == 1:
+        best = rows[0]
+    else:
+        return None
     return {"lat": round(best[0], 5), "lon": round(best[1], 5), "precision": "site", "osm_name": best[2][:120] or None}
-
-
-def _nominatim(q: str):
-    req = urllib.request.Request(NOMINATIM.format(q=urllib.parse.quote(q)), headers={"User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        rows = json.loads(r.read().decode("utf-8"))
-    return rows[0] if rows else None
 
 
 def locate_other(state: dict, lookup=None, pause: float = 1.1, overpass=None, again: bool = False) -> int:
