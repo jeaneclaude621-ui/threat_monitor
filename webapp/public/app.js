@@ -801,6 +801,7 @@ async function viewReport(date, q) {
     archived ? null : newBox(latest, r),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Dygnets händelser'),
+      h('p', { class: 'hint' }, 'Siffran vid varje händelse är trovärdighet: hur väl uppgiften är bekräftad av källorna (1–10), inte hur allvarlig den är.'),
       // Into the Narrativ tab's Russian side, which still asks first.
       archived ? null : h('a', { class: 'ru-link', href: '#/narrativ?s=ru' },
         h('span', { class: 'ru-label' }, 'Rysk sida'), ' Visa det ryska narrativet', chevRight()),
@@ -918,12 +919,13 @@ function heroCard(r) {
         h('div', { class: 'hero-value' }, fmt1(r.threat_index), h('small', null, ' /10')),
         h('div', { class: 'hero-sub' }, [r.index_band ? `Band ${r.index_band}` : null, TREND[r.trend_label] || r.trend_label].filter(Boolean).join(' · '))),
       hasF ? h('div', null,
-        h('div', { class: 'hero-label amber' }, '30 DAGAR'),
+        h('div', { class: 'hero-label amber' }, 'OM 30 DAGAR (PROGNOS)'),
         h('div', { class: 'hero-value amber' }, fmt1(r.threat_index_30d), h('small', null, ' /10')),
-        h('div', { class: 'hero-sub' }, [r.index_band_30d ? `Band ${r.index_band_30d}` : null, 'Prognos'].filter(Boolean).join(' · '))) : null),
+        h('div', { class: 'hero-sub' }, r.index_band_30d ? `Band ${r.index_band_30d}` : '')) : null),
     h('div', { class: 'scale', role: 'img', 'aria-label': `Skala 0 till 10: i dag ${fmt1(r.threat_index)}${hasF ? `, prognos ${fmt1(r.threat_index_30d)}` : ''}` },
       h('div', { class: 'scale-fill', style: `width:${pct(r.threat_index)}` }),
       hasF ? h('div', { class: 'scale-tick', style: `left:${pct(r.threat_index_30d)}` }) : null),
+    h('a', { class: 'hero-help', href: '#/om?s=index' }, 'Vad betyder siffran?'),
     heroMore(r, oi));
 }
 
@@ -933,7 +935,7 @@ function heroMore(r, oi) {
   const notes = [
     oi && Number(oi.index_delta)
       ? h('div', { class: 'hero-note' },
-        h('strong', null, 'Operatörens påverkan: '),
+        h('strong', null, 'Mänsklig justering: '),
         `${signed(oi.index_delta)} på index. `,
         oi.note_sv || '',
         Array.isArray(oi.trace) && oi.trace.length
@@ -984,7 +986,7 @@ function eventRow(date, e) {
   const sub = [e.topics.join(' · '), e.countries.map(countryName).join(', ')].filter(Boolean).join(' · ');
   const state = eventState(date, e);
   return h('a', { class: `row${state ? ' unread' : ''}`, href: eventHref(date, e.id) },
-    h('span', { class: scoreClass(e.score), 'aria-label': `Trovärdighet ${fmtScore(e.score)} av 10` }, fmtScore(e.score)),
+    h('span', { class: scoreClass(e.score) }, h('span', { class: 'sr-only' }, 'Trovärdighet '), fmtScore(e.score), h('span', { class: 'sr-only' }, ' av 10')),
     h('span', { class: 'row-main' },
       h('span', { class: 'row-title' }, e.title_sv || e.title),
       sub ? h('span', { class: 'row-sub' }, sub) : null),
@@ -995,7 +997,7 @@ function eventRow(date, e) {
 function executiveBlock(ex) {
   if (!ex || !Array.isArray(ex.sections) || !ex.sections.length) return null;
   return h('section', { class: 'section' },
-    h('h2', { class: 'kicker' }, 'Kort om allt · Svensk Super Executive'),
+    h('h2', { class: 'kicker' }, 'Kort om allt'),
     ex.index_line ? h('p', { class: 'small muted' }, ex.index_line) : null,
     h('div', { class: 'card acc' }, ex.sections.map((s, i) => h('details', i === 0 ? { open: true } : null,
       h('summary', null,
@@ -1070,7 +1072,7 @@ async function viewEvent(date, id) {
         e.countries.map((c) => h('a', { class: 'chip', href: `#/karta?p=all&c=${encodeURIComponent(c)}` }, countryName(c)))),
       h('h1', { class: 'title-l' }, e.title_sv || e.title),
       h('div', { class: 'small muted meta-line' },
-        h('span', { class: scoreClass(e.score), style: 'width:auto;height:auto;padding:3px 8px;border-radius:8px;font-size:13px' }, `${fmtScore(e.score)}/10`),
+        h('span', { class: scoreClass(e.score), style: 'width:auto;height:auto;padding:3px 8px;border-radius:8px;font-size:13px' }, `Trovärdighet ${fmtScore(e.score)}/10`),
         changed ? h('span', null, `Modellens poäng ${fmtScore(e.model_score)}`) : null,
         h('a', { href: reportHref }, dateLong(date)),
         stateBadge(state),
@@ -3760,6 +3762,20 @@ function openFeatures() {
 
 // ---------------------------------------------------------------- about (Version 3.17)
 // What Hotmonitor is, that AI writes much of it, and what a guest leaves behind.
+// The bands of the threat index in plain Swedish (config/methodology.json, index_anchors).
+const INDEX_SCALE = [
+  [1, 'Fred', 'Normala diplomatiska och ekonomiska förbindelser, inga påtryckningar.'],
+  [2, 'Friktion', 'Fientlig retorik och vanligt spionage, men inga operationer mot Nato- eller EU-mål.'],
+  [3, 'Politisk krigföring', 'Ihållande desinformation och valpåverkan, men inga fysiska följder.'],
+  [4, 'Gråzon', 'Sabotage som kan förnekas, GPS-störningar, kränkningar av luftrum. Inga dödsoffer på Nato- eller EU-mark.'],
+  [5, 'Aktiv hybridkonflikt', 'Statsstyrt sabotage på Nato- eller EU-mark som regeringar pekar ut Ryssland för; pågående ombudskrig.'],
+  [6, 'Skärpt hybridkonflikt', 'Nato-länder svarar militärt (avvisningar, nedskjutningar), sabotage med risk för dödsoffer, ändrad styrkeplacering.'],
+  [7, 'Förkris', 'Konsultationer enligt artikel 4, eller militära incidenter på Nato-territorium utan dödsoffer; synliga förstärkningar.'],
+  [8, 'Kris', 'Dödsoffer på Nato- eller EU-territorium genom rysk handling, eller begränsad direkt eldväxling mellan ryska styrkor och Nato.'],
+  [9, 'Randen till krig', 'Ihållande direkta strider mellan Ryssland och ett Nato-land; artikel 5 övervägs.'],
+  [10, 'Krig', 'Öppet krig mellan Ryssland och Nato/EU.'],
+];
+
 const DISCLAIMER = 'Hotmonitor är ett privat projekt och ingen myndighet. Innehållet är inte råd eller officiell information. Vid kris, följ myndigheternas besked på krisinformation.se.';
 const ISSUES_URL = 'https://github.com/jeaneclaude621-ui/threat_monitor/issues';
 function crisisLink() {
@@ -3788,12 +3804,19 @@ function viewAbout() {
       h('p', null, 'Hotmonitor sammanställer varje dag öppna uppgifter om ryska hybridhot mot Nato, EU och Ukraina: nyheter, myndigheters lägesbilder, styrkor och anfall. Det är ett privat projekt, inte en myndighets bedömning.'),
       h('h2', { class: 'title-m' }, 'AI-genererat innehåll'),
       h('p', null, 'Sammanfattningar, översättningar, hotindex och trovärdighetsvärden tas fram automatiskt med hjälp av en AI-modell (Google Gemini) utifrån öppna källor. Texterna kan innehålla fel och ska läsas tillsammans med källorna som länkas. Bedömningar som en människa har gjort visas som bedömare utan namn.'),
+      h('h2', { class: 'title-m', id: 'om-index' }, 'Vad betyder siffran?'),
+      h('p', null, 'Hotindex är en AI-bedömning, varje dag, av hur spänt läget är mellan Ryssland och Nato/EU, på en skala från 1 till 10. Det mäter vad som händer Nato- och EU-länder, inte hur hårda striderna i Ukraina är. ”Om 30 dagar” är modellens prognos för läget en månad framåt. Indexet är inte Säpos, Försvarsmaktens eller någon annan myndighets bedömning.'),
+      h('ol', { class: 'scale-list' }, INDEX_SCALE.map(([n, name, text]) => h('li', null, h('b', null, `${n} ${name}. `), text))),
+      h('p', null, 'Inom ett band placeras värdet lågt, mitt i eller högt efter hur tydligt bandets villkor är uppfyllda.'),
+      h('h3', { class: 'about-h3' }, 'Siffran vid varje händelse'),
+      h('p', null, 'Den färgade rutan vid en händelse är trovärdighet, 1–10: hur väl uppgiften är bekräftad av oberoende och pålitliga källor. Den säger inget om hur allvarlig händelsen är.'),
       h('h2', { class: 'title-m', id: 'om-ansvar' }, 'Ansvar och kontakt'),
       h('p', null, disclaimerText()),
       h('p', null, 'Har du hittat ett fel, vill du att något rättas eller tas bort, eller har du en fråga? Skriv ett ärende på projektets sida på GitHub: ',
         contactLink('öppna ärenden (issues)'), '. Ärenden där är offentliga, så skriv inga personuppgifter som inte behövs.'),
       h('h2', { class: 'title-m' }, 'Källor'),
       h('p', null, 'Rysk statsmedia och Telegram används inte som nyhetskällor. Under Narrativ visas den ryska sidan bara som våra svenska sammanfattningar, utan länkar dit.'),
+      h('h2', { class: 'title-m' }, 'Integritet'),
       h('p', null, guest
         ? 'Du läser utan att logga in. Vad du har läst sparas bara i den här webbläsaren.'
         : 'Du är inloggad med din e-postadress. Adressen syns bara för administratörer.'),
