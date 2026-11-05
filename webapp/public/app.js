@@ -3589,7 +3589,7 @@ function featuresChip() {
   const n = newFeatures().length;
   return h('button', { class: 'feat-chip', type: 'button', onclick: () => openFeatures(),
     'aria-label': n ? `Funktioner, ${n} nya` : 'Funktioner', title: 'Funktioner och nyheter' },
-    n ? h('span', { class: 'feat-dot', 'aria-hidden': 'true' }) : null, n ? `${n} nya` : 'Funktioner');
+    n ? h('span', { class: 'feat-dot', 'aria-hidden': 'true' }) : null, n ? `${n} nya funktioner` : 'Funktioner');
 }
 
 function openFeatures() {
