@@ -1406,6 +1406,21 @@ function verdictButtons(onPick, middle) {
     b('a-2', 'Mycket trovärdig', 'Mycket trovärdig', () => onPick(2)));
 }
 
+// What each value means (review 2): the claim as the source states it,
+// not the outlet's reputation.
+const VERDICT_SCALE = [
+  [2, 'Mycket trovärdig', 'Källan visar själv att det stämmer: egna uppgifter, dokument, bild eller namngivna vittnen.'],
+  [1, 'Trovärdig', 'Källan återger påståendet sakligt och med stöd, men utan egen bekräftelse.'],
+  [-1, 'Tveksam', 'Källan ger svagt stöd: anonyma uppgifter, andrahandsuppgifter eller en rubrik som säger mer än texten.'],
+  [-2, 'Inte trovärdig', 'Källan stöder inte påståendet, motsäger det eller har uppenbart fel.'],
+];
+function verdictScale() {
+  return h('details', { class: 'vscale' }, h('summary', null, 'Vad betyder värdena?'),
+    h('dl', null, VERDICT_SCALE.map(([v, name, text]) => frag(
+      h('dt', null, h('span', { class: `vpill v${v < 0 ? 'n' : 'p'}` }, `${v > 0 ? '+' : '−'}${Math.abs(v)}`), ' ', name),
+      h('dd', null, text)))));
+}
+
 function assessSheet(target) {
   const a = target.article;
   openSheet((close) => {
@@ -1420,7 +1435,9 @@ function assessSheet(target) {
       h('h2', { class: 'title-m' }, `Bedöm ${a.outlet || 'källan'}`),
       h('p', { class: 'small muted' }, target.event.title_sv || target.event.title || ''),
       cur && cur.value !== 0 ? h('p', { class: 'small' }, 'Nuvarande: ', verdictPill(cur.value, cur.pending)) : null,
+      h('p', { class: 'small muted' }, 'Bedöm om påståendet stämmer enligt källan, inte om utgivaren är seriös.'),
       verdictButtons(apply, h('button', { class: 'a-skip', type: 'button', disabled: !cur || cur.value === 0, onclick: () => apply(0) }, 'Återkalla')),
+      verdictScale(),
       h('div', { class: 'sheet-actions' }, h('button', { class: 'btn', type: 'button', autofocus: true, onclick: close }, 'Avbryt')));
   }, { label: `Bedöm ${a.outlet || 'källan'}` });
 }
@@ -3295,7 +3312,8 @@ async function viewAssess(q) {
       h('a', { class: 'head-link', href: '#/mina' }, 'Mina bedömningar')),
     facetBar,
     h('div', { style: 'display:flex;justify-content:space-between;align-items:center;gap:8px' },
-      h('p', { class: 'hint' }, 'Bedöm nyheten utifrån källorna. Svep höger: trovärdig (längre: mycket). Vänster: tveksam (längre: inte trovärdig). Uppåt i rubriken: hoppa över.'),
+      h('p', { class: 'hint' }, 'Bedöm om påståendet stämmer enligt källan, inte om utgivaren är seriös. Svep höger: trovärdig (längre: mycket). Vänster: tveksam (längre: inte trovärdig). Uppåt i rubriken: hoppa över.'),
+      verdictScale(),
       counter),
     stack,
     buttonsBox,

@@ -922,3 +922,13 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 .intro-dots { display: flex; justify-content: center; gap: 6px; }
 .intro-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
 .intro-dots span.on { background: var(--muted); }
+
+/* Bedöm: what each value means */
+.vscale { font-size: 14px; }
+.vscale summary { cursor: pointer; min-height: 32px; color: var(--muted); }
+.vscale dl { margin: 6px 0 0; display: grid; gap: 4px; }
+.vscale dt { font-weight: 600; margin-top: 4px; }
+.vscale dd { margin: 0 0 0 2px; line-height: 1.45; color: var(--muted); }
+.vpill { display: inline-block; min-width: 28px; text-align: center; padding: 0 6px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.vpill.vp { background: var(--pos-bg, #DCEFE2); color: var(--pos-fg, #1E5B33); }
+.vpill.vn { background: var(--neg-bg); color: var(--neg-fg); }
