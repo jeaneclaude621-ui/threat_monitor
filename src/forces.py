@@ -52,6 +52,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import DATA_DIR, OUTPUT_DIR
 from blocklist import is_news
+from app_data import independent_sources
 import blocklist
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -68,6 +69,8 @@ NIGHTS_KEPT = 60
 MAX_ARTICLES = 150
 EVENT_KINDS = {"anfallen", "uppföljning"}
 CHANGE_KINDS = {"tillfört", "flyttat", "borta", "ändrat"}
+# Changes that take a unit or equipment off a base: two independent sources.
+TWO_SOURCE_KINDS = {"flyttat", "borta"}
 CATEGORIES = {"förband", "materiel"}
 
 # Wikidata classes: air base, naval base, military base and two narrower
@@ -515,6 +518,17 @@ def apply(state: dict, result: dict, refs: dict, today: date) -> dict:
         field = "units" if cat == "förband" else "equipment"
         entry = {"date": day, "kind": kind, "category": cat, "what": what, "text_sv": _text(c["text_sv"]),
                  "sources": src, "night": day}
+        # Removing or moving a unit or equipment takes two independent
+        # sources; on one it is recorded as a claim ("uppgift") and the
+        # holdings stay as they are (review 1, #15).
+        if kind in TWO_SOURCE_KINDS and independent_sources(src) < 2:
+            entry.update(kind="uppgift", claimed_kind=kind)
+            if to:
+                entry["to_base"] = to["id"]
+            print(f"  Forces: {kind} {what} at {b['name']} kept as a claim - one independent source")
+            b["changes"].append(entry)
+            night["changes"].append({"base": b["id"], **entry})
+            continue
         if kind == "tillfört" and what not in b[field]:
             b[field].append(what)
         elif kind in ("flyttat", "borta"):
