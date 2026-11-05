@@ -1,0 +1,8 @@
+# Hotmonitor: every page may be indexed. The API only serves the app, and
+# crawling it would spend the request quota. The Worker writes the full
+# address (this host) into the Sitemap line.
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: /sitemap.xml

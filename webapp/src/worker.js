@@ -869,11 +869,39 @@ async function feedXml(env, url) {
   } });
 }
 
+/** Every /d/<date> and /h/<date>/<id> of the last 90 days. */
+async function sitemapXml(env, url) {
+  const o = url.origin;
+  const days = await reportsWithEvents(env, daysAgo(SITEMAP_DAYS - 1));
+  const urls = [`<url><loc>${o}/</loc><changefreq>daily</changefreq></url>`];
+  for (const d of days) {
+    urls.push(`<url><loc>${o}/d/${d.date}</loc><lastmod>${d.date}</lastmod></url>`);
+    for (const e of d.events) urls.push(`<url><loc>${escXml(`${o}/h/${d.date}/${encodeURIComponent(e.id)}`)}</loc><lastmod>${d.date}</lastmod></url>`);
+  }
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls.join('\n') + '\n</urlset>\n';
+  return new Response(xml, { status: 200, headers: {
+    'Content-Type': 'application/xml; charset=utf-8',
+    'Cache-Control': `public, max-age=${FEED_CACHE_S}`,
+    'X-Content-Type-Options': 'nosniff',
+  } });
+}
+
 /** Share links, /feed.xml and /sitemap.xml; null for anything else. */
 async function publicPage(request, env, ctx, url) {
   const path = url.pathname.replace(/\/+$/, '');
   const isShare = /^\/[hd]\//.test(path);
-  if (!isShare && path !== '/feed.xml') return null;   //PUBLIC_PATHS_MORE
+  if (path === '/robots.txt') {
+    // A Sitemap line must be absolute: this host, whatever the domain.
+    const res = await env.ASSETS.fetch(request);
+    if (!res.ok || request.method === 'HEAD') return res;
+    const text = (await res.text()).replace(/^Sitemap: \/sitemap\.xml$/m, `Sitemap: ${url.origin}/sitemap.xml`);
+    const headers = new Headers(res.headers);
+    headers.delete('Content-Length');
+    headers.delete('ETag');
+    return new Response(text, { status: 200, headers });
+  }
+  if (!isShare && path !== '/feed.xml' && path !== '/sitemap.xml') return null;
   // With the public views off (PUBLIC_READ), nothing is told to the outside.
   if (env.PUBLIC_READ !== '1') {
     if (isShare) return sharePage(request, env, url, null).then((r) => new Response(r.body, { status: 200, headers: r.headers }));
@@ -884,7 +912,7 @@ async function publicPage(request, env, ctx, url) {
       return await cachedPage(request, ctx, url, async () => sharePage(request, env, url, await shareMeta(env, path)));
     }
     if (path === '/feed.xml') return await cachedPage(request, ctx, url, () => feedXml(env, url));
-    //SITEMAP
+    return await cachedPage(request, ctx, url, () => sitemapXml(env, url));
   } catch (err) {
     console.error('public page failed', err && err.stack ? err.stack : err);
     if (isShare) return env.ASSETS.fetch(new Request(`${url.origin}/`));

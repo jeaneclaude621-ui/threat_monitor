@@ -96,7 +96,8 @@ const INDEX_HTML = '<!doctype html><html lang="sv"><head><meta charset="utf-8"><
   + '<meta name="description" content="Daglig bedömning."></head><body><main id="view"></main></body></html>';
 const env = {
   PUBLIC_READ: '1', TEAM_DOMAIN: 'team.cloudflareaccess.com', ACCESS_AUD: 'aud', DB: db,
-  ASSETS: { fetch: async (req) => new Response(new URL(req.url).pathname === '/' ? INDEX_HTML : 'asset', { headers: { 'Content-Type': 'text/html; charset=utf-8' } }) },
+  ASSETS: { fetch: async (req) => new Response(new URL(req.url).pathname === '/' ? INDEX_HTML
+    : new URL(req.url).pathname === '/robots.txt' ? (await import('node:fs')).readFileSync(new URL('../public/robots.txt', import.meta.url), 'utf8') : 'asset', { headers: { 'Content-Type': 'text/html; charset=utf-8' } }) },
 };
 
 // caches.default, as on a custom domain.
@@ -214,6 +215,22 @@ expect('descriptions say AI-sammanfattning', (feed.match(/<description>AI-samman
 expect('markup escaped', feed.includes('<script>'), false);
 expect('older than 14 days left out', feed.includes(old), false);
 expect('well-formed item count', (feed.match(/<item>/g) || []).length, (feed.match(/<\/item>/g) || []).length);
+
+// --- robots.txt and /sitemap.xml ------------------------------------------------
+r = await get('/robots.txt');
+const robots = await r.text();
+expect('robots.txt names this host\'s sitemap', robots.includes(`Sitemap: ${ORIGIN}/sitemap.xml`), true);
+expect('robots.txt allows the pages', robots.includes('Allow: /'), true);
+const old2 = new Date(Date.now() - 100 * 86400000).toISOString().slice(0, 10);
+db.reports.set(old2, { date: old2, threat_index: 5, top_sv: '', data: JSON.stringify({ date: old2, events: [{ id: `${old2}-e1`, score: 9 }] }) });
+r = await get('/sitemap.xml');
+const sitemap = await r.text();
+expect('sitemap 200', r.status, 200);
+expect('sitemap is XML', r.headers.get('content-type'), 'application/xml; charset=utf-8');
+expect('sitemap lists the day', sitemap.includes(`<loc>${ORIGIN}/d/${today}</loc>`), true);
+expect('sitemap lists every event', sitemap.includes(`<loc>${ORIGIN}/h/${today}/${today}-e2</loc>`), true);
+expect('sitemap keeps 20 days back', sitemap.includes(`/d/${old}<`), true);
+expect('sitemap stops at 90 days', sitemap.includes(old2), false);
 
 console.log(`\nlaunch_test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
