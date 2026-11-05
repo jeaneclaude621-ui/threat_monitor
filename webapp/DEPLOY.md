@@ -500,6 +500,25 @@ networks to see the preview. A day's own image is used when the deploy has
 `PUSH_QUEUE_CRON`). With 200 subscribers the last get the push about 40
 minutes later. Systemstatus' last push shows how many are still queued.
 
+## Version 3.23: push for guests, and one-call start
+
+**Run the migration before deploying** (from `webapp/`):
+
+```sh
+npm run migrate:remote     # 0015_guest_push.sql (and 0014 if not yet run)
+```
+
+0015 copies `push_subscriptions` into a new table where `email` may be
+NULL and adds `topics` and `countries`. The new Worker reads those
+columns when it sends a push, so with the old table every push fails
+until the migration has run. The copy keeps every subscription.
+
+Guests can subscribe (at most 5000) and are sent pushes 40 at a time by
+the cron of Version 3.22: with 2 000 subscribers that is 50 runs of ten
+minutes, so the last get a push about eight hours later. If guest push
+becomes popular, Workers Paid (1 000 subrequests per invocation) with a
+larger `PUSH_BATCH` (e.g. 900) brings that down to minutes.
+
 ## Deploying from GitHub Actions
 
 `.github/workflows/deploy.yml` deploys the web app when a push to main

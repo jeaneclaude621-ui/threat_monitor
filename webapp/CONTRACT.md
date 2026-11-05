@@ -740,3 +740,46 @@ For the app (another session):
   `GET /api/admin/access-requests?status=requested` with Godkänn / Avslå.
 - A 404 on a share path loads the app normally; it should show its own
   "finns inte" page for the route.
+
+# Version 3.23 (5 Nov 2026) - push for guests, follow topics, text on share pages, one-call start
+
+Worker:
+- **Web Push for guests.** With `PUBLIC_READ` on, `GET /api/push/key`
+  is public, and `POST /api/push/subscribe`, `/api/push/unsubscribe` and
+  `/api/push/prefs` work without a login (also for a verified address
+  without an account). The subscription is the key: `email` is NULL
+  (migration `0015_guest_push.sql`, which also adds `topics` and
+  `countries`). A guest's POST needs the app's Origin; at most 20 such
+  writes an hour per IP; at most 5000 guest subscriptions (then 503); the
+  same push-service allowlist. A guest's `prefs` keep only `report`.
+  Subscribe answers `{ ok: true, guest: true|false }`. Unsubscribe as a
+  guest removes only a guest subscription.
+- Guests get only the public pushes from a report (index moved 0.5 or
+  more, events scored 9+). Never the missing-report or run alarms, admin
+  notices or "update everyone".
+- **Follow topics or countries.** `POST /api/push/prefs { endpoint,
+  topics?: [TOPICS], countries?: ['EE', ...] }` -> `{ ok, topics,
+  countries }` (404 if the endpoint is not this person's or a guest's
+  subscription). Subscribe takes the same two fields. Event pushes reach a
+  subscription only when one of the pushed events has a followed topic or
+  country; empty lists follow everything. An index push goes to all.
+- **Text on share pages.** `/h/...` and `/d/...` put the text into `<main
+  id="view">` as `<article id="ssr" lang="sv">`: the AI label, date,
+  credibility score, title, `summary_sv`, topics and countries, outlet
+  names and a link to the day (event); the index, top line and the events
+  linking `/h/...` (day); and the line *AI-genererad sammanställning ur
+  öppna källor. Kan innehålla fel. Hotmonitor är ett privat projekt och
+  ingen myndighet.* The app's first render replaces it.
+- **`GET /api/public/latest`** (public with `PUBLIC_READ` on, GET/HEAD):
+  `{ generated_at, index: [{ date, threat_index, threat_index_30d,
+  top_sv }] (newest first), latest: <newest report JSON> | null }`,
+  pseudonymized like every guest answer. `Cache-Control: public,
+  max-age=300`, and cached five minutes in `caches.default` and per
+  isolate.
+
+For the app (another session):
+- Guests: offer *Få notiser* (subscribe without logging in), with topic and
+  country choices sent to `/api/push/prefs`.
+- Guests' first view: read `/api/public/latest` instead of `/api/reports`
+  plus `/api/reports/<newest>`, and fetch older reports only when needed.
+- Give `#ssr` styles if wanted; it is visible only until the app renders.

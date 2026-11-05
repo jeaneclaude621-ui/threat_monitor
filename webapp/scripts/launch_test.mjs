@@ -41,6 +41,11 @@ class MockD1 {
         if (/FROM access_requests WHERE email = \? ORDER BY/.test(sql)) return db.requests.filter((r) => r.email === args[0]).at(-1) || null;
         if (/COUNT\(\*\) AS n FROM access_requests WHERE email/.test(sql)) return { n: db.requests.filter((r) => r.email === args[0] && r.ts > args[1]).length };
         if (/FROM access_requests WHERE email = \? AND status = 'requested'/.test(sql)) return db.requests.find((r) => r.email === args[0] && r.status === 'requested') || null;
+        if (/^SELECT email FROM push_subscriptions WHERE endpoint = \?/.test(sql)) return db.subs.find((x) => x.endpoint === args[0]) || null;
+        if (/COUNT\(\*\) AS n FROM push_subscriptions WHERE email IS NULL/.test(sql)) return { n: db.subs.filter((x) => x.email == null).length };
+        if (/COUNT\(\*\) AS n FROM push_subscriptions WHERE email = \?/.test(sql)) return { n: db.subs.filter((x) => x.email === args[0]).length };
+        if (/SELECT topics, countries FROM push_subscriptions WHERE endpoint = \? AND email IS NULL/.test(sql)) return db.subs.find((x) => x.endpoint === args[0] && x.email == null) || null;
+        if (/SELECT topics, countries FROM push_subscriptions WHERE endpoint = \? AND email = \?/.test(sql)) return db.subs.find((x) => x.endpoint === args[0] && x.email === args[1]) || null;
         if (/FROM access_requests WHERE id = \?/.test(sql)) return db.requests.find((r) => r.id === args[0]) || null;
         if (/COUNT\(\*\) AS n FROM access_requests/.test(sql)) return { n: db.requests.filter((r) => r.status === 'requested').length };
         return null;
@@ -52,7 +57,21 @@ class MockD1 {
         else if (/^INSERT OR IGNORE INTO users/.test(sql) && !db.users.has(args[0])) db.users.set(args[0], { role: args[1], active: 1 });
         else if (/^INSERT INTO access_requests/.test(sql)) db.requests.push({ id: args[0], email: args[1], ts: args[2], status: 'requested', decided_at: null, decided_by: null });
         else if (/^UPDATE access_requests SET status/.test(sql)) { const r = db.requests.find((x) => x.id === args[3]); if (r) Object.assign(r, { status: args[0], decided_at: args[1], decided_by: args[2] }); }
-        else if (/^DELETE FROM push_subscriptions/.test(sql)) db.subs = db.subs.filter((s) => s.endpoint !== args[0]);
+        else if (/^DELETE FROM push_subscriptions WHERE endpoint = \? AND email IS NULL/.test(sql)) {
+          const n = db.subs.length; db.subs = db.subs.filter((x) => !(x.endpoint === args[0] && x.email == null));
+          return { meta: { changes: n - db.subs.length } };
+        } else if (/^DELETE FROM push_subscriptions WHERE endpoint = \? AND email = \?/.test(sql)) {
+          const n = db.subs.length; db.subs = db.subs.filter((x) => !(x.endpoint === args[0] && x.email === args[1]));
+          return { meta: { changes: n - db.subs.length } };
+        } else if (/^DELETE FROM push_subscriptions/.test(sql)) db.subs = db.subs.filter((x) => x.endpoint !== args[0]);
+        else if (/^INSERT INTO push_subscriptions/.test(sql)) {
+          const [endpoint, email, p256dh, auth, created_at, prefs, topics, countries] = args;
+          const old = db.subs.find((x) => x.endpoint === endpoint);
+          const row = { endpoint, email, p256dh, auth, created_at, prefs, topics: topics ?? (old && old.topics) ?? null, countries: countries ?? (old && old.countries) ?? null };
+          db.subs = db.subs.filter((x) => x.endpoint !== endpoint); db.subs.push(row);
+        } else if (/^UPDATE push_subscriptions SET topics/.test(sql)) {
+          const r = db.subs.find((x) => x.endpoint === args[2]); if (r) { r.topics = args[0]; r.countries = args[1]; }
+        }
         else if (/^INSERT INTO audit_log/.test(sql)) db.audit.push(args[2]);
         return { meta: { changes: 1 } };
       },
@@ -76,7 +95,7 @@ class MockD1 {
         }
         if (/FROM access_requests/.test(sql)) return { results: [...db.requests].reverse() };
         if (/WHERE endpoint IN/.test(sql)) return { results: db.subs.filter((x) => args.includes(x.endpoint)) };
-        if (/FROM push_subscriptions/.test(sql)) return { results: db.subs };
+        if (/FROM push_subscriptions/.test(sql)) return { results: db.subs.filter((x) => x.email != null || /email IS NULL/.test(sql)) };
         return { results: [] };
       },
     };
@@ -97,7 +116,7 @@ const report = {
 db.reports.set(today, { date: today, threat_index: 6.4, threat_index_30d: 6.0, top_sv: report.executive_sv.top, data: JSON.stringify(report) });
 
 const INDEX_HTML = '<!doctype html><html lang="sv"><head><meta charset="utf-8"><title>Hotmonitor</title>'
-  + '<meta name="description" content="Daglig bedömning."></head><body><main id="view"></main></body></html>';
+  + '<meta name="description" content="Daglig bedömning."></head><body><main id="view"><p>Laddar…</p></main></body></html>';
 const env = {
   PUBLIC_READ: '1', TEAM_DOMAIN: 'team.cloudflareaccess.com', ACCESS_AUD: 'aud', DB: db,
   ASSETS: { fetch: async (req) => new Response(new URL(req.url).pathname === '/' ? INDEX_HTML
@@ -145,6 +164,8 @@ globalThis.HTMLRewriter = class {
           h.element({ setInnerContent(t) { html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(t)}</title>`); } });
         } else if (sel === 'meta[name="description"]') {
           h.element({ setAttribute(_k, v) { html = html.replace(/(<meta name="description" content=")[^"]*(")/, `$1${esc(v).replace(/"/g, '&quot;')}$2`); } });
+        } else if (sel === 'main#view') {
+          h.element({ setInnerContent(t) { html = html.replace(/(<main id="view">)[\s\S]*?(<\/main>)/, `$1${t}$2`); } });
         } else if (sel === 'head') {
           h.element({ append(t) { html = html.replace('</head>', `${t}</head>`); } });
         }
@@ -180,8 +201,14 @@ r = await get(`/h/${today}/${today}-e1`);
 expect('second view from the cache, OG intact', metaOf(await r.text(), 'og:title'), 'Kabel skadad i Östersjön');
 expect('second view reads no D1', db.reads, 0);
 
+const ssr = (h) => (h.match(/<article id="ssr"[\s\S]*?<\/article>/) || [''])[0];
+expect('event text in the page (SSR)', ssr(html).includes('En kabel mellan Finland och Estland skadades i natt. Polisen utreder.'), true);
+expect('SSR is AI-labelled', ssr(html).includes('AI-sammanfattning'), true);
+expect('SSR replaces the loading text', html.includes('Laddar…'), false);
+expect('SSR links to the day', ssr(html).includes(`href="/d/${today}"`), true);
 r = await get(`/h/${today}/${today}-e2`);
 html = await r.text();
+expect('SSR escapes markup', ssr(html).includes('&lt;script&gt;') && !ssr(html).includes('<script>'), true);
 expect('markup in a title is escaped', html.includes('<script>'), false);
 expect('empty summary: the title is the description', metaOf(html, 'og:description').startsWith('Desinformation om val &lt;script&gt;'), true);
 
@@ -191,12 +218,15 @@ expect('day page 200', r.status, 200);
 expect('day og:title has the index', metaOf(html, 'og:title').endsWith('· hotindex 6,4'), true);
 expect('day og:description', metaOf(html, 'og:description'), 'Sabotage mot en kabel i Östersjön. · AI-sammanfattning · Hotmonitor');
 expect('day og:url', metaOf(html, 'og:url'), `${ORIGIN}/d/${today}`);
+expect('day SSR lists the events, highest first', ssr(html).indexOf(`${today}-e1`) > 0 && ssr(html).indexOf(`${today}-e1`) < ssr(html).indexOf(`${today}-e2`), true);
+expect('day SSR has the top line', ssr(html).includes('Sabotage mot en kabel i Östersjön.'), true);
 
 for (const bad of [`/h/${today}/nope`, '/h/2026-13-40/x-e1', '/d/1999-01-01', '/d/not-a-date', `/h/${today}/a%20b`, `/h/${today}/%E0%A4%A`, `/h/${today}/x/extra`]) {
   r = await get(bad);
   html = await r.text();
   expect(`404 for ${bad}`, r.status, 404);
   expect(`no OG tags on ${bad}`, html.includes('og:title'), false);
+  expect(`no SSR on ${bad}`, html.includes('id="ssr"'), false);
 }
 r = await worker.fetch(new Request(`${ORIGIN}/d/${today}`), { ...env, PUBLIC_READ: '0' }, { waitUntil: () => {} });
 html = await r.text();
@@ -309,7 +339,7 @@ expect('at most three requests a day', r.status, 429);
   const pushEnv = { ...env, OWNER: 'owner@example.org',
     VAPID_PUBLIC_KEY: b64uEncode(await crypto.subtle.exportKey('raw', vk.publicKey)),
     VAPID_PRIVATE_KEY: (await crypto.subtle.exportKey('jwk', vk.privateKey)).d };
-  db.subs = Array.from({ length: 100 }, (_, n) => ({ endpoint: `https://fcm.googleapis.com/fcm/send/s${n}`, p256dh, auth, prefs: null }));
+  db.subs = Array.from({ length: 100 }, (_, n) => ({ endpoint: `https://fcm.googleapis.com/fcm/send/s${n}`, email: 'owner@example.org', p256dh, auth, prefs: null }));
   db.subs[5].prefs = JSON.stringify({ report: false });
   const hits = [];
   const realFetch = globalThis.fetch;
@@ -344,9 +374,91 @@ expect('at most three requests a day', r.status, 429);
   hits.length = 0;
   p = await pushTo(pushEnv, { adminsOnly: false, pref: 'report' }, { title: 'Natt' });
   expect('quiet hours: held, nothing sent', hits.length, 0);
+  Date.now = () => Date.parse('2026-11-05T12:00:00Z');
+
+  // --- Guest push (Version 3.23) ---
+  db.subs = [{ endpoint: 'https://fcm.googleapis.com/fcm/send/user1', email: 'owner@example.org', p256dh, auth, prefs: null }];
+  db.meta.delete('push_queue');
+  const guestEp = 'https://fcm.googleapis.com/fcm/send/guest1';
+  const gpost = (path, body, { origin = ORIGIN, ip = '198.51.100.1' } = {}) => worker.fetch(new Request(`${ORIGIN}${path}`, {
+    method: 'POST', body: JSON.stringify(body),
+    headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': ip, ...(origin ? { Origin: origin } : {}) },
+  }), pushEnv, { waitUntil: () => {} });
+  let res = await gpost('/api/push/subscribe', { endpoint: guestEp, keys: { p256dh, auth } }, { origin: null });
+  expect('guest subscribe needs the app\'s Origin', res.status, 403);
+  res = await gpost('/api/push/subscribe', { endpoint: 'https://evil.example/push', keys: { p256dh, auth } });
+  expect('guest: unknown push service refused', res.status, 400);
+  res = await gpost('/api/push/subscribe', { endpoint: guestEp, keys: { p256dh, auth }, prefs: { report: true, alarm: true } });
+  expect('guest subscribes', res.status, 201);
+  const gsub = db.subs.find((x) => x.endpoint === guestEp);
+  expect('guest subscription has no email', gsub && gsub.email, null);
+  expect('guest prefs keep only public flags', gsub && gsub.prefs, JSON.stringify({ report: true }));
+  res = await gpost('/api/push/prefs', { endpoint: guestEp, topics: ['Nonsens'] });
+  expect('unknown topic refused', res.status, 400);
+  res = await gpost('/api/push/prefs', { endpoint: 'https://fcm.googleapis.com/fcm/send/nobody', topics: [] });
+  expect('prefs for an unknown subscription: 404', res.status, 404);
+  res = await gpost('/api/push/prefs', { endpoint: guestEp, topics: ['Sabotage'], countries: ['EE'] });
+  expect('guest follows Sabotage and EE', res.status, 200);
+  expect('stored', gsub.topics, JSON.stringify(['Sabotage']));
+  res = await gpost('/api/push/prefs', { endpoint: 'https://fcm.googleapis.com/fcm/send/user1', topics: [] });
+  expect('a guest cannot touch a user\'s subscription', res.status, 404);
+
+  hits.length = 0;
+  await pushTo(pushEnv, { adminsOnly: true, pref: 'alarm' }, { title: 'Larm' });
+  expect('alarm: never to guests', hits.includes(guestEp), false);
+  await pushTo(pushEnv, { adminsOnly: false, pref: 'notice' }, { title: 'Notis' });
+  expect('admin notice: not to guests', hits.includes(guestEp), false);
+  await pushTo(pushEnv, { adminsOnly: false, pref: 'report', guests: true, match: null }, { title: 'Index' });
+  expect('index move: reaches the guest', hits.includes(guestEp), true);
+  hits.length = 0;
+  await pushTo(pushEnv, { adminsOnly: false, pref: 'report', guests: true, match: { topics: ['Drönare'], countries: ['PL'] } }, { title: 'Drönare' });
+  expect('event outside what the guest follows: not sent to it', hits.includes(guestEp), false);
+  expect('...but sent to who follows everything', hits.length, 1);
+  hits.length = 0;
+  await pushTo(pushEnv, { adminsOnly: false, pref: 'report', guests: true, match: { topics: ['Drönare'], countries: ['EE'] } }, { title: 'EE' });
+  expect('event in a followed country: sent', hits.includes(guestEp), true);
+  hits.length = 0;
+  await _test.reportPush(pushEnv, { threat_index: null, events: [{ id: '2026-11-05-e9', score: 9.4, title_sv: 'Sabotage', topics: ['Sabotage'], countries: ['SE'] }] }, '2026-11-05');
+  expect('reportPush: a 9+ event in a followed topic reaches the guest', hits.includes(guestEp), true);
+
+  res = await gpost('/api/push/unsubscribe', { endpoint: guestEp });
+  expect('guest unsubscribes', (await res.json()).removed, 1);
+  const n0 = db.subs.length;
+  for (let k = 0; k < 5000; k++) db.subs.push({ endpoint: `g${k}`, email: null });
+  res = await gpost('/api/push/subscribe', { endpoint: guestEp, keys: { p256dh, auth } }, { ip: '198.51.100.2' });
+  expect('guest cap: 503 at 5000', res.status, 503);
+  db.subs.length = n0;
+  let last429 = 0;
+  for (let k = 0; k < 21; k++) last429 = (await gpost('/api/push/unsubscribe', { endpoint: guestEp }, { ip: '198.51.100.3' })).status;
+  expect('guest writes: 20 an hour per IP', last429, 429);
+
   Date.now = realNow;
   globalThis.fetch = realFetch;
 }
+
+// --- /api/public/latest (Version 3.23) -----------------------------------------
+_test.resetPublicLatest();
+edgeStore.clear();
+db.reports.set(today, { ...db.reports.get(today), data: JSON.stringify({ ...report, note: 'av someone@example.org' }) });
+db.reads = 0;
+r = await get('/api/public/latest');
+let pl = await r.json();
+expect('public/latest 200', r.status, 200);
+expect('long cache', r.headers.get('cache-control'), 'public, max-age=300');
+expect('index included, newest first', pl.index[0].date, today);
+expect('newest report included', pl.latest.date, today);
+expect('no e-mail addresses', JSON.stringify(pl).includes('@'), false);
+expect('in caches.default', edgeStore.has(`${ORIGIN}/__public-cache/api/public/latest`), true);
+const readsNow = db.reads;
+r = await get('/api/public/latest?x=1');
+expect('second call: no D1 read', db.reads, readsNow);
+_test.resetPublicLatest();
+r = await get('/api/public/latest');
+expect('another isolate: from caches.default', db.reads, readsNow);
+r = await worker.fetch(new Request(`${ORIGIN}/api/public/latest`), { ...env, PUBLIC_READ: '0' }, { waitUntil: () => {} });
+expect('PUBLIC_READ off: not public', r.status, 401);
+r = await get('/api/public/latest', { method: 'POST' });
+expect('only GET', r.status, 405);
 
 console.log(`\nlaunch_test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
