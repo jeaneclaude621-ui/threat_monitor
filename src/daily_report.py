@@ -333,9 +333,12 @@ def evaluate_forecasts(history):
 # --------------------------------------------------------------------------
 # The sweep on the reserve (light) model, when the main model cannot take
 # it: fewer articles and events, so a smaller model has less to mix up
-# (review 1, #18).
-SWEEP_ARTICLES, SWEEP_EVENTS = 450, 6
+# (review 1, #18). The main sweep gives a varying number of events: about
+# SWEEP_EVENTS_TYPICAL on an ordinary day, up to SWEEP_EVENTS when the
+# news warrants it; what does not make it goes in also_reported.
+SWEEP_ARTICLES, SWEEP_EVENTS, SWEEP_EVENTS_TYPICAL = 450, 10, 6
 RESERVE_SWEEP_ARTICLES, RESERVE_SWEEP_EVENTS = 200, 4
+ALSO_REPORTED_MAX = 8
 # Days of earlier reports whose events a standing condition may name.
 STANDING_WINDOW_DAYS = 30
 
@@ -384,6 +387,11 @@ def run_broad_sweep(state, hourly_entries, pool, contradicted=(), forecast_accur
                            for n in named) or "(none)"
 
     def build(n_articles, n_events):
+        if n_events > SWEEP_EVENTS_TYPICAL:
+            count_rule = (f"About {SWEEP_EVENTS_TYPICAL} on an ordinary day; give more, up to {n_events}, only "
+                          f"when the day's news has that many separate, significant events - never pad.")
+        else:
+            count_rule = "Fewer is fine when the day has fewer significant events - never pad."
         return f"""Below is the last 24 hours of reporting gathered from news feeds,
 Google News and GDELT, newest first, each with a ref ([A1], [A2] ...).
 From it, assess Russia's hybrid activity, threats, and posture toward
@@ -437,8 +445,9 @@ name; contradicted ones are left out:
 {older_desc}
 
 Produce:
-1. Up to {n_events} of the most important events from the last 24h, each scored
+1. The most important events from the last 24h, at most {n_events}, each scored
    for credibility per the tiers above, with the corroborating outlets named.
+   {count_rule}
    {SWEEP_EVENT_FIELDS}
    Watchlist threads (for "thread_id"):
 {threads_desc}
@@ -447,6 +456,9 @@ Produce:
 4. Up to 4 "deception watch" items - recurring Kremlin narrative/denial
    patterns observed in the last 24h (not scored, tracked separately).
 5. Up to 3 "key signals" - short phrases for a sidebar.
+6. "also_reported": up to {ALSO_REPORTED_MAX} other relevant stories from the list
+   that did not make it into the events - each a short Swedish title and
+   the refs of the articles that report it (e.g. ["A7"]), copied exactly.
 
 Respond as strict JSON:
 {{
@@ -454,7 +466,8 @@ Respond as strict JSON:
 {INDEX_JSON_FIELDS}
   "top_development": "...",
   "deception_items": [{{"heading": "...", "body": "..."}}],
-  "key_signals": ["..."]
+  "key_signals": ["..."],
+  "also_reported": [{{"title_sv": "...", "refs": ["A1"]}}]
 }}"""
     # The escalation/de-escalation/delta fields pushed this past 5000, the
     # 30-day forecast another 1500, the app fields (Swedish text, topics,
@@ -466,7 +479,8 @@ Respond as strict JSON:
     reserve = common.lite_model()
     result = None
     try:
-        result = ask_model_json(build(SWEEP_ARTICLES, SWEEP_EVENTS), system=SYSTEM, max_tokens=22000,
+        # Up to ten events instead of six: about 1500 tokens each more.
+        result = ask_model_json(build(SWEEP_ARTICLES, SWEEP_EVENTS), system=SYSTEM, max_tokens=30000,
                                 model=common.MODEL, fallback=False)
     except common.NoModelAvailable as e:
         if not reserve or reserve == common.MODEL:
@@ -478,6 +492,7 @@ Respond as strict JSON:
                                 max_tokens=22000, model=reserve, fallback=False)
         result["events"] = (result.get("events") or [])[:RESERVE_SWEEP_EVENTS]
         result["sweep_reduced"] = True
+    result["events"] = (result.get("events") or [])[:SWEEP_EVENTS]
     by = common.generated_by(mark)
     result["sweep_generated_by"] = {"models": by["models"], "reserve": bool(result.get("sweep_reduced")),
                                     "articles": RESERVE_SWEEP_ARTICLES if result.get("sweep_reduced") else SWEEP_ARTICLES}
@@ -486,6 +501,8 @@ Respond as strict JSON:
     enrich_events(result.get("events", []), date.today().isoformat(), common.LAST_SEARCH_RESULTS,
                   {t["id"] for t in state["watchlist"]})
     drop_repeated_articles(result.get("events", []), recent)
+    result["also_reported"] = verify_also_reported(result.get("also_reported"), date.today().isoformat(),
+                                                   common.LAST_SEARCH_RESULTS, result.get("events", []))
     trace = operator_weight.apply_to_events(result.get("events", []))
     apply_index_rules(result, result.get("events", []), set(known_ids))
     result["operator_influence"] = operator_weight.apply_to_index(result, trace)
@@ -495,6 +512,32 @@ Respond as strict JSON:
     if not result.get("deescalation_factors"):
         print("  ! No de-escalation factors identified - index may be drifting upward unchecked")
     return result
+
+
+def verify_also_reported(items, report_date, search_results, events=()) -> list:
+    """also_reported as [{title_sv, refs}], refs being verified articles
+    ({id, outlet, title, url, tier, published}) checked against the
+    article list exactly as an event's are (app_data.enrich_events). An
+    item with no verified ref is left out, and so is an article already
+    cited by one of today's events."""
+    cited = {a.get("url") for e in events for a in e.get("articles", []) if a.get("url")}
+    out, dropped = [], 0
+    for x in (items or [])[:ALSO_REPORTED_MAX]:
+        if not isinstance(x, dict) or not isinstance(x.get("title_sv"), str) or not x["title_sv"].strip():
+            continue
+        refs = x.get("refs") or []
+        refs = [refs] if isinstance(refs, str) else refs
+        probe = {"title": x["title_sv"], "articles": [{"ref": str(r)} for r in refs if r]}
+        enrich_events([probe], report_date, search_results or [])
+        arts = [{k: a[k] for k in ("id", "outlet", "title", "url", "tier", "published") if k in a}
+                for a in probe["articles"] if a.get("url") and a["url"] not in cited]
+        if arts:
+            out.append({"title_sv": x["title_sv"].strip(), "refs": arts})
+        else:
+            dropped += 1
+    if dropped:
+        print(f"  Left out {dropped} also_reported item(s) without a verified ref")
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -748,6 +791,7 @@ def run_daily_report():
         "self_check_results": self_check.get("results", []),
         "top_development": sweep.get("top_development", ""),
         "events": sweep.get("events", []),
+        "also_reported": sweep.get("also_reported", []),
         "threat_index_history": history_with_originals(state["threat_index_history"]),
         "key_signals": sweep.get("key_signals", []),
         "narrative_stability": narrative_rows,
