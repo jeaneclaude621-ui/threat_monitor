@@ -1,0 +1,285 @@
+{
+  "_case": "One AP story run by ten papers: one origin, not ten independent sources.",
+  "pool_items_same_title": [
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "link": "https://example-0.com/ap-lithuania",
+      "source": "ABC News",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "link": "https://example-1.com/ap-lithuania",
+      "source": "US News",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "link": "https://example-2.com/ap-lithuania",
+      "source": "Washington Post",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "link": "https://example-3.com/ap-lithuania",
+      "source": "Independent",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "link": "https://example-4.com/ap-lithuania",
+      "source": "Yahoo News",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "link": "https://example-5.com/ap-lithuania",
+      "source": "MSN",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "link": "https://example-6.com/ap-lithuania",
+      "source": "Seattle Times",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "link": "https://example-7.com/ap-lithuania",
+      "source": "Boston Globe",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "link": "https://example-8.com/ap-lithuania",
+      "source": "Chicago Tribune",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "link": "https://example-9.com/ap-lithuania",
+      "source": "Los Angeles Times",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    }
+  ],
+  "pool_items_varied_titles": [
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "link": "https://example-0.com/ap-lithuania-2",
+      "source": "ABC News",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons | AP",
+      "link": "https://example-1.com/ap-lithuania-2",
+      "source": "US News",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons - AP News",
+      "link": "https://example-2.com/ap-lithuania-2",
+      "source": "Washington Post",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons (AP)",
+      "link": "https://example-3.com/ap-lithuania-2",
+      "source": "Independent",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons – Associated Press",
+      "link": "https://example-4.com/ap-lithuania-2",
+      "source": "Yahoo News",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons - The Independent",
+      "link": "https://example-5.com/ap-lithuania-2",
+      "source": "MSN",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons: AP",
+      "link": "https://example-6.com/ap-lithuania-2",
+      "source": "Seattle Times",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons — AP",
+      "link": "https://example-7.com/ap-lithuania-2",
+      "source": "Boston Globe",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons | World",
+      "link": "https://example-8.com/ap-lithuania-2",
+      "source": "Chicago Tribune",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    },
+    {
+      "title": "Lithuania closes Belarus border crossings over balloons - LA Times",
+      "link": "https://example-9.com/ap-lithuania-2",
+      "source": "Los Angeles Times",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace.",
+      "via": "google"
+    }
+  ],
+  "search_results": [
+    {
+      "ref": "A1",
+      "url": "https://example-1.com/ap-lithuania",
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "outlet": "ABC News",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace."
+    },
+    {
+      "ref": "A2",
+      "url": "https://example-2.com/ap-lithuania",
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "outlet": "US News",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace."
+    },
+    {
+      "ref": "A3",
+      "url": "https://example-3.com/ap-lithuania",
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "outlet": "Washington Post",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace."
+    },
+    {
+      "ref": "A4",
+      "url": "https://example-4.com/ap-lithuania",
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "outlet": "Independent",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace."
+    },
+    {
+      "ref": "A5",
+      "url": "https://example-5.com/ap-lithuania",
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "outlet": "Yahoo News",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace."
+    },
+    {
+      "ref": "A6",
+      "url": "https://example-6.com/ap-lithuania",
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "outlet": "MSN",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace."
+    },
+    {
+      "ref": "A7",
+      "url": "https://example-7.com/ap-lithuania",
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "outlet": "Seattle Times",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace."
+    },
+    {
+      "ref": "A8",
+      "url": "https://example-8.com/ap-lithuania",
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "outlet": "Boston Globe",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace."
+    },
+    {
+      "ref": "A9",
+      "url": "https://example-9.com/ap-lithuania",
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "outlet": "Chicago Tribune",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace."
+    },
+    {
+      "ref": "A10",
+      "url": "https://example-10.com/ap-lithuania",
+      "title": "Lithuania closes Belarus border crossings over balloons",
+      "outlet": "Los Angeles Times",
+      "summary": "(AP) — Lithuania said Tuesday it had closed two border crossings with Belarus after balloons again crossed into its airspace."
+    }
+  ],
+  "events": [
+    {
+      "title": "Lithuania closes Belarus border",
+      "title_sv": "Litauen stänger gränsen mot Belarus",
+      "score": 8,
+      "topics": [
+        "Diplomati"
+      ],
+      "countries": [
+        "LT",
+        "BY"
+      ],
+      "articles": [
+        {
+          "ref": "A1",
+          "outlet": "ABC News",
+          "tier": 2
+        },
+        {
+          "ref": "A2",
+          "outlet": "US News",
+          "tier": 2
+        },
+        {
+          "ref": "A3",
+          "outlet": "Washington Post",
+          "tier": 2
+        },
+        {
+          "ref": "A4",
+          "outlet": "Independent",
+          "tier": 2
+        },
+        {
+          "ref": "A5",
+          "outlet": "Yahoo News",
+          "tier": 2
+        },
+        {
+          "ref": "A6",
+          "outlet": "MSN",
+          "tier": 2
+        },
+        {
+          "ref": "A7",
+          "outlet": "Seattle Times",
+          "tier": 2
+        },
+        {
+          "ref": "A8",
+          "outlet": "Boston Globe",
+          "tier": 2
+        },
+        {
+          "ref": "A9",
+          "outlet": "Chicago Tribune",
+          "tier": 2
+        },
+        {
+          "ref": "A10",
+          "outlet": "Los Angeles Times",
+          "tier": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "_case": "A YouTube video, added in the app, is the event's only source.",
+  "search_results": [
+    {
+      "ref": "A1",
+      "url": "https://www.youtube.com/watch?v=abcdefghijk",
+      "title": "BREAKING: Russian sub surfaces off Stockholm",
+      "outlet": "YouTube"
+    },
+    {
+      "ref": "A2",
+      "url": "https://www.svt.se/nyheter/inrikes/ubat-2026-11-04",
+      "title": "Marinen undersöker uppgifter om ubåt",
+      "outlet": "SVT"
+    }
+  ],
+  "events": [
+    {
+      "title": "Russian submarine off Stockholm",
+      "title_sv": "Rysk ubåt utanför Stockholm",
+      "score": 7,
+      "topics": [
+        "Kinetiskt"
+      ],
+      "countries": [
+        "SE"
+      ],
+      "articles": [
+        {
+          "ref": "A1",
+          "outlet": "YouTube",
+          "tier": 4
+        }
+      ]
+    }
+  ],
+  "events_with_news": [
+    {
+      "title": "Navy investigates submarine report",
+      "title_sv": "Marinen undersöker ubåtsuppgift",
+      "score": 5,
+      "topics": [
+        "Kinetiskt"
+      ],
+      "countries": [
+        "SE"
+      ],
+      "articles": [
+        {
+          "ref": "A1",
+          "outlet": "YouTube",
+          "tier": 4
+        },
+        {
+          "ref": "A2",
+          "outlet": "SVT",
+          "tier": 1
+        }
+      ]
+    }
+  ]
+}

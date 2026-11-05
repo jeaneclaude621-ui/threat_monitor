@@ -1,0 +1,40 @@
+{
+  "_case": "The lite model shortened its answer: an event with no articles and no sources line.",
+  "search_results": [
+    {
+      "ref": "A1",
+      "url": "https://www.err.ee/1609999999/narva",
+      "title": "Narva border queue",
+      "outlet": "ERR"
+    }
+  ],
+  "events": [
+    {
+      "title": "Estonia border",
+      "title_sv": "Estlands gräns",
+      "score": 6,
+      "topics": [
+        "Sabotage"
+      ],
+      "countries": [
+        "EE"
+      ]
+    },
+    {
+      "title": "Narva border queue",
+      "title_sv": "Kö vid Narva",
+      "score": 3,
+      "topics": [],
+      "countries": [
+        "EE"
+      ],
+      "articles": [
+        {
+          "ref": "A1",
+          "outlet": "ERR",
+          "tier": 2
+        }
+      ]
+    }
+  ]
+}

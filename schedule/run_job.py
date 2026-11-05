@@ -74,8 +74,10 @@ JOBS = {
     "repush": ["src/app_sync.py", "repush"],
     "firms_check": ["src/forces_firms.py", "check"],
     "forces_places": ["src/forces.py", "places", "--debug"],
+    "precision_sample": ["src/precision.py", "sample"],
+    "og_image": ["src/og_image.py"],
 }
-QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check", "forces_places"}   # forces: a manual extra run; the nightly one runs inside daily
+QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check", "forces_places", "precision_sample", "og_image"}   # forces: a manual extra run; the nightly one runs inside daily
 HOST = "cloud"
 
 # Jobs whose output belongs in the code repo, not the state repo: the weekly
@@ -86,6 +88,7 @@ CODE_JOBS = {
     "forces_images": ["config/forces_db/bases.json", "config/forces_db/systems.json",
                       "webapp/public/forces/systems.json", "webapp/public/forces/units.json",
                       "webapp/public/forces/img"],
+    "og_image": ["webapp/public/og"],
 }
 
 # What the state repo tracks, as git pathspecs. Named at every add rather

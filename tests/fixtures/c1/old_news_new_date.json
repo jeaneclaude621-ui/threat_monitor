@@ -1,0 +1,42 @@
+{
+  "_case": "A March 2025 article returns in today's search; the model gives it today's date.",
+  "pool_items": [
+    {
+      "title": "Finland reports GPS jamming over Lapland",
+      "link": "https://yle.fi/a/2025/03/01/gps-jamming",
+      "source": "Yle",
+      "published": "2025-03-01T08:00:00",
+      "via": "feed"
+    }
+  ],
+  "search_results": [
+    {
+      "ref": "A1",
+      "url": "https://yle.fi/a/2025/03/01/gps-jamming",
+      "title": "Finland reports GPS jamming over Lapland",
+      "outlet": "Yle",
+      "published": "2025-03-01"
+    }
+  ],
+  "events": [
+    {
+      "title": "GPS jamming over Lapland",
+      "title_sv": "GPS-störning över Lappland",
+      "score": 5,
+      "topics": [
+        "IT-hot"
+      ],
+      "countries": [
+        "FI"
+      ],
+      "articles": [
+        {
+          "ref": "A1",
+          "outlet": "Yle",
+          "tier": 1,
+          "published": "2026-11-04"
+        }
+      ]
+    }
+  ]
+}
