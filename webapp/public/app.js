@@ -793,6 +793,7 @@ async function viewReport(date, q) {
     // and the device cards come after or fold away.
     heroCard(r),
     aiLine(),
+    fallbackNote(r),
     top ? h('section', { class: 'section' },
       h('div', { class: 'kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
       h('p', { class: 'lead' }, top)) : null,
@@ -908,6 +909,15 @@ function aiLine() {
     h('a', { href: '#/om' }, 'Läs mer'));
 }
 
+// Marks the pipeline puts in the data (shown, never computed here).
+const isUnverified = (e) => e.unverified === true;
+const noLinkedSources = (e) => !e.articles.some((a) => a && a.url && hostOf(a.url));
+function fallbackNote(r) {
+  return r && r.generated_by && r.generated_by.fallback_used === true
+    ? h('p', { class: 'mark-note' }, 'Skriven av reservmodell – lägre säkerhet') : null;
+}
+function markTag(text) { return h('span', { class: 'mark-tag' }, text); }
+
 function heroCard(r) {
   const oi = r.operator_influence;
   const hasF = r.threat_index_30d != null;
@@ -989,7 +999,8 @@ function eventRow(date, e) {
     h('span', { class: scoreClass(e.score) }, h('span', { class: 'sr-only' }, 'Trovärdighet '), fmtScore(e.score), h('span', { class: 'sr-only' }, ' av 10')),
     h('span', { class: 'row-main' },
       h('span', { class: 'row-title' }, e.title_sv || e.title),
-      sub ? h('span', { class: 'row-sub' }, sub) : null),
+      sub ? h('span', { class: 'row-sub' }, sub) : null,
+      isUnverified(e) ? h('span', { class: 'row-sub mark-text' }, 'Obekräftad – ingen hämtad källa') : null),
     stateBadge(state),
     chevRight());
 }
@@ -1076,7 +1087,8 @@ async function viewEvent(date, id) {
         changed ? h('span', null, `Modellens poäng ${fmtScore(e.model_score)}`) : null,
         h('a', { href: reportHref }, dateLong(date)),
         stateBadge(state),
-        aiTag()),
+        aiTag(),
+        isUnverified(e) ? markTag('Obekräftad – ingen hämtad källa') : null),
       outcome ? h('p', { class: 'outcome' },
         h('span', { class: `rel rel-${OUTCOME[outcome.outcome][1]}` }, OUTCOME[outcome.outcome][0]),
         ' ', outcome.note || '',
@@ -1093,6 +1105,7 @@ async function viewEvent(date, id) {
         h('ul', { class: 'bullets' }, unknown.map((k) => h('li', null, k)))) : null) : null,
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Källor och artiklar'),
+      e.articles.length && noLinkedSources(e) ? h('p', { class: 'small muted' }, 'Äldre format: källor utan länk') : null,
       e.articles.length
         ? h('div', { class: 'srcp-list' }, e.articles.map((a) => articleRow({ article: a, event: e, date }, r.favicons)))
         : h('p', { class: 'muted small' }, e.sources || 'Inga källor registrerade.')),
@@ -1361,11 +1374,10 @@ async function viewArchive(q) {
 
   const selected = parseFacets(q);
   const filtering = selected.length > 0;
-  // The bars come from the index. Reports are loaded only for a filter (the
-  // period shown) and, signed in, for the unread counts of the news window;
-  // older days are listed from the index alone (review K1).
-  if (filtering) await loadReportsRange(start, last);
-  else if (!isGuest()) await loadReportsRange(scopeStart, last);
+  // The bars come from the index; reports are loaded for the period shown
+  // (the filter bar), and older days are listed from the index alone until
+  // the reader picks a longer period (review K1).
+  await loadReportsRange(start, last);
   const reports = loadedReports();
   const byReport = new Map(reports.map((r) => [r.date, r]));
   const inRange = reports.filter((r) => r.date >= start);
@@ -1414,7 +1426,9 @@ async function viewArchive(q) {
     h('div', { class: 'chart', role: 'img', 'aria-label': days.map((d) => `${dateShort(d)}: ${filtering ? matchesOn(d).length : valueOf(d) == null ? 'ingen rapport' : fmt1(valueOf(d))}`).join(', ') }, bars),
     h('div', { class: 'chart-days', 'aria-hidden': 'true' },
       days.map((d, i) => h('span', null, (days.length - 1 - i) % every === 0 ? String(toDate(d).getUTCDate()) : ''))),
-    h('p', { class: 'small muted' }, filtering ? `Antal händelser per dag, 0–${hi}` : `Skala ${lo}–${hi}`));
+    h('p', { class: 'small muted' }, filtering ? `Antal händelser per dag, 0–${hi}` : `Skala ${lo}–${hi}`,
+      !filtering && days.some((d) => { const hh = hist.get(d); return hh && hh.original_value != null; })
+        ? h('span', { class: 'mark-tag', title: 'Värdena räknades om med dagens metod; rapporten visade först ett annat värde.' }, 'äldre värden omräknade') : null));
 
   const rows = [];
   for (let d = last; d >= first; d = addDays(d, -1)) {
