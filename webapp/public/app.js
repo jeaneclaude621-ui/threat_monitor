@@ -3892,7 +3892,7 @@ const RUNS_HEADLINE = { green: 'Allt snurrar', yellow: 'Något att hålla koll p
 const lightDot = (light) => h('span', { class: `dot dot-${light}`, role: 'img', 'aria-label': LIGHT_SV[light] || light });
 const runMinutes = (r) => (r.finished_at
   ? `${Math.max(1, Math.round((Date.parse(r.finished_at) - Date.parse(r.started_at)) / 60000))} min` : 'pågår');
-const runLight = (r) => (r.status === 'failed' ? 'red' : r.status === 'ok' && r.warnings.length ? 'yellow' : 'green');
+const runLight = (r) => (r.status === 'failed' ? 'red' : r.status === 'partial' || (r.status === 'ok' && r.warnings.length) ? 'yellow' : 'green');
 const logLink = (r) => (r.log_url ? frag(' · ', h('a', { href: r.log_url, target: '_blank', rel: 'noopener' }, 'Logg')) : null);
 
 function runsSection(runs) {
@@ -3924,7 +3924,7 @@ function runsSection(runs) {
           h('span', { class: 'row-title' }, `${labels[r.job] || r.job} · ${tsFmt(r.started_at)}`),
           h('span', { class: 'row-sub' },
             [HOST_SV[r.host] || r.host, runMinutes(r),
-              r.status === 'failed' ? `misslyckades, kod ${r.exit_code ?? '?'}` : null,
+              r.status === 'failed' ? `misslyckades, kod ${r.exit_code ?? '?'}` : r.status === 'partial' ? 'delvis: en del föll' : null,
               r.warnings.length ? plural(r.warnings.length, 'varning', 'varningar') : null].filter(Boolean).join(' · '),
             logLink(r)),
           r.warnings.slice(0, 3).map((w) => h('span', { class: 'row-sub run-warn' }, w.replace(/^!\s*/, '')))))))) : null);

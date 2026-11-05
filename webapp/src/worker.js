@@ -1676,7 +1676,8 @@ async function ingestRun(request, env, id) {
   if (!b || typeof b !== 'object' || Array.isArray(b)) throw new HttpError(400, 'body must be a JSON object');
   if (!Object.hasOwn(RUN_JOBS, b.job)) throw new HttpError(400, `job must be one of ${Object.keys(RUN_JOBS).join(', ')}`);
   if (b.host !== 'mac' && b.host !== 'cloud') throw new HttpError(400, "host must be 'mac' or 'cloud'");
-  if (!['running', 'ok', 'failed'].includes(b.status)) throw new HttpError(400, "status must be 'running', 'ok' or 'failed'");
+  // 'partial': it exited 0 but part of it fell (401, 429, 503 in its warnings).
+  if (!['running', 'ok', 'partial', 'failed'].includes(b.status)) throw new HttpError(400, "status must be 'running', 'ok', 'partial' or 'failed'");
   if (typeof b.started_at !== 'string' || !TS_RE.test(b.started_at)) throw new HttpError(400, 'started_at must be ISO 8601');
   if (b.finished_at != null && (typeof b.finished_at !== 'string' || !TS_RE.test(b.finished_at))) {
     throw new HttpError(400, 'finished_at must be ISO 8601');

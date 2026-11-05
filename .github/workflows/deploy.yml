@@ -52,6 +52,8 @@ jobs:
           node --check public/app.js
           node scripts/auth_test.mjs
           node scripts/clock_test.mjs
+          node scripts/launch_test.mjs
+          node scripts/push_test.mjs
       - name: Install wrangler
         run: npm ci --no-audit --no-fund
       - name: Database migrations
