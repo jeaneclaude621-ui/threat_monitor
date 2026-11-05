@@ -36,12 +36,15 @@ reply check that leaves the mail unread.
 
 Every real run is reported to the app (PUT /api/ingest/runs/<id>) when it
 starts and when it ends, with the job's "!" warning lines, for the status
-page's green/yellow/red lights.
+page's green/yellow/red lights. A run that exits 0 but whose warnings show
+that part of it fell (401, 429, 503, "failed") is reported "partial", not
+"ok": on 4 Nov a run with 401 on every upload looked green.
 """
 import argparse
 import fcntl
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -68,8 +71,13 @@ JOBS = {
     "forces_survey": ["src/forces.py", "survey", "--batches", "18"],
     "strikes": ["src/strikes.py"],
     "forces_images": ["src/forces_db_images.py", "job"],
+    "repush": ["src/app_sync.py", "repush"],
+    "firms_check": ["src/forces_firms.py", "check"],
+    "forces_places": ["src/forces.py", "places", "--debug"],
+    "precision_sample": ["src/precision.py", "sample"],
+    "og_image": ["src/og_image.py"],
 }
-QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images"}   # forces: a manual extra run; the nightly one runs inside daily
+QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check", "forces_places", "precision_sample", "og_image"}   # forces: a manual extra run; the nightly one runs inside daily
 HOST = "cloud"
 
 # Jobs whose output belongs in the code repo, not the state repo: the weekly
@@ -80,6 +88,7 @@ CODE_JOBS = {
     "forces_images": ["config/forces_db/bases.json", "config/forces_db/systems.json",
                       "webapp/public/forces/systems.json", "webapp/public/forces/units.json",
                       "webapp/public/forces/img"],
+    "og_image": ["webapp/public/og"],
 }
 
 # What the state repo tracks, as git pathspecs. Named at every add rather
@@ -217,6 +226,51 @@ def run_and_watch(script: list) -> tuple:
     return proc.wait(), warnings
 
 
+# Warning lines that mean part of the run fell: refused access (401), a
+# spent quota (429), an overloaded service (503), or a step that failed.
+PARTIAL_MARKERS = re.compile(r"\b(401|429|503)\b|failed", re.IGNORECASE)
+
+
+def partial_reasons(warnings: list) -> list:
+    """The markers (401, 429, 503, failed) found in the job's warning
+    lines, each once, in order of first appearance."""
+    found = []
+    for w in warnings:
+        for m in PARTIAL_MARKERS.finditer(w):
+            k = m.group(0).lower()
+            if k not in found:
+                found.append(k)
+    return found
+
+
+def run_status(code: int, warnings: list) -> str:
+    """'failed' on a non-zero exit, 'partial' when it exited 0 but the
+    warnings show part of it fell, else 'ok'."""
+    if code != 0:
+        return "failed"
+    return "partial" if partial_reasons(warnings) else "ok"
+
+
+def report_finished(run: dict, push=None):
+    """report_run for the final status. An app that does not yet know
+    "partial" refuses it (HTTP 400): the run is then sent as "ok" with
+    partial: true, so it is not left "running" on the status page."""
+    if push is None:
+        from app_sync import push_run as push
+    try:
+        push(run)
+        return
+    except Exception as e:
+        if run.get("status") != "partial" or "400" not in str(e):
+            log(f"! Run status upload failed: {e}")
+            return
+    try:
+        push(dict(run, status="ok"))
+        log("! The app does not accept status 'partial' yet - sent as ok with partial: true")
+    except Exception as e:
+        log(f"! Run status upload failed: {e}")
+
+
 def report_run(run: dict):
     try:
         from app_sync import push_run
@@ -271,11 +325,28 @@ def main() -> int:
         report_run(run)
 
     code, warnings = run_and_watch(JOBS[args.job])
+    if args.job == "hourly":
+        # The forces night failed this morning (Gemini overloaded): try it
+        # again now; `forces.py retry` does nothing when it did not.
+        _, more = run_and_watch(["src/forces.py", "retry"])
+        warnings = warnings + more
+    if args.job == "daily" and code == 0 and not args.test:
+        # The day's shareable image (src/og_image.py), into the code repo so
+        # the next deploy (deploy.yml runs after this workflow) serves it.
+        og, _ = run_and_watch(JOBS["og_image"])
+        if og == 0:
+            commit_code("og_image", f"Shareable image for {now:%Y-%m-%d}")
     if code != 0:
         log(f"! {args.job} exited with code {code}")
     if not args.test:
-        report_run(dict(run, status="ok" if code == 0 else "failed", exit_code=code, warnings=warnings,
-                        finished_at=datetime.now().astimezone().isoformat(timespec="seconds")))
+        status = run_status(code, warnings)
+        final = dict(run, status=status, exit_code=code, warnings=warnings,
+                     finished_at=datetime.now().astimezone().isoformat(timespec="seconds"))
+        if status == "partial":
+            final["partial"] = True
+            final["partial_reasons"] = partial_reasons(warnings)
+            log(f"! {args.job} finished, but part of it fell ({', '.join(final['partial_reasons'])}) - reported as partial")
+        report_finished(final)
 
     if args.test:
         if has_remote():

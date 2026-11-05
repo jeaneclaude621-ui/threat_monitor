@@ -2,12 +2,13 @@
 // assessments and the admin/status pages. All data is rendered as text
 // (textContent / createElement), never as HTML.
 import {
-  store, onChange, isAdmin, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
+  store, onChange, isAdmin, isGuest, loadMe, loadIndex, loadReport, loadAllReports, loadReportsRange, loadedReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
-  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes,
+  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, pushPrefs, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
+import { FEATURES, AREAS, NEW_DAYS } from './features.js';
 
 // ---------------------------------------------------------------- constants
 const TOPICS = ['Drönare', 'Sabotage', 'IT-hot', 'Skuggflotta', 'Sanktioner', 'Diplomati', 'Arktis', 'Desinformation', 'Kinetiskt'];
@@ -74,7 +75,58 @@ const chevRight = () => icon(['M6 3l5 5-5 5']);
 const chevDown = () => icon(['M4 6l4 4 4-4']);
 const extIcon = () => icon(['M6 3h7v7', 'M13 3L4 12'], '');
 const searchIcon = () => { const s = icon(['M20 20l-4.2-4.2'], '', '0 0 24 24'); const c = document.createElementNS(SVG_NS, 'circle'); c.setAttribute('cx', '11'); c.setAttribute('cy', '11'); c.setAttribute('r', '6.5'); s.prepend(c); return s; };
-function backLink(href, label) { return h('a', { class: 'back', href }, icon(['M12.5 4l-6 6 6 6'], '', '0 0 20 20'), label); }
+// ---------------------------------------------------------------- back (Version 3.20)
+// The way here within the app, so the arrow goes back where you came from
+// (and to the same scroll position), not to a fixed parent. A link opened
+// from outside, with nothing before it, falls back to the page's parent.
+const NAV_KEY = 'hm.nav';
+let navStack = (() => { try { return JSON.parse(sessionStorage.getItem(NAV_KEY)) || []; } catch { return []; } })();
+const scrollMemo = new Map();
+let navBack = false;
+const curHash = () => (location.hash && location.hash !== '#' ? location.hash : '#/');
+function saveNav() { try { sessionStorage.setItem(NAV_KEY, JSON.stringify(navStack.slice(-50))); } catch { /* ignore */ } }
+let lastHash = curHash();
+function noteNav() {
+  const now = curHash();
+  const prevHash = lastHash;
+  lastHash = now;
+  if (prevHash) scrollMemo.set(prevHash, window.scrollY);
+  navBack = navStack.length > 1 && navStack[navStack.length - 2] === now;
+  if (navBack) navStack.pop();
+  else if (navStack[navStack.length - 1] !== now) navStack.push(now);
+  saveNav();
+}
+if (!navStack.length || navStack[navStack.length - 1] !== curHash()) { navStack.push(curHash()); saveNav(); }
+// Filters change the address in place (history.replaceState): the way back
+// follows, so the arrow returns to the page as it was left.
+const replaceStateRaw = history.replaceState.bind(history);
+history.replaceState = (...args) => {
+  replaceStateRaw(...args);
+  lastHash = curHash();
+  if (navStack.length) navStack[navStack.length - 1] = lastHash; else navStack.push(lastHash);
+  saveNav();
+};
+
+const ROUTE_LABEL = { '': 'Idag', rapport: 'Rapporten', handelse: 'Händelsen', arkiv: 'Arkiv', amnen: 'Ämnen', karta: 'Karta',
+  narrativ: 'Narrativ', trender: 'Narrativ', myndigheter: 'Myndigheter', handlingsalternativ: 'Handlingsalternativ',
+  styrkor: 'Styrkor', bedom: 'Bedöm', mina: 'Mina bedömningar', kalla: 'Källan', admin: 'Administration', om: 'Om', rattelser: 'Rättelser' };
+function labelOf(hash) {
+  const first = hash.replace(/^#\/?/, '').split(/[/?]/)[0];
+  if (first === 'styrkor' && /[?&](sys|unit)=/.test(hash)) return 'Förbandet';
+  if (first === 'styrkor' && /[?&]s=anfall/.test(hash)) return 'Anfall mot Ukraina';
+  return ROUTE_LABEL[first] || 'Tillbaka';
+}
+
+function goBack(fallback) {
+  if (navStack.length > 1) history.back();
+  else location.hash = fallback || '#/';
+}
+
+function backLink(href, label) {
+  const prev = navStack.length > 1 ? navStack[navStack.length - 2] : null;
+  return h('a', { class: 'back', href: prev || href, onclick: (ev) => { ev.preventDefault(); goBack(href); } },
+    icon(['M12.5 4l-6 6 6 6'], '', '0 0 20 20'), prev ? labelOf(prev) : label);
+}
 
 // ---------------------------------------------------------------- formatting
 const fmt1 = (v) => (v == null || Number.isNaN(Number(v)) ? '–' : Number(v).toFixed(1).replace('.', ','));
@@ -89,6 +141,45 @@ const tsFmt = (ts) => { const x = new Date(ts); return Number.isNaN(x.getTime())
 const countryName = (c) => COUNTRY[c] || c;
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const eventHref = (date, id) => `#/handelse/${encodeURIComponent(date)}/${encodeURIComponent(id)}`;
+
+// Shared links are real paths the Worker answers with Open Graph tags:
+// /h/<date>/<event id> and /d/<date>. The app itself routes on the hash.
+const shareEventUrl = (date, id) => `${location.origin}/h/${encodeURIComponent(date)}/${encodeURIComponent(id)}`;
+const shareDayUrl = (date) => `${location.origin}/d/${encodeURIComponent(date)}`;
+function translateSharePath() {
+  const m = location.pathname.match(/^\/(h|d)\/(\d{4}-\d{2}-\d{2})(?:\/([^/]+))?\/?$/);
+  if (!m) return;
+  let id = m[3] || '';
+  try { id = decodeURIComponent(id); } catch { /* keep as is */ }
+  const hash = m[1] === 'h' && id ? eventHref(m[2], id) : m[1] === 'd' ? `#/rapport/${encodeURIComponent(m[2])}` : '#/';
+  history.replaceState(null, '', `/${hash}`);
+}
+
+// navigator.share where there is one (phones), otherwise copy the link.
+async function shareLink({ title, text, url }) {
+  if (navigator.share) {
+    try { await navigator.share({ title, text, url }); return; } catch (e) {
+      if (e && e.name === 'AbortError') return;   // the reader closed the share sheet
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    announce('Länken är kopierad');
+  } catch {
+    openSheet((close) => frag(
+      h('h2', { class: 'title-m' }, 'Dela'),
+      h('p', { class: 'small muted' }, 'Kopiera länken:'),
+      h('input', { class: 'share-url', type: 'text', readonly: true, value: url, autofocus: true, onfocus: (ev) => ev.target.select() }),
+      h('div', { class: 'sheet-actions' }, h('button', { class: 'btn', type: 'button', onclick: close }, 'Stäng'))),
+    { label: 'Dela' });
+  }
+}
+function shareIcon() {
+  return icon(['M12 3v12', 'M7.5 7.5L12 3l4.5 4.5', 'M5 13v6h14v-6'], '', '0 0 24 24');
+}
+function shareButton(info, label = 'Dela') {
+  return h('button', { class: 'share-btn', type: 'button', onclick: () => shareLink(info) }, shareIcon(), label);
+}
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 function scoreClass(s) { const n = Number(s); return n >= 8 ? 'score' : n >= 5 ? 'score mid' : 'score low'; }
 function verdictPill(value, pending) {
@@ -108,6 +199,7 @@ function firstSentence(text, max = 180) {
 // ---------------------------------------------------------------- router
 let renderSeq = 0;
 let currentRoute = '';
+let hasNavigated = false;   // the first render keeps the browser's own focus
 let assessmentsReady = Promise.resolve();
 
 function parseHash() {
@@ -158,6 +250,8 @@ async function route({ keepScroll = false } = {}) {
     case 'mina': tab = 'bedom'; view = () => viewMine(); break;
     case 'kalla': view = () => viewSource(rest.join('/')); break;
     case 'admin': tab = ''; view = () => viewAdmin(q); break;
+    case 'om': tab = ''; view = () => viewAbout(); break;
+    case 'rattelser': tab = ''; view = () => viewCorrections(); break;
     default: view = () => viewReport(null, q);
   }
   setTab(tab);
@@ -167,8 +261,32 @@ async function route({ keepScroll = false } = {}) {
   let node;
   try { node = await view(); } catch (e) { node = errorView(e); }
   if (seq !== renderSeq) return;
+  // Every page but Idag itself has the arrow back.
+  if (currentRoute !== '' && node && !(node.querySelector && node.querySelector('.back'))) {
+    const fallback = tab && tab !== 'idag' && currentRoute !== tab ? `#/${tab}` : '#/';
+    const wrap = document.createDocumentFragment();
+    wrap.append(backLink(fallback, labelOf(fallback)), node);
+    node = wrap;
+  }
   main.replaceChildren(node);
-  window.scrollTo(0, keepScroll ? y : 0);
+  const back = navBack && scrollMemo.has(curHash()) ? scrollMemo.get(curHash()) : null;
+  navBack = false;
+  if (back != null) {
+    window.scrollTo(0, back);
+    requestAnimationFrame(() => window.scrollTo(0, back));   // after late layout (maps, images)
+  } else {
+    window.scrollTo(0, keepScroll ? y : 0);
+  }
+  // A1: a new page (not a redraw of the same one) moves focus to its heading,
+  // so a screen reader starts there; <main> is no longer a live region.
+  if (!keepScroll && hasNavigated) {
+    const h1 = main.querySelector('h1');
+    if (h1) { h1.setAttribute('tabindex', '-1'); h1.focus({ preventScroll: true }); }
+  }
+  hasNavigated = true;
+  // #/om?s=integritet and the like: open Om at that section.
+  const anchor = currentRoute === 'om' && q.get('s') ? document.getElementById(`om-${q.get('s')}`) : null;
+  if (anchor && !keepScroll) anchor.scrollIntoView({ block: 'start' });
 }
 
 function rerender() { if (!isDragging() && !document.querySelector('dialog[open]')) route({ keepScroll: true }); }
@@ -183,7 +301,7 @@ function errorView(e) {
     return h('div', { class: 'empty' },
       h('p', { class: 'title-m' }, 'Logga in igen'),
       h('p', { class: 'muted' }, 'Inloggningen saknas eller har gått ut.'),
-      h('a', { class: 'btn primary', href: '/' }, 'Logga in'));
+      h('a', { class: 'btn primary', href: '/login' }, 'Logga in'));
   }
   if (e instanceof OfflineError) {
     return h('div', { class: 'empty' },
@@ -192,10 +310,24 @@ function errorView(e) {
       h('button', { class: 'btn', type: 'button', onclick: () => route() }, 'Försök igen'));
   }
   console.error(e);
+  const [title, text] = friendlyError(e);
   return h('div', { class: 'empty' },
-    h('p', { class: 'title-m' }, 'Något gick fel'),
-    h('p', { class: 'muted small' }, String((e && e.message) || e)),
+    h('h1', { class: 'title-m' }, title),
+    text ? h('p', { class: 'muted' }, text) : null,
+    // The server's own (English, technical) words only for administrators.
+    isAdmin() ? h('p', { class: 'muted small' }, `Tekniskt: ${String((e && e.message) || e)}`) : null,
     h('button', { class: 'btn', type: 'button', onclick: () => route() }, 'Försök igen'));
+}
+
+// U8: known failures in Swedish; the technical text stays out of sight.
+const BUSY = 'Hotmonitor har många besökare just nu, försök igen om en stund.';
+function friendlyError(e) {
+  const status = e instanceof HttpError ? e.status : 0;
+  if (status === 429 || /1027/.test(String(e && e.message))) return ['Många besökare just nu', BUSY];
+  if (status === 404) return ['Hittades inte', 'Sidan eller uppgiften finns inte, eller har inte publicerats än.'];
+  if (status === 503) return ['Tillfälligt otillgängligt', 'Tjänsten är tillfälligt otillgänglig. Försök igen om en stund.'];
+  if (status >= 500) return ['Fel på servern', 'Något gick fel hos Hotmonitor. Försök igen om en stund.'];
+  return ['Något gick fel', 'Sidan kunde inte visas. Försök igen.'];
 }
 
 function emptyState(text, ...extra) { return h('div', { class: 'empty' }, h('p', null, text), ...extra); }
@@ -372,12 +504,88 @@ async function enablePush() {
   const perm = await Notification.requestPermission();
   if (perm !== 'granted') throw new Error(perm === 'denied' ? 'blocked' : 'dismissed');
   const reg = await navigator.serviceWorker.ready;
-  const key = await pushKey();
+  // Guests subscribe without a login (Version 3.23). Before the database is
+  // upgraded the Worker answers 503 (or, older, asks for a login).
+  const notYet = (e) => e instanceof HttpError && e.status === 503 || (isGuest() && (e instanceof AuthError || (e instanceof HttpError && [403, 404].includes(e.status))));
+  let key;
+  try { key = await pushKey(); } catch (e) { throw notYet(e) ? new Error('guest-soon') : e; }
   if (!key) throw new Error('nokey');
   const old = await reg.pushManager.getSubscription();
   if (old) await old.unsubscribe().catch(() => {});
   const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(key) });
-  await pushSubscribe(sub.toJSON());
+  const { topics, countries } = savedFollow();
+  try {
+    await pushSubscribe({ ...sub.toJSON(), topics, countries });
+  } catch (e) {
+    await sub.unsubscribe().catch(() => {});
+    throw notYet(e) ? new Error('guest-soon') : e;
+  }
+}
+
+function pushErrorText(e) {
+  const m = String((e && e.message) || e);
+  return m === 'blocked' ? 'Notiser är blockerade. Tillåt dem för Hotmonitor i enhetens inställningar.'
+    : m === 'dismissed' ? 'Du valde att inte tillåta notiser.'
+      : m === 'guest-soon' ? 'Notiser för gäster öppnar snart.'
+        : 'Det gick inte att ändra notiserna just nu. Försök igen.';
+}
+
+// The topics and countries this device follows; kept here too, since the
+// server takes them but does not hand them back.
+const FOLLOW_KEY = 'hm.follow';
+function savedFollow() {
+  try {
+    const v = JSON.parse(localStorage.getItem(FOLLOW_KEY) || '{}');
+    return { topics: Array.isArray(v.topics) ? v.topics : [], countries: Array.isArray(v.countries) ? v.countries : [] };
+  } catch { return { topics: [], countries: [] }; }
+}
+function saveFollow(f) { try { localStorage.setItem(FOLLOW_KEY, JSON.stringify(f)); } catch { /* private mode */ } }
+
+function followChoices() {
+  const topics = new Set(); const countries = new Set();
+  for (const r of loadedReports()) for (const e of r.events || []) {
+    for (const t of e.topics || []) if (TOPICS.includes(t)) topics.add(t);
+    for (const c of e.countries || []) if (/^[A-Z]{2}$/.test(c)) countries.add(c);
+  }
+  const f = savedFollow();
+  f.topics.forEach((t) => TOPICS.includes(t) && topics.add(t));
+  f.countries.forEach((c) => countries.add(c));
+  return { topics: TOPICS.filter((t) => topics.has(t)), countries: [...countries].sort((a, b) => countryName(a).localeCompare(countryName(b), 'sv')) };
+}
+
+// Topic and country chips; each change goes to /api/push/prefs at once.
+function followSection(status) {
+  const { topics, countries } = followChoices();
+  if (!topics.length && !countries.length) return null;
+  const f = savedFollow();
+  const sel = { topics: new Set(f.topics), countries: new Set(f.countries) };
+  const send = async () => {
+    const next = { topics: [...sel.topics], countries: [...sel.countries] };
+    saveFollow(next);
+    const sub = await currentSubscription();
+    if (!sub) { status.textContent = 'Sparat. Det gäller när notiserna är på.'; return; }
+    status.textContent = 'Sparar…';
+    try {
+      await pushPrefs(sub.endpoint, next.topics, next.countries);
+      status.textContent = next.topics.length || next.countries.length ? 'Du följer dina val.' : 'Du följer allt.';
+    } catch (e) {
+      status.textContent = e instanceof HttpError && e.status === 503 ? 'Att följa ämnen öppnar snart.' : 'Valet kunde inte sparas just nu. Försök igen.';
+    }
+  };
+  const chip = (set, value, label) => {
+    const b = h('button', { class: 'chip fchip', type: 'button', 'aria-pressed': String(set.has(value)) }, label);
+    b.addEventListener('click', () => {
+      if (set.has(value)) set.delete(value); else set.add(value);
+      b.setAttribute('aria-pressed', String(set.has(value)));
+      send();
+    });
+    return b;
+  };
+  return h('div', { class: 'follow' },
+    h('h3', { class: 'about-h3' }, 'Följ ämnen och länder'),
+    h('p', { class: 'small muted' }, 'Notiser om händelser bara när de rör det du väljer. Inget valt: allt. Notiser om hotindex kommer alltid.'),
+    topics.length ? h('div', { class: 'chips', role: 'group', 'aria-label': 'Ämnen' }, topics.map((t) => chip(sel.topics, t, t))) : null,
+    countries.length ? h('div', { class: 'chips', role: 'group', 'aria-label': 'Länder' }, countries.map((c) => chip(sel.countries, c, countryName(c)))) : null);
 }
 
 async function disablePush() {
@@ -410,10 +618,7 @@ function openSettings() {
           status.textContent = on ? 'Notiser är på för den här enheten.' : 'Notiser är avstängda.';
         }).catch((e) => {
           toggle.checked = !on;
-          const m = String((e && e.message) || e);
-          status.textContent = m === 'blocked' ? 'Notiser är blockerade. Tillåt dem för Hotmonitor i enhetens inställningar.'
-            : m === 'dismissed' ? 'Du valde att inte tillåta notiser.'
-              : 'Det gick inte att ändra notiserna just nu. Försök igen.';
+          status.textContent = pushErrorText(e);
         }).finally(() => { toggle.disabled = false; });
       });
       currentSubscription().then((sub) => {
@@ -427,7 +632,9 @@ function openSettings() {
           toggle),
         h('p', { class: 'small' }, 'Du får en notis när hotindex ändras med 0,5 eller mer, eller när en ny händelse får 9–10 i trovärdighet.'),
         isAdmin() ? h('p', { class: 'small muted' }, 'Som administratör får du också ett larm om morgonrapporten uteblir.') : null,
-        h('p', { class: 'small muted' }, 'Inställningen gäller den här enheten.'));
+        isGuest() ? h('p', { class: 'small muted' }, 'Du behöver inget konto. Notisen går till den här webbläsaren; vi får ingen e-postadress.') : null,
+        h('p', { class: 'small muted' }, 'Inställningen gäller den här enheten.'),
+        followSection(status));
     }
     return frag(
       h('h2', { class: 'title-m' }, 'Notiser'),
@@ -488,9 +695,7 @@ function pushNudge() {
       btn.disabled = true; msg.textContent = 'Slår på…';
       enablePush().then(() => { pushState = 'on'; nudgeMsg = ''; rerender(); })
         .catch((e) => {
-          const m = String((e && e.message) || e);
-          nudgeMsg = m === 'blocked' ? 'Notiser är blockerade. Tillåt dem för Hotmonitor i enhetens inställningar.'
-            : m === 'dismissed' ? 'Du valde att inte tillåta notiser.' : 'Det gick inte att slå på notiser just nu.';
+          nudgeMsg = pushErrorText(e);
           msg.textContent = nudgeMsg; btn.disabled = false;
         });
     },
@@ -501,6 +706,52 @@ function pushNudge() {
     h('div', { class: 'btn-row' }, btn,
       h('button', { class: 'btn', type: 'button', onclick: () => { try { localStorage.setItem(NUDGE_KEY, String(Date.now() + 14 * 86400000)); } catch { /* private mode */ } rerender(); } }, 'Inte nu')),
     msg);
+}
+
+// ---------------------------------------------------------------- first visit
+// Three short cards the first time: what Hotmonitor is, how to read the
+// figures, notices and the home screen. Skippable; remembered in this browser.
+const INTRO_KEY = 'hm.introSeen';
+function introSeen() { try { return !!localStorage.getItem(INTRO_KEY); } catch { return true; } }
+function markIntroSeen() { try { localStorage.setItem(INTRO_KEY, new Date().toISOString().slice(0, 10)); } catch { /* private mode */ } }
+
+function openIntro() {
+  markIntroSeen();
+  let step = 0;
+  openSheet((close) => {
+    const body = h('div', { class: 'intro-body' });
+    const dots = h('div', { class: 'intro-dots', 'aria-hidden': 'true' });
+    const next = h('button', { class: 'btn primary', type: 'button', autofocus: true });
+    const skip = h('button', { class: 'btn', type: 'button', onclick: close }, 'Hoppa över');
+    const cards = [
+      () => frag(
+        h('div', { class: 'kicker amber' }, '1 av 3'),
+        h('h2', { class: 'title-m', id: 'intro-title' }, 'Välkommen till Hotmonitor'),
+        h('p', null, 'Varje morgon en sammanställning av öppna uppgifter om ryska hybridhot mot Nato, EU och Ukraina: händelser, källor, styrkor och anfall.'),
+        h('p', { class: 'small muted' }, 'Texterna skrivs av en AI-modell ur öppna källor och kan innehålla fel. Hotmonitor är ett privat projekt och ingen myndighet.')),
+      () => frag(
+        h('div', { class: 'kicker amber' }, '2 av 3'),
+        h('h2', { class: 'title-m', id: 'intro-title' }, 'Två siffror att hålla isär'),
+        h('p', null, h('b', null, 'Hotindex 1–10'), ' högst upp: hur spänt läget är mellan Ryssland och Nato/EU i dag, och en prognos 30 dagar framåt.'),
+        h('p', null, h('b', null, 'Trovärdighet 1–10'), ' vid varje händelse: hur väl uppgiften är bekräftad av oberoende källor. Inte hur allvarlig den är. Med bara en oberoende källa blir den högst 6.')),
+      () => frag(
+        h('div', { class: 'kicker amber' }, '3 av 3'),
+        h('h2', { class: 'title-m', id: 'intro-title' }, 'Håll dig uppdaterad'),
+        h('p', null, 'Få en notis när läget ändras mycket eller när en väl bekräftad händelse kommer. Lägg Hotmonitor på hemskärmen för att öppna den som en app.'),
+        h('div', { class: 'btn-row' },
+          pushSupported() ? h('button', { class: 'btn', type: 'button', onclick: () => { close(); openSettings(); } }, bellIcon(), 'Få notiser') : null,
+          canOfferInstall() ? h('button', { class: 'btn', type: 'button', onclick: () => { close(); openInstall(); } }, 'Lägg på hemskärmen') : null)),
+    ];
+    const paint = () => {
+      body.replaceChildren(cards[step]());
+      dots.replaceChildren(...cards.map((_, i) => h('span', { class: i === step ? 'on' : null })));
+      next.textContent = step < cards.length - 1 ? 'Nästa' : 'Kom igång';
+      skip.hidden = step === cards.length - 1;
+    };
+    next.addEventListener('click', () => { if (step < cards.length - 1) { step += 1; paint(); next.focus(); } else close(); });
+    paint();
+    return frag(body, dots, h('div', { class: 'sheet-actions' }, skip, next));
+  }, { label: 'Introduktion' });
 }
 
 function bellIcon() {
@@ -540,13 +791,31 @@ const SCOPE_DAYS = 7;
 let scopeStart = '';            // first report date inside the news window
 const badgeCounts = { idag: 0, arkiv: 0, bedom: 0 };
 
+// U6: a guest's first visit draws a line at "now": everything published
+// before it counts as read, so a newcomer is not met by "30 olästa".
+// The badges and the "nya funktioner" chip start with the second visit.
+const FLOOR_KEY = 'hm.readFloor';
+let readFloor = null;          // { ts, date }: first visit and the latest report then
+let firstVisitNow = false;     // the floor was drawn during this page load
+try { readFloor = JSON.parse(localStorage.getItem(FLOOR_KEY) || 'null'); } catch { readFloor = null; }
+function ensureReadFloor(index) {
+  if (readFloor || !isGuest() || !index.length) return;
+  readFloor = { ts: new Date().toISOString(), date: index[0].date };
+  firstVisitNow = true;
+  try { localStorage.setItem(FLOOR_KEY, JSON.stringify(readFloor)); } catch { /* private mode: this visit only */ }
+}
+const belowFloor = (date) => isGuest() && readFloor && date <= readFloor.date;
+
+function updateIsNew(u) { return !isRead(u.id) && !(isGuest() && readFloor && u.ts <= readFloor.ts); }
+
 function updatesInScope() {
   const cutoff = Date.now() - SCOPE_DAYS * 86400000;
-  return store.updates.filter((u) => new Date(u.ts).getTime() >= cutoff);
+  return store.updates.filter((u) => new Date(u.ts).getTime() >= cutoff
+    && !(isGuest() && readFloor && u.ts <= readFloor.ts));
 }
 function unreadUpdates() { return updatesInScope().filter((u) => !isRead(u.id)); }
 function eventState(date, e) {
-  if (!scopeStart || date < scopeStart) return null;
+  if (!scopeStart || date < scopeStart || belowFloor(date)) return null;
   if (!isRead(e.id)) return 'new';
   if (e.thread_id && unreadUpdates().some((u) => u.thread_id === e.thread_id)) return 'updated';
   return null;
@@ -562,11 +831,14 @@ async function computeBadges() {
     const index = await loadIndex();
     if (!index.length) return;
     const latest = index[0].date;
-    scopeStart = addDays(latest, -(SCOPE_DAYS - 1));
+    ensureScope(index);
     let idag = unreadUpdates().length;
     let arkiv = 0;
     for (const item of index) {
       if (item.date < scopeStart) break;
+      // A guest's badges count what is already loaded; fetching the week
+      // for them would add six requests to every first visit (review K1).
+      if (isGuest() && item.date !== latest && !store.reports.has(item.date)) continue;
       const r = await loadReport(item.date);
       const n = r.events.filter((e) => eventState(r.date, e) === 'new').length;
       if (item.date === latest) idag += n; else arkiv += n;
@@ -650,10 +922,25 @@ function setFacets(sel) { updateHash((q) => { q.delete('t'); if (sel.length) q.s
 const facetHref = (base, k) => `${base}?f=${encodeURIComponent(k)}`;
 
 // ---------------------------------------------------------------- Idag / rapport
-const FACET_DAYS = 30;          // the filter bar on Idag and Bedöm ranks over this window
+const FACET_DAYS = 30;          // Bedöm's filter bar, and how far back Ämnen, Karta and Källa look first
+
+// Review K1: a view loads the reports it shows, not the whole archive. Ämnen,
+// Karta and Källa start with the last FACET_DAYS; the reader can ask for all.
+let wholeArchive = false;
+async function searchableReports() {
+  if (wholeArchive) return loadAllReports();
+  const index = await loadIndex();
+  if (!index.length) return [];
+  return loadReportsRange(addDays(index[0].date, -(FACET_DAYS - 1)), index[0].date);
+}
+function olderReportsNote() {
+  if (wholeArchive) return null;
+  return h('p', { class: 'small muted' }, `Visar de senaste ${FACET_DAYS} dagarna. `,
+    h('button', { class: 'linkbtn', type: 'button', onclick: () => { wholeArchive = true; rerender(); } }, 'Ta med hela arkivet'));
+}
 const openUpdates = new Set();
 
-function ensureScope(index) { if (index.length) scopeStart = addDays(index[0].date, -(SCOPE_DAYS - 1)); }
+function ensureScope(index) { if (index.length) scopeStart = addDays(index[0].date, -(SCOPE_DAYS - 1)); ensureReadFloor(index); }
 
 // The live feed on Idag shows its newest few until the reader asks for all.
 const FEED_PREVIEW = 3;
@@ -666,12 +953,14 @@ async function viewReport(date, q) {
   const latest = index[0].date;
   const d = date || latest;
   const archived = d !== latest;
-  const [r, reports, brief, courses] = await Promise.all([loadReport(d), loadAllReports(),
+  // Only this report: the filter bar counts the events listed below, and a
+  // first visit costs a handful of requests (review K1).
+  const [r, brief, courses] = await Promise.all([loadReport(d),
     archived ? null : loadAuthorities().catch(() => null), archived ? null : loadCourses().catch(() => null)]);
+  const reports = loadedReports();
   const top = (r.executive_sv && r.executive_sv.top) || r.top_development;
   const selected = parseFacets(q);
-  const windowStart = addDays(d, -(FACET_DAYS - 1));
-  const facetEvents = reports.filter((x) => x.date >= windowStart && x.date <= d).flatMap((x) => x.events);
+  const facetEvents = r.events;
   const events = r.events.filter((e) => matchesFacets(e, selected));
 
   // Updates shown with this report: today's (or, for an archived report,
@@ -689,15 +978,27 @@ async function viewReport(date, q) {
     h('header', { class: 'page-head' },
       h('div', null,
         h('div', { class: 'kicker' }, dateLong(d)),
-        h('h1', { class: 'title-xl' }, archived ? 'Rapport' : 'Hotläget')),
+        h('div', { class: 'title-row' },
+          h('h1', { class: 'title-xl' }, archived ? 'Rapport' : 'Hotläget'),
+          archived ? null : featuresChip())),
       h('div', { class: 'head-actions' },
         date ? null : h('a', { class: 'head-link', href: '#/arkiv' }, 'Tidigare dagar'),
         date ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
+        date ? null : h('a', { class: 'head-link', href: '#/om' }, 'Om'),
+        isGuest() && !date && !noAccount() ? h('a', { class: 'head-link', href: '/login' }, 'Logga in') : null,
         admin ? h('a', { class: 'icon-btn', href: '#/admin', 'aria-label': 'Status och administration', title: 'Status och administration' }, gearIcon()) : null)),
     archived ? null : noticeCards(),
+    archived ? null : noAccountCard(),
     // The figures and the news first; what is new for me, the controls
     // and the device cards come after or fold away.
     heroCard(r),
+    aiLine(),
+    fallbackNote(r),
+    h('div', { class: 'share-row' }, shareButton({
+      title: `Hotläget ${dateLong(d)} · Hotmonitor`,
+      text: `Hotindex ${fmt1(r.threat_index)} av 10. ${firstSentence(top || '', 140)} (AI-sammanfattning · Hotmonitor)`,
+      url: shareDayUrl(d),
+    }, archived ? 'Dela rapporten' : 'Dela dagens läge')),
     top ? h('section', { class: 'section' },
       h('div', { class: 'kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
       h('p', { class: 'lead' }, top)) : null,
@@ -706,6 +1007,7 @@ async function viewReport(date, q) {
     archived ? null : newBox(latest, r),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Dygnets händelser'),
+      h('p', { class: 'hint' }, 'Siffran vid varje händelse är trovärdighet: hur väl uppgiften är bekräftad av källorna (1–10), inte hur allvarlig den är.'),
       // Into the Narrativ tab's Russian side, which still asks first.
       archived ? null : h('a', { class: 'ru-link', href: '#/narrativ?s=ru' },
         h('span', { class: 'ru-label' }, 'Rysk sida'), ' Visa det ryska narrativet', chevRight()),
@@ -716,7 +1018,8 @@ async function viewReport(date, q) {
           ? h('div', { class: 'card card-pad' },
             h('p', { class: 'small' }, `Inga händelser ${archived ? 'den dagen' : 'i dag'} för ${selected.map(facetLabel).join(' + ')}.`),
             h('a', { class: 'btn', href: `#/arkiv?f=${encodeURIComponent(selected.join(','))}&r=30` }, 'Visa i arkivet'))
-          : h('p', { class: 'muted' }, 'Inga händelser registrerade.')),
+          : h('p', { class: 'muted' }, 'Inga händelser registrerade.'),
+      alsoReported(r, archived)),
     feed.length || !archived ? h('section', { class: 'section' },
       h('div', { class: 'sec-head' },
         h('h2', { class: 'kicker' }, feedTitle),
@@ -734,7 +1037,39 @@ async function viewReport(date, q) {
     executiveBlock(r.executive_sv),
     archived ? null : installCard(),
     archived ? null : pushNudge(),
+    archived ? null : siteFooter(),
   );
+}
+
+// U7: signed in with a verified address that has no account. /api/me says
+// so (verified_no_account); explain it, and offer to ask for access.
+const ACCESS_KEY = 'hm.accessRequested';
+const noAccount = () => !!(store.me && store.me.verified_no_account);
+function noAccountCard() {
+  if (!noAccount()) return null;
+  let asked = false;
+  try { asked = !!localStorage.getItem(ACCESS_KEY); } catch { /* private mode */ }
+  const msg = h('p', { class: 'small', role: 'status' }, asked ? 'Tack! Vi har fått din förfrågan och hör av oss.' : '');
+  const btn = asked ? null : h('button', {
+    class: 'btn', type: 'button',
+    onclick: async (ev) => {
+      const b = ev.currentTarget;
+      b.disabled = true;
+      try {
+        await adminSend('POST', '/api/access-request', null);
+        try { localStorage.setItem(ACCESS_KEY, new Date().toISOString()); } catch { /* the thanks shows anyway */ }
+        b.remove();
+        msg.textContent = 'Tack! Vi har fått din förfrågan och hör av oss.';
+      } catch (e) {
+        b.disabled = false;
+        msg.textContent = e instanceof OfflineError ? 'Ingen anslutning – försök igen.' : friendlyError(e)[1];
+      }
+    },
+  }, 'Vill du hjälpa till att bedöma källor?');
+  return h('section', { class: 'card card-pad nudge', 'aria-labelledby': 'noacc-title' },
+    h('h2', { class: 'kicker', id: 'noacc-title' }, 'Inget konto'),
+    h('p', { class: 'small' }, 'Du är inloggad men har inget konto. Du kan läsa allt som gäst.'),
+    btn, msg);
 }
 
 function gearIcon() {
@@ -773,7 +1108,7 @@ function newBox(latest, r) {
 }
 
 function updateRow(u, reports) {
-  const read = isRead(u.id);
+  const read = !updateIsNew(u);
   const open = openUpdates.has(u.id);
   const t = new Date(u.ts);
   const time = Number.isNaN(t.getTime()) ? '' : t.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
@@ -803,6 +1138,47 @@ function updateRow(u, reports) {
 const CLASS_SV = { NEW_DEVELOPMENT: 'Ny utveckling', CORRECTION: 'Rättelse', NARRATIVE_SHIFT: 'Ändrad berättelse', NO_CHANGE: 'Ingen förändring' };
 function classLabel(c) { return CLASS_SV[c] || c; }
 
+// EU AI Act art. 50.4: text an AI wrote to inform the public is marked
+// where it is shown, not only on Om.
+function aiTag() { return h('span', { class: 'ai-tag' }, 'AI-sammanfattning'); }
+function aiLine() {
+  return h('p', { class: 'ai-line' }, 'AI-genererad sammanställning ur öppna källor. Kan innehålla fel. ',
+    h('a', { href: '#/om' }, 'Läs mer'));
+}
+
+// Marks the pipeline puts in the data (shown, never computed here).
+const isUnverified = (e) => e.unverified === true;
+const noLinkedSources = (e) => !e.articles.some((a) => a && a.url && hostOf(a.url));
+function fallbackNote(r) {
+  return r && r.generated_by && r.generated_by.fallback_used === true
+    ? h('p', { class: 'mark-note' }, 'Skriven av reservmodell – lägre säkerhet') : null;
+}
+function markTag(text) { return h('span', { class: 'mark-tag' }, text); }
+const hasCorrection = (e) => !!(e && e.correction && typeof e.correction.note_sv === 'string' && e.correction.note_sv.trim());
+
+// How many independent origins the sources have, and why the score was
+// held down (src/app_data.py credibility_cap), shown at the score.
+function credibilityNote(e) {
+  const n = Number.isInteger(e.independent_sources) ? e.independent_sources : null;
+  let reason = typeof e.score_capped_reason === 'string' ? e.score_capped_reason.trim() : '';
+  // "en oberoende källa: högst 6" reads "Högst 6: en oberoende källa".
+  const m = /^(.*?):\s*(högst \d+)(.*)$/i.exec(reason);
+  if (m) reason = `${m[2]}: ${m[1]}${m[3]}`;
+  const text = reason ? `${reason.charAt(0).toUpperCase()}${reason.slice(1)}.`
+    : n == null ? '' : n === 0 ? 'Ingen oberoende källa.' : `${plural(n, 'oberoende källa', 'oberoende källor')}.`;
+  if (!text) return null;
+  return h('p', { class: 'cred-note small' }, reason ? h('b', null, text) : text, ' ', h('a', { href: '#/om?s=index' }, 'Hur trovärdighet sätts'));
+}
+
+// A correction the pipeline made to an earlier version of the event.
+function correctionBox(e) {
+  if (!hasCorrection(e)) return null;
+  const c = e.correction;
+  return h('section', { class: 'correction', role: 'note', 'aria-label': 'Rättelse' },
+    h('h2', { class: 'kicker' }, `Rättelse${c.date ? ` ${dateShort(c.date)}` : ''}`),
+    h('p', null, c.note_sv, refLinks(c.refs, e)));
+}
+
 function heroCard(r) {
   const oi = r.operator_influence;
   const hasF = r.threat_index_30d != null;
@@ -814,12 +1190,13 @@ function heroCard(r) {
         h('div', { class: 'hero-value' }, fmt1(r.threat_index), h('small', null, ' /10')),
         h('div', { class: 'hero-sub' }, [r.index_band ? `Band ${r.index_band}` : null, TREND[r.trend_label] || r.trend_label].filter(Boolean).join(' · '))),
       hasF ? h('div', null,
-        h('div', { class: 'hero-label amber' }, '30 DAGAR'),
+        h('div', { class: 'hero-label amber' }, 'OM 30 DAGAR (PROGNOS)'),
         h('div', { class: 'hero-value amber' }, fmt1(r.threat_index_30d), h('small', null, ' /10')),
-        h('div', { class: 'hero-sub' }, [r.index_band_30d ? `Band ${r.index_band_30d}` : null, 'Prognos'].filter(Boolean).join(' · '))) : null),
+        h('div', { class: 'hero-sub' }, r.index_band_30d ? `Band ${r.index_band_30d}` : '')) : null),
     h('div', { class: 'scale', role: 'img', 'aria-label': `Skala 0 till 10: i dag ${fmt1(r.threat_index)}${hasF ? `, prognos ${fmt1(r.threat_index_30d)}` : ''}` },
       h('div', { class: 'scale-fill', style: `width:${pct(r.threat_index)}` }),
       hasF ? h('div', { class: 'scale-tick', style: `left:${pct(r.threat_index_30d)}` }) : null),
+    h('a', { class: 'hero-help', href: '#/om?s=index' }, 'Vad betyder siffran?'),
     heroMore(r, oi));
 }
 
@@ -829,7 +1206,7 @@ function heroMore(r, oi) {
   const notes = [
     oi && Number(oi.index_delta)
       ? h('div', { class: 'hero-note' },
-        h('strong', null, 'Operatörens påverkan: '),
+        h('strong', null, 'Mänsklig justering: '),
         `${signed(oi.index_delta)} på index. `,
         oi.note_sv || '',
         Array.isArray(oi.trace) && oi.trace.length
@@ -876,14 +1253,26 @@ function forecastNote(r) {
       : null);
 }
 
+// Stories the model saw but did not make events of (report.also_reported).
+function alsoReported(r, archived) {
+  const items = Array.isArray(r.also_reported) ? r.also_reported.filter((x) => x && x.title_sv) : [];
+  if (!items.length) return null;
+  const pool = { articles: r.events.flatMap((e) => e.articles || []) };
+  return h('details', { class: 'card also' },
+    h('summary', null, h('span', { class: 'acc-h' }, `Fler händelser ${archived ? 'den dagen' : 'i dag'} (${items.length})`), chevRight()),
+    h('ul', { class: 'bullets also-body' }, items.map((x) => h('li', null, x.title_sv, refLinks(x.refs, pool, false)))));
+}
+
 function eventRow(date, e) {
   const sub = [e.topics.join(' · '), e.countries.map(countryName).join(', ')].filter(Boolean).join(' · ');
   const state = eventState(date, e);
   return h('a', { class: `row${state ? ' unread' : ''}`, href: eventHref(date, e.id) },
-    h('span', { class: scoreClass(e.score), 'aria-label': `Trovärdighet ${fmtScore(e.score)} av 10` }, fmtScore(e.score)),
+    h('span', { class: scoreClass(e.score) }, h('span', { class: 'sr-only' }, 'Trovärdighet '), fmtScore(e.score), h('span', { class: 'sr-only' }, ' av 10')),
     h('span', { class: 'row-main' },
       h('span', { class: 'row-title' }, e.title_sv || e.title),
-      sub ? h('span', { class: 'row-sub' }, sub) : null),
+      sub ? h('span', { class: 'row-sub' }, sub) : null,
+      isUnverified(e) ? h('span', { class: 'row-sub mark-text' }, 'Obekräftad – ingen hämtad källa') : null,
+      hasCorrection(e) ? h('span', { class: 'row-sub mark-text' }, `Rättad ${e.correction.date ? dateShort(e.correction.date) : ''}`.trim()) : null),
     stateBadge(state),
     chevRight());
 }
@@ -891,7 +1280,7 @@ function eventRow(date, e) {
 function executiveBlock(ex) {
   if (!ex || !Array.isArray(ex.sections) || !ex.sections.length) return null;
   return h('section', { class: 'section' },
-    h('h2', { class: 'kicker' }, 'Kort om allt · Svensk Super Executive'),
+    h('h2', { class: 'kicker' }, 'Kort om allt'),
     ex.index_line ? h('p', { class: 'small muted' }, ex.index_line) : null,
     h('div', { class: 'card acc' }, ex.sections.map((s, i) => h('details', i === 0 ? { open: true } : null,
       h('summary', null,
@@ -920,7 +1309,10 @@ const RELATION = { bekräftar: 'Bekräftar', motsäger: 'Motsäger', tillför: '
 function relationChip(rel) { return RELATION[rel] ? h('span', { class: `rel rel-${rel === 'bekräftar' ? 'ok' : rel === 'motsäger' ? 'no' : 'add'}` }, RELATION[rel]) : null; }
 
 async function viewEvent(date, id) {
-  const [r, reports, index] = await Promise.all([loadReport(date), loadAllReports(), loadIndex(), assessmentsReady]);
+  // The event's own report and the two after it (where its re-check lands);
+  // thread and related events come from what is already loaded.
+  const [r, , index] = await Promise.all([loadReport(date), loadReportsRange(date, addDays(date, 2)), loadIndex(), assessmentsReady]);
+  const reports = loadedReports();
   ensureScope(index);
   const e = r.events.find((x) => x.id === id);
   const isLatest = index.length && index[0].date === date;
@@ -950,39 +1342,45 @@ async function viewEvent(date, id) {
   const op = e.operator || null;
   const trace = op && Array.isArray(op.trace) ? op.trace : [];
   const changed = e.model_score != null && Number(e.model_score) !== Number(e.score);
-  const known = Array.isArray(e.known_sv) ? e.known_sv.filter(Boolean) : [];
+  const known = knownItems(e);
   const unknown = Array.isArray(e.unknown_sv) ? e.unknown_sv.filter(Boolean) : [];
   const reportHref = isLatest ? '#/' : `#/rapport/${encodeURIComponent(date)}`;
   const outcome = laterOutcome(e, date, reports);
 
   return frag(
     back,
+    correctionBox(e),
     h('div', { class: 'section' },
       h('div', { class: 'chips' },
         e.topics.map((t) => h('a', { class: 'chip', href: facetHref('#/amnen', t) }, t)),
         e.countries.map((c) => h('a', { class: 'chip', href: `#/karta?p=all&c=${encodeURIComponent(c)}` }, countryName(c)))),
       h('h1', { class: 'title-l' }, e.title_sv || e.title),
       h('div', { class: 'small muted meta-line' },
-        h('span', { class: scoreClass(e.score), style: 'width:auto;height:auto;padding:3px 8px;border-radius:8px;font-size:13px' }, `${fmtScore(e.score)}/10`),
+        h('span', { class: scoreClass(e.score), style: 'width:auto;height:auto;padding:3px 8px;border-radius:8px;font-size:13px' }, `Trovärdighet ${fmtScore(e.score)}/10`),
         changed ? h('span', null, `Modellens poäng ${fmtScore(e.model_score)}`) : null,
         h('a', { href: reportHref }, dateLong(date)),
-        stateBadge(state)),
+        stateBadge(state),
+        aiTag(),
+        isUnverified(e) ? markTag('Obekräftad – ingen hämtad källa') : null),
+      credibilityNote(e),
       outcome ? h('p', { class: 'outcome' },
         h('span', { class: `rel rel-${OUTCOME[outcome.outcome][1]}` }, OUTCOME[outcome.outcome][0]),
         ' ', outcome.note || '',
         h('span', { class: 'small muted' }, ` · självkontroll ${dateShort(outcome.checked)}`)) : null),
     e.summary_sv ? h('p', { class: 'body-serif' }, e.summary_sv) : null,
     detailP,
-    toggle ? h('div', null, toggle) : null,
+    h('div', { class: 'btn-row' }, toggle,
+      shareButton({ title: e.title_sv || e.title, text: `${firstSentence(e.summary_sv || e.detail || '', 160)} (AI-sammanfattning · Hotmonitor)`, url: shareEventUrl(date, e.id) })),
     known.length || unknown.length ? h('section', { class: 'kv2' },
       known.length ? h('div', { class: 'card card-pad' },
         h('h2', { class: 'kicker' }, 'Vad vi vet'),
-        h('ul', { class: 'bullets' }, known.map((k) => h('li', null, k)))) : null,
+        h('ul', { class: 'bullets' }, known.map((k) => h('li', null, k.text, refLinks(k.refs, e))))) : null,
       unknown.length ? h('div', { class: 'card card-pad' },
         h('h2', { class: 'kicker amber' }, 'Vad vi inte vet'),
         h('ul', { class: 'bullets' }, unknown.map((k) => h('li', null, k)))) : null) : null,
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Källor och artiklar'),
+      e.articles.length && noLinkedSources(e) ? h('p', { class: 'small muted' }, 'Äldre format: källor utan länk') : null,
       e.articles.length
         ? h('div', { class: 'srcp-list' }, e.articles.map((a) => articleRow({ article: a, event: e, date }, r.favicons)))
         : h('p', { class: 'muted small' }, e.sources || 'Inga källor registrerade.')),
@@ -1003,6 +1401,28 @@ async function viewEvent(date, id) {
   );
 }
 
+// known_sv is [{text, refs: [article id]}] since #9, or plain strings in
+// older reports; both are shown, refs as small links to the event's articles.
+function knownItems(e) {
+  if (!Array.isArray(e.known_sv)) return [];
+  return e.known_sv.map((k) => (typeof k === 'string' ? { text: k, refs: [] }
+    : k && typeof k.text === 'string' ? { text: k.text, refs: Array.isArray(k.refs) ? k.refs : [] } : null))
+    .filter((k) => k && k.text.trim());
+}
+
+function refLinks(refs, e, numbered = true) {
+  const all = e.articles || [];
+  const arts = [...new Set(refs || [])].map((id) => all.findIndex((a) => a && a.id === id)).filter((i) => i >= 0);
+  if (!arts.length) return null;
+  return h('span', { class: 'refs' }, arts.map((i) => {
+    const a = all[i];
+    const label = `${numbered ? `[${i + 1}] ` : ''}${a.outlet || hostOf(a.url) || 'källa'}`;
+    return a.url && hostOf(a.url)
+      ? h('button', { class: 'ref', type: 'button', 'aria-label': `Källa: ${a.outlet || hostOf(a.url)}`, onclick: () => openExternal(a.url, { outlet: a.outlet, tier: a.tier, date: a.fetched_at || a.date }) }, label)
+      : h('span', { class: 'ref' }, label);
+  }));
+}
+
 function threadSection(e, date, reports, threadUpdates) {
   if (!e.thread_id) return null;
   const items = [];
@@ -1020,7 +1440,7 @@ function threadSection(e, date, reports, threadUpdates) {
     h('ol', { class: 'timeline' }, items.slice(0, 12).map((it) => h('li', { class: it.self ? 'self' : null },
       h('span', { class: 'tl-when' }, it.update ? tsFmt(it.update.ts) : dateShort(it.date)),
       it.update
-        ? h('span', { class: 'tl-what' }, it.update.title_sv || firstSentence(it.update.summary_sv, 120), isRead(it.update.id) ? null : h('span', { class: 'nbadge' }, 'Ny'))
+        ? h('span', { class: 'tl-what' }, it.update.title_sv || firstSentence(it.update.summary_sv, 120), updateIsNew(it.update) ? h('span', { class: 'nbadge' }, 'Ny') : null)
         : it.self
           ? h('span', { class: 'tl-what' }, h('b', null, 'Denna händelse: '), it.event.title_sv || it.event.title)
           : h('a', { class: 'tl-what', href: eventHref(it.date, it.event.id) }, it.event.title_sv || it.event.title)))));
@@ -1059,6 +1479,21 @@ function verdictButtons(onPick, middle) {
     b('a-2', 'Mycket trovärdig', 'Mycket trovärdig', () => onPick(2)));
 }
 
+// What each value means (review 2): the claim as the source states it,
+// not the outlet's reputation.
+const VERDICT_SCALE = [
+  [2, 'Mycket trovärdig', 'Källan visar själv att det stämmer: egna uppgifter, dokument, bild eller namngivna vittnen.'],
+  [1, 'Trovärdig', 'Källan återger påståendet sakligt och med stöd, men utan egen bekräftelse.'],
+  [-1, 'Tveksam', 'Källan ger svagt stöd: anonyma uppgifter, andrahandsuppgifter eller en rubrik som säger mer än texten.'],
+  [-2, 'Inte trovärdig', 'Källan stöder inte påståendet, motsäger det eller har uppenbart fel.'],
+];
+function verdictScale() {
+  return h('details', { class: 'vscale' }, h('summary', null, 'Vad betyder värdena?'),
+    h('dl', null, VERDICT_SCALE.map(([v, name, text]) => frag(
+      h('dt', null, h('span', { class: `vpill v${v < 0 ? 'n' : 'p'}` }, `${v > 0 ? '+' : '−'}${Math.abs(v)}`), ' ', name),
+      h('dd', null, text)))));
+}
+
 function assessSheet(target) {
   const a = target.article;
   openSheet((close) => {
@@ -1073,7 +1508,9 @@ function assessSheet(target) {
       h('h2', { class: 'title-m' }, `Bedöm ${a.outlet || 'källan'}`),
       h('p', { class: 'small muted' }, target.event.title_sv || target.event.title || ''),
       cur && cur.value !== 0 ? h('p', { class: 'small' }, 'Nuvarande: ', verdictPill(cur.value, cur.pending)) : null,
+      h('p', { class: 'small muted' }, 'Bedöm om påståendet stämmer enligt källan, inte om utgivaren är seriös.'),
       verdictButtons(apply, h('button', { class: 'a-skip', type: 'button', disabled: !cur || cur.value === 0, onclick: () => apply(0) }, 'Återkalla')),
+      verdictScale(),
       h('div', { class: 'sheet-actions' }, h('button', { class: 'btn', type: 'button', autofocus: true, onclick: close }, 'Avbryt')));
   }, { label: `Bedöm ${a.outlet || 'källan'}` });
 }
@@ -1163,12 +1600,12 @@ function currentAllByOperator() {
 }
 
 async function viewSource(name) {
-  const [reports] = await Promise.all([loadAllReports(), assessmentsReady]);
+  const [reports] = await Promise.all([searchableReports(), assessmentsReady]);
   const key = norm(name);
   const hits = [];
   for (const r of reports) for (const e of r.events) for (const a of e.articles) if (norm(a.outlet) === key) hits.push({ r, e, a });
   const back = h('a', { class: 'back', href: '#/', onclick: (ev) => { if (history.length > 1) { ev.preventDefault(); history.back(); } } }, icon(['M12.5 4l-6 6 6 6'], '', '0 0 20 20'), 'Tillbaka');
-  if (!hits.length) return frag(back, emptyState(`Ingen källa som heter ”${name}” finns i rapporterna.`));
+  if (!hits.length) return frag(back, emptyState(`Ingen källa som heter ”${name}” finns i rapporterna.`), olderReportsNote());
   const tiers = new Map();
   for (const { a } of hits) if (a.tier) tiers.set(a.tier, (tiers.get(a.tier) || 0) + 1);
   const tier = [...tiers.entries()].sort((x, y) => y[1] - x[1])[0];
@@ -1202,6 +1639,7 @@ async function viewSource(name) {
           others.length ? countBy(others).map(([v, n], i) => frag(i ? ' ' : '', verdictPill(v), ` ${n}`)) : 'inga ännu'))),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Förekommer i'),
+      olderReportsNote(),
       h('div', { class: 'card list' }, [...events.values()].sort((x, y) => (x.r.date < y.r.date ? 1 : -1)).map(({ r, e, a }) => {
         const v = mine.get(a.id);
         return h('div', { class: 'row' },
@@ -1232,8 +1670,7 @@ async function viewArchive(q) {
   const index = await loadIndex();
   if (!index.length) return emptyState('Inga rapporter ännu.');
   ensureScope(index);
-  const [latest, reports] = await Promise.all([loadReport(index[0].date), loadAllReports()]);
-  const byReport = new Map(reports.map((r) => [r.date, r]));
+  const latest = await loadReport(index[0].date);
   // The latest report carries the recalibrated history; older report files
   // may still hold the values they were first published with.
   const hist = new Map((latest.threat_index_history || []).map((x) => [x.date, x]));
@@ -1251,6 +1688,12 @@ async function viewArchive(q) {
 
   const selected = parseFacets(q);
   const filtering = selected.length > 0;
+  // The bars come from the index; reports are loaded for the period shown
+  // (the filter bar), and older days are listed from the index alone until
+  // the reader picks a longer period (review K1).
+  await loadReportsRange(start, last);
+  const reports = loadedReports();
+  const byReport = new Map(reports.map((r) => [r.date, r]));
   const inRange = reports.filter((r) => r.date >= start);
   const matchesOn = (d) => { const r = byReport.get(d); return r ? r.events.filter((e) => matchesFacets(e, selected)) : []; };
 
@@ -1297,7 +1740,9 @@ async function viewArchive(q) {
     h('div', { class: 'chart', role: 'img', 'aria-label': days.map((d) => `${dateShort(d)}: ${filtering ? matchesOn(d).length : valueOf(d) == null ? 'ingen rapport' : fmt1(valueOf(d))}`).join(', ') }, bars),
     h('div', { class: 'chart-days', 'aria-hidden': 'true' },
       days.map((d, i) => h('span', null, (days.length - 1 - i) % every === 0 ? String(toDate(d).getUTCDate()) : ''))),
-    h('p', { class: 'small muted' }, filtering ? `Antal händelser per dag, 0–${hi}` : `Skala ${lo}–${hi}`));
+    h('p', { class: 'small muted' }, filtering ? `Antal händelser per dag, 0–${hi}` : `Skala ${lo}–${hi}`,
+      !filtering && days.some((d) => { const hh = hist.get(d); return hh && hh.original_value != null; })
+        ? h('span', { class: 'mark-tag', title: 'Värdena räknades om med dagens metod; rapporten visade först ett annat värde.' }, 'äldre värden omräknade') : null));
 
   const rows = [];
   for (let d = last; d >= first; d = addDays(d, -1)) {
@@ -1365,7 +1810,7 @@ function highlight(text, terms) {
 }
 
 async function viewTopics(q) {
-  const [reports, index] = await Promise.all([loadAllReports(), loadIndex()]);
+  const [reports, index] = await Promise.all([searchableReports(), loadIndex()]);
   ensureScope(index);
   let query = q.get('q') || '';
   let selected = parseFacets(q);
@@ -1402,7 +1847,7 @@ async function viewTopics(q) {
     }
     const terms = query.trim().split(/\s+/).filter(Boolean);
     if (!terms.length && !selected.length) {
-      results.replaceChildren(h('p', { class: 'hint' }, 'Välj ett eller flera områden ovan, eller sök i alla rapporter.'));
+      results.replaceChildren(h('p', { class: 'hint' }, 'Välj ett eller flera områden ovan, eller sök i rapporterna.'), olderReportsNote() || '');
       return;
     }
     const nterms = terms.map(norm);
@@ -1411,6 +1856,7 @@ async function viewTopics(q) {
       h('div', { style: 'display:flex;justify-content:space-between;align-items:baseline;gap:8px' },
         h('h2', { class: 'title-m' }, selected.length ? selected.map(facetLabel).join(' + ') : 'Sökträffar'),
         h('span', { class: 'small muted' }, plural(hits.length, 'träff', 'träffar'))),
+      olderReportsNote(),
       hits.length ? null : h('p', { class: 'muted' }, 'Inga träffar.'),
       hits.slice(0, 100).map(({ r, e, outlets }) => {
         const state = eventState(r.date, e);
@@ -1574,7 +2020,7 @@ async function viewCourses() {
   const jump = (id) => (ev) => { ev.preventDefault(); document.getElementById(`coa-${id}`).scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   return frag(back,
     h('header', { class: 'page-head' }, h('div', null,
-      h('div', { class: 'kicker' }, `Bedömt ${dateShort(a.date)}`),
+      h('div', { class: 'kicker' }, `Bedömt ${dateShort(a.date)} `, aiTag()),
       h('h1', { class: 'title-l' }, 'Rysslands handlingsalternativ'))),
     h('p', { class: 'hint' }, 'Hur Ryssland kan flytta fram sina positioner, splittra Europa och skapa buffertzoner – med våld, hot eller ombud.'),
     a.changed_sv ? h('p', { class: 'newline' }, h('span', null, h('b', null, 'Sedan i går: '), a.changed_sv)) : null,
@@ -1625,7 +2071,7 @@ async function viewAuthorities(q) {
   const older = part.items.filter((i) => !i.fresh);
   return frag(back,
     h('header', { class: 'page-head' }, h('div', null,
-      h('div', { class: 'kicker' }, `Sammanställt ${tsFmt(new Date(brief.generated_at))}`),
+      h('div', { class: 'kicker' }, `Sammanställt ${tsFmt(new Date(brief.generated_at))} `, aiTag()),
       h('h1', { class: 'title-l' }, 'Sverige och Nato'))),
     h('div', { class: 'seg', role: 'group', 'aria-label': 'Vems uppgifter' },
       h('button', { type: 'button', 'aria-pressed': String(!isNato), onclick: () => { location.hash = '#/myndigheter'; } }, 'Svenska myndigheter'),
@@ -1689,14 +2135,15 @@ function trendRow(t, ru, threadEvents) {
     open ? h('div', { class: 'expand' },
       t.summary_sv ? h('p', { class: 'body-sm' }, t.summary_sv) : null,
       // The original: open when there is no Swedish, folded away when there is.
-      t.title_sv || t.summary_sv
+      !t.title && !t.detail ? null
+      : t.title_sv || t.summary_sv
         ? h('details', { class: 'small muted' }, h('summary', null, ru ? 'Originalet på ryska' : 'Originalet'),
           h('p', { lang: ru ? 'ru' : null }, t.title), t.detail ? h('p', { lang: ru ? 'ru' : null }, t.detail) : null)
         : t.detail ? h('p', { class: 'body-sm', lang: ru ? 'ru' : null }, t.detail) : null,
       ru ? h('p', { class: 'small muted' }, 'Ett påstående från den ryska sidan, inte bekräftat.') : null,
       h('p', { class: 'small muted' }, `Sågs först ${tsFmt(t.first_seen)}${t.last_seen !== t.first_seen ? `, senast ${tsFmt(t.last_seen)}` : ''}`),
       h('div', { class: 'btn-row' },
-        externalButton(t.url, { outlet: t.place }, ru ? 'Öppna på Telegram' : 'Öppna källan'),
+        t.url ? externalButton(t.url, { outlet: t.place }, ru ? 'Öppna på Telegram' : 'Öppna källan') : null,
         threadEvent ? h('a', { class: 'btn', href: eventHref(threadEvent.r.date, threadEvent.e.id) }, 'Bevakad tråd') : null)) : null);
 }
 
@@ -1706,7 +2153,7 @@ async function viewTrends(q) {
     h('button', { type: 'button', 'aria-pressed': String(!ru), onclick: () => { location.hash = '#/narrativ'; } }, 'Öppna källor'),
     h('button', { type: 'button', 'aria-pressed': String(ru), class: 'seg-ru', onclick: () => { location.hash = '#/narrativ?s=ru'; } }, 'Rysk sida'));
   const head = frag(
-    h('header', { class: 'page-head' }, h('h1', { class: 'title-l' }, 'Narrativ')),
+    h('header', { class: 'page-head' }, h('div', null, h('div', { class: 'kicker' }, aiTag()), h('h1', { class: 'title-l' }, 'Narrativ'))),
     h('p', { class: 'hint' }, 'Det som sprids just nu. Inte bedömt och inte bekräftat – påverkar inte rapporten, trådarna eller index.'),
     seg);
   if (ru && !showRussian()) return frag(head, russianGate());
@@ -1754,7 +2201,14 @@ const FORCE_BRANCH = {
   luftvärn: ['Luftvärn', 'L', '#6B4E8B'], robot: ['Robot', 'R', '#8A3B12'], fallskärm: ['Fallskärm', 'V', '#7A5A1F'],
 };
 const FORCE_STATUS = { anfallen: 'Anfallen senaste 30 dagarna', aktiv: 'Aktiv', 'okänd': 'Status okänd' };
-const FORCE_CHANGE = { 'tillfört': 'Tillfört', flyttat: 'Flyttat', borta: 'Borta', 'ändrat': 'Ändrat' };
+const FORCE_CHANGE = { 'tillfört': 'Tillfört', flyttat: 'Flyttat', borta: 'Borta', 'ändrat': 'Ändrat', uppgift: 'Uppgift' };
+// 'uppgift': a removal or move with one independent source, kept as a claim
+// (src/forces.py); the lists stay as they were.
+function forceChangeText(c) {
+  if (c.kind !== 'uppgift') return `${FORCE_CHANGE[c.kind] || c.kind} ${c.what}`;
+  const claimed = FORCE_CHANGE[c.claimed_kind] ? `: ${FORCE_CHANGE[c.claimed_kind].toLowerCase()}` : '';
+  return `Uppgift${claimed} ${c.what} (en källa, listan oförändrad)`;
+}
 const FX = (lon) => (lon + 25) * 5.3;      // equirectangular, squeezed for latitude ~58
 const FY = (lat) => (82 - lat) * 10;
 const FULL = { x: 0, y: 0, w: FX(192), h: FY(34) };
@@ -1779,6 +2233,37 @@ async function loadForcesView() {
       .filter(Boolean).map(fnorm);
   }
   return { land: land.countries, bases: data.bases, byId: new Map(data.bases.map((b) => [b.id, b])), data, cat };
+}
+
+// ---------------------------------------------------------------- satellite fire (Version 3.18)
+// NASA FIRMS's own map, opened at the place and on the attack day and the
+// next, so anyone can look at the fire detections themselves.
+function firmsMapUrl(lat, lon, day) {
+  if (typeof lat !== 'number' || typeof lon !== 'number' || !/^\d{4}-\d{2}-\d{2}/.test(day || '')) return null;
+  const start = day.slice(0, 10);
+  const next = new Date(`${start}T12:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  return `https://firms.modaps.eosdis.nasa.gov/map/#d:${start}..${next.toISOString().slice(0, 10)};@${lon.toFixed(3)},${lat.toFixed(3)},12z`;
+}
+
+function firmsLine(f) {
+  return f ? h('span', { class: 'small' }, h('br'), h('b', null, 'Brand sedd av satellit (NASA FIRMS)'),
+    `: ${plural(f.count, 'brandpunkt', 'brandpunkter')} inom ${String(f.radius_km || 3).replace('.', ',')} km från ${dateShort(f.date)}, konfidens ${f.confidence}.`,
+    f.baseline && Number.isFinite(Number(f.baseline.count))
+      ? ` Normalt ${plural(Number(f.baseline.count), 'brandpunkt', 'brandpunkter')} ${Number(f.baseline.days) === 7 || !f.baseline.days ? 'veckan' : `de ${f.baseline.days} dagarna`} före.` : null) : null;
+}
+
+function firmsButton(lat, lon, day) {
+  return externalButton(firmsMapUrl(lat, lon, day), { outlet: 'NASA FIRMS' }, 'Satellitkarta, bränder');
+}
+
+// An attack away from the listed bases: a refinery, a depot, a port ...
+function otherStrikeRow(o) {
+  return h('li', { class: 'coa-sign part' }, h('i'), h('span', null,
+    h('b', null, `${o.place}${o.target_sv ? ` (${o.target_sv})` : ''}${o.date ? `, ${dateShort(o.date)}` : ''}: `), o.text_sv,
+    firmsLine(o.firms),
+    o.lat != null && o.precision === 'town' ? h('span', { class: 'small muted' }, h('br'), 'Platsen är orten, inte själva målet.') : null,
+    ' ', forceSources(o.sources), ' ', o.lat != null ? firmsButton(o.lat, o.lon, o.date) : null));
 }
 
 // ---------------------------------------------------------------- how old a status is
@@ -2363,15 +2848,14 @@ async function viewForces() {
         [orig.units.join(', '), orig.equipment.join(', ')].filter(Boolean).join(' · ') || 'inget') : null,
       changes.length ? h('div', null, h('h3', { class: 'fsub' }, 'Ändringar i styrkan'),
         h('ul', { class: 'coa-signs' }, changes.map((c) => h('li', { class: 'coa-sign part' }, h('i'),
-          h('span', null, h('b', null, `${dateShort(c.date)}: ${FORCE_CHANGE[c.kind] || c.kind} ${c.what}`),
+          h('span', null, h('b', null, `${dateShort(c.date)}: ${forceChangeText(c)}`),
             c.to_base ? ` → ${otherBase(c.to_base)}` : '', c.from_base ? ` (från ${otherBase(c.from_base)})` : '',
             h('br'), c.text_sv, ' ', forceSources(c.sources)))))) : null,
       events.length ? h('div', null, h('h3', { class: 'fsub' }, 'Anfall och uppföljningar'),
         h('ul', { class: 'coa-signs' }, events.map((e) => h('li', { class: `coa-sign ${e.kind === 'anfallen' ? 'obs' : 'part'}` },
           h('i'), h('span', null, h('b', null, `${dateShort(e.date)} ${e.date.slice(0, 4)}${e.kind === 'uppföljning' ? ', uppföljning' : ''}: `), e.text_sv,
-            e.firms ? h('span', { class: 'small' }, h('br'), h('b', null, 'Brand sedd av satellit (NASA FIRMS)'),
-              `: ${plural(e.firms.count, 'brandpunkt', 'brandpunkter')} inom 3 km från ${dateShort(e.firms.date)}, konfidens ${e.firms.confidence}.`) : null,
-            ' ', forceSources(e.sources)))))) : null,
+            firmsLine(e.firms),
+            ' ', forceSources(e.sources), e.kind === 'anfallen' ? [' ', firmsButton(b.lat, b.lon, e.date)] : null))))) : null,
       surveyBlock(b.survey),
       !b.curated && !b.units.length && !b.equipment.length && !(b.survey && b.survey.summary_sv)
         ? h('p', { class: 'small muted' }, b.survey ? 'Bara position och typ är kända: Wikipedia har ingen artikel om basen.' : 'Bara position och typ är kända än. Veckosökningen läser basens Wikipedia-artikel inom en vecka.') : null,
@@ -2398,10 +2882,13 @@ async function viewForces() {
   const nightRows = night ? [
     ...night.attacks.map((e) => h('li', { class: 'coa-sign obs' }, h('i'), h('span', null, h('b', null, 'Anfall: '), baseBtn(e.base), ` (${dateShort(e.date)}). `, e.text_sv, ' ', forceSources(e.sources)))),
     ...night.follow_ups.map((e) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, 'Uppföljning: '), baseBtn(e.base), '. ', e.text_sv, ' ', forceSources(e.sources)))),
-    ...night.changes.map((c) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, `${FORCE_CHANGE[c.kind] || c.kind} ${c.what}: `), baseBtn(c.base),
+    ...night.changes.map((c) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, `${forceChangeText(c)}: `), baseBtn(c.base),
       c.to_base ? [' → ', baseBtn(c.to_base)] : '', '. ', c.text_sv, ' ', forceSources(c.sources)))),
-    ...night.other.map((o) => h('li', { class: 'coa-sign part' }, h('i'), h('span', null, h('b', null, `${o.place}: `), o.text_sv, ' ', forceSources(o.sources)))),
+    ...night.other.map(otherStrikeRow),
   ] : [];
+  // The week's other strikes, the latest night's already above.
+  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+  const otherWeek = (data.nights || []).slice(0, -1).filter((n) => n.date >= weekAgo).reverse().flatMap((n) => n.other || []);
   const counts = { anfallen: 0, aktiv: 0, 'okänd': 0 };
   for (const b of bases) counts[b.status] += 1;
 
@@ -2410,10 +2897,13 @@ async function viewForces() {
       h('div', { class: 'kicker' }, `Lägesbild ${dateShort(data.date)}`),
       h('h1', { class: 'title-xl' }, 'Ryska styrkor'))),
     forcesSeg(false),
-    night ? h('section', { class: 'card card-pad' },
-      h('h2', { class: 'fsub' }, `Senaste dygnet (natten till ${dateShort(night.date)})`),
+    // Folded to their headings so the map fits on the first screen; a tap opens them.
+    night ? foldCard('night', `Senaste dygnet (natten till ${dateShort(night.date)})`, nightRows.length ? plural(nightRows.length, 'notering', 'noteringar') : null,
       night.summary_sv ? h('p', { class: 'body-sm' }, night.summary_sv) : null,
       nightRows.length ? h('ul', { class: 'coa-signs' }, nightRows) : h('p', { class: 'small muted' }, 'Inget nytt rapporterat om baserna eller styrkorna.')) : null,
+    otherWeek.length ? foldCard('other', 'Andra anfall i Ryssland och ockuperade områden, senaste veckan', String(otherWeek.length),
+      h('p', { class: 'small muted' }, 'Raffinaderier, depåer, fabriker, hamnar och andra mål utanför baslistan. Satellitkartan visar NASA:s brandpunkter på platsen dagen för anfallet och dagen efter.'),
+      h('ul', { class: 'coa-signs' }, otherWeek.map(otherStrikeRow))) : null,
     h('p', { class: 'small muted' }, `${bases.length} baser: ${counts.anfallen} anfallna senaste 30 dagarna, ${counts.aktiv} med kända förband, ${counts['okänd']} bara position.`),
     search, sugg, chips,
     h('div', { class: 'fmap-wrap card' }, svg, tools, mini.svg),
@@ -2423,6 +2913,16 @@ async function viewForces() {
     info, detail, list,
     h('p', { class: 'notice' }, 'Uppdateras varje natt efter morgonrapporten. AI läser senaste dygnets öppna rapportering (inte rysk statsmedia) och noterar anfall mot baser, uppföljningar och ändringar i förband och materiel, alltid med källa. ',
       'Baspositioner från Wikidata och grunddatabasen; förband och materiel utgår från öppna källor (Wikipedia, ukrainska och västliga medier). Tryck på ett förband eller ett system för mer. Bilder från Wikimedia Commons under fri licens. Inte verifierat. Påverkar inte index.'));
+}
+
+// A card folded to its heading (Styrkor); remembers being open while the app runs.
+const foldOpen = new Set();
+function foldCard(key, title, count, ...body) {
+  const d = h('details', { class: 'card fold', open: foldOpen.has(key) || null,
+    ontoggle: (ev) => { if (ev.currentTarget.open) foldOpen.add(key); else foldOpen.delete(key); } },
+  h('summary', null, h('h2', { class: 'fsub fold-h' }, title), count ? h('span', { class: 'small muted' }, count) : null, chevDown()),
+  h('div', { class: 'fold-body' }, ...body));
+  return d;
 }
 
 // ---------------------------------------------------------------- strike map (Version 3.13)
@@ -2494,6 +2994,7 @@ async function viewStrikes() {
   const nights = h('div', { class: 'chips seg-tight' });
   const kinds = h('div', { class: 'chips' });
   const totals = h('div', { class: 'stotals' });
+  const prelim = h('div');
   const list = h('div');
   const weapons = h('div');
 
@@ -2552,8 +3053,15 @@ async function viewStrikes() {
       trailsG.append(svgEl('path', { class: 'slaunch', d: `M${x} ${y - u * 1.2}L${x + u} ${y + u * 0.7}L${x - u} ${y + u * 0.7}Z` }),
         svgEl('text', { class: 'flab', x: x + u * 1.4, y: y + u * 0.4, 'font-size': u * 1.6, 'stroke-width': u * 0.4 }, a.name));
     }
-    nights.replaceChildren(...data.days.slice(0, 14).map((d) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(d === day),
-      onclick: () => { day = d; draw(); } }, dateShort(d.date))));
+    nights.replaceChildren(...data.days.map((d) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(d === day),
+      title: d.preliminary ? 'Preliminär, ur nyhetsrubriker' : null,
+      onclick: () => { day = d; draw(); } }, dateShort(d.date) + (d.preliminary ? '*' : ''))));
+    // A night the dataset does not cover yet (it is updated about weekly):
+    // read from news headlines quoting the Air Force, totals only.
+    prelim.replaceChildren(day.preliminary ? h('p', { class: 'notice' },
+      'Preliminär natt (*): siffrorna kommer ur nyhetsrubriker som citerar ukrainska flygvapnet och ersätts av den fullständiga rapporten när Kaggle-datasetet uppdateras. Startplatser och mål saknas ofta. ',
+      ...(day.sources || []).slice(0, 4).map((src, i) => frag(i ? ', ' : 'Källor: ', externalButton(src.url, { outlet: src.outlet }, src.outlet || 'källa'))))
+      : '');
     kinds.replaceChildren(...Object.entries(STRIKE_KIND).filter(([k]) => day.totals[k]).map(([k, [label, colour]]) =>
       h('button', { class: 'chip', type: 'button', 'aria-pressed': String(kind === k), onclick: () => { kind = kind === k ? null : k; draw(); } },
         h('b', { class: 'fdot', style: `background:${colour}` }), ` ${label}`)));
@@ -2577,7 +3085,7 @@ async function viewStrikes() {
 
   return frag(head, forcesSeg(true),
     h('p', { class: 'hint' }, 'Natt för natt: vad Ryssland avfyrade mot Ukraina, varifrån och mot vilka regioner. Spåren är schematiska.'),
-    nights, totals, kinds,
+    nights, totals, prelim, kinds,
     h('div', { class: 'fmap-wrap card' }, svg, h('div', { class: 'fmap-tools' },
       h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma in', onclick: () => pz.zoomTo(vb.x + vb.w / 2, vb.y + vb.h / 2, vb.w / 1.6) }, '+'),
       h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma ut', onclick: () => pz.zoomTo(vb.x + vb.w / 2, vb.y + vb.h / 2, vb.w * 1.6) }, '−'),
@@ -2589,15 +3097,18 @@ async function viewStrikes() {
       h('span', null, h('b', { class: 'slegend-inf' }), 'Härlett: avfyrning och mål från olika rader i rapporten')),
     list,
     h('p', { class: 'notice' }, 'Källa: ukrainska flygvapnets dagliga rapporter, sammanställda i ', externalButton(data.source.url, { outlet: 'Kaggle' }, 'Kaggle-datasetet'),
-      '. Uppdateras varje morgon. Siffrorna är Ukrainas egna och inte oberoende verifierade. Platserna är ungefärliga och spåren visar riktning, inte verklig flygväg. Påverkar inte index.'));
+      '. Visar de senaste 30 nätterna och uppdateras varje morgon. Siffrorna är Ukrainas egna och inte oberoende verifierade. Platserna är ungefärliga och spåren visar riktning, inte verklig flygväg. Påverkar inte index.'));
 }
 
 // ---------------------------------------------------------------- Karta
 async function viewMap(q) {
-  const [reports, index] = await Promise.all([loadAllReports(), loadIndex()]);
-  ensureScope(index);
-  if (!reports.length) return emptyState('Inga rapporter ännu.');
   const period = ['7', '30', 'all'].includes(q.get('p')) ? q.get('p') : '7';
+  const index = await loadIndex();
+  ensureScope(index);
+  if (!index.length) return emptyState('Inga rapporter ännu.');
+  const reports = period === 'all' ? await loadAllReports()
+    : await loadReportsRange(addDays(index[0].date, -(Number(period) - 1)), index[0].date);
+  if (!reports.length) return emptyState('Inga rapporter ännu.');
   const ref = reports[0].date;
   const cutoff = period === 'all' ? '' : addDays(ref, -(Number(period) - 1));
   const byCountry = new Map();
@@ -2883,7 +3394,8 @@ async function viewAssess(q) {
       h('a', { class: 'head-link', href: '#/mina' }, 'Mina bedömningar')),
     facetBar,
     h('div', { style: 'display:flex;justify-content:space-between;align-items:center;gap:8px' },
-      h('p', { class: 'hint' }, 'Bedöm nyheten utifrån källorna. Svep höger: trovärdig (längre: mycket). Vänster: tveksam (längre: inte trovärdig). Uppåt i rubriken: hoppa över.'),
+      h('p', { class: 'hint' }, 'Bedöm om påståendet stämmer enligt källan, inte om utgivaren är seriös. Svep höger: trovärdig (längre: mycket). Vänster: tveksam (längre: inte trovärdig). Uppåt i rubriken: hoppa över.'),
+      verdictScale(),
       counter),
     stack,
     buttonsBox,
@@ -3203,7 +3715,7 @@ async function adminSources() {
     },
   },
   h('h2', { class: 'kicker' }, 'Lägg till källa'),
-  h('p', { class: 'small' }, 'Klistra in en länk till en artikel eller ett RSS-flöde. Appen känner själv igen vilket det är; en sajts startsida blir dess RSS-flöde om du väljer det.'),
+  h('p', { class: 'small' }, 'Klistra in en länk till en artikel eller ett RSS-flöde. Appen känner själv igen vilket det är; en sajts startsida blir dess RSS-flöde om du väljer det. Telegram och rysk statsmedia tas inte emot.'),
   h('label', { class: 'search-label', for: 'src-url' }, 'Länk'), url,
   h('label', { class: 'search-label', for: 'src-kind' }, 'Typ'), kind,
   h('div', { class: 'btn-row' }, pasteBtn, addBtn));
@@ -3380,7 +3892,7 @@ const RUNS_HEADLINE = { green: 'Allt snurrar', yellow: 'Något att hålla koll p
 const lightDot = (light) => h('span', { class: `dot dot-${light}`, role: 'img', 'aria-label': LIGHT_SV[light] || light });
 const runMinutes = (r) => (r.finished_at
   ? `${Math.max(1, Math.round((Date.parse(r.finished_at) - Date.parse(r.started_at)) / 60000))} min` : 'pågår');
-const runLight = (r) => (r.status === 'failed' ? 'red' : r.status === 'ok' && r.warnings.length ? 'yellow' : 'green');
+const runLight = (r) => (r.status === 'failed' ? 'red' : r.status === 'partial' || (r.status === 'ok' && r.warnings.length) ? 'yellow' : 'green');
 const logLink = (r) => (r.log_url ? frag(' · ', h('a', { href: r.log_url, target: '_blank', rel: 'noopener' }, 'Logg')) : null);
 
 function runsSection(runs) {
@@ -3412,7 +3924,7 @@ function runsSection(runs) {
           h('span', { class: 'row-title' }, `${labels[r.job] || r.job} · ${tsFmt(r.started_at)}`),
           h('span', { class: 'row-sub' },
             [HOST_SV[r.host] || r.host, runMinutes(r),
-              r.status === 'failed' ? `misslyckades, kod ${r.exit_code ?? '?'}` : null,
+              r.status === 'failed' ? `misslyckades, kod ${r.exit_code ?? '?'}` : r.status === 'partial' ? 'delvis: en del föll' : null,
               r.warnings.length ? plural(r.warnings.length, 'varning', 'varningar') : null].filter(Boolean).join(' · '),
             logLink(r)),
           r.warnings.slice(0, 3).map((w) => h('span', { class: 'row-sub run-warn' }, w.replace(/^!\s*/, '')))))))) : null);
@@ -3521,6 +4033,203 @@ async function adminAudit() {
       detailText(r.detail) ? h('span', { class: 'row-sub' }, detailText(r.detail)) : null))));
 }
 
+// ---------------------------------------------------------------- functions menu (Version 3.19)
+// A small chip beside "Hotläget": what is new the last NEW_DAYS days, and
+// every function in order, searchable letter by letter (features.js).
+const FEATURE_ACTIONS = { settings: () => openSettings(), install: () => openInstall(), features: () => openFeatures(), intro: () => openIntro() };
+
+function visibleFeatures() {
+  return FEATURES.filter((f) => (!f.admin || isAdmin()) && (!f.user || !isGuest()));
+}
+
+function newFeatures() {
+  const since = new Date(Date.now() - NEW_DAYS * 86400000).toISOString().slice(0, 10);
+  return visibleFeatures().filter((f) => f.added >= since).sort((a, b) => (a.added < b.added ? 1 : -1));
+}
+
+function featuresChip() {
+  const n = firstVisitNow ? 0 : newFeatures().length;
+  return h('button', { class: 'feat-chip', type: 'button', onclick: () => openFeatures(),
+    'aria-label': n ? `Funktioner, ${n} nya` : 'Funktioner', title: 'Funktioner och nyheter' },
+    n ? h('span', { class: 'feat-dot', 'aria-hidden': 'true' }) : null, n ? `${n} nya funktioner` : 'Funktioner');
+}
+
+function openFeatures() {
+  openSheet((close) => {
+    const areaName = Object.fromEntries(AREAS);
+    const go = (f) => {
+      close();
+      if (f.action) { setTimeout(() => FEATURE_ACTIONS[f.action] && FEATURE_ACTIONS[f.action](), 0); return; }
+      if (location.hash === f.href || (f.href === '#/' && !location.hash)) route(); else location.hash = f.href;
+    };
+    const row = (f, terms, showArea) => h('li', null, h('button', { class: 'feat-row', type: 'button', onclick: () => go(f) },
+      h('span', { class: 'feat-main' },
+        h('span', { class: 'feat-title' }, highlight(f.title, terms)),
+        h('span', { class: 'feat-desc' }, highlight(f.desc, terms))),
+      h('span', { class: 'feat-meta' }, showArea ? areaName[f.area] : null,
+        f.added >= newSince ? h('span', { class: 'feat-new' }, `Ny ${dateShort(f.added)}`) : null)));
+    const newSince = new Date(Date.now() - NEW_DAYS * 86400000).toISOString().slice(0, 10);
+    const list = h('div', { class: 'feat-list' });
+    const input = h('input', { type: 'search', class: 'feat-search', placeholder: 'Sök funktion …', 'aria-label': 'Sök funktion',
+      autocomplete: 'off', spellcheck: 'false' });
+    const draw = () => {
+      const terms = norm(input.value).split(/\s+/).filter(Boolean);
+      const all = visibleFeatures();
+      if (terms.length) {
+        const hits = all.filter((f) => {
+          const hay = norm(`${f.title} ${f.desc} ${f.keywords || ''} ${areaName[f.area] || ''}`);
+          return terms.every((t) => hay.includes(t));
+        });
+        list.replaceChildren(hits.length
+          ? h('ul', { class: 'feat-ul' }, hits.map((f) => row(f, terms, true)))
+          : h('p', { class: 'small muted' }, `Ingen funktion matchar ”${input.value}”.`));
+        return;
+      }
+      const fresh = newFeatures();
+      list.replaceChildren(
+        fresh.length ? h('section', null, h('h3', { class: 'feat-h' }, `Nytt senaste ${NEW_DAYS} dagarna`),
+          h('ul', { class: 'feat-ul' }, fresh.map((f) => row(f, [], true)))) : null,
+        h('h3', { class: 'feat-h' }, 'Alla funktioner'),
+        ...AREAS.map(([key, label]) => {
+          const items = all.filter((f) => f.area === key);
+          return items.length ? h('details', { class: 'feat-area', open: true },
+            h('summary', null, label, h('span', { class: 'feat-count' }, String(items.length))),
+            h('ul', { class: 'feat-ul' }, items.map((f) => row(f, [], false)))) : null;
+        }));
+    };
+    input.addEventListener('input', draw);
+    draw();
+    return frag(
+      h('h2', { class: 'title-m' }, 'Funktioner'),
+      input,
+      list,
+      h('div', { class: 'sheet-actions' }, h('button', { class: 'btn', type: 'button', onclick: close }, 'Stäng')));
+  }, { label: 'Funktioner' });
+}
+
+// ---------------------------------------------------------------- about (Version 3.17)
+// What Hotmonitor is, that AI writes much of it, and what a guest leaves behind.
+// The bands of the threat index in plain Swedish (config/methodology.json, index_anchors).
+const INDEX_SCALE = [
+  [1, 'Fred', 'Normala diplomatiska och ekonomiska förbindelser, inga påtryckningar.'],
+  [2, 'Friktion', 'Fientlig retorik och vanligt spionage, men inga operationer mot Nato- eller EU-mål.'],
+  [3, 'Politisk krigföring', 'Ihållande desinformation och valpåverkan, men inga fysiska följder.'],
+  [4, 'Gråzon', 'Sabotage som kan förnekas, GPS-störningar, kränkningar av luftrum. Inga dödsoffer på Nato- eller EU-mark.'],
+  [5, 'Aktiv hybridkonflikt', 'Statsstyrt sabotage på Nato- eller EU-mark som regeringar pekar ut Ryssland för; pågående ombudskrig.'],
+  [6, 'Skärpt hybridkonflikt', 'Nato-länder svarar militärt (avvisningar, nedskjutningar), sabotage med risk för dödsoffer, ändrad styrkeplacering.'],
+  [7, 'Förkris', 'Konsultationer enligt artikel 4, eller militära incidenter på Nato-territorium utan dödsoffer; synliga förstärkningar.'],
+  [8, 'Kris', 'Dödsoffer på Nato- eller EU-territorium genom rysk handling, eller begränsad direkt eldväxling mellan ryska styrkor och Nato.'],
+  [9, 'Randen till krig', 'Ihållande direkta strider mellan Ryssland och ett Nato-land; artikel 5 övervägs.'],
+  [10, 'Krig', 'Öppet krig mellan Ryssland och Nato/EU.'],
+];
+
+const DISCLAIMER = 'Hotmonitor är ett privat projekt och ingen myndighet. Innehållet är inte råd eller officiell information. Vid kris, följ myndigheternas besked på krisinformation.se.';
+const ISSUES_URL = 'https://github.com/jeaneclaude621-ui/threat_monitor/issues';
+function crisisLink() {
+  return h('button', { class: 'linkbtn inline', type: 'button', onclick: () => openExternal('https://www.krisinformation.se/', { outlet: 'Krisinformation.se' }) }, 'krisinformation.se');
+}
+function disclaimerText() {
+  return frag('Hotmonitor är ett privat projekt och ingen myndighet. Innehållet är inte råd eller officiell information. Vid kris, följ myndigheternas besked på ', crisisLink(), '.');
+}
+function contactLink(label = 'Kontakt och rättelser') {
+  return h('button', { class: 'linkbtn inline', type: 'button', onclick: () => openExternal(ISSUES_URL, { outlet: 'GitHub' }) }, label);
+}
+// The footer of Idag: who is behind it, what it is not, and how to reach them.
+function siteFooter() {
+  return h('footer', { class: 'site-foot' },
+    h('p', null, disclaimerText()),
+    h('p', null, contactLink(), ' · ', h('a', { href: '#/om' }, 'Om Hotmonitor')));
+}
+
+function viewAbout() {
+  const guest = isGuest();
+  return frag(
+    backLink('#/', 'Hotläget'),
+    h('header', { class: 'page-head' }, h('div', null, h('h1', { class: 'title-xl' }, 'Om Hotmonitor'))),
+    h('section', { class: 'card card-pad about' },
+      h('h2', { class: 'title-m' }, 'Vad det är'),
+      h('p', null, 'Hotmonitor sammanställer varje dag öppna uppgifter om ryska hybridhot mot Nato, EU och Ukraina: nyheter, myndigheters lägesbilder, styrkor och anfall. Det är ett privat projekt, inte en myndighets bedömning.'),
+      h('h2', { class: 'title-m' }, 'AI-genererat innehåll'),
+      h('p', null, 'Sammanfattningar, översättningar, hotindex och trovärdighetsvärden tas fram automatiskt med hjälp av en AI-modell (Google Gemini) utifrån öppna källor. Texterna kan innehålla fel och ska läsas tillsammans med källorna som länkas. Bedömningar som en människa har gjort visas som bedömare utan namn.'),
+      h('h2', { class: 'title-m', id: 'om-index' }, 'Vad betyder siffran?'),
+      h('p', null, 'Hotindex är en AI-bedömning, varje dag, av hur spänt läget är mellan Ryssland och Nato/EU, på en skala från 1 till 10. Det mäter vad som händer Nato- och EU-länder, inte hur hårda striderna i Ukraina är. ”Om 30 dagar” är modellens prognos för läget en månad framåt. Indexet är inte Säpos, Försvarsmaktens eller någon annan myndighets bedömning.'),
+      h('ol', { class: 'scale-list' }, INDEX_SCALE.map(([n, name, text]) => h('li', null, h('b', null, `${n} ${name}. `), text))),
+      h('p', null, 'Inom ett band placeras värdet lågt, mitt i eller högt efter hur tydligt bandets villkor är uppfyllda.'),
+      h('h3', { class: 'about-h3' }, 'Siffran vid varje händelse'),
+      h('p', null, 'Den färgade rutan vid en händelse är trovärdighet, 1–10: hur väl uppgiften är bekräftad av oberoende och pålitliga källor. Den säger inget om hur allvarlig händelsen är.'),
+      h('h2', { class: 'title-m', id: 'om-ansvar' }, 'Ansvar och kontakt'),
+      h('p', null, disclaimerText()),
+      h('p', null, 'Har du hittat ett fel, vill du att något rättas eller tas bort, eller har du en fråga? Skriv ett ärende på projektets sida på GitHub: ',
+        contactLink('öppna ärenden (issues)'), '. Ärenden där är offentliga, så skriv inga personuppgifter som inte behövs.'),
+      h('p', null, 'Fel som har rättats visas överst på händelsen och samlas under ', h('a', { href: '#/rattelser' }, 'Rättelser'), '.'),
+      h('h2', { class: 'title-m', id: 'om-rss' }, 'RSS-flöde'),
+      h('p', null, 'Dagens rapport och händelser finns också som RSS, för din nyhetsläsare: ',
+        h('a', { href: '/feed.xml', target: '_blank', rel: 'noopener' }, 'feed.xml'), '.'),
+      h('h2', { class: 'title-m' }, 'Källor'),
+      h('p', null, 'Rysk statsmedia och Telegram används inte som nyhetskällor. Under Narrativ visas den ryska sidan bara som våra svenska sammanfattningar, utan länkar dit.'),
+      h('h2', { class: 'title-m' }, 'Integritet'),
+      h('p', null, guest
+        ? 'Du läser utan att logga in. Vad du har läst sparas bara i den här webbläsaren.'
+        : 'Du är inloggad med din e-postadress. Adressen syns bara för administratörer.'),
+      h('p', null, h('a', { href: '#/om?s=integritet' }, 'Läs integritetspolicyn'), ' nedan.'),
+      guest ? h('p', null, h('a', { class: 'btn primary', href: '/login' }, 'Logga in'), ' ',
+        h('span', { class: 'small muted' }, 'för notiser och för att bedöma källor (kräver konto).')) : null),
+    privacySection());
+}
+
+// #/rattelser: every event in the loaded reports that carries a correction.
+async function viewCorrections() {
+  const reports = await searchableReports();
+  const items = [];
+  for (const r of reports) for (const e of r.events || []) if (hasCorrection(e)) items.push({ r, e });
+  items.sort((a, b) => ((a.e.correction.date || a.r.date) < (b.e.correction.date || b.r.date) ? 1 : -1));
+  return frag(
+    backLink('#/om', 'Om'),
+    h('header', { class: 'page-head' }, h('div', null, h('h1', { class: 'title-xl' }, 'Rättelser'))),
+    h('p', { class: 'small muted' }, 'När en uppgift i en händelse visar sig vara fel rättas händelsen, och rättelsen visas överst på den. Här är alla rättelser.'),
+    items.length
+      ? h('div', { class: 'card list' }, items.map(({ r, e }) => h('a', { class: 'row', href: eventHref(r.date, e.id) },
+        h('span', { class: 'small muted date-col' }, dateShort(e.correction.date || r.date)),
+        h('span', { class: 'row-main' },
+          h('span', { class: 'row-title' }, e.title_sv || e.title),
+          h('span', { class: 'row-sub' }, e.correction.note_sv)),
+        chevRight())))
+      : emptyState('Inga rättelser.'),
+    olderReportsNote());
+}
+
+// Integritetspolicy (review G2): what is kept, why, for how long, who helps.
+function privacySection() {
+  const li = (...kids) => h('li', null, ...kids);
+  return h('section', { class: 'card card-pad about', id: 'om-integritet', 'aria-labelledby': 'integritet-h' },
+    h('h2', { class: 'title-m', id: 'integritet-h' }, 'Integritetspolicy'),
+    h('p', null, 'Personuppgiftsansvarig är projektets ägare. Hotmonitor är ett privat projekt utan kommersiellt syfte.'),
+    h('h3', { class: 'about-h3' }, 'Om du läser utan att logga in'),
+    h('ul', { class: 'bullets' },
+      li('Inga kakor, ingen analys och ingen spårning. Typsnitt och allt annat hämtas från Hotmonitor själv.'),
+      li('Vad du har läst och dina inställningar sparas bara i din webbläsare (localStorage) och lämnar den inte.'),
+      li('Servern ser din IP-adress när du hämtar en sida. Den hålls i minnet en kort stund för att stoppa överbelastning och sparas inte. Vid misstänkt missbruk loggas bara land, sökväg och tid.')),
+    h('h3', { class: 'about-h3' }, 'Om du är inloggad'),
+    h('ul', { class: 'bullets' },
+      li('E-postadress och roll (läsare eller administratör), för att ge dig rätt behörighet.'),
+      li('Senaste besök, för att kunna visa vad som är nytt sedan sist.'),
+      li('Läsmarkeringar: vilka händelser och uppdateringar du har öppnat.'),
+      li('Push-prenumerationer, om du har slagit på notiser: en adress hos din webbläsares notistjänst.'),
+      li('Bedömningar av källor, om du är bedömare. Andra ser dem bara som ”Bedömare N”, utan namn eller adress.'),
+      li('Enhet och plattform (t.ex. iPhone, hemskärm eller webbläsare), för att kunna ge rätt hjälp med notiser.'),
+      li('Säkerhetslogg över nekade eller misstänkta inloggningsförsök (e-post, land, sökväg, tid). Den sparas i 90 dagar.')),
+    h('h3', { class: 'about-h3' }, 'Ändamål och rättslig grund'),
+    h('p', null, 'Uppgifterna används bara för att driva tjänsten: inloggning, behörighet, notiser, vad som är nytt och skydd mot missbruk. Den rättsliga grunden är berättigat intresse (artikel 6.1 f i dataskyddsförordningen). Inget säljs eller används för reklam.'),
+    h('h3', { class: 'about-h3' }, 'Biträden'),
+    h('ul', { class: 'bullets' },
+      li(h('b', null, 'Cloudflare'), ': driftar appen och databasen och sköter inloggningen (Cloudflare Access loggar inloggningar, även IP-adress).'),
+      li(h('b', null, 'GitHub'), ': kod och den dagliga körningen som gör rapporterna. Inga användaruppgifter skickas dit.'),
+      li(h('b', null, 'Google Gemini'), ': AI-modellen får bara nyhetstext ur öppna källor, aldrig uppgifter om användare.')),
+    h('h3', { class: 'about-h3' }, 'Dina rättigheter'),
+    h('p', null, 'Du har rätt att få veta vilka uppgifter som finns om dig (utdrag), få dem rättade och få dem raderade, och att klaga hos Integritetsskyddsmyndigheten (IMY). Be om utdrag eller radering genom ',
+      contactLink('ett ärende på GitHub'), '. Skriv inte din e-postadress i ärendet, eftersom det är offentligt. Skriv att du vill bli kontaktad, så ordnar vi en säker väg.'));
+}
+
 // ---------------------------------------------------------------- chrome
 function updateChrome() {
   const alarmEl = document.getElementById('alarm');
@@ -3549,7 +4258,7 @@ function updateChrome() {
     banner.replaceChildren(
       store.authLost ? 'Inloggningen har gått ut. '
         : offline ? 'Du är offline – visar sparad data.' : 'Ingen kontakt med servern – visar sparad data. ',
-      offline ? null : h('a', { href: '/' }, 'Logga in igen'));
+      offline ? null : h('a', { href: '/login' }, 'Logga in igen'));
     banner.hidden = false;
   } else {
     banner.hidden = true;
@@ -3567,6 +4276,17 @@ onChange(() => {
   rerenderQueued = true;
   Promise.resolve().then(() => { rerenderQueued = false; rerender(); });
 });
+
+// Short status messages ("Länken är kopierad") go to #ptr, a role=status
+// region, instead of making the whole page a live region (review A1).
+let announceTimer = 0;
+function announce(text, ms = 2500) {
+  const ptr = document.getElementById('ptr');
+  if (!ptr || refreshing) return;
+  ptr.textContent = text; ptr.hidden = false;
+  clearTimeout(announceTimer);
+  announceTimer = setTimeout(() => { ptr.hidden = true; }, ms);
+}
 
 // ---------------------------------------------------------------- refresh
 let refreshing = null;
@@ -3746,7 +4466,7 @@ async function init() {
     return;
   }
   document.querySelector('[data-tab="bedom"]').hidden = !isAdmin();
-  reportDevice({ standalone: isStandalone(), platform: platformOf() });
+  if (!isGuest()) reportDevice({ standalone: isStandalone(), platform: platformOf() });
   assessmentsReady = loadAssessments().catch((e) => { console.warn('assessments', e); });
   const side = Promise.all([
     loadUpdates().catch((e) => { console.warn('updates', e); }),
@@ -3754,7 +4474,7 @@ async function init() {
     loadReads().catch((e) => { console.warn('reads', e); }),
   ]);
   refreshPushState().catch(() => {});
-  window.addEventListener('hashchange', () => route());
+  window.addEventListener('hashchange', () => { noteNav(); route(); });
   window.addEventListener('offline', updateChrome);
   window.addEventListener('online', () => { loadMe().catch(() => {}).finally(updateChrome); });
   document.addEventListener('visibilitychange', () => {
@@ -3767,6 +4487,7 @@ async function init() {
   installPullToRefresh();
   updateChrome();
   route();
+  if (!introSeen() && currentRoute !== 'admin') setTimeout(() => { if (!document.querySelector('dialog[open]')) openIntro(); }, 600);
   await Promise.all([side, assessmentsReady]);
   store.refreshedAt = new Date().toISOString();
   lastRefresh = Date.now();
@@ -3774,6 +4495,7 @@ async function init() {
   if (currentRoute !== 'amnen') rerender();
 }
 
+translateSharePath();
 init();
 
 // Exposed for tests and debugging only.

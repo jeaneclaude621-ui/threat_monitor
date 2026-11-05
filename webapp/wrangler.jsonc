@@ -9,7 +9,11 @@
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*"],
+    // /h/* and /d/* are share links with Open Graph tags, /feed.xml the RSS
+    // feed, /sitemap.xml the sitemap, and robots.txt gets
+    // this host in its Sitemap line (Version 3.22). "/" gets Open Graph tags
+    // with og/latest.png (Version 3.24): one Worker request per app start.
+    "run_worker_first": ["/", "/api/*", "/login", "/h/*", "/d/*", "/feed.xml", "/sitemap.xml", "/robots.txt"],
     "not_found_handling": "single-page-application"
   },
   "d1_databases": [
@@ -26,12 +30,15 @@
   // the D1 users table (CONTRACT.md, Version 2).
   "vars": {
     "TEAM_DOMAIN": "crimson-frog-4f56.cloudflareaccess.com",
-    "ACCESS_AUD": "4927acc83722928ac8ca01ece8466a3e92da19bb282814c635ff27363320e3a6",
+    "ACCESS_AUD": "4927acc83722928ac8ca01ece8466a3e92da19bb282814c635ff27363320e3a6,8ba5679286ed9f93b1a8b334a35fe7af8a7b0a423cfa9759d4f3f2b66b2fe64e",
     "MACHINE_CLIENT_ID": "a31ef3f6c5b1989fb694ca7ad6ce0bbf.access",
     "SERVICE_TOKEN_EXPIRES": "2027-09-30",
     // The scheduled runs are started here (CONTRACT.md, Version 3.8), with
     // the Worker secret GITHUB_DISPATCH_TOKEN: a fine-grained token for this
     // repo only, with Actions read and write.
+    // Version 3.17: anyone may read the public views as a guest. Only takes
+    // effect once Access no longer covers the whole hostname (DEPLOY.md 7).
+    "PUBLIC_READ": "1",
     "GITHUB_REPO": "jeaneclaude621-ui/threat_monitor",
     // OWNER (always an active admin, break-glass) and the optional ADMINS/
     // READERS seed lists are Worker secrets so no address lives in this repo.
@@ -44,5 +51,7 @@
   // CET and CEST. Then the cron that starts the scheduled runs on GitHub
   // Actions (DISPATCH_CRON in worker.js, which must match it): both UTC
   // hours of 04:00, 07:00, 08:00, 12:00, 16:00, 17:00 and 21:00 Stockholm time.
-  "triggers": { "crons": ["*/30 3-9 * * *", "0 2,3,5,6,7,10,11,14,15,16,19,20 * * *"] }
+  // Last, every 10 min: the rest of a large push, 40 subscriptions at a time
+  // (PUSH_QUEUE_CRON in worker.js, which must match it; Version 3.22).
+  "triggers": { "crons": ["*/30 3-9 * * *", "0 2,3,5,6,7,10,11,14,15,16,19,20 * * *", "*/10 * * * *"] }
 }

@@ -216,7 +216,9 @@ order, so the new gate is in place before Access opens up:
    page lists the five seeded users; an address not in the list gets 403.
 
 Rate limiting is per Worker isolate (in memory, ~120 requests a minute per
-email, or per IP without a valid login) - no binding or extra setup.
+email; without a valid login 600 a minute per IP, since guests share
+addresses) - no binding or extra setup. The machine is exempt. Being per
+isolate, it does not protect the daily quota: see Version 3.22.
 Security log rows older than 90 days are pruned by the Worker itself.
 
 ## Version 3: push, missing-report alarm, home screen, backup export
@@ -349,3 +351,183 @@ npx wrangler deploy
 
 The strike map needs a Kaggle account: GitHub secrets `KAGGLE_USERNAME`
 and `KAGGLE_KEY` (Kaggle > Settings > API > Create New Token).
+
+## Version 3.17: open to everyone, login only for the rest
+
+The Worker now lets anyone read the public views as a guest
+(`PUBLIC_READ` = `"1"` in `wrangler.jsonc`). Access must therefore stop
+covering the whole hostname and only guard the login and the Mac's paths.
+The Worker still checks every token itself, so a gap in Access exposes
+nothing beyond what guests see anyway.
+
+Do the steps in this order. The Mac's nightly upload keeps working
+throughout.
+
+**Or let a script do all of it** (it checks what is already there, fixes
+it, adds the AUD tag, deploys, and asks before removing the old
+protection). It needs an API token you make yourself and paste when asked;
+the permissions are listed at the top of the script.
+
+```sh
+git checkout main && git pull
+node webapp/scripts/open_app.mjs --check   # only report
+node webapp/scripts/open_app.mjs           # do it
+```
+
+1. **New Access application for the protected paths.** Zero Trust ->
+   Access -> Applications -> Add an application -> Self-hosted.
+   - Name: `Hotmonitor inloggning`.
+   - Destinations (public hostname `hotmonitor.<account-subdomain>.workers.dev`),
+     one line per path: `login`, `api/ingest/*`, `api/export/*`.
+   - Login method: One-time PIN only. Session duration: 30 days.
+   - Policies: the existing "Hotmonitor users" (Allow) and "Hotmonitor Mac"
+     (Service Auth).
+   - Under cookie settings, leave *Cookie path attribute* **off**: the
+     cookie set at `/login` must reach the whole hostname, or a logged-in
+     person would read as a guest.
+   - Copy the new application's *AUD tag*.
+2. **Both AUD tags in the Worker.** In `wrangler.jsonc`, `ACCESS_AUD`
+   becomes `"<old AUD>,<new AUD>"` (comma-separated, no secret). Then
+   from `webapp/`:
+   ```sh
+   env -u CLOUDFLARE_API_TOKEN npx wrangler deploy
+   ```
+3. **Turn the hostname-wide Access off.** Workers & Pages -> hotmonitor ->
+   Settings -> Domains & Routes -> workers.dev -> *Disable Cloudflare
+   Access* (or, if the old application was made by hand, delete it in Zero
+   Trust -> Access -> Applications). The new application keeps the three
+   paths guarded.
+4. **Check** (no credentials):
+   ```sh
+   curl -s -o /dev/null -w "%{http_code}\n" $HOTMONITOR_URL/api/reports           # 200: guests read
+   curl -s $HOTMONITOR_URL/api/me                                                 # {"role":"guest",...}
+   curl -s -o /dev/null -w "%{http_code}\n" $HOTMONITOR_URL/api/reads             # 401
+   curl -s -o /dev/null -w "%{http_code}\n" $HOTMONITOR_URL/api/export/assessments # 302 to Access
+   ```
+   and the Mac check from step 6 above (200). On a phone: the app opens
+   without a login, *Logga in* goes through the one-time PIN and back,
+   and the Bedöm tab returns for admins.
+
+To close it again: set `PUBLIC_READ` to `"0"` and deploy; guests then get
+401 on everything, even before Access is turned back on.
+
+**Free-plan limits** (checked 3 Nov 2026, developers.cloudflare.com):
+
+| What | Free plan | What it means here |
+|---|---|---|
+| Worker requests | 100 000 a day, reset 00:00 UTC; over it, error 1027 | `/api/*`, `/login` and (Version 3.22) `/h/*`, `/d/*`, `/feed.xml`, `/sitemap.xml` and `/robots.txt` count; the app's other files are static assets, free and unlimited. Measured (review 5 Nov 2026): a **first visit makes ~47-65 API calls** today, one per report, growing by one a day, until the app fetches only the last 30 days (K1); after that ~6-10. A tab switch costs 0-2, coming back after a minute ~5. That is roughly **1 500 first visits a day** today, not 10 000. |
+| Worker CPU | 10 ms a request | Guests' answers are cached a minute per isolate, in `caches.default` (on a custom domain) and in the browser (`max-age=60`); the first answer is parsed once to replace e-mail addresses. |
+| D1 | 5 million rows read and 100 000 written a day | Guests write nothing; the cache keeps reads to roughly one per path a minute per isolate. |
+| Access | 50 seats | Guests never pass Access and take no seat. |
+
+Above that, Workers Paid is $5 a month (10 million requests). The rate
+limit of 600 requests a minute per IP (120 per logged-in person) still
+applies to guests; it is counted per isolate, so it stops a runaway client,
+not a deliberate attempt to empty the quota. For that, see Version 3.22.
+
+## Version 3.22: before the public launch
+
+Code in this version: share links (`/h/<date>/<id>`, `/d/<date>`) with
+Open Graph tags, `/feed.xml`, `/sitemap.xml`, `robots.txt`, access
+requests, pushes in batches of 40, and a guest cache that cannot be
+bypassed with junk query strings and is shared through `caches.default`.
+
+**1. Migration** (from `webapp/`, before the deploy):
+
+```sh
+npm run migrate:remote     # applies 0014_access_requests.sql
+```
+
+Until it has run, `POST /api/access-request` and the admin list answer 500;
+everything else works.
+
+**2. What the owner must do in Cloudflare** (none of it can be done from
+the code). The Worker's own rate limit is per isolate and runs only *after*
+a request has already been counted against the daily 100 000, so a script
+can empty the quota and take the app down for everyone, the Mac's upload
+included, until 00:00 UTC. In order of importance:
+
+1. **Workers Paid during the launch** ($5 a month: 10 million requests a
+   month, 30 s CPU, 1 000 subrequests per invocation). Workers & Pages ->
+   Plans -> Workers Paid. The cheapest insurance against a day offline;
+   it can be cancelled again afterwards.
+2. **A custom domain.** Add a domain you own as a zone (Free plan is
+   enough), then Workers & Pages -> hotmonitor -> Settings -> Domains &
+   Routes -> Add -> Custom domain. Only on a custom domain do the next two
+   steps and the shared cache (`caches.default`) work; on `workers.dev`
+   they cannot be set. Then:
+   - Update the Access application's destinations (`login`,
+     `api/ingest/*`, `api/export/*`) to the new hostname too, and set
+     `HOTMONITOR_URL` on the Mac and in GitHub Actions.
+   - SSL/TLS -> Edge Certificates: *Always Use HTTPS* and **HSTS** on.
+   - **No "Cache Everything" cache rule on `/api/*`**: Cloudflare would
+     ignore `Vary: Cookie` and could hand a logged-in person's answer to a
+     guest. The Worker caches guests' answers itself.
+3. **WAF rate limiting rule** (Security -> WAF -> Rate limiting rules; one
+   rule on Free): *If* URI Path starts with `/api/` *and* not URI Path
+   starts with `/api/ingest/` *and* not URI Path starts with
+   `/api/export/`, *with the same* IP, *when* more than 100 requests in
+   10 seconds, *then* Block for 10 seconds (the longest the Free plan
+   allows). It stops a flood at the edge, before the Worker runs and
+   before it counts. The Mac's paths are left out so an upload is never
+   blocked.
+4. **Bot Fight Mode** (Security -> Bots): on. It challenges known bad
+   bots before the Worker runs. Search engines and link previews (verified
+   bots) still get through.
+5. **Usage alarm at 70 % of the quota**: Notifications -> Add, search for
+   *Workers* and pick the usage alert (on Paid: *Usage Based Billing*);
+   threshold 70 % of the requests, e-mail to the owner. The names in the
+   dashboard change; if no such alert is offered on Free, watch Workers &
+   Pages -> hotmonitor -> Metrics on launch day instead.
+
+**3. Check after the deploy** (no credentials):
+
+```sh
+curl -s $HOTMONITOR_URL/robots.txt                          # Sitemap: <this host>/sitemap.xml
+curl -s $HOTMONITOR_URL/sitemap.xml | head                  # /d/<date> and /h/<date>/<id>
+curl -s $HOTMONITOR_URL/feed.xml | head                     # RSS 2.0
+curl -s $HOTMONITOR_URL/d/$(date +%F) | grep og:            # Open Graph tags
+curl -s -o /dev/null -w "%{http_code}\n" $HOTMONITOR_URL/h/2026-01-01/x   # 404
+```
+
+Paste a `/h/...` link into a chat app or the card validators of the social
+networks to see the preview. A day's own image is used when the deploy has
+`public/og/<date>.png`; otherwise `public/og/default.png`
+(`scripts/make_og_default.py` draws it).
+
+**Pushes** are queued (meta `push_queue`) and sent 40 at a time: the first
+40 at once, the rest by the new cron every ten minutes (`*/10 * * * *`,
+`PUSH_QUEUE_CRON`). With 200 subscribers the last get the push about 40
+minutes later. Systemstatus' last push shows how many are still queued.
+
+## Version 3.23: push for guests, and one-call start
+
+**Run the migration before deploying** (from `webapp/`):
+
+```sh
+npm run migrate:remote     # 0015_guest_push.sql (and 0014 if not yet run)
+```
+
+0015 copies `push_subscriptions` into a new table where `email` may be
+NULL and adds `topics` and `countries`. The new Worker reads those
+columns when it sends a push, so with the old table every push fails
+until the migration has run. The copy keeps every subscription.
+
+Guests can subscribe (at most 5000) and are sent pushes 40 at a time by
+the cron of Version 3.22: with 2 000 subscribers that is 50 runs of ten
+minutes, so the last get a push about eight hours later. If guest push
+becomes popular, Workers Paid (1 000 subrequests per invocation) with a
+larger `PUSH_BATCH` (e.g. 900) brings that down to minutes.
+
+## Deploying from GitHub Actions
+
+`.github/workflows/deploy.yml` deploys the web app when a push to main
+changes `webapp/`, or by hand (Actions -> Deploy web app -> Run workflow).
+It runs the Worker tests first. It needs two repository secrets, which only
+the owner adds (Settings -> Secrets and variables -> Actions):
+
+- `CLOUDFLARE_API_TOKEN`: dash.cloudflare.com -> My Profile -> API Tokens
+  -> Create Token -> template *Edit Cloudflare Workers* -> your account.
+- `CLOUDFLARE_ACCOUNT_ID`: Workers & Pages -> the Account ID on the right.
+
+Database migrations are still run by hand (`npm run migrate:remote`).

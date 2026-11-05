@@ -237,6 +237,8 @@ def push_updates(entries: list) -> bool:
             "title_sv": e.get("title_sv") or e["thread_label"],
             "summary_sv": e.get("summary_sv") or e.get("summary", ""),
             "outlets": e.get("outlets", [])[:5],
+            # Verified articles the update rests on (#14).
+            "refs": e.get("refs", []),
             "report_date": None,
         })
     try:
@@ -256,6 +258,23 @@ if __name__ == "__main__":
         push_report(json.load(open(OUTPUT_DIR / f"{sys.argv[2]}_report_data.json", encoding="utf-8")))
     elif cmd == "backup":
         backup_app()
+    elif cmd == "repush":
+        # The newest report, the courses of action, the forces map and the
+        # strike map, sent again from the saved state with no model calls:
+        # for a morning when the app refused the uploads (4 Nov: a new
+        # Access application whose AUD the Worker did not know yet).
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        reports = sorted(OUTPUT_DIR.glob("*_report_data.json"))
+        if reports:
+            push_report(json.load(open(reports[-1], encoding="utf-8")))
+        import courses, forces, strikes
+        c = courses.load()
+        if c.get("courses"):
+            push_courses({**c, "history": c.get("history", [])[-30:]})
+        if forces.STATE_PATH.exists():
+            push_forces(forces.payload(forces.load()))
+        if strikes.PATH.exists():
+            push_strikes(json.load(open(strikes.PATH, encoding="utf-8")))
     elif cmd == "push-all":
         for f in sorted(OUTPUT_DIR.glob("*_report_data.json")):
             push_report(json.load(open(f, encoding="utf-8")))

@@ -1,12 +1,12 @@
 // Offline support: the app shell is cache-first, report data network-first
 // with the last good copy as fallback. Writes (POST) are never cached; the
 // app keeps its own outbox for those.
-const VERSION = 'hm-v3.29';
+const VERSION = 'hm-v3.40';
 const SHELL = `${VERSION}-shell`;
 const DATA = `${VERSION}-data`;
 const FONTS = `${VERSION}-fonts`;
 const SHELL_FILES = [
-  '/', '/index.html', '/app.css', '/app.js', '/api.js', '/swipe.js',
+  '/', '/index.html', '/app.css', '/app.js', '/api.js', '/swipe.js', '/features.js', '/fonts/fonts.css',
   '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-maskable-512.png', '/apple-touch-icon.png',
 ];
 
@@ -79,6 +79,13 @@ self.addEventListener('fetch', (event) => {
     }).catch(() => hit);
     return hit || fresh;
   })());
+});
+
+// The app says when the signed-in person or role changed (S5): drop the
+// cached API answers so nothing of theirs is shown to the next one.
+self.addEventListener('message', (event) => {
+  const data = event.data || {};
+  if (data.type === 'hm-clear-data') event.waitUntil(caches.delete(DATA));
 });
 
 // Notifications for serious events and for a missing morning report. The

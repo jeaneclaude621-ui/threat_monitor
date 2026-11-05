@@ -3,8 +3,9 @@ Shapes the report's events for the web app - ids, articles with links,
 topics and countries - per webapp/CONTRACT.md.
 
 The model supplies the Swedish text, topics, countries and article list;
-this module assigns the ids and links only articles the model cited by
-the ref of an article it was really given (common.LAST_SEARCH_RESULTS).
+this module assigns the ids and keeps only articles the model cited by
+the ref of an article it was really given (common.LAST_SEARCH_RESULTS);
+an event with none of those is marked "unverified".
 """
 import hashlib
 import re
@@ -110,61 +111,315 @@ RELATIONS = {"bekräftar", "motsäger", "tillför"}
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
+# --------------------------------------------------------------------------
+# Independent origins (#12)
+# --------------------------------------------------------------------------
+# Agency copy credited in the title or opening text: "(AP) -", "Reuters
+# reported", "(TT)". One agency text in twenty papers is one origin.
+WIRE_CREDITS = [
+    ("AP", re.compile(r"\(AP\)|\bAssociated Press\b|\bAP\s+[-—–]|[-—–]\s*AP\b|\bAP reported\b")),
+    ("Reuters", re.compile(r"\bReuters\b")),
+    ("AFP", re.compile(r"\bAFP\b|\bAgence France[- ]Presse\b")),
+    ("TT", re.compile(r"\(TT\)|\bTT Nyhetsbyrån\b|/TT\b")),
+    ("dpa", re.compile(r"\bdpa\b")),
+    ("NTB", re.compile(r"\(NTB\)|\bNTB\b")),
+    ("Ritzau", re.compile(r"\bRitzau\b")),
+    ("STT", re.compile(r"\(STT\)|\bSTT\b")),
+    ("PAP", re.compile(r"\(PAP\)|\bPAP\b")),
+    ("ANP", re.compile(r"\(ANP\)|\bANP\b")),
+    ("Bloomberg", re.compile(r"\(Bloomberg\)|\bBloomberg News\b")),
+]
+# Aggregators republish others' reporting; together they are one origin.
+AGGREGATORS = re.compile(r"(^|\b)(msn|yahoo|devdiscourse|newsbreak|head ?topics|ground ?news|flipboard|newsnow|"
+                         r"biztoc|opera news|news ?now|newsoftheworld|latestly|inkl)(\b|$)|"
+                         r"(^|[./])(msn\.com|yahoo\.com|devdiscourse\.com|newsbreak\.com|headtopics\.com)", re.I)
+TITLE_SAME = 0.6      # word overlap (Jaccard) at which two headlines are one text ...
+TITLE_SAME_WORDS = 4  # ... and at least this many words in common
+
+
+def _title_words(title: str) -> set:
+    return {w for w in re.findall(r"\w+", (title or "").lower()) if len(w) > 2}
+
+
+def independent_sources(articles: list) -> int:
+    """How many independent origins the news articles have: the same
+    outlet, the same agency text (credited, or with nearly the same
+    headline) and every aggregator count once. Video and social posts
+    count not at all. Each article is {outlet, url, title, text}."""
+    import blocklist
+    items = [a for a in articles if blocklist.is_news(a)]
+    parent = list(range(len(items)))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    keys = []
+    for a in items:
+        outlet = canonical_outlet(a.get("outlet") or "")
+        where = f"{outlet} {a.get('url') or ''}"
+        wire = next((w for w, rx in WIRE_CREDITS if w == outlet or rx.search(f"{a.get('title') or ''} "
+                                                                                f"{a.get('text') or ''}")), None)
+        keys.append({"outlet:" + outlet.lower(), "wire:" + wire if wire else None,
+                     "aggregator" if AGGREGATORS.search(where) else None} - {None})
+    words = [_title_words(a.get("title")) for a in items]
+    for i in range(len(items)):
+        for j in range(i):
+            common = words[i] & words[j]
+            same_title = (len(common) >= TITLE_SAME_WORDS
+                          and len(common) / len(words[i] | words[j]) >= TITLE_SAME)
+            if keys[i] & keys[j] or same_title:
+                parent[find(i)] = find(j)
+    return len({find(i) for i in range(len(items))})
+
+
+# --------------------------------------------------------------------------
+# Credibility in code (#2)
+# --------------------------------------------------------------------------
+CONFIG_DIR = None   # set lazily to config/
+_TIERS = None
+
+
+def _tier_tables() -> tuple:
+    """({name lower: tier}, {domain: tier}) from config/feeds.json (feed
+    names and sites), methodology.named_sources and config/outlet_tiers.json;
+    the earlier one wins."""
+    global _TIERS
+    if _TIERS is None:
+        import json
+        from pathlib import Path
+        cfg = CONFIG_DIR or Path(__file__).resolve().parent.parent / "config"
+        names, domains = {}, {}
+
+        def load(name):
+            try:
+                return json.loads((cfg / name).read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                return {}
+        for f in load("feeds.json").get("feeds", []):
+            if isinstance(f.get("tier"), int):
+                names.setdefault(f["name"].lower(), f["tier"])
+        for n in load("methodology.json").get("named_sources", []):
+            if isinstance(n.get("tier"), int):
+                names.setdefault(n["name"].lower(), n["tier"])
+                domains.setdefault(n["domain"].lower(), n["tier"])
+        table = load("outlet_tiers.json")
+        for k, v in table.get("outlets", {}).items():
+            names.setdefault(k.lower(), v)
+        for k, v in table.get("domains", {}).items():
+            domains.setdefault(k.lower(), v)
+        _TIERS = (names, domains)
+    return _TIERS
+
+
+def source_tier(outlet: str = None, url: str = None, listed: str = None):
+    """The tier (1-4) of an article from config, never from the model:
+    by the name in the article list (a feed's name), the canonical outlet,
+    then the site. None when unknown."""
+    names, domains = _tier_tables()
+    for name in (listed, outlet, canonical_outlet(listed or "")):
+        if name and name.strip().lower() in names:
+            return names[name.strip().lower()]
+    host = _domain(url or "")
+    while host:
+        if host in domains:
+            return domains[host]
+        host = host.partition(".")[2] if host.count(".") > 1 else ""
+    return None
+
+
+def credibility_cap(articles: list, independent: int) -> tuple:
+    """(cap, reason): the highest score the event's verified sources carry.
+    1 independent source: at most 6, and at most 5 when it is tier 3-4 or
+    of unknown tier; 7 or more needs two independent origins of which one
+    tier 1-2; 9 or more needs three. No verified news source: at most 4."""
+    import blocklist
+    high = any(a.get("tier") in (1, 2) for a in articles if blocklist.is_news(a))
+    if independent == 0:
+        return 4, "ingen verifierad nyhetskälla: högst 4"
+    if independent == 1:
+        return (6, "en oberoende källa: högst 6") if high else \
+               (5, "en oberoende källa på nivå 3-4: högst 5")
+    if not high:
+        return 6, "ingen källa på nivå 1-2: högst 6"
+    if independent == 2:
+        return 8, "två oberoende källor: högst 8 (9 kräver tre)"
+    return 10, None
+
+
+def apply_credibility(ev: dict) -> None:
+    """The model's score is a proposal: it is held to the cap the sources
+    carry. model_score keeps the proposal; score_capped_reason says why."""
+    cap, reason = credibility_cap(ev.get("articles") or [], ev.get("independent_sources") or 0)
+    score = ev.get("score")
+    ev.pop("score_capped_reason", None)
+    if isinstance(score, (int, float)) and not isinstance(score, bool) and score > cap:
+        ev["score"] = cap
+        ev["score_capped_reason"] = reason
+
+
+def _outlet_for(a: dict, match: dict) -> str:
+    """The outlet of a verified article: the name the article list gave,
+    so the model cannot put "Reuters" on a Devdiscourse copy. The model's
+    shorter name is used only when the list's name begins with it or
+    contains it - "BBC" for the feed "BBC Europe", "Reuters" for GDELT's
+    reuters.com - so verdicts on one outlet stay on one name."""
+    listed = (match.get("outlet") or "").strip()
+    model = canonical_outlet(a.get("outlet") or "")
+    if not listed:
+        return model
+    canon = canonical_outlet(listed)
+    m = re.sub(r"[^a-z0-9]", "", model.lower())
+    full = re.sub(r"[^a-z0-9]", "", listed.lower())
+    if m and m != re.sub(r"[^a-z0-9]", "", canon.lower()) and (full.startswith(m) or (len(m) >= 4 and m in full)):
+        return model
+    return canon
+
+
 def enrich_events(events: list, report_date: str, search_results: list = None,
                   thread_ids: set = None) -> list:
     """Adds id, model_score, articles (with ids), and cleans topics and
-    countries. `search_results` is the list of articles the model was
-    given; an article gets a link only when its "ref" (or, in reports from
-    before refs, its url) is among them. None means: no link check
-    possible (backfill), so every url is dropped."""
+    countries.
+
+    `search_results` is the list of articles the model was given. Only an
+    article cited by a "ref" (or url) in that list is kept, with the list's
+    own link, title and outlet; an article the list does not have is left
+    out, never shown unlinked. An event left with no verified article - or
+    whose only verified articles are video or social posts
+    (blocklist.is_news) - is kept but gets "unverified": true, which the
+    app shows.
+
+    None means: no link check possible (backfill of reports from before
+    refs), so the articles are the outlets the model read off the old
+    sources line, without links - and every such event is unverified."""
     from news_sources import decode_google_link
+    import blocklist
     known = {_norm_url(r["url"]): r for r in (search_results or []) if r.get("url")}
     by_ref = {r["ref"]: r for r in (search_results or []) if r.get("ref") and r.get("url")}
+    dropped = 0
     for i, ev in enumerate(events, start=1):
         ev["id"] = f"{report_date}-e{i}"
         ev.setdefault("model_score", ev.get("score"))
         ev["topics"] = [t for t in ev.get("topics") or [] if t in TOPICS]
         ev["countries"] = sorted({c.strip().upper() for c in ev.get("countries") or []
                                   if isinstance(c, str) and len(c.strip()) == 2})
-        for key in ("known_sv", "unknown_sv"):
-            if key in ev:
-                ev[key] = [x for x in ev.get(key) or [] if isinstance(x, str) and x.strip()]
+        if "unknown_sv" in ev:
+            ev["unknown_sv"] = [x for x in ev.get("unknown_sv") or [] if isinstance(x, str) and x.strip()]
         if ev.get("direction") not in DIRECTIONS:
             ev["direction"] = "neutral"
         if "thread_id" in ev and (thread_ids is None or ev["thread_id"] not in thread_ids):
             ev["thread_id"] = None
 
-        articles = ev.get("articles") or parse_sources(ev.get("sources", ""))
-        clean = []
-        for a in articles:
+        if search_results is None:
+            if "known_sv" in ev:
+                ev["known_sv"] = [x for x in ev.get("known_sv") or [] if isinstance(x, str) and x.strip()]
+            ev["articles"] = _legacy_articles(ev, report_date, i)
+            ev["unverified"] = True
+            ev["independent_sources"] = 0
+            continue
+
+        # New reports: only the articles list, never the free-text sources line.
+        clean, texts, ref_ids = [], {}, {}
+        for a in ev.get("articles") or []:
+            if not isinstance(a, dict):
+                continue
             ref = str(a.get("ref") or "").strip("[] ")
             match = by_ref.get(ref)
             if not match and a.get("url"):
                 match = known.get(_norm_url(a["url"]))
-            outlet = canonical_outlet(a.get("outlet") or (match or {}).get("outlet") or "")
-            if not outlet:
+            if not match or blocklist.blocked(match.get("url"), match.get("outlet")):
+                dropped += 1
                 continue
-            url = decode_google_link(match["url"]) if match else None
-            title = a.get("title") or (match or {}).get("title")
-            tier = a.get("tier")
+            outlet = _outlet_for(a, match)
+            if not outlet:
+                dropped += 1
+                continue
+            url = decode_google_link(match["url"])
             item = {
                 "id": article_id(report_date, i, outlet, url),
                 "outlet": outlet,
-                "title": title if url else a.get("title"),
+                "title": match.get("title") or a.get("title"),
                 "url": url,
-                "tier": tier if isinstance(tier, int) and 1 <= tier <= 4 else None,
+                # From config, not the model (#2).
+                "tier": source_tier(outlet, url, match.get("outlet")),
             }
             if a.get("summary_sv"):
                 item["summary_sv"] = a["summary_sv"]
-            if isinstance(a.get("published"), str) and DATE_RE.match(a["published"]):
+            # The date is the article list's, never the model's (#13). An
+            # undated article stands only when it was added in the app.
+            if "published" in match:
+                if match["published"]:
+                    item["published"] = match["published"]
+                elif match.get("via") != "app":
+                    dropped += 1
+                    continue
+            elif isinstance(a.get("published"), str) and DATE_RE.match(a["published"]):
                 item["published"] = a["published"]
             if a.get("relation") in RELATIONS:
                 item["relation"] = a["relation"]
             clean.append(item)
-        # Same article twice (same link, or same outlet without a link) -> once.
+            texts[item["id"]] = match.get("summary") or ""
+            ref_ids[match["ref"]] = item["id"]
+        # Same article twice -> once.
         seen = set()
         ev["articles"] = [a for a in clean if not (a["id"] in seen or seen.add(a["id"]))]
+        if "known_sv" in ev:
+            ev["known_sv"] = known_with_refs(ev.get("known_sv"), ref_ids)
+        ev["independent_sources"] = independent_sources(
+            [{**a, "text": texts.get(a["id"], "")} for a in ev["articles"]])
+        apply_credibility(ev)
+        # Video and social posts may stand beside a news source, never alone (#15).
+        if any(blocklist.is_news(a) for a in ev["articles"]):
+            ev.pop("unverified", None)
+        else:
+            ev["unverified"] = True
+    if dropped:
+        print(f"  Left out {dropped} cited article(s) not in the article list (no verified source)")
+    unverified = sum(1 for e in events if e.get("unverified"))
+    if unverified and search_results is not None:
+        print(f"  {unverified} event(s) marked unverified: no verified news source")
     return events
+
+
+def known_with_refs(known, ref_ids: dict) -> list:
+    """known_sv as [{text, refs}], refs being the ids of the event's
+    verified articles (#9). The model gives [{"text", "refs": ["A3"]}];
+    a sentence none of whose refs was verified is left out. A list of
+    plain strings is the format from before refs and is kept as it is
+    (the app reads both); in a list that has objects, a bare string has
+    no ref and is left out."""
+    items = [x for x in known or [] if (isinstance(x, str) and x.strip()) or isinstance(x, dict)]
+    if all(isinstance(x, str) for x in items):
+        return items
+    out = []
+    for x in items:
+        if not isinstance(x, dict) or not isinstance(x.get("text"), str) or not x["text"].strip():
+            continue
+        refs = x.get("refs") or []
+        refs = [refs] if isinstance(refs, str) else refs
+        ids = list(dict.fromkeys(ref_ids[r] for r in (str(r).strip("[] ") for r in refs if r) if r in ref_ids))
+        if ids:
+            out.append({"text": x["text"].strip(), "refs": ids})
+    dropped = len(items) - len(out)
+    if dropped:
+        print(f"  Left out {dropped} known_sv sentence(s) without a verified ref")
+    return out
+
+
+def _legacy_articles(ev: dict, report_date: str, i: int) -> list:
+    """Outlets without links, for reports from before refs (backfill)."""
+    out, seen = [], set()
+    for a in ev.get("articles") or parse_sources(ev.get("sources", "")):
+        outlet = canonical_outlet((a or {}).get("outlet") or "")
+        if not outlet or outlet in seen:
+            continue
+        seen.add(outlet)
+        tier = a.get("tier")
+        out.append({"id": article_id(report_date, i, outlet), "outlet": outlet, "title": a.get("title"),
+                    "url": None, "tier": tier if isinstance(tier, int) and 1 <= tier <= 4 else None})
+    return out
 
 
 SWEEP_EVENT_FIELDS = """Each event also carries, for the Swedish web app:

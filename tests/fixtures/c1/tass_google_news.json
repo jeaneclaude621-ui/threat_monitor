@@ -1,0 +1,41 @@
+{
+  "_case": "TASS reaches the pool through Google News: the link is news.google.com, only the outlet name says TASS.",
+  "pool_items": [
+    {
+      "title": "Moscow warns Sweden over Baltic exercises",
+      "link": "https://news.google.com/rss/articles/CBMiTkh0dHBzOi8vdGFzcy5jb20vd29ybGQvMTk5OTk5OdIBAA?oc=5",
+      "source": "TASS",
+      "summary": "Russian foreign ministry statement.",
+      "via": "google"
+    }
+  ],
+  "search_results": [
+    {
+      "ref": "A1",
+      "url": "https://news.google.com/rss/articles/CBMiTkh0dHBzOi8vdGFzcy5jb20vd29ybGQvMTk5OTk5OdIBAA?oc=5",
+      "title": "Moscow warns Sweden over Baltic exercises",
+      "outlet": "TASS"
+    }
+  ],
+  "events": [
+    {
+      "title": "Moscow warns Sweden",
+      "title_sv": "Moskva varnar Sverige",
+      "score": 5,
+      "topics": [
+        "Diplomati"
+      ],
+      "countries": [
+        "SE",
+        "RU"
+      ],
+      "articles": [
+        {
+          "ref": "A1",
+          "outlet": "TASS",
+          "tier": 4
+        }
+      ]
+    }
+  ]
+}

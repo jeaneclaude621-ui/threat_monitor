@@ -128,51 +128,63 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
 
 ## Förslag som väntar på beslut
 
-### Spärra Telegram och rysk statsmedia i fliken Källor
-*Föreslaget 2026-11-01.*
-
-Fliken Källor är den enda vägen för Telegram eller rysk statsmedia in i
-analysen: en länk som läggs in där läses av rapporten. Förslaget är att
-Workern vägrar sådana länkar (t.me, tass, rt.com, ria.ru, sputnik).
-
-### Gäståtkomst med länk, utan mejl (NÄSTA STEG)
-*Beslutat 2026-11-01 att detta är nästa steg. Detaljerna bestäms när vi tar upp det.*
-
-Den som har en länk ska kunna läsa appen utan att logga in och utan att
-uppge e-post. En enkel lösning:
-- En hemlig gästlänk, till exempel `.../?g=<token>`. Workern känner igen
-  token och ger läsbehörighet.
-- Länken kan dras tillbaka genom att token byts ut.
-- Hela läsdelen visas för gäster: Idag, Arkiv, Ämnen, Karta, Narrativ och
-  Myndigheter. Bedöm och admin kräver fortfarande inloggning.
-- Gästläsningen får inte räknas mot Cloudflare Access gratisnivå på 50
-  användare. Läsvägarna måste därför gå förbi Access (bypass) för den som
-  har en giltig token.
-
-Allt som byggts sedan 1 nov är rena läsanrop och klara för detta. Följande
-i punkten nedan gäller även här: e-postadresser bort ur rapportdatan,
-gästläge i appen, cachning, AI-märkning.
-
-### Gör appen öppen för alla, gratis
-*Föreslaget 2026-11-01.*
-
-Läsdelen blir öppen utan inloggning. Bedöm och admin ligger kvar bakom
-Cloudflare Access, vars gratisnivå bara räcker till 50 användare.
-Förutsättningar:
-- Ta bort bedömarnas e-postadresser ur rapportdatan.
-- Gästläge i appen.
-- Cachning av publika svar.
-- "Om"-sida med AI-märkning enligt EU:s AI-förordning.
-- Visa bara svenska sammanfattningar av den ryska sidan publikt.
-
-Öppen fråga: ska Narrativ vara publikt eller bara för inloggade?
+Inga just nu.
 
 ## Klart
+
+- 2026-11-04: Styrkor ser alla anfall i Ryssland och ockuperade områden
+  (Version 3.18, hm-v3.33). Nattsökningen letade efter baserna med de
+  svenska namnen ("Achtubinsk", "Voronezj", "Tichoretsk (719:e
+  ammunitionsbasen)"), som engelska nyheter aldrig skriver; nu används
+  engelsk stavning från det ryska namnet. Anfall mot raffinaderier,
+  depåer, fabriker, hamnar m.m. utanför baslistan får plats via
+  OpenStreetMap och kontrolleras med NASA FIRMS (3 km vid känt mål, 10 km
+  när bara orten hittas). Varje anfall har en knapp till FIRMS satellitkarta
+  för platsen och dagen. Rysslands anfall mot Ukraina kontrolleras inte med
+  FIRMS: flygvapnet anger bara region.
+
+- 2026-11-04: Anfallskartan visar 30 nätter löpande, alla valbara. Kaggle-
+  datasetet uppdateras ungefär en gång i veckan (senast 31 okt), så
+  nätterna efter dess senaste läses ur nyhetsrubriker som citerar
+  flygvapnet (Google News, ingen rysk statsmedia), ett lite-anrop per natt
+  högst, märkta preliminära (*) tills datasetet täcker dem. Första
+  körningen: 1-3 nov. Nattens rapport kommer ut på morgonen, så natten
+  till samma dag läses först nästa morgon. Lite-budgeten blir cirka
+  16 av 20 per dygn.
+- 2026-11-04: Alla tre trådkontroller den 3 nov föll på 503 hos
+  huvudmodellen (före bytet till lite-modellen) men visades som "ok" på
+  statussidan. Myndigheter hade inte uppdaterats sedan 2 nov (alla
+  körningar föll på kvoten); 07:00-körningen 4 nov gick på lite-modellen
+  och laddades upp. Ingen rapport finns för 3 nov.
+
+- 2026-11-04: Appen tog inte emot några uppladdningar mellan 3 nov 21:51
+  och 4 nov 07:20 UTC (401 invalid_jwt). `open_app.mjs` hade skapat
+  Access-appen "Hotmonitor inloggning" (login, api/ingest/*, api/export/*)
+  men dess AUD kom aldrig in i `ACCESS_AUD`. Båda AUD ligger nu i
+  wrangler.jsonc och Workern är driftsatt. Morgonrapporten, kurserna och
+  kartorna skickades om med det nya jobbet `repush` (inga modellanrop).
+  Samma dag kördes `open_app.mjs --force` och den gamla Access-appen togs
+  bort: appen är öppen för gäster (kontrollerat: läsvägarna svarar 200 som
+  gäst utan e-postadresser och utan ryska rubriker eller länkar; admin 401;
+  login, ingest och export bakom Access; jobbens uppladdning fungerar).
+  `--force` behövdes för att Macen saknar CF_ACCESS_CLIENT_* i ~/.zshrc.
 
 - 2026-11-03: Andra och tredje omgången av Styrkor (PR #1 och PR #2)
   mergade till main och driftsatta (hm-v3.29): grunddatabasen med 325 baser
   och 487 förband, ISW varje natt, statusens ålder, NASA FIRMS och
   bildjobbet. Repo-hemligheten `FIRMS_MAP_KEY` är inlagd.
+- 2026-11-03: Appen är öppen för alla som gäst (Version 3.17, hm-v3.31).
+  Gäster läser Idag, Arkiv, Ämnen, Karta, Styrkor, Narrativ och
+  Myndigheter utan inloggning. Bedömarnas e-postadresser byts mot
+  "Bedömare N", den ryska sidan i Narrativ visas bara som svenska
+  sammanfattningar, svaren cachas en minut och sidan Om har AI-märkning.
+  Bedöm, notiser och admin kräver fortfarande inloggning via `/login`.
+  Detta ersätter förslaget om en hemlig gästlänk. Kräver driftsättning
+  och ändrad Access, se `webapp/DEPLOY.md`, Version 3.17.
+- 2026-11-03: Fliken Källor tar inte emot Telegram eller rysk statsmedia
+  (Version 3.16, hm-v3.30). Workern svarar 422, även efter omdirigering;
+  exporten till analysen och `src/news_sources.py` filtrerar bort sådana
+  källor som redan finns. Kräver driftsättning av Workern.
 - 2026-11-03: Huvudkvoten tog slut två gånger den 3 nov: 04:00-rapporten
   föll (mina manuella Styrkor-körningar kvällen före tog av samma
   kvotdygn) och Nato-briefen 17:00. Åtgärder: trådbevakningen går bara

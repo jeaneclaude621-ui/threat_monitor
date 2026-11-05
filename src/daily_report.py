@@ -25,7 +25,8 @@ from pptx_builder import build_deck
 from mailer import send_daily_email
 from reply_checker import check_replies
 from executive_sv import build_executive_safe
-from app_data import enrich_events, add_favicons, SWEEP_EVENT_FIELDS, SWEEP_EVENT_JSON, _norm_url
+from app_data import enrich_events, add_favicons, _norm_url
+import app_data
 from app_sync import pull_assessments, push_report, backup_app
 import common
 import feed_prefilter
@@ -68,40 +69,95 @@ information either way).
 
 Respond as strict JSON:
 {{
-  "results": [{{"id": "the claim's id, copied", "title": "...", "outcome": "CONFIRMED|CONTRADICTED|UNRESOLVED", "note": "short reason"}}],
-  "confirmed_count": 0,
-  "contradicted_count": 0,
-  "unresolved_count": 0,
-  "accuracy_pct": 0,
+  "results": [{{"id": "the claim's id, copied", "title": "...", "outcome": "CONFIRMED|CONTRADICTED|UNRESOLVED",
+               "note": "short reason", "note_sv": "the reason in one or two Swedish sentences",
+               "refs": ["A3"]}}],
   "summary_sentence": "one sentence summarizing the self-check for a status slide"
 }}
+
+"refs" are the refs ([A1], [A2] ...) of the articles above the outcome
+rests on, copied exactly - required for CONFIRMED and CONTRADICTED. A
+CONTRADICTED claim is published as a correction to yesterday's report,
+with "note_sv" as its text and the refs as its sources.
 
 Do NOT write any analysis, commentary or per-claim reasoning before the
 JSON - put short reasons in each "note" field. Your entire reply must be
 the JSON object."""
+    listed = list(common.LAST_SEARCH_RESULTS)
     try:
-        # Six claims x reasoning + JSON does not fit in ~2k tokens; the
+        # Ten claims x reasoning + JSON does not fit in ~2k tokens; the
         # response was getting truncated before the JSON.
-        result = ask_model_json(prompt, system=SYSTEM, max_tokens=6000)
+        result = ask_model_json(prompt, system=SYSTEM, max_tokens=9000)
     except Exception as e:
         return {"summary": f"Self-check failed to run ({e}).", "log_entry": None}
 
-    log_entry = {
-        "date": date.today().isoformat(),
-        "accuracy_pct": result.get("accuracy_pct"),
-        "confirmed": result.get("confirmed_count"),
-        "contradicted": result.get("contradicted_count"),
-        "unresolved": result.get("unresolved_count"),
-    }
+    # Per-event outcomes, for the app and the operator's track record;
+    # refs checked against the articles the model was given.
+    ids = {e.get("id") for e in yesterday_report.get("events", [])}
+    today = date.today().isoformat()
+    results = []
+    for r in result.get("results", []):
+        if not isinstance(r, dict) or r.get("id") not in ids or \
+                r.get("outcome") not in ("CONFIRMED", "CONTRADICTED", "UNRESOLVED"):
+            continue
+        row = {"event_id": r["id"], "outcome": r["outcome"], "note": r.get("note", "")}
+        if isinstance(r.get("note_sv"), str) and r["note_sv"].strip():
+            row["note_sv"] = r["note_sv"].strip()
+        row["refs"] = verified_refs(r.get("refs"), today, listed)
+        results.append(row)
+    log_entry = dict(date=today, **self_check_counts(results))
     state["self_eval_log"].append(log_entry)
     state["self_eval_log"] = state["self_eval_log"][-90:]
-    # Per-event outcomes, for the app and the operator's track record.
-    ids = {e.get("id") for e in yesterday_report.get("events", [])}
-    results = [{"event_id": r.get("id"), "outcome": r.get("outcome"), "note": r.get("note", "")}
-               for r in result.get("results", [])
-               if r.get("id") in ids and r.get("outcome") in ("CONFIRMED", "CONTRADICTED", "UNRESOLVED")]
     return {"summary": result.get("summary_sentence", "Self-check complete."), "log_entry": log_entry,
             "results": results}
+
+
+def self_check_counts(results: list) -> dict:
+    """The self-check's counts and accuracy, counted in code from its
+    per-event results (#10), not taken from the model. accuracy_pct is
+    the share of resolved claims (confirmed or contradicted) that held;
+    None when none was resolved."""
+    n = {o: sum(1 for r in results if r.get("outcome") == o)
+         for o in ("CONFIRMED", "CONTRADICTED", "UNRESOLVED")}
+    resolved = n["CONFIRMED"] + n["CONTRADICTED"]
+    return {"accuracy_pct": round(100 * n["CONFIRMED"] / resolved) if resolved else None,
+            "confirmed": n["CONFIRMED"], "contradicted": n["CONTRADICTED"], "unresolved": n["UNRESOLVED"]}
+
+
+def apply_corrections(report: dict, results: list, today: str) -> int:
+    """Puts correction {date, note_sv, refs} on each event of `report`
+    (yesterday's) that the self-check found CONTRADICTED (#8). Only with
+    a verified ref and a Swedish note; a correction already there from
+    an earlier run of the same day is replaced. Returns how many."""
+    by_id = {e.get("id"): e for e in report.get("events", [])}
+    n = 0
+    for r in results:
+        ev = by_id.get(r.get("event_id"))
+        if ev is None or r.get("outcome") != "CONTRADICTED":
+            continue
+        if not r.get("refs") or not r.get("note_sv"):
+            print(f"  ! {r.get('event_id')} contradicted, but no verified ref or Swedish note - no correction published")
+            continue
+        ev["correction"] = {"date": today, "note_sv": r["note_sv"], "refs": r["refs"]}
+        n += 1
+    return n
+
+
+def publish_corrections(results: list, today: date = None) -> bool:
+    """Corrections on yesterday's saved report, which is then saved and
+    uploaded again (app_sync.push_report, as `app_sync.py repush`)."""
+    today = today or date.today()
+    path = OUTPUT_DIR / f"{(today - timedelta(days=1)).isoformat()}_report_data.json"
+    if not path.exists():
+        return False
+    with open(path, "r", encoding="utf-8") as f:
+        report = json.load(f)
+    if not apply_corrections(report, results, today.isoformat()):
+        return False
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2, ensure_ascii=False)
+    print(f"  Corrections put on {report.get('date')}'s report; uploading it again")
+    return push_report(report)
 
 
 # --------------------------------------------------------------------------
@@ -136,9 +192,13 @@ def index_instructions(m):
       the band rests on: "band_evidence" - the numbers (1-based position
       in your events list) of today's events that meet its condition -
       and "band_standing_conditions" - conditions established earlier
-      that still hold, each with the date it was established. In code,
-      an event scored below {MIN_BAND_SCORE} for credibility does not count;
-      a band with nothing left to rest on is lowered by one.
+      that still hold, each with the date it was established and the id
+      ("event_id", e.g. 2026-11-03-e2) of the event in an earlier report
+      that established it. In code, an event scored below {MIN_BAND_SCORE}
+      for credibility does not count, nor does a standing condition
+      without the id of an earlier report's event (or one whose event
+      was later contradicted); a band with nothing left to rest on is
+      lowered by one.
    d) place the index within the band by the placement rule above:
       "band_conditions_met" names the band's conditions you rely on, and
       "next_band_partial" the next band's conditions that are partially
@@ -167,7 +227,7 @@ INDEX_JSON_FIELDS = """  "threat_index": 0.0,
   "threat_index_justification": "...",
   "index_band": 0,
   "band_evidence": [1],
-  "band_standing_conditions": [{"condition": "...", "established": "YYYY-MM-DD"}],
+  "band_standing_conditions": [{"condition": "...", "established": "YYYY-MM-DD", "event_id": "YYYY-MM-DD-eN"}],
   "band_conditions_met": ["..."],
   "next_band_partial": ["..."],
   "escalation_factors": ["..."],
@@ -177,6 +237,22 @@ INDEX_JSON_FIELDS = """  "threat_index": 0.0,
   "next_band_partial_30d": ["..."],
   "threat_index_30d_justification": "...",
   "forecast_drivers": [{"when": "date or window", "driver": "...", "direction": "up|down"}],"""
+
+# known_sv with refs (#9): each sentence names the refs of the articles
+# it rests on; app_data.known_with_refs keeps only sentences with a
+# verified ref. The event fields are app_data's, with known_sv asked for
+# in that form (the asserts fail loudly if app_data's wording changes).
+_KNOWN_FIELD = '   - "known_sv": 2-4 short Swedish sentences - what is established;'
+_KNOWN_FIELD_REFS = '''   - "known_sv": 2-4 short Swedish sentences - what is established -
+     each {"text": "...", "refs": ["A3"]}, refs being the refs of the
+     event's articles that establish it, copied exactly. A sentence
+     without a ref to one of the event's articles is left out;'''
+_KNOWN_JSON = '"known_sv": ["..."]'
+_KNOWN_JSON_REFS = '"known_sv": [{"text": "...", "refs": ["A1"]}]'
+assert _KNOWN_FIELD in app_data.SWEEP_EVENT_FIELDS and _KNOWN_JSON in app_data.SWEEP_EVENT_JSON
+SWEEP_EVENT_FIELDS = app_data.SWEEP_EVENT_FIELDS.replace(_KNOWN_FIELD, _KNOWN_FIELD_REFS)
+SWEEP_EVENT_JSON = app_data.SWEEP_EVENT_JSON.replace(_KNOWN_JSON, _KNOWN_JSON_REFS)
+
 
 MIN_BAND_SCORE = 7      # credibility an event needs to hold up a band
 PLACEMENT_CAP = 0.1     # highest placement above the band without a next-band condition
@@ -199,27 +275,58 @@ def _sv(x):
     return str(x).replace(".", ",")
 
 
-def apply_index_rules(result, events):
+def _model_score(ev):
+    """The event's score before the operator's adjustment: the band rests
+    on the evidence, and the operator's effect on the index is capped
+    separately (operator_weight.apply_to_index)."""
+    s = ev.get("model_score")
+    return s if isinstance(s, (int, float)) else ev.get("score")
+
+
+def check_standing(conditions, known_event_ids):
+    """(kept, dropped): a standing condition counts only when its
+    event_id names an event of an earlier report, in `known_event_ids`
+    (those later found CONTRADICTED left out). known_event_ids None
+    skips the check (recalibrate.py, which has no such list)."""
+    conditions = [c for c in conditions or [] if c]
+    if known_event_ids is None:
+        return conditions, []
+    kept, dropped = [], []
+    for c in conditions:
+        eid = c.get("event_id") if isinstance(c, dict) else None
+        (kept if isinstance(eid, str) and eid.strip() in known_event_ids else dropped).append(c)
+    return kept, dropped
+
+
+def apply_index_rules(result, events, known_event_ids=None):
     """The checks on the model's index that code can make, after
-    enforce_bands and once `events` carry their final scores:
+    enforce_bands:
     - the general band must rest on something: today's events at
-      MIN_BAND_SCORE or above, or a standing condition. If it rests on
-      nothing, it drops one band, keeping its placement;
+      MIN_BAND_SCORE or above (the model's own score, before the
+      operator's adjustment), or a standing condition that names an
+      earlier report's event (`known_event_ids`, see check_standing). If
+      it rests on nothing, it drops one band, keeping its placement;
     - neither index sits above band +PLACEMENT_CAP without a named
       next-band condition.
-    Sets result["index_range"], the range the general index may still
-    move in (operator input), and result["index_checks"], what was done."""
+    Sets result["index_range"], the band's range (band +/- 0.5), and result["index_checks"], what was done."""
     checks = []
     band, idx = result.get("index_band"), result.get("threat_index")
     if band and idx is not None:
         cited = [n for n in result.get("band_evidence") or [] if isinstance(n, int) and 1 <= n <= len(events)]
-        holding = [n for n in cited if (events[n - 1].get("score") or 0) >= MIN_BAND_SCORE]
-        standing = [c for c in result.get("band_standing_conditions") or [] if c]
+        holding = [n for n in cited if (_model_score(events[n - 1]) or 0) >= MIN_BAND_SCORE]
+        standing, dropped = check_standing(result.get("band_standing_conditions"), known_event_ids)
+        if dropped:
+            result["band_standing_conditions"] = standing
+            result["band_standing_dropped"] = dropped
+            names = "; ".join(str(c.get("condition") if isinstance(c, dict) else c)[:80] for c in dropped)
+            checks.append(f"{len(dropped)} bestående villkor räknades inte: de pekade inte på en händelse "
+                          f"i en tidigare rapport ({names}).")
+            print(f"  ! {len(dropped)} standing condition(s) without an earlier report's event id - not counted")
         if not holding and not standing and band > 1:
-            weak = ", ".join(f"e{n} ({events[n - 1].get('score')})" for n in cited) or "inga"
+            weak = ", ".join(f"e{n} ({_model_score(events[n - 1])})" for n in cited) or "inga"
             result["index_band"], result["threat_index"] = band - 1, round(idx - 1, 1)
             checks.append(f"Band {band} sänkt till {band - 1}: inget i underlaget höll trovärdighet "
-                          f"{MIN_BAND_SCORE} eller mer (anförda händelser: {weak}) och inga bestående villkor angavs.")
+                          f"{MIN_BAND_SCORE} eller mer (anförda händelser: {weak}) och inga giltiga bestående villkor angavs.")
             print(f"  ! Band {band} rests on nothing credible (cited: {weak}) - lowered to {band - 1}")
     for idx_key, band_key, partial_key, label in (
             ("threat_index", "index_band", "next_band_partial", "Index"),
@@ -232,8 +339,9 @@ def apply_index_rules(result, events):
             print(f"  ! {idx_key} {idx} high in band {band} with no next-band condition - capped to {result[idx_key]}")
     band = result.get("index_band")
     if band:
-        hi = band + 0.5 if result.get("next_band_partial") else band + PLACEMENT_CAP
-        result["index_range"] = (band - 0.5, hi)
+        # The band's own range; operator input is held to it, and to
+        # +/-0.3, in operator_weight.index_bounds.
+        result["index_range"] = (band - 0.5, band + 0.5)
     result["index_checks"] = checks
     return result
 
@@ -295,6 +403,32 @@ def evaluate_forecasts(history):
 # --------------------------------------------------------------------------
 # 2. Broad sweep: fresh event log + both threat indices for today
 # --------------------------------------------------------------------------
+# The sweep on the reserve (light) model, when the main model cannot take
+# it: fewer articles and events, so a smaller model has less to mix up
+# (review 1, #18). The main sweep gives a varying number of events: about
+# SWEEP_EVENTS_TYPICAL on an ordinary day, up to SWEEP_EVENTS when the
+# news warrants it; what does not make it goes in also_reported.
+SWEEP_ARTICLES, SWEEP_EVENTS, SWEEP_EVENTS_TYPICAL = 450, 10, 6
+RESERVE_SWEEP_ARTICLES, RESERVE_SWEEP_EVENTS = 200, 4
+RESERVE_SWEEP_SMALLER = [(120, 3), (80, 2)]   # when the reserve model's answer is cut off
+ALSO_REPORTED_MAX = 8
+# Days of earlier reports whose events a standing condition may name.
+STANDING_WINDOW_DAYS = 30
+
+
+def known_event_ids(days: int = STANDING_WINDOW_DAYS, outcomes: dict = None) -> dict:
+    """{event id: title} of the events in the reports of the `days` days
+    before today, without those a self-check later found CONTRADICTED:
+    what a band_standing_condition may name."""
+    outcomes = load_outcomes() if outcomes is None else outcomes
+    out = {}
+    for d, r in load_recent_reports(days):
+        for e in r.get("events", []):
+            if e.get("id") and outcomes.get(e["id"]) != "CONTRADICTED":
+                out[e["id"]] = e.get("title") or ""
+    return out
+
+
 def run_broad_sweep(state, hourly_entries, pool, contradicted=(), forecast_accuracy=None):
     tiers_desc = "\n".join(f"- {t['name']} ({t['range'][0]}-{t['range'][1]}): {', '.join(t['examples'])}" for t in state["methodology"]["tiers"])
     m = state["methodology"]
@@ -314,15 +448,24 @@ def run_broad_sweep(state, hourly_entries, pool, contradicted=(), forecast_accur
     operator_desc = operator_weight.prompt_block()
     recent = load_recent_reports()
     recent_desc = "\n".join(
-        f"- {d}: {e.get('title')}" + "".join(f"\n    · {a.get('outlet')}: {a.get('title')}"
+        f"- {d} [{e.get('id')}]: {e.get('title')}" + "".join(f"\n    · {a.get('outlet')}: {a.get('title')}"
                                               for a in e.get("articles", []) if a.get("title"))
         for d, r in recent for e in r.get("events", [])) or "(none)"
+    known_ids = known_event_ids()
+    recent_ids = {e.get("id") for _, r in recent for e in r.get("events", [])}
+    older_desc = "\n".join(f"- [{i}] {t}" for i, t in sorted(known_ids.items()) if i not in recent_ids) or "(none)"
     threads_desc = "\n".join(f"- {t['id']}: {t['label']}" for t in state["watchlist"])
     named = m.get("named_sources", [])
     named_desc = "\n".join(f"- {n['name']} (site:{n['domain']}, tier {n['tier']}, {n['lang']}): {n['use']}"
                            for n in named) or "(none)"
 
-    prompt = f"""Below is the last 24 hours of reporting gathered from news feeds,
+    def build(n_articles, n_events):
+        if n_events > SWEEP_EVENTS_TYPICAL:
+            count_rule = (f"About {SWEEP_EVENTS_TYPICAL} on an ordinary day; give more, up to {n_events}, only "
+                          f"when the day's news has that many separate, significant events - never pad.")
+        else:
+            count_rule = "Fewer is fine when the day has fewer significant events - never pad."
+        return f"""Below is the last 24 hours of reporting gathered from news feeds,
 Google News and GDELT, newest first, each with a ref ([A1], [A2] ...).
 From it, assess Russia's hybrid activity, threats, and posture toward
 NATO/EU/Ukraine. Base everything ONLY on these articles - you cannot
@@ -330,7 +473,7 @@ search, and your own knowledge may be outdated. Many items are
 irrelevant, duplicates or low-quality outlets; weigh them by the tiers.
 
 <articles>
-{pool.prompt_block(450)}
+{pool.prompt_block(n_articles)}
 </articles>
 
 Credibility tiers to use when scoring each item (1-10):
@@ -351,12 +494,11 @@ them in, don't just repeat them:
 {hourly_summary}
 
 The intelligence operator's own assessments of earlier articles
-(+2 very credible ... -2 not credible; weight decays with age). Give them
-HIGH weight but they are NOT decisive: they inform how much you trust an
-outlet or a claim, they never on their own confirm or refute one. Score
-each event and both indices on the evidence as usual - the operator's
-effect on event scores and on the general index is applied separately in
-code, from each event's "direction".
+(+2 very credible ... -2 not credible; weight decays with age), for
+context only. Do NOT adjust any score or either index for them: score
+each event and both indices on the evidence alone. The operator's effect
+on event scores and on the general index is applied separately in code,
+from each event's "direction", with its own caps.
 {operator_desc}
 
 Yesterday's events that today's self-check found CONTRADICTED by later
@@ -364,16 +506,21 @@ reporting. They do not count toward any band, and a standing condition
 that rested on them no longer holds:
 {contradicted_desc}
 
-The events of the last {REPEAT_WINDOW_DAYS} days' reports, with the articles they
+The events of the last {REPEAT_WINDOW_DAYS} days' reports, with their ids and the articles they
 cited. The readers have seen them: don't report the same thing again. A
 story comes back only with a material new development since then, and
 the event then says what is new. Cite articles not listed here; cite a
 listed one again only where today's event cannot be understood without it.
 {recent_desc}
 
+Earlier events (ids, up to {STANDING_WINDOW_DAYS} days back) a standing condition may also
+name; contradicted ones are left out:
+{older_desc}
+
 Produce:
-1. Up to 6 of the most important events from the last 24h, each scored
+1. Up to {n_events} of the most important events from the last 24h, each scored
    for credibility per the tiers above, with the corroborating outlets named.
+   {count_rule}
    {SWEEP_EVENT_FIELDS}
    Watchlist threads (for "thread_id"):
 {threads_desc}
@@ -382,6 +529,9 @@ Produce:
 4. Up to 4 "deception watch" items - recurring Kremlin narrative/denial
    patterns observed in the last 24h (not scored, tracked separately).
 5. Up to 3 "key signals" - short phrases for a sidebar.
+6. "also_reported": up to {ALSO_REPORTED_MAX} other relevant stories from the list
+   that did not make it into the events - each a short Swedish title and
+   the refs of the articles that report it (e.g. ["A7"]), copied exactly.
 
 Respond as strict JSON:
 {{
@@ -389,20 +539,57 @@ Respond as strict JSON:
 {INDEX_JSON_FIELDS}
   "top_development": "...",
   "deception_items": [{{"heading": "...", "body": "..."}}],
-  "key_signals": ["..."]
+  "key_signals": ["..."],
+  "also_reported": [{{"title_sv": "...", "refs": ["A1"]}}]
 }}"""
     # The escalation/de-escalation/delta fields pushed this past 5000, the
     # 30-day forecast another 1500, the app fields (Swedish text, topics,
     # countries, article links) roughly 3000, and the per-article Swedish
     # summaries with known/unknown lists about 4000 more.
-    result = ask_model_json(prompt, system=SYSTEM, max_tokens=22000)
+    # The main model first, with no fallback: if it cannot take the sweep,
+    # the reserve model gets the smaller sweep instead of the full one.
+    mark = common.calls_mark()
+    reserve = common.lite_model()
+    result = None
+    try:
+        # Up to ten events instead of six: about 1500 tokens each more.
+        result = ask_model_json(build(SWEEP_ARTICLES, SWEEP_EVENTS), system=SYSTEM, max_tokens=30000,
+                                model=common.MODEL, fallback=False)
+    except common.NoModelAvailable as e:
+        if not reserve or reserve == common.MODEL:
+            raise
+        print(f"  ! Main model unavailable for the sweep ({str(e)[:160]}); reduced sweep on the reserve "
+              f"model {reserve}: {RESERVE_SWEEP_ARTICLES} articles, at most {RESERVE_SWEEP_EVENTS} events")
+    if result is None:
+        # The reserve model stops short of the main one's output length: a
+        # cut-off answer is tried again smaller (fewer articles and events),
+        # rather than losing the whole morning report.
+        ladder = [(RESERVE_SWEEP_ARTICLES, RESERVE_SWEEP_EVENTS)] + RESERVE_SWEEP_SMALLER
+        for i, (n_articles, n_events) in enumerate(ladder):
+            try:
+                result = ask_model_json(build(n_articles, n_events), system=SYSTEM,
+                                        max_tokens=22000, model=reserve, fallback=False)
+                break
+            except ValueError as e:
+                if i == len(ladder) - 1:
+                    raise
+                nxt = ladder[i + 1]
+                print(f"  ! Reserve sweep cut off ({str(e)[:80]}); again with {nxt[0]} articles, at most {nxt[1]} events")
+        result["events"] = (result.get("events") or [])[:n_events]
+        result["sweep_reduced"] = True
+    result["events"] = (result.get("events") or [])[:SWEEP_EVENTS]
+    by = common.generated_by(mark)
+    result["sweep_generated_by"] = {"models": by["models"], "reserve": bool(result.get("sweep_reduced")),
+                                    "articles": n_articles if result.get("sweep_reduced") else SWEEP_ARTICLES}
 
     enforce_bands(result)
     enrich_events(result.get("events", []), date.today().isoformat(), common.LAST_SEARCH_RESULTS,
                   {t["id"] for t in state["watchlist"]})
     drop_repeated_articles(result.get("events", []), recent)
+    result["also_reported"] = verify_also_reported(result.get("also_reported"), date.today().isoformat(),
+                                                   common.LAST_SEARCH_RESULTS, result.get("events", []))
     trace = operator_weight.apply_to_events(result.get("events", []))
-    apply_index_rules(result, result.get("events", []))
+    apply_index_rules(result, result.get("events", []), set(known_ids))
     result["operator_influence"] = operator_weight.apply_to_index(result, trace)
     idx = result.get("threat_index")
     if prior is not None and idx is not None and abs(idx - prior) >= 1.5:
@@ -410,6 +597,41 @@ Respond as strict JSON:
     if not result.get("deescalation_factors"):
         print("  ! No de-escalation factors identified - index may be drifting upward unchecked")
     return result
+
+
+def verified_refs(refs, report_date, search_results) -> list:
+    """Refs ("A3") to the articles of the list the model was given, as
+    {id, outlet, title, url, tier, published}, checked exactly as an
+    event's articles are (app_data.enrich_events); an unknown ref is
+    left out."""
+    refs = [refs] if isinstance(refs, str) else (refs if isinstance(refs, list) else [])
+    probe = {"title": "", "articles": [{"ref": str(r)} for r in refs if r]}
+    if not probe["articles"]:
+        return []
+    enrich_events([probe], report_date, search_results or [])
+    return [{k: a[k] for k in ("id", "outlet", "title", "url", "tier", "published") if k in a}
+            for a in probe["articles"] if a.get("url")]
+
+
+def verify_also_reported(items, report_date, search_results, events=()) -> list:
+    """also_reported as [{title_sv, refs}], refs being verified articles
+    ({id, outlet, title, url, tier, published}) checked against the
+    article list exactly as an event's are (app_data.enrich_events). An
+    item with no verified ref is left out, and so is an article already
+    cited by one of today's events."""
+    cited = {a.get("url") for e in events for a in e.get("articles", []) if a.get("url")}
+    out, dropped = [], 0
+    for x in (items or [])[:ALSO_REPORTED_MAX]:
+        if not isinstance(x, dict) or not isinstance(x.get("title_sv"), str) or not x["title_sv"].strip():
+            continue
+        arts = [a for a in verified_refs(x.get("refs"), report_date, search_results) if a["url"] not in cited]
+        if arts:
+            out.append({"title_sv": x["title_sv"].strip(), "refs": arts})
+        else:
+            dropped += 1
+    if dropped:
+        print(f"  Left out {dropped} also_reported item(s) without a verified ref")
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -539,14 +761,66 @@ def drop_repeated_articles(events: list, recent: list):
         return _norm_url(url) + ("#" + url.split("#", 1)[1] if "#" in url else "")
     cited = {key(a["url"]) for _, r in recent for e in r.get("events", [])
              for a in e.get("articles", []) if a.get("url")}
-    dropped = 0
+    dropped = sentences = 0
     for ev in events:
         fresh = [a for a in ev.get("articles", []) if not (a.get("url") and key(a["url"]) in cited)]
         if fresh and len(fresh) < len(ev.get("articles", [])):
             dropped += len(ev["articles"]) - len(fresh)
             ev["articles"] = fresh
+            sentences += prune_known(ev)
     if dropped:
         print(f"  Left out {dropped} article(s) already cited in the last {REPEAT_WINDOW_DAYS} days' reports")
+    if sentences:
+        print(f"  Left out {sentences} known_sv sentence(s) whose refs were all among them")
+
+
+def prune_known(ev: dict) -> int:
+    """known_sv {text, refs} after articles were taken out of the event:
+    refs to articles no longer on it are dropped, and a sentence left
+    with no ref is dropped. Plain strings (reports from before refs) are
+    kept. Returns how many sentences were dropped."""
+    if not isinstance(ev.get("known_sv"), list):
+        return 0
+    ids = {a.get("id") for a in ev.get("articles", [])}
+    out = []
+    for x in ev["known_sv"]:
+        if isinstance(x, dict):
+            refs = [r for r in x.get("refs") or [] if isinstance(r, str) and r in ids]
+            if not refs:
+                continue
+            x = {**x, "refs": refs}
+        out.append(x)
+    n = len(ev["known_sv"]) - len(out)
+    ev["known_sv"] = out
+    return n
+
+
+RECALIBRATION_PATH = common.DATA_DIR / "recalibration.json"
+
+
+def history_with_originals(history: list, path: Path = None) -> list:
+    """The index history for the report, each entry a copy; where
+    recalibration.json changed a value that the history still holds, the
+    entry gets original_value, the value the report of that day had, so
+    the app can mark it "omräknat"."""
+    path = path or RECALIBRATION_PATH
+    recal = {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            recal = {r["date"]: r for r in json.load(f) if isinstance(r, dict) and r.get("date")}
+    except (OSError, ValueError, TypeError):
+        pass
+    out = []
+    for h in history:
+        h = dict(h)
+        r = recal.get(h.get("date"))
+        orig = r.get("original_value") if r else None
+        if (r and isinstance(orig, (int, float)) and h.get("value") == r.get("value")
+                and orig != h.get("value")):
+            h["original_value"] = orig
+            h["recalibrated"] = True
+        out.append(h)
+    return out
 
 
 def load_yesterday_report():
@@ -575,6 +849,7 @@ def run_daily_report():
     state = load_state()
     today = date.today()
     print(f"[{datetime.now().isoformat(timespec='minutes')}] Daily report starting for {today.isoformat()}")
+    calls_mark = common.calls_mark()
 
     # Pick up any "accept"/"deny" reply to yesterday's email before we
     # decide whether to generate a fresh proposal below.
@@ -590,6 +865,7 @@ def run_daily_report():
 
     yesterday_report = load_yesterday_report()
     self_check = run_self_check(state, yesterday_report, pool)
+    publish_corrections(self_check.get("results", []), today)
 
     hourly_entries = load_hourly_log(today) + load_hourly_log(today - timedelta(days=1))
     # Yesterday's events the self-check found contradicted, so today's
@@ -632,9 +908,12 @@ def run_daily_report():
         "forecast_drivers": sweep.get("forecast_drivers", []),
         "self_check_summary": self_check["summary"],
         "self_check_results": self_check.get("results", []),
+        # Counted in code from the results (#10).
+        "self_check_counts": self_check.get("log_entry"),
         "top_development": sweep.get("top_development", ""),
         "events": sweep.get("events", []),
-        "threat_index_history": state["threat_index_history"],
+        "also_reported": sweep.get("also_reported", []),
+        "threat_index_history": history_with_originals(state["threat_index_history"]),
         "key_signals": sweep.get("key_signals", []),
         "narrative_stability": narrative_rows,
         "tiers": [{"name": t["name"], "range": f"{t['range'][0]}-{t['range'][1]}", "examples": ", ".join(t["examples"])} for t in state["methodology"]["tiers"]],
@@ -645,6 +924,7 @@ def run_daily_report():
             {**load_outcomes(), **{r["event_id"]: r["outcome"] for r in self_check.get("results", [])}}),
         "proposal": proposal,
         "prior_proposal_still_pending": was_already_pending,
+        "generated_by": dict(common.generated_by(calls_mark), sweep=sweep.get("sweep_generated_by")),
     }
 
     add_favicons(report_data)
@@ -659,6 +939,7 @@ def run_daily_report():
     executive = build_executive_safe(report_data)
     if executive:
         report_data["executive_sv"] = executive
+        report_data["generated_by"] = dict(common.generated_by(calls_mark), sweep=sweep.get("sweep_generated_by"))
         with open(OUTPUT_DIR / f"{today.isoformat()}_report_data.json", "w", encoding="utf-8") as f:
             json.dump(report_data, f, indent=2, ensure_ascii=False)
     send_daily_email(report_data, str(pptx_path), executive)

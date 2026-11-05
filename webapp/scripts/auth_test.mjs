@@ -154,5 +154,51 @@ expect('unknown service token', r.status, 401);
 r = await me(machineTok, { envOver: { MACHINE_CLIENT_ID: '' } });
 expect('machine id unset', r.status, 401);
 
+// Version 3.17: guests, only with PUBLIC_READ on and only on the public reads.
+async function call(path, { method = 'GET', token = null, envOver = {} } = {}) {
+  const headers = token ? { 'Cf-Access-Jwt-Assertion': token } : {};
+  const res = await worker.fetch(new Request(`https://hotmonitor.example.workers.dev${path}`, { method, headers }), { ...env, ...envOver });
+  const type = res.headers.get('content-type') || '';
+  return { status: res.status, body: type.includes('json') ? await res.json() : null, res };
+}
+const pub = { PUBLIC_READ: '1' };
+r = await call('/api/reports');
+expect('PUBLIC_READ off: no guests', r.status, 401);
+r = await call('/api/me', { envOver: pub });
+expect('guest /api/me', r.status, 200); expect('guest role', r.body.role, 'guest'); expect('guest has no email', r.body.email, null);
+r = await call('/api/reports', { envOver: pub });
+expect('guest reads the report list', r.status, 200);
+expect('guest answer may be cached', r.res.headers.get('cache-control'), 'public, max-age=60');
+r = await call('/api/assessments', { envOver: pub });
+expect('guest sees no assessments', JSON.stringify(r.body), '[]');
+r = await call('/api/trends?side=ru', { envOver: pub });
+expect('guest reads trends', r.status, 200);
+r = await call('/api/push/key', { envOver: { ...pub, VAPID_PUBLIC_KEY: 'BPublicKey' } });
+expect('guest reads the push key (Version 3.23)', r.body && r.body.publicKey, 'BPublicKey');
+for (const p of ['/api/reads', '/api/admin/users', '/api/export/assessments', '/api/ingest/updates']) {
+  r = await call(p, { envOver: pub });
+  expect(`guest refused ${p}`, r.status, 401);
+}
+r = await call('/api/assessments', { method: 'POST', envOver: pub });
+expect('guest cannot assess', r.status, 401);
+r = await call('/api/me', { envOver: pub, token: await sign({ ...base, email: 'stranger@example.com' }) });
+expect('verified, unlisted: a guest on public reads', r.body.role, 'guest');
+r = await call('/api/reads', { envOver: pub, token: await sign({ ...base, email: 'stranger@example.com' }) });
+expect('verified, unlisted: still refused elsewhere', r.status, 403);
+r = await call('/api/me', { envOver: pub, token: await sign({ ...base, email: 'reader@example.com' }) });
+expect('logged-in user is still a user', r.body.role, 'reader');
+r = await call('/api/me', { envOver: { ...pub, ACCESS_AUD: `other-aud, ${AUD}` }, token: await sign({ ...base, email: 'reader@example.com' }) });
+expect('ACCESS_AUD lists several apps', r.body.role, 'reader');
+r = await call('/login');
+expect('/login back to the app', r.status, 302);
+
+const scrubbed = _test.pseudonymize({
+  events: [{ operator: { trace: [{ operator: 'a@x.org' }, { operator: 'B@x.org' }, { operator: 'a@x.org' }] } }],
+  operator_track_record: { 'a@x.org': { n: 3 } }, author: 'a@x.org', note: 'skrev a@x.org i går',
+});
+expect('emails become Bedömare N', JSON.stringify(scrubbed),
+  JSON.stringify({ events: [{ operator: { trace: [{ operator: 'Bedömare 1' }, { operator: 'Bedömare 2' }, { operator: 'Bedömare 1' }] } }],
+    operator_track_record: { 'Bedömare 1': { n: 3 } }, note: 'skrev Bedömare 1 i går' }));
+
 console.log(`auth_test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

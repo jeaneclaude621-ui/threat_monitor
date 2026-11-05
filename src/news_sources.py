@@ -30,6 +30,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import blocklist
 import common
 import feed_prefilter
 
@@ -151,16 +152,28 @@ def gdelt(query: str, hours: int = 24, limit: int = 40) -> list:
     return out
 
 
+# Never a source for the analysis: Telegram, Russian state media and the
+# pro-Kremlin network (src/blocklist.py). The Worker refuses them in the
+# Sources tab (Version 3.16); this and Pool.add are the second lock.
+def blocked_source(url: str, outlet: str = None) -> bool:
+    return blocklist.blocked(url, outlet)
+
+
 def app_sources() -> list:
-    """Sources added in the web app: [{id, kind: rss|article, url, title, added_at}]."""
+    """Sources added in the web app: [{id, kind: rss|article, url, title, added_at}],
+    without Telegram and Russian state media."""
     import app_sync
     if not app_sync._config():
         return []
     try:
-        return app_sync._request("GET", "/api/export/sources", retries=False) or []
+        rows = app_sync._request("GET", "/api/export/sources", retries=False) or []
     except Exception as e:
         print(f"  ! Could not fetch the app's sources ({e})")
         return []
+    kept = [s for s in rows if not blocked_source(s.get("url", ""))]
+    if len(kept) < len(rows):
+        print(f"  ! {len(rows) - len(kept)} app source(s) left out: Telegram or Russian state media")
+    return kept
 
 
 def all_feeds(app: list) -> list:
@@ -200,15 +213,40 @@ def fetch_article(source: dict) -> dict:
     return item
 
 
+# A date in the link: 14.03.2026, /2026/03/14/, 2026-03-14 (as src/authorities.py).
+URL_DATES = [re.compile(r"(?<!\d)(?P<d>\d{2})\.(?P<m>\d{2})\.(?P<y>20\d{2})(?!\d)"),
+             re.compile(r"/(?P<y>20\d{2})/(?P<m>\d{1,2})/(?P<d>\d{1,2})(?:/|$)"),
+             re.compile(r"(?<!\d)(?P<y>20\d{2})-(?P<m>\d{2})-(?P<d>\d{2})(?!\d)")]
+
+
+def url_date(url: str):
+    for rx in URL_DATES:
+        m = rx.search(url or "")
+        if m:
+            try:
+                return datetime(int(m["y"]), int(m["m"]), int(m["d"]))
+            except ValueError:
+                pass
+    return None
+
+
 # --------------------------------------------------------------------------
 # Article pool -> numbered prompt block
 # --------------------------------------------------------------------------
 class Pool:
     def __init__(self):
         self.items, self._seen = [], set()
+        self.blocked = 0
 
     def add(self, items):
+        """Adds articles once each (same link or same title), never one
+        from Telegram, Russian state media or the pro-Kremlin network -
+        by link or by publisher name, as Google News links all go to
+        news.google.com (src/blocklist.py)."""
         for it in items:
+            if blocklist.blocked_item(it):
+                self.blocked += 1
+                continue
             key = (it.get("link") or "").split("?oc=")[0] or None
             tkey = re.sub(r"\W+", " ", (it.get("title") or "").lower()).strip()
             if not tkey or key in self._seen or tkey in self._seen:
@@ -218,8 +256,18 @@ class Pool:
         return self
 
     def since(self, when: datetime):
-        """Drop dated articles older than `when` (undated ones stay)."""
-        self.items = [a for a in self.items if a.get("published") is None or a["published"] > when]
+        """Drop articles older than `when`, by their date or, when the link
+        carries one (/2026/03/14/), by that too: an old story with a fresh
+        feed date is still old. Undated articles stay only when added in
+        the app - anything else undated may be an old story."""
+        def fresh(a):
+            day = url_date(a.get("link"))
+            if day and day.date() < when.date():
+                return False
+            if a.get("published") is None:
+                return a.get("via") == "app"
+            return a["published"] > when
+        self.items = [a for a in self.items if fresh(a)]
         return self
 
     def prompt_block(self, limit: int, record: bool = True) -> str:
@@ -231,7 +279,11 @@ class Pool:
         results, lines = [], []
         for i, a in enumerate(items, start=1):
             ref = f"A{i}"
-            results.append({"ref": ref, "url": a.get("link"), "title": a.get("title"), "outlet": a.get("source")})
+            # The article's real date and route, so enrich_events can overwrite
+            # the date the model gives and count independent origins.
+            results.append({"ref": ref, "url": a.get("link"), "title": a.get("title"), "outlet": a.get("source"),
+                            "published": a["published"].strftime("%Y-%m-%d") if a.get("published") else None,
+                            "via": a.get("via") or "feed", "summary": (a.get("summary") or "")[:SUMMARY_CHARS]})
             when = a["published"].strftime("%Y-%m-%d %H:%M") if a.get("published") else "undated"
             summary = (a.get("summary") or "")[:ARTICLE_TEXT_CHARS if a.get("via") == "app" else SUMMARY_CHARS]
             lines.append(f"[{ref}] {a.get('source') or '?'} · {when} · {a.get('title')}"

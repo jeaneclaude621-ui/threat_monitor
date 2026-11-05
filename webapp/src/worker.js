@@ -26,6 +26,9 @@
  * Version 3.11: Russia's courses of action, updated daily after the report.
  * Version 3.12: the forces map - Russia's bases, units and their status, nightly.
  * Version 3.13: Russia's air attacks on Ukraine, per night, and a weekly survey of the bases.
+ * Version 3.16: the Sources tab refuses Telegram and Russian state media.
+ * Version 3.17: with PUBLIC_READ on, anyone reads the public views as a guest,
+ *   without e-mail addresses; everything else still needs a login.
  */
 
 import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
@@ -35,6 +38,9 @@ const JWKS_TTL_MS = 60 * 60 * 1000;
 const JWKS_MIN_REFETCH_MS = 60 * 1000;
 
 const RATE_LIMIT_PER_MIN = 120;
+// Guests share addresses (an office, a school, a mobile carrier's NAT), so an
+// address gets more than one person; their reads are cached a minute.
+const RATE_LIMIT_PER_IP_MIN = 600;
 const LAST_SEEN_EVERY_MS = 5 * 60 * 1000;
 const NEW_VISIT_GAP_MS = 30 * 60 * 1000;   // a gap this long starts a new visit
 const SECURITY_LOG_DAYS = 90;
@@ -99,7 +105,17 @@ class HttpError extends Error {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // Version 3.17: /login is behind Access; once Access has let the person
+    // through (and set its cookie), back to the app.
+    if (url.pathname === '/login') {
+      return new Response(null, { status: 302, headers: { Location: '/', 'Cache-Control': 'no-store' } });
+    }
     if (!url.pathname.startsWith('/api/')) {
+      // Version 3.22: share links, the feed and the sitemap (run_worker_first).
+      if (request.method === 'GET' || request.method === 'HEAD') {
+        const page = await publicPage(request, env, ctx, url);
+        if (page) return page;
+      }
       return env.ASSETS.fetch(request);
     }
     const req = { request, env, ctx, url, who: null, email: null };
@@ -117,16 +133,25 @@ export default {
   },
 
   // Cron (wrangler.jsonc triggers): DISPATCH_CRON starts the scheduled
-  // runs; the other sends pushes held over the night, then the
-  // missing-report alarm.
+  // runs; PUSH_QUEUE_CRON sends the rest of large pushes; the other sends
+  // pushes held over the night, then the missing-report alarm.
   async scheduled(event, env, ctx) {
     const now = event.scheduledTime || Date.now();
     if (event.cron === DISPATCH_CRON) {
       ctx.waitUntil(startDueRuns(env, now));
       return;
     }
-    ctx.waitUntil(flushDeferredPushes(env, now)
-      .then(() => checkMissingReport(env, now))
+    // Version 3.22: the rest of a large push, PUSH_BATCH at a time.
+    if (event.cron === PUSH_QUEUE_CRON) {
+      ctx.waitUntil(drainPushQueue(env).catch((err) => {
+        console.error('push queue failed', err && err.stack ? err.stack : err);
+      }));
+      return;
+    }
+    const budget = newBudget();
+    ctx.waitUntil(flushDeferredPushes(env, now, budget)
+      .then(() => checkMissingReport(env, now, budget))
+      .then(() => drainPushQueue(env, budget))
       .catch((err) => {
         console.error('scheduled check failed', err && err.stack ? err.stack : err);
       }));
@@ -151,7 +176,19 @@ async function route(req) {
   if (id.kind === 'user') req.email = id.email;
   // Before the 401, so an unauthenticated flood is limited per IP too.
   rateLimit(req, id);
+  // Version 3.23: one small, long-cached package for guests (K3, step one).
+  if (path === '/api/public/latest' && env.PUBLIC_READ === '1') {
+    if (method !== 'GET' && method !== 'HEAD') throw new HttpError(405, 'method not allowed');
+    return publicLatest(req);
+  }
+  // Version 3.17: with PUBLIC_READ on, anyone may read the public views as a
+  // guest, without logging in. Everything else still needs a login.
+  const guestOk = env.PUBLIC_READ === '1' && (method === 'GET' || method === 'HEAD') && isPublicPath(path);
+  // Version 3.23: guests may also subscribe to push (the subscription is the key).
+  const guestPost = env.PUBLIC_READ === '1' && method === 'POST' && GUEST_POST_PATHS.has(path);
   if (id.kind === 'invalid') {
+    if (guestOk) return guestRead(req, path);
+    if (guestPost) return guestWrite(req, path);
     throw new HttpError(401, 'not authenticated', throttledReason(req, R.invalidJwt));
   }
 
@@ -163,11 +200,36 @@ async function route(req) {
     }
   }
 
-  const who = id.kind === 'user' ? await userFor(id.email, req) : id;
+  // Version 3.22: a verified address without an account may ask for one.
+  if (path === '/api/access-request') {
+    allow(method, 'POST');
+    if (id.kind !== 'user') throw new HttpError(403, 'log in with your e-mail address to ask for access');
+    return requestAccess(env, id.email).catch(notMigrated('0014_access_requests'));
+  }
+
+  let who;
+  try {
+    who = id.kind === 'user' ? await userFor(id.email, req) : id;
+  } catch (e) {
+    // A verified address without an account reads like everyone else,
+    // and /api/me tells the app so (U7), never from the shared cache.
+    if (guestOk && e instanceof HttpError && e.status === 403) {
+      return path === '/api/me' ? meWithoutAccount(env, id.email) : guestRead(req, path);
+    }
+    if (guestPost && e instanceof HttpError && e.status === 403) return guestWrite(req, path);
+    throw e;
+  }
   req.who = who;
+  return dispatch(req, path, method, who);
+}
+
+async function dispatch(req, path, method, who) {
+  const { request, env, url } = req;
+  const guest = who.kind === 'guest';
 
   if (path === '/api/me') {
     allow(method, 'GET');
+    if (guest) return json({ email: null, role: 'guest', is_owner: false, alarm: null, refresh: null });
     requireUser(who);
     return json({
       email: who.email, role: who.role, is_owner: who.is_owner,
@@ -183,26 +245,35 @@ async function route(req) {
 
   if (path === '/api/push/key') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);   // Version 3.23: guests may subscribe too
     if (!env.VAPID_PUBLIC_KEY) throw new HttpError(503, 'push is not configured');
     return json({ publicKey: env.VAPID_PUBLIC_KEY });
   }
 
   if (path === '/api/push/subscribe') {
     allow(method, 'POST');
+    if (guest) return subscribePush(request, env, null).catch(notMigrated('0015_guest_push'));
     requireUser(who);
     return subscribePush(request, env, who);
   }
 
   if (path === '/api/push/unsubscribe') {
     allow(method, 'POST');
+    if (guest) return unsubscribePush(request, env, null).catch(notMigrated('0015_guest_push'));
     requireUser(who);
     return unsubscribePush(request, env, who);
   }
 
+  if (path === '/api/push/prefs') {
+    allow(method, 'POST');
+    if (guest) return pushFollow(request, env, null).catch(notMigrated('0015_guest_push'));
+    requireUser(who);
+    return pushFollow(request, env, who).catch(notMigrated('0015_guest_push'));
+  }
+
   if (path === '/api/reports') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const { results } = await env.DB.prepare(
       'SELECT date, threat_index, threat_index_30d, top_sv FROM reports ORDER BY date DESC'
     ).all();
@@ -212,7 +283,7 @@ async function route(req) {
   let m = path.match(/^\/api\/reports\/([^/]+)$/);
   if (m) {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const date = m[1];
     if (!DATE_RE.test(date)) throw new HttpError(400, 'bad date');
     const row = await env.DB.prepare('SELECT data FROM reports WHERE date = ?').bind(date).first();
@@ -222,6 +293,8 @@ async function route(req) {
 
   if (path === '/api/assessments') {
     if (method === 'GET') {
+      // Who judged what stays among the logged-in.
+      if (guest) return json([]);
       requireUser(who);
       const { results } = await env.DB.prepare(
         'SELECT * FROM assessments ORDER BY ts, rowid'
@@ -236,51 +309,52 @@ async function route(req) {
 
   if (path === '/api/notices') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const { results } = await env.DB.prepare(
       'SELECT id, ts, author, title, body, url, expires_at FROM notices WHERE active = 1 AND expires_at > ? ORDER BY ts DESC'
     ).bind(new Date().toISOString()).all();
+    if (guest) for (const r of results) delete r.author;
     return json(results);
   }
 
   if (path === '/api/updates') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     return listUpdates(env, url);
   }
 
   if (path === '/api/courses') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const row = await env.DB.prepare('SELECT data FROM course_assessments ORDER BY date DESC LIMIT 1').first();
     return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
   }
 
   if (path === '/api/strikes') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const row = await env.DB.prepare('SELECT data FROM strike_maps ORDER BY date DESC LIMIT 1').first();
     return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
   }
 
   if (path === '/api/forces') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const row = await env.DB.prepare('SELECT data FROM force_maps ORDER BY date DESC LIMIT 1').first();
     return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
   }
 
   if (path === '/api/authorities') {
     allow(method, 'GET');
-    requireUser(who);
+    requireReader(who);
     const row = await env.DB.prepare('SELECT data FROM authority_briefs ORDER BY generated_at DESC LIMIT 1').first();
     return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
   }
 
   if (path === '/api/trends') {
     allow(method, 'GET');
-    requireUser(who);
-    return listTrends(env, url);
+    requireReader(who);
+    return listTrends(env, url, guest);
   }
 
   if (path === '/api/reads') {
@@ -365,7 +439,8 @@ async function route(req) {
     const { results } = await env.DB.prepare(
       'SELECT id, kind, url, title, added_at FROM sources WHERE active = 1 ORDER BY added_at'
     ).all();
-    return json(results);
+    // A source added before Version 3.16 never reaches the analysis either.
+    return json(results.filter((r) => !blockedSource(r.url)));
   }
 
   if (path === '/api/export/all') {
@@ -413,6 +488,17 @@ async function routeAdmin(req, path, method) {
     if (method === 'PATCH') return patchUser(request, env, who, target);
     allow(method, 'DELETE');
     return changeUser(env, who, target, { active: false });
+  }
+
+  if (path === '/api/admin/access-requests') {
+    allow(method, 'GET');
+    return listAccessRequests(env, url).catch(notMigrated('0014_access_requests'));
+  }
+
+  const ar = path.match(/^\/api\/admin\/access-requests\/([^/]+)$/);
+  if (ar) {
+    allow(method, 'POST');
+    return decideAccessRequest(request, env, who, ar[1]).catch(notMigrated('0014_access_requests'));
   }
 
   if (path === '/api/admin/security') {
@@ -464,8 +550,204 @@ async function routeAdmin(req, path, method) {
   throw new HttpError(404, 'not found');
 }
 
+// A new table or column whose migration has not run yet (D1's messages):
+// answer a clear 503 rather than a bare 500.
+const SCHEMA_MISSING_RE = /no such (table|column)|has no column named|NOT NULL constraint failed: push_subscriptions\.email/i;
+const schemaMissing = (err) => !!err && SCHEMA_MISSING_RE.test(String(err.message || err));
+function notMigrated(migration) {
+  return (err) => {
+    if (!schemaMissing(err)) throw err;
+    console.error(`migration ${migration} has not run:`, err.message);
+    throw new HttpError(503, `Funktionen är inte i drift än: databasen saknar migrationen ${migration}.`);
+  };
+}
+
 function allow(method, expected) {
   if (method !== expected) throw new HttpError(405, 'method not allowed');
+}
+
+// ---------------------------------------------------------------------------
+// Guests (Version 3.17)
+// ---------------------------------------------------------------------------
+// What a guest may read with PUBLIC_READ on. Assessments answer [] and
+// /api/me answers role 'guest'; reads, push, devices, admin, ingest and
+// export always need a login or the machine.
+const PUBLIC_PATHS = new Set(['/api/me', '/api/push/key', '/api/reports', '/api/assessments', '/api/notices', '/api/updates',
+  '/api/courses', '/api/strikes', '/api/forces', '/api/authorities', '/api/trends']);
+const GUEST = Object.freeze({ kind: 'guest' });
+const GUEST_CACHE_MS = 60000;
+const GUEST_CACHE_MAX = 200;
+const guestCache = new Map();   // per isolate: normalized path+query -> {at, body}, oldest first
+const EMAIL_IN_TEXT = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+
+function isPublicPath(path) {
+  return PUBLIC_PATHS.has(path) || /^\/api\/reports\/[^/]+$/.test(path);
+}
+
+/**
+ * Replaces every e-mail address, as a value or as a key, with "Bedömare N"
+ * (the same N for the same address within one answer), and drops the
+ * fields that only name who added something.
+ */
+function pseudonymize(data) {
+  const names = new Map();
+  const alias = (email) => {
+    const k = email.toLowerCase();
+    if (!names.has(k)) names.set(k, `Bedömare ${names.size + 1}`);
+    return names.get(k);
+  };
+  const walk = (v) => {
+    if (typeof v === 'string') return v.includes('@') ? v.replace(EMAIL_IN_TEXT, alias) : v;
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === 'object') {
+      const out = {};
+      for (const [k, x] of Object.entries(v)) {
+        if (k === 'author' || k === 'added_by' || k === 'created_by' || k === 'actor') continue;
+        out[k.includes('@') ? k.replace(EMAIL_IN_TEXT, alias) : k] = walk(x);
+      }
+      return out;
+    }
+    return v;
+  };
+  return walk(data);
+}
+
+// Version 3.22: the cache key keeps only the parameters a public read uses,
+// so /api/reports?x=1, ?x=2 ... cannot each miss and read D1.
+const GUEST_PARAMS = ['side', 'since', 'p'];
+function guestKey(path, search) {
+  const q = new URLSearchParams(search);
+  const kept = new URLSearchParams();
+  for (const k of GUEST_PARAMS) {
+    const v = q.get(k);
+    if (v !== null && v !== '') kept.set(k, v.slice(0, 64));
+  }
+  const s = kept.toString();
+  return s ? `${path}?${s}` : path;
+}
+
+/** Least recently used first out; the whole map is never emptied at once. */
+function guestCachePut(key, entry) {
+  guestCache.delete(key);
+  while (guestCache.size >= GUEST_CACHE_MAX) guestCache.delete(guestCache.keys().next().value);
+  guestCache.set(key, entry);
+}
+
+// The Cache API (caches.default) is shared by every isolate in a data
+// centre. It works on a custom domain; on workers.dev it is a no-op.
+function edgeCache() {
+  try {
+    return typeof caches !== 'undefined' && caches.default ? caches.default : null;
+  } catch {
+    return null;
+  }
+}
+const edgeCacheUrl = (origin, key) => `${origin}/__guest-cache${key}`;
+
+/** A guest's read: the same answer as a user's, without names, cached a minute. */
+async function guestRead(req, path) {
+  const key = guestKey(path, req.url.search);
+  const now = Date.now();
+  const hit = guestCache.get(key);
+  let body;
+  if (hit && now - hit.at < GUEST_CACHE_MS) {
+    body = hit.body;
+    guestCache.delete(key);
+    guestCache.set(key, hit);   // most recently used last
+  } else {
+    const edge = edgeCache();
+    const edgeReq = edge ? new Request(edgeCacheUrl(req.url.origin, key)) : null;
+    let cached = null;
+    if (edge) {
+      try { cached = await edge.match(edgeReq); } catch { cached = null; }
+    }
+    if (cached) {
+      body = await cached.text();
+    } else {
+      const res = await dispatch(req, path, 'GET', GUEST);
+      if (!res.ok) return res;
+      const text = await res.text();
+      body = text === 'null' ? text : JSON.stringify(pseudonymize(JSON.parse(text)));
+      if (edge) {
+        const put = edge.put(edgeReq, new Response(body, {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': `public, max-age=${GUEST_CACHE_MS / 1000}` },
+        })).catch(() => {});
+        if (req.ctx && req.ctx.waitUntil) req.ctx.waitUntil(put); else await put;
+      }
+    }
+    guestCachePut(key, { at: now, body });
+  }
+  const headers = apiHeaders();
+  headers['Cache-Control'] = 'public, max-age=60';
+  headers.Vary = 'Cookie';
+  return new Response(req.request.method === 'HEAD' ? null : body, { status: 200, headers });
+}
+
+// Version 3.23: what a guest may POST, from the app's own pages only and
+// at most GUEST_WRITES_PER_HOUR an hour per IP (per isolate).
+const GUEST_POST_PATHS = new Set(['/api/push/subscribe', '/api/push/unsubscribe', '/api/push/prefs']);
+const GUEST_WRITES_PER_HOUR = 20;
+const guestWrites = new Map();   // ip -> {start, n}
+
+async function guestWrite(req, path) {
+  const { request, url } = req;
+  if (request.headers.get('Origin') !== url.origin) throw new HttpError(403, 'bad origin', R.badOrigin);
+  const ip = clientIp(request);
+  const now = Date.now();
+  let w = guestWrites.get(ip);
+  if (!w || now - w.start >= 3600000) {
+    w = { start: now, n: 0 };
+    guestWrites.set(ip, w);
+    if (guestWrites.size > 10000) {
+      for (const [k, v] of guestWrites) if (now - v.start >= 3600000) guestWrites.delete(k);
+    }
+  }
+  w.n += 1;
+  if (w.n > GUEST_WRITES_PER_HOUR) throw new HttpError(429, 'too many requests', throttledReason(req, R.rateLimited));
+  return dispatch(req, path, 'POST', GUEST);
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/public/latest (Version 3.23)
+// ---------------------------------------------------------------------------
+// The report index and the newest report, without e-mail addresses, in one
+// answer cached five minutes (per isolate, in caches.default and in the
+// browser). The same for everyone, so a guest's first view needs one call.
+const PUBLIC_LATEST_S = 300;
+let publicLatestMemo = null;   // {at, body}
+
+async function publicLatest(req) {
+  const { request, env, url, ctx } = req;
+  const now = Date.now();
+  let body = publicLatestMemo && now - publicLatestMemo.at < PUBLIC_LATEST_S * 1000 ? publicLatestMemo.body : null;
+  const edge = body ? null : edgeCache();
+  const key = new Request(`${url.origin}/__public-cache/api/public/latest`);
+  if (edge) {
+    try { const hit = await edge.match(key); if (hit) body = await hit.text(); } catch { /* build it */ }
+  }
+  if (!body) {
+    const { results } = await env.DB.prepare(
+      'SELECT date, threat_index, threat_index_30d, top_sv FROM reports ORDER BY date DESC'
+    ).all();
+    let latest = null;
+    if (results.length) {
+      const row = await env.DB.prepare('SELECT data FROM reports WHERE date = ?').bind(results[0].date).first();
+      if (row) {
+        try { latest = JSON.parse(row.data); } catch { latest = null; }
+      }
+    }
+    body = JSON.stringify(pseudonymize({ generated_at: new Date(now).toISOString(), index: results, latest }));
+    if (edge) {
+      const put = edge.put(key, new Response(body, {
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': `public, max-age=${PUBLIC_LATEST_S}` },
+      })).catch(() => {});
+      if (ctx && ctx.waitUntil) ctx.waitUntil(put); else await put;
+    }
+  }
+  publicLatestMemo = { at: now, body };
+  const headers = apiHeaders();
+  headers['Cache-Control'] = `public, max-age=${PUBLIC_LATEST_S}`;
+  return new Response(request.method === 'HEAD' ? null : body, { status: 200, headers });
 }
 
 function requireUser(who) {
@@ -473,9 +755,360 @@ function requireUser(who) {
   if (who.kind !== 'user') throw new HttpError(403, 'forbidden');
 }
 
+/** The public read paths: a person, or a guest when PUBLIC_READ is on. */
+function requireReader(who) {
+  if (who && who.kind === 'guest') return;
+  requireUser(who);
+}
+
 function requireMachine(who) {
   if (!who) throw new HttpError(401, 'not authenticated');
   if (who.kind !== 'machine') throw new HttpError(403, 'forbidden');
+}
+
+// ---------------------------------------------------------------------------
+// Public pages (Version 3.22): share links with Open Graph tags
+// ---------------------------------------------------------------------------
+// /h/<date>/<event id> and /d/<date> serve index.html with the event's or
+// the day's title and first sentence in <title> and the Open Graph tags, so
+// a link shared in a chat or on social media shows what it is about. The
+// app turns the path into its own hash route. Rendered pages are cached ten
+// minutes in caches.default; a crawler's preview is one cheap D1 read at most.
+const SITE_NAME = 'Hotmonitor';
+const SITE_TAGLINE = 'AI-sammanställning av ryska hybridhot ur öppna källor';
+const AI_LABEL = 'AI-sammanfattning';
+const PAGE_CACHE_S = 600;
+const HOME_CACHE_S = 60;   // the app's own page: a deploy shows within a minute
+const FEED_CACHE_S = 900;
+const FEED_DAYS = 14;
+const FEED_MIN_SCORE = 8;
+const SITEMAP_DAYS = 90;
+const EVENT_ID_RE = /^[\w.:-]{1,64}$/;
+const REPORT_CACHE_MAX = 30;
+const reportCache = new Map();   // per isolate: date -> {at, data|null}, oldest first
+
+/** The day's report, parsed, cached ten minutes per isolate; null if none. */
+async function reportData(env, date) {
+  const now = Date.now();
+  const hit = reportCache.get(date);
+  if (hit && now - hit.at < PAGE_CACHE_S * 1000) return hit.data;
+  const row = await env.DB.prepare('SELECT data FROM reports WHERE date = ?').bind(date).first();
+  let data = null;
+  if (row) {
+    try { data = pseudonymize(JSON.parse(row.data)); } catch { data = null; }
+  }
+  reportCache.delete(date);
+  while (reportCache.size >= REPORT_CACHE_MAX) reportCache.delete(reportCache.keys().next().value);
+  reportCache.set(date, { at: now, data });
+  return data;
+}
+
+const clean = (v) => String(v ?? '').replace(EMAIL_IN_TEXT, 'Bedömare').replace(/\s+/g, ' ').trim();
+
+/** The first sentence, at most ~200 characters. */
+function firstSentence(text) {
+  const t = clean(text);
+  if (!t) return '';
+  const m = t.match(/^.+?[.!?](?=\s|$)/);
+  let out = m ? m[0] : t;
+  if (out.length > 200) out = `${out.slice(0, 197).replace(/\s+\S*$/, '')}…`;
+  return out;
+}
+
+const svIndex = (v) => (typeof v === 'number' && Number.isFinite(v) ? v.toFixed(1).replace('.', ',') : null);
+const svDate = (date) => new Date(`${date}T12:00:00Z`).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+/** The event that matters most in a report: highest score first. */
+function topEvent(data) {
+  const events = Array.isArray(data && data.events) ? data.events.filter((e) => e && typeof e === 'object') : [];
+  return events.reduce((best, e) => (typeof e.score === 'number' && (!best || e.score > best.score) ? e : best), null);
+}
+
+function safeDecode(s) {
+  try { return decodeURIComponent(s); } catch { return ''; }
+}
+
+function realDate(date) {
+  if (!DATE_RE.test(date)) return false;
+  const d = new Date(`${date}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === date;
+}
+
+/** Title, description and canonical path for a share path, or null (404). */
+async function shareMeta(env, path) {
+  let m = path.match(/^\/h\/([^/]+)\/([^/]+)$/);
+  if (m) {
+    const date = safeDecode(m[1]);
+    const id = safeDecode(m[2]);
+    if (!realDate(date) || !EVENT_ID_RE.test(id)) return null;
+    const data = await reportData(env, date);
+    const events = Array.isArray(data && data.events) ? data.events : [];
+    const e = events.find((x) => x && x.id === id);
+    if (!e) return null;
+    const title = clean(e.title_sv || e.title).slice(0, 160) || `Händelse ${svDate(date)}`;
+    const first = firstSentence(e.summary_sv) || firstSentence(e.title_sv || e.title);
+    return {
+      title, description: `${first} · ${AI_LABEL} · ${SITE_NAME}`, path: `/h/${date}/${encodeURIComponent(id)}`, date,
+      article: eventArticle(date, e, title),
+    };
+  }
+  m = path.match(/^\/d\/([^/]+)$/);
+  if (m) {
+    const date = safeDecode(m[1]);
+    if (!realDate(date)) return null;
+    const data = await reportData(env, date);
+    if (!data) return null;
+    const idx = svIndex(data.threat_index);
+    const title = `Lägesbild ${svDate(date)}${idx ? ` · hotindex ${idx}` : ''}`;
+    const top = topEvent(data);
+    const first = firstSentence(data.executive_sv && data.executive_sv.top)
+      || firstSentence(data.top_development) || firstSentence(top && (top.summary_sv || top.title_sv));
+    return {
+      title, description: `${first || SITE_TAGLINE} · ${AI_LABEL} · ${SITE_NAME}`, path: `/d/${date}`, date,
+      article: dayArticle(date, data, title),
+    };
+  }
+  return undefined;   // not a share path
+}
+
+// Version 3.23: the text itself as plain HTML in <main id="view">, for
+// search engines and for readers without JavaScript. The app replaces it
+// when it renders. Every string is escaped; links stay inside the app.
+const AI_NOTE = 'AI-genererad sammanställning ur öppna källor. Kan innehålla fel. Hotmonitor är ett privat projekt och ingen myndighet.';
+const escHtml = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const scoreText = (v) => (typeof v === 'number' ? `${Number.isInteger(v) ? v : svIndex(v)}/10` : '');
+
+function eventArticle(date, e, title) {
+  const parts = [`<article id="ssr" lang="sv">`, `<p class="ssr-label">${escHtml(AI_LABEL)} · ${escHtml(svDate(date))}${e.score !== undefined ? ` · trovärdighet ${escHtml(scoreText(e.score))}` : ''}</p>`,
+    `<h1>${escHtml(title)}</h1>`];
+  const summary = clean(e.summary_sv);
+  if (summary) parts.push(`<p>${escHtml(summary)}</p>`);
+  const tags = [...(Array.isArray(e.topics) ? e.topics : []), ...(Array.isArray(e.countries) ? e.countries : [])].filter((t) => typeof t === 'string').slice(0, 20);
+  if (tags.length) parts.push(`<p>${escHtml(tags.join(' · '))}</p>`);
+  const outlets = [...new Set((Array.isArray(e.articles) ? e.articles : []).map((a) => a && clean(a.outlet)).filter(Boolean))].slice(0, 20);
+  if (outlets.length) parts.push(`<p>Källor: ${escHtml(outlets.join(', '))}</p>`);
+  parts.push(`<p><a href="/d/${escHtml(date)}">Hela lägesbilden ${escHtml(svDate(date))}</a></p>`, `<p><small>${escHtml(AI_NOTE)}</small></p>`, '</article>');
+  return parts.join('\n');
+}
+
+function dayArticle(date, data, title) {
+  const parts = [`<article id="ssr" lang="sv">`, `<p class="ssr-label">${escHtml(AI_LABEL)}</p>`, `<h1>${escHtml(title)}</h1>`];
+  const top = clean((data.executive_sv && data.executive_sv.top) || data.top_development);
+  if (top) parts.push(`<p>${escHtml(top)}</p>`);
+  const events = (Array.isArray(data.events) ? data.events : [])
+    .filter((e) => e && typeof e.id === 'string' && EVENT_ID_RE.test(e.id) && (e.title_sv || e.title))
+    .sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 50);
+  if (events.length) {
+    parts.push('<h2>Händelser</h2>', '<ul>');
+    for (const e of events) {
+      parts.push(`<li><a href="/h/${escHtml(date)}/${escHtml(encodeURIComponent(e.id))}">${escHtml(clean(e.title_sv || e.title).slice(0, 160))}</a>${e.score !== undefined ? ` (${escHtml(scoreText(e.score))})` : ''}</li>`);
+    }
+    parts.push('</ul>');
+  }
+  parts.push(`<p><small>${escHtml(AI_NOTE)}</small></p>`, '</article>');
+  return parts.join('\n');
+}
+
+const escAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const escXml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+
+/** The day's own image when the deploy has one (public/og/<date>.png), else the default. */
+// The morning run deploys public/og/<date>.png and og/latest.png. A missing
+// file answers index.html (single-page fallback), hence the type check.
+async function ogImage(env, origin, name) {
+  try {
+    const res = await env.ASSETS.fetch(new Request(`${origin}/og/${name}.png`, { method: 'HEAD' }));
+    if (res.ok && (res.headers.get('Content-Type') || '').startsWith('image/')) return `${origin}/og/${name}.png`;
+  } catch { /* the default below */ }
+  return `${origin}/og/default.png`;
+}
+
+async function indexHtml(env, origin) {
+  return env.ASSETS.fetch(new Request(`${origin}/`, { method: 'GET' }));
+}
+
+async function sharePage(request, env, url, meta) {
+  const page = await indexHtml(env, url.origin);
+  const headers = new Headers(page.headers);
+  headers.delete('Content-Length');
+  headers.delete('ETag');
+  if (!meta) {
+    headers.set('Cache-Control', 'no-store');
+    return new Response(request.method === 'HEAD' ? null : page.body, { status: 404, headers });
+  }
+  headers.set('Cache-Control', `public, max-age=${meta.maxAge || PAGE_CACHE_S}`);
+  const canonical = `${url.origin}${meta.path}`;
+  const image = await ogImage(env, url.origin, meta.image || meta.date);
+  const tags = [
+    ['property', 'og:type', meta.type || 'article'], ['property', 'og:site_name', SITE_NAME], ['property', 'og:locale', 'sv_SE'],
+    ['property', 'og:title', meta.title], ['property', 'og:description', meta.description],
+    ['property', 'og:url', canonical], ['property', 'og:image', image],
+    ['property', 'og:image:width', '1200'], ['property', 'og:image:height', '630'],
+    ['name', 'twitter:card', 'summary_large_image'], ['name', 'twitter:title', meta.title],
+    ['name', 'twitter:description', meta.description], ['name', 'twitter:image', image],
+    ['name', 'ai-generated', 'true'],
+  ].map(([k, n, v]) => `<meta ${k}="${n}" content="${escAttr(v)}">`).join('\n')
+    + `\n<link rel="canonical" href="${escAttr(canonical)}">\n`;
+  const out = new HTMLRewriter()
+    .on('title', { element(el) { el.setInnerContent(meta.title === SITE_NAME ? SITE_NAME : `${meta.title} · ${SITE_NAME}`); } })
+    .on('meta[name="description"]', { element(el) { el.setAttribute('content', meta.description); } })
+    .on('head', { element(el) { el.append(tags, { html: true }); } })
+    .on('main#view', { element(el) { if (meta.article) el.setInnerContent(meta.article, { html: true }); } })
+    .transform(new Response(page.body, { status: 200, headers }));
+  return request.method === 'HEAD' ? new Response(null, { status: 200, headers: out.headers }) : out;
+}
+
+/** Serves a public page from caches.default, or builds and stores it. */
+async function cachedPage(request, ctx, url, build) {
+  const edge = edgeCache();
+  const key = `${url.origin}${url.pathname}`;
+  if (edge) {
+    try {
+      const hit = await edge.match(new Request(key));
+      if (hit) return request.method === 'HEAD' ? new Response(null, { status: hit.status, headers: hit.headers }) : hit;
+    } catch { /* build it */ }
+  }
+  const res = await build();
+  if (edge && res.status === 200 && request.method === 'GET') {
+    const [a, b] = res.body ? res.body.tee() : [null, null];
+    const put = edge.put(new Request(key), new Response(b, { status: 200, headers: res.headers })).catch(() => {});
+    if (ctx && ctx.waitUntil) ctx.waitUntil(put); else await put;
+    return new Response(a, { status: 200, headers: res.headers });
+  }
+  return res;
+}
+
+/** The Stockholm date `days` days before today. */
+function daysAgo(days) {
+  const today = stockholmClock(Date.now()).date;
+  return new Date(Date.parse(`${today}T12:00:00Z`) - days * 86400000).toISOString().slice(0, 10);
+}
+
+/** Reports since a date with their events, parsed by D1 (json_each), not here. */
+async function reportsWithEvents(env, since) {
+  const { results } = await env.DB.prepare(
+    `SELECT r.date, r.threat_index, r.top_sv,
+            json_extract(r.data, '$.executive_sv.top') AS exec_top,
+            json_extract(e.value, '$.id') AS id, json_extract(e.value, '$.score') AS score,
+            json_extract(e.value, '$.title_sv') AS title_sv, json_extract(e.value, '$.title') AS title,
+            json_extract(e.value, '$.summary_sv') AS summary_sv
+     FROM reports r LEFT JOIN json_each(r.data, '$.events') e
+     WHERE r.date >= ? ORDER BY r.date DESC`
+  ).bind(since).all();
+  const days = new Map();
+  for (const row of results) {
+    if (!realDate(row.date)) continue;
+    if (!days.has(row.date)) {
+      days.set(row.date, { date: row.date, threat_index: row.threat_index, top: row.exec_top || row.top_sv, events: [] });
+    }
+    if (typeof row.id === 'string' && EVENT_ID_RE.test(row.id)) {
+      days.get(row.date).events.push({ id: row.id, score: row.score, title_sv: row.title_sv, title: row.title, summary_sv: row.summary_sv });
+    }
+  }
+  return [...days.values()];
+}
+
+const rfc822 = (date) => new Date(`${date}T05:00:00Z`).toUTCString();
+
+/** RSS 2.0: the last 14 days' reports and their events scored 8 or more. */
+async function feedXml(env, url) {
+  const o = url.origin;
+  const days = await reportsWithEvents(env, daysAgo(FEED_DAYS - 1));
+  const items = [];
+  const item = (title, link, description, date) => items.push(
+    `<item><title>${escXml(title)}</title><link>${escXml(link)}</link>`
+    + `<guid isPermaLink="true">${escXml(link)}</guid><pubDate>${rfc822(date)}</pubDate>`
+    + `<description>${escXml(description)}</description></item>`);
+  for (const d of days) {
+    const top = topEvent(d);
+    const idx = svIndex(d.threat_index);
+    const headline = clean(top && (top.title_sv || top.title)) || firstSentence(d.top);
+    item(`${idx ? `Hotindex ${idx}` : `Lägesbild ${svDate(d.date)}`}${headline ? ` · ${headline}` : ''}`,
+      `${o}/d/${d.date}`, `${AI_LABEL}: ${firstSentence(d.top) || headline || SITE_TAGLINE}`, d.date);
+    for (const e of d.events) {
+      if (typeof e.score !== 'number' || e.score < FEED_MIN_SCORE) continue;
+      const title = clean(e.title_sv || e.title).slice(0, 160);
+      if (!title) continue;
+      item(`${title} (${Number.isInteger(e.score) ? e.score : svIndex(e.score)}/10)`, `${o}/h/${d.date}/${encodeURIComponent(e.id)}`,
+        `${AI_LABEL}: ${clean(e.summary_sv).slice(0, 1000) || title}`, d.date);
+    }
+  }
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    + '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel>\n'
+    + `<title>${SITE_NAME}</title><link>${o}/</link>`
+    + `<description>${escXml(`${SITE_TAGLINE}. Texterna är AI-genererade och kan innehålla fel.`)}</description>`
+    + `<language>sv</language><ttl>60</ttl>`
+    + `<lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`
+    + `<atom:link href="${o}/feed.xml" rel="self" type="application/rss+xml"/>\n`
+    + items.join('\n') + '\n</channel></rss>\n';
+  return new Response(xml, { status: 200, headers: {
+    'Content-Type': 'application/rss+xml; charset=utf-8',
+    'Cache-Control': `public, max-age=${FEED_CACHE_S}`,
+    'X-Content-Type-Options': 'nosniff',
+  } });
+}
+
+/** Every /d/<date> and /h/<date>/<id> of the last 90 days. */
+async function sitemapXml(env, url) {
+  const o = url.origin;
+  const days = await reportsWithEvents(env, daysAgo(SITEMAP_DAYS - 1));
+  const urls = [`<url><loc>${o}/</loc><changefreq>daily</changefreq></url>`];
+  for (const d of days) {
+    urls.push(`<url><loc>${o}/d/${d.date}</loc><lastmod>${d.date}</lastmod></url>`);
+    for (const e of d.events) urls.push(`<url><loc>${escXml(`${o}/h/${d.date}/${encodeURIComponent(e.id)}`)}</loc><lastmod>${d.date}</lastmod></url>`);
+  }
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls.join('\n') + '\n</urlset>\n';
+  return new Response(xml, { status: 200, headers: {
+    'Content-Type': 'application/xml; charset=utf-8',
+    'Cache-Control': `public, max-age=${FEED_CACHE_S}`,
+    'X-Content-Type-Options': 'nosniff',
+  } });
+}
+
+/** Share links, /feed.xml and /sitemap.xml; null for anything else. */
+async function publicPage(request, env, ctx, url) {
+  const path = url.pathname.replace(/\/+$/, '');
+  const isShare = /^\/[hd]\//.test(path);
+  // Version 3.24: the start page shows the latest shareable image when shared.
+  if (url.pathname === '/' && env.PUBLIC_READ === '1') {
+    try {
+      return await cachedPage(request, ctx, url, () => sharePage(request, env, url, {
+        title: SITE_NAME, type: 'website', path: '/', image: 'latest', maxAge: HOME_CACHE_S,
+        description: `${SITE_TAGLINE}, varje morgon. · ${AI_LABEL} · ${SITE_NAME}`,
+      }));
+    } catch (err) {
+      console.error('start page failed', err && err.stack ? err.stack : err);
+      return env.ASSETS.fetch(request);
+    }
+  }
+  if (path === '/robots.txt') {
+    // A Sitemap line must be absolute: this host, whatever the domain.
+    const res = await env.ASSETS.fetch(request);
+    if (!res.ok || request.method === 'HEAD') return res;
+    const text = (await res.text()).replace(/^Sitemap: \/sitemap\.xml$/m, `Sitemap: ${url.origin}/sitemap.xml`);
+    const headers = new Headers(res.headers);
+    headers.delete('Content-Length');
+    headers.delete('ETag');
+    return new Response(text, { status: 200, headers });
+  }
+  if (!isShare && path !== '/feed.xml' && path !== '/sitemap.xml') return null;
+  // With the public views off (PUBLIC_READ), nothing is told to the outside.
+  if (env.PUBLIC_READ !== '1') {
+    if (isShare) return sharePage(request, env, url, null).then((r) => new Response(r.body, { status: 200, headers: r.headers }));
+    return new Response('not found', { status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
+  }
+  try {
+    if (isShare) {
+      return await cachedPage(request, ctx, url, async () => sharePage(request, env, url, await shareMeta(env, path)));
+    }
+    if (path === '/feed.xml') return await cachedPage(request, ctx, url, () => feedXml(env, url));
+    return await cachedPage(request, ctx, url, () => sitemapXml(env, url));
+  } catch (err) {
+    console.error('public page failed', err && err.stack ? err.stack : err);
+    if (isShare) return env.ASSETS.fetch(new Request(`${url.origin}/`));
+    return new Response('temporarily unavailable', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '60' } });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -734,20 +1367,118 @@ async function addUser(request, env, actor) {
   if (body.role !== 'admin' && body.role !== 'reader') throw new HttpError(400, "role must be 'admin' or 'reader'");
   if (body.invite !== undefined && typeof body.invite !== 'boolean') throw new HttpError(400, 'invite must be true or false');
 
+  return grantAccess(env, actor, email, body.role, body.invite);
+}
+
+/** Adds a user, or changes an existing one's role or reactivates them.
+ *  invite: undefined mails a new user only, true always, false never. */
+async function grantAccess(env, actor, email, role, invite) {
   const existing = await env.DB.prepare('SELECT role, active FROM users WHERE email = ?').bind(email).first();
   const now = new Date().toISOString();
   if (existing) {
     // Someone already in the list gets mail only when asked for explicitly.
-    if (body.invite === true) await queueInvite(env, actor, email, body.role);
-    if (existing.active && existing.role === body.role) return json(await userRow(env, email), 200);
-    return changeUser(env, actor, email, { role: body.role, active: true });
+    if (invite === true) await queueInvite(env, actor, email, role);
+    if (existing.active && existing.role === role) return json(await userRow(env, email), 200);
+    return changeUser(env, actor, email, { role, active: true });
   }
   await env.DB.prepare(
     'INSERT INTO users (email, role, active, created_at, created_by) VALUES (?, ?, 1, ?, ?)'
-  ).bind(email, body.role, now, actor.email).run();
-  await audit(env, actor.email, 'add', email, { role: body.role });
-  if (body.invite !== false) await queueInvite(env, actor, email, body.role);
+  ).bind(email, role, now, actor.email).run();
+  await audit(env, actor.email, 'add', email, { role });
+  if (invite !== false) await queueInvite(env, actor, email, role);
   return json(await userRow(env, email), 201);
+}
+
+// ---------------------------------------------------------------------------
+// Access requests (Version 3.22)
+// ---------------------------------------------------------------------------
+// Someone who has proved an address through Access but has no account may
+// ask for one. Only the address and the time are kept; an admin approves
+// (a reader account, through grantAccess) or denies.
+const ACCESS_REQUESTS_PER_DAY = 3;
+const ACCESS_REQUESTS_OPEN_MAX = 500;
+const ACCESS_REQUEST_ID_RE = /^[0-9a-f-]{36}$/;
+const ACCESS_REQUEST_FIELDS = 'id, email, ts, status, decided_at, decided_by';
+
+async function latestAccessRequest(env, email) {
+  return env.DB.prepare(
+    `SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests WHERE email = ? ORDER BY ts DESC LIMIT 1`
+  ).bind(email).first();
+}
+
+/** /api/me for a verified address without an account: a guest who may ask. */
+async function meWithoutAccount(env, email) {
+  let request = null;
+  try {
+    const r = await latestAccessRequest(env, email);
+    if (r) request = { status: r.status, ts: r.ts };
+  } catch { /* the table may not be migrated yet */ }
+  return json({
+    email: null, role: 'guest', is_owner: false, alarm: null, refresh: null,
+    verified_no_account: true, access_request: request,
+  });
+}
+
+async function requestAccess(env, email) {
+  if (!EMAIL_RE.test(email)) throw new HttpError(400, 'the verified address is not a valid address');
+  if (email === ownerEmail(env)) throw new HttpError(409, 'this account already has access');
+  const user = await env.DB.prepare('SELECT active FROM users WHERE email = ?').bind(email).first();
+  if (user && user.active) throw new HttpError(409, 'this account already has access');
+
+  const open = await env.DB.prepare(
+    `SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests WHERE email = ? AND status = 'requested' ORDER BY ts DESC LIMIT 1`
+  ).bind(email).first();
+  if (open) return json(open, 200);   // asked already: the same request
+
+  const dayAgo = new Date(Date.now() - 86400000).toISOString();
+  const recent = await env.DB.prepare(
+    'SELECT COUNT(*) AS n FROM access_requests WHERE email = ? AND ts > ?'
+  ).bind(email, dayAgo).first();
+  if (recent && recent.n >= ACCESS_REQUESTS_PER_DAY) throw new HttpError(429, 'too many access requests today', R.rateLimited);
+  const waiting = await env.DB.prepare(
+    "SELECT COUNT(*) AS n FROM access_requests WHERE status = 'requested'"
+  ).first();
+  if (waiting && waiting.n >= ACCESS_REQUESTS_OPEN_MAX) throw new HttpError(503, 'too many open access requests, try later');
+
+  const row = { id: crypto.randomUUID(), email, ts: new Date().toISOString(), status: 'requested', decided_at: null, decided_by: null };
+  await env.DB.prepare(
+    "INSERT INTO access_requests (id, email, ts, status) VALUES (?, ?, ?, 'requested')"
+  ).bind(row.id, row.email, row.ts).run();
+  await audit(env, email, 'access_request', email, null);
+  return json(row, 201);
+}
+
+async function listAccessRequests(env, url) {
+  const status = url.searchParams.get('status');
+  if (status && !['requested', 'approved', 'denied'].includes(status)) {
+    throw new HttpError(400, "status must be 'requested', 'approved' or 'denied'");
+  }
+  const { results } = await (status
+    ? env.DB.prepare(`SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests WHERE status = ? ORDER BY ts DESC LIMIT 500`).bind(status)
+    : env.DB.prepare(`SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests ORDER BY ts DESC LIMIT 500`)
+  ).all();
+  return json(results);
+}
+
+async function decideAccessRequest(request, env, actor, id) {
+  if (!ACCESS_REQUEST_ID_RE.test(id)) throw new HttpError(400, 'bad access request id');
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'body must be a JSON object');
+  if (body.decision !== 'approve' && body.decision !== 'deny') throw new HttpError(400, "decision must be 'approve' or 'deny'");
+  if (body.invite !== undefined && typeof body.invite !== 'boolean') throw new HttpError(400, 'invite must be true or false');
+  const row = await env.DB.prepare(`SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests WHERE id = ?`).bind(id).first();
+  if (!row) throw new HttpError(404, 'no such access request');
+  if (row.status !== 'requested') throw new HttpError(409, `already ${row.status}`);
+  const status = body.decision === 'approve' ? 'approved' : 'denied';
+  const now = new Date().toISOString();
+  await env.DB.prepare('UPDATE access_requests SET status = ?, decided_at = ?, decided_by = ? WHERE id = ?')
+    .bind(status, now, actor.email, id).run();
+  await audit(env, actor.email, `access_${status}`, row.email, null);
+  const decided = { ...row, status, decided_at: now, decided_by: actor.email };
+  if (status === 'denied') return json({ request: decided, user: null });
+  // The person proved the address when asking; they become a reader.
+  const res = await grantAccess(env, actor, row.email, 'reader', body.invite);
+  return json({ request: decided, user: await res.json() }, 200);
 }
 
 // ---------------------------------------------------------------------------
@@ -945,7 +1676,8 @@ async function ingestRun(request, env, id) {
   if (!b || typeof b !== 'object' || Array.isArray(b)) throw new HttpError(400, 'body must be a JSON object');
   if (!Object.hasOwn(RUN_JOBS, b.job)) throw new HttpError(400, `job must be one of ${Object.keys(RUN_JOBS).join(', ')}`);
   if (b.host !== 'mac' && b.host !== 'cloud') throw new HttpError(400, "host must be 'mac' or 'cloud'");
-  if (!['running', 'ok', 'failed'].includes(b.status)) throw new HttpError(400, "status must be 'running', 'ok' or 'failed'");
+  // 'partial': it exited 0 but part of it fell (401, 429, 503 in its warnings).
+  if (!['running', 'ok', 'partial', 'failed'].includes(b.status)) throw new HttpError(400, "status must be 'running', 'ok', 'partial' or 'failed'");
   if (typeof b.started_at !== 'string' || !TS_RE.test(b.started_at)) throw new HttpError(400, 'started_at must be ISO 8601');
   if (b.finished_at != null && (typeof b.finished_at !== 'string' || !TS_RE.test(b.finished_at))) {
     throw new HttpError(400, 'finished_at must be ISO 8601');
@@ -1238,7 +1970,7 @@ async function ingestAuthorities(request, env) {
 }
 
 /** One side at a time: the app asks for 'ru' only when the reader chose to see it. */
-async function listTrends(env, url) {
+async function listTrends(env, url, guest = false) {
   const side = url.searchParams.get('side') || 'open';
   if (!TREND_SIDES.has(side)) throw new HttpError(400, 'side must be open or ru');
   const since = new Date(Date.now() - TREND_SHOW_DAYS * 86400000).toISOString();
@@ -1251,7 +1983,14 @@ async function listTrends(env, url) {
     `SELECT date, ${col} AS text FROM trend_summaries WHERE ${col} IS NOT NULL ORDER BY date DESC LIMIT 7`
   ).all();
   const src = await env.DB.prepare("SELECT value FROM meta WHERE key = 'trend_sources'").first();
-  return json({ side, items: results, summaries: sums.results, sources: src ? JSON.parse(src.value) : null });
+  // Guests get the Russian side only as our Swedish summaries: no Russian
+  // headlines, quotes or links to the channels themselves.
+  let items = results;
+  if (guest && side === 'ru') {
+    items = results.filter((r) => r.title_sv || r.summary_sv);
+    for (const r of items) { r.title = null; r.detail = null; r.url = null; }
+  }
+  return json({ side, items, summaries: sums.results, sources: src ? JSON.parse(src.value) : null });
 }
 
 // ---------------------------------------------------------------------------
@@ -1280,6 +2019,8 @@ async function dispatchWorkflow(env, workflow, inputs) {
  * that fails raises an admin alarm.
  */
 async function startDueRuns(env, nowMs) {
+  // Each start is a fetch too: leave room for them under the 50 subrequests.
+  const budget = { left: PUSH_BATCH - Object.keys(RUN_JOBS).length };
   const hour = Math.floor(stockholmClock(nowMs).minutes / 60);
   for (const [job, spec] of Object.entries(RUN_JOBS)) {
     if (!spec.hours.includes(hour)) continue;
@@ -1295,7 +2036,7 @@ async function startDueRuns(env, nowMs) {
         title: `${spec.label} kunde inte startas`,
         body: `Körningen ${String(hour).padStart(2, '0')}:00 startade inte: ${err.message.slice(0, 120)}`,
         url: '/#/admin',
-      }, 'high');
+      }, 'high', budget);
     }
   }
 }
@@ -1330,7 +2071,7 @@ async function getAlarm(env) {
 }
 
 /** Past 07:00 Stockholm time with no report for today: raise the alarm once per date. */
-async function checkMissingReport(env, nowMs) {
+async function checkMissingReport(env, nowMs, budget = newBudget()) {
   const { date, minutes } = stockholmClock(nowMs);
   if (minutes < ALARM_AFTER_MINUTES) return { checked: false, date };
   const report = await env.DB.prepare('SELECT 1 AS ok FROM reports WHERE date = ?').bind(date).first();
@@ -1343,7 +2084,7 @@ async function checkMissingReport(env, nowMs) {
     title: 'Dagens rapport har inte kommit',
     body: `Ingen morgonrapport för ${date} kl. 07:00. Se Systemstatus.`,
     url: '/#/admin',
-  }, 'high');
+  }, 'high', budget);
   return { checked: true, date, missing: true, raised: true };
 }
 
@@ -1365,6 +2106,30 @@ async function recordDevice(request, env, who) {
 /** A fake push server origin for local tests - honoured only with the dev auth bypass on. */
 function devPushAllow(env) {
   return env.DEV_AUTH_EMAIL && env.DEV_PUSH_ALLOW ? env.DEV_PUSH_ALLOW : '';
+}
+
+// Version 3.23: a guest's subscription has email NULL; the endpoint, which
+// only that browser knows, is the key. Guests get only the public pushes
+// (reportPush: big index moves and events scored 9+), never notices from
+// admins or alarms. A subscription may follow topics or countries: then
+// event pushes reach it only when an event matches (empty = everything).
+const MAX_GUEST_SUBSCRIPTIONS = 5000;
+const GUEST_PREFS = new Set(['report']);
+const PUSH_TOPICS = new Set(['Drönare', 'Sabotage', 'IT-hot', 'Skuggflotta', 'Sanktioner', 'Diplomati', 'Arktis', 'Desinformation', 'Kinetiskt']);
+const COUNTRY_RE = /^[A-Z]{2}$/;
+
+/** {topics, countries} from a body, validated; undefined when absent. */
+function followFrom(body) {
+  const out = {};
+  for (const [k, max, ok] of [['topics', 9, (t) => PUSH_TOPICS.has(t)], ['countries', 40, (c) => COUNTRY_RE.test(c)]]) {
+    if (body[k] === undefined) continue;
+    const v = body[k] === null ? [] : body[k];
+    if (!Array.isArray(v) || v.length > max || v.some((x) => typeof x !== 'string' || !ok(x))) {
+      throw new HttpError(400, k === 'topics' ? 'topics must be a list of the fixed TOPICS' : 'countries must be a list of ISO 3166-1 alpha-2 codes');
+    }
+    out[k] = [...new Set(v)];
+  }
+  return out;
 }
 
 async function subscribePush(request, env, who) {
@@ -1393,22 +2158,46 @@ async function subscribePush(request, env, who) {
         || Object.entries(p).some(([k, v]) => !/^[a-z_]{1,32}$/.test(k) || typeof v !== 'boolean')) {
       throw new HttpError(400, 'prefs must be an object of true/false flags');
     }
-    prefs = JSON.stringify(p);
+    // A guest's flags can only turn public pushes off; the rest mean nothing.
+    prefs = JSON.stringify(who ? p : Object.fromEntries(Object.entries(p).filter(([k]) => GUEST_PREFS.has(k))));
   }
+  const follow = followFrom(body);
+  const email = who ? who.email : null;
 
   const existing = await env.DB.prepare('SELECT email FROM push_subscriptions WHERE endpoint = ?').bind(endpoint).first();
   if (!existing) {
-    const mine = await env.DB.prepare('SELECT COUNT(*) AS n FROM push_subscriptions WHERE email = ?').bind(who.email).first();
-    if (mine.n >= MAX_SUBSCRIPTIONS_PER_USER) throw new HttpError(400, `at most ${MAX_SUBSCRIPTIONS_PER_USER} devices per user`);
+    if (who) {
+      const mine = await env.DB.prepare('SELECT COUNT(*) AS n FROM push_subscriptions WHERE email = ?').bind(email).first();
+      if (mine.n >= MAX_SUBSCRIPTIONS_PER_USER) throw new HttpError(400, `at most ${MAX_SUBSCRIPTIONS_PER_USER} devices per user`);
+    } else {
+      const guests = await env.DB.prepare('SELECT COUNT(*) AS n FROM push_subscriptions WHERE email IS NULL').first();
+      if (guests && guests.n >= MAX_GUEST_SUBSCRIPTIONS) throw new HttpError(503, 'no room for more guest subscriptions right now');
+    }
   }
-  // The endpoint belongs to whoever is signed in on that device now.
-  await env.DB.prepare(
-    `INSERT INTO push_subscriptions (endpoint, email, p256dh, auth, created_at, prefs)
-     VALUES (?, ?, ?, ?, ?, ?)
+  // The endpoint belongs to whoever is signed in on that device now (a guest: no one).
+  const upsert = () => env.DB.prepare(
+    `INSERT INTO push_subscriptions (endpoint, email, p256dh, auth, created_at, prefs, topics, countries)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(endpoint) DO UPDATE SET email = excluded.email, p256dh = excluded.p256dh,
-       auth = excluded.auth, prefs = excluded.prefs`
-  ).bind(endpoint, who.email, keys.p256dh, keys.auth, new Date().toISOString(), prefs).run();
-  return json({ ok: true }, existing ? 200 : 201);
+       auth = excluded.auth, prefs = excluded.prefs,
+       topics = COALESCE(excluded.topics, push_subscriptions.topics),
+       countries = COALESCE(excluded.countries, push_subscriptions.countries)`
+  ).bind(endpoint, email, keys.p256dh, keys.auth, new Date().toISOString(), prefs,
+    follow.topics ? JSON.stringify(follow.topics) : null,
+    follow.countries ? JSON.stringify(follow.countries) : null).run();
+  try {
+    await upsert();
+  } catch (err) {
+    // Before migration 0015: a person's plain subscription still works.
+    if (!who || follow.topics || follow.countries || !schemaMissing(err)) throw err;
+    await env.DB.prepare(
+      `INSERT INTO push_subscriptions (endpoint, email, p256dh, auth, created_at, prefs)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT(endpoint) DO UPDATE SET email = excluded.email, p256dh = excluded.p256dh,
+         auth = excluded.auth, prefs = excluded.prefs`
+    ).bind(endpoint, email, keys.p256dh, keys.auth, new Date().toISOString(), prefs).run();
+  }
+  return json({ ok: true, guest: !who }, existing ? 200 : 201);
 }
 
 async function unsubscribePush(request, env, who) {
@@ -1416,10 +2205,43 @@ async function unsubscribePush(request, env, who) {
   if (!body || typeof body !== 'object' || typeof body.endpoint !== 'string' || body.endpoint.length > 1024) {
     throw new HttpError(400, 'endpoint is required');
   }
-  // Only your own devices.
-  const res = await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ? AND email = ?')
-    .bind(body.endpoint, who.email).run();
+  // Only your own devices; a guest only a guest subscription.
+  const res = await (who
+    ? env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ? AND email = ?').bind(body.endpoint, who.email)
+    : env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ? AND email IS NULL').bind(body.endpoint)
+  ).run();
   return json({ ok: true, removed: res.meta?.changes || 0 });
+}
+
+/** POST /api/push/prefs {endpoint, topics?, countries?}: what event pushes this device follows. */
+async function pushFollow(request, env, who) {
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body) || typeof body.endpoint !== 'string' || body.endpoint.length > 1024) {
+    throw new HttpError(400, 'endpoint is required');
+  }
+  const follow = followFrom(body);
+  if (!follow.topics && !follow.countries) throw new HttpError(400, 'give topics or countries (an empty list follows everything)');
+  const row = await (who
+    ? env.DB.prepare('SELECT topics, countries FROM push_subscriptions WHERE endpoint = ? AND email = ?').bind(body.endpoint, who.email)
+    : env.DB.prepare('SELECT topics, countries FROM push_subscriptions WHERE endpoint = ? AND email IS NULL').bind(body.endpoint)
+  ).first();
+  if (!row) throw new HttpError(404, 'no such subscription on this device');
+  const parse = (v) => { try { const a = JSON.parse(v || '[]'); return Array.isArray(a) ? a : []; } catch { return []; } };
+  const topics = follow.topics ?? parse(row.topics);
+  const countries = follow.countries ?? parse(row.countries);
+  await env.DB.prepare('UPDATE push_subscriptions SET topics = ?, countries = ? WHERE endpoint = ?')
+    .bind(JSON.stringify(topics), JSON.stringify(countries), body.endpoint).run();
+  return json({ ok: true, topics, countries });
+}
+
+/** Does a subscription following topics/countries want a push about these events? */
+function followsMatch(sub, match) {
+  if (!match) return true;   // not an event push: everyone
+  const parse = (v) => { try { const a = JSON.parse(v || '[]'); return Array.isArray(a) ? a : []; } catch { return []; } };
+  const topics = parse(sub.topics);
+  const countries = parse(sub.countries);
+  if (!topics.length && !countries.length) return true;
+  return topics.some((t) => match.topics.includes(t)) || countries.some((c) => match.countries.includes(c));
 }
 
 const svNum = (v) => v.toFixed(1).replace('.', ',');
@@ -1471,7 +2293,13 @@ async function reportPush(env, body, date) {
   } else {
     payload = { title: `${high.length} nya händelser med poäng 9–10`, body: eventTitle(high[0]), url: '/#/' };
   }
-  return pushTo(env, { adminsOnly: false, pref: 'report' }, payload, indexTrigger ? 'high' : 'normal');
+  // An index move is for everyone; an event push only for those following
+  // its topics or countries (or nothing in particular). Guests get both.
+  const match = indexTrigger ? null : {
+    topics: [...new Set(high.flatMap((e) => (Array.isArray(e.topics) ? e.topics : [])))],
+    countries: [...new Set(high.flatMap((e) => (Array.isArray(e.countries) ? e.countries : [])))],
+  };
+  return pushTo(env, { adminsOnly: false, pref: 'report', guests: true, match }, payload, indexTrigger ? 'high' : 'normal');
 }
 
 function inQuietHours(ms) {
@@ -1485,7 +2313,7 @@ async function getDeferred(env) {
 }
 
 /** Sends the pushes held over quiet hours, once they have ended. */
-async function flushDeferredPushes(env, nowMs) {
+async function flushDeferredPushes(env, nowMs, budget = newBudget()) {
   if (inQuietHours(nowMs)) return { sent: 0, reason: 'quiet hours' };
   const held = await getDeferred(env);
   if (!held.length) return { sent: 0 };
@@ -1493,19 +2321,35 @@ async function flushDeferredPushes(env, nowMs) {
   await env.DB.prepare("DELETE FROM meta WHERE key = 'push_deferred'").run();
   let sent = 0;
   for (const p of held) {
-    const r = await pushTo(env, p.target, p.payload, p.urgency);
+    const r = await pushTo(env, p.target, p.payload, p.urgency, budget);
     sent += r.sent || 0;
   }
   await audit(env, 'system', 'push_deferred_sent', null, { pushes: held.length, sent });
   return { sent };
 }
 
-/** Sends to every matching subscription; dead ones (404/410) are deleted.
+// Version 3.22: one fetch per subscription, and the free plan allows 50
+// subrequests per invocation. So a push is queued (meta 'push_queue', the
+// matching endpoints) and sent PUSH_BATCH at a time: the first batch at
+// once, the rest by PUSH_QUEUE_CRON, every ten minutes. `budget` is shared
+// by every push of one invocation, so together they stay under the limit.
+const PUSH_BATCH = 40;
+const PUSH_QUEUE_CRON = '*/10 * * * *';
+const PUSH_QUEUE_MAX_JOBS = 20;
+const newBudget = () => ({ left: PUSH_BATCH });
+
+async function getPushQueue(env) {
+  const row = await env.DB.prepare("SELECT value FROM meta WHERE key = 'push_queue'").first();
+  if (!row || !row.value) return [];
+  try { const q = JSON.parse(row.value); return Array.isArray(q) ? q : []; } catch { return []; }
+}
+
+/** Queues a push for every matching subscription and sends the first batch.
  *  During quiet hours the push is held until 07:00 instead. */
-async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal') {
+async function pushTo(env, { adminsOnly, pref, guests = false, match = null }, payload, urgency = 'normal', budget = newBudget()) {
   if (inQuietHours(Date.now())) {
     const held = await getDeferred(env);
-    held.push({ target: { adminsOnly, pref }, payload, urgency });
+    held.push({ target: { adminsOnly, pref, guests, match }, payload, urgency });
     await setMeta(env, 'push_deferred', JSON.stringify(held.slice(-20)));
     return { sent: 0, deferred: true, reason: 'quiet hours' };
   }
@@ -1514,41 +2358,109 @@ async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal') {
     return { sent: 0, reason: 'not configured' };
   }
   const owner = ownerEmail(env);
-  const { results } = await env.DB.prepare(
+  const select = (cols) => env.DB.prepare(
     adminsOnly
-      ? `SELECT p.* FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
+      ? `SELECT ${cols} FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
          WHERE p.email = ? OR (u.role = 'admin' AND u.active = 1)`
-      : `SELECT p.* FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
-         WHERE p.email = ? OR u.active = 1`
+      : `SELECT ${cols} FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
+         WHERE p.email = ? OR u.active = 1${guests && !adminsOnly ? ' OR p.email IS NULL' : ''}`
   ).bind(owner).all();
-
-  const vapid = { subject: `mailto:${owner}`, publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY };
+  let results;
+  try {
+    ({ results } = await select('p.endpoint, p.prefs, p.topics, p.countries'));
+  } catch (err) {
+    // Before migration 0015 (no topics/countries, no guests): push as before.
+    if (!schemaMissing(err)) throw err;
+    console.error('push without migration 0015:', err.message);
+    ({ results } = await select('p.endpoint, p.prefs'));
+  }
   const devAllow = devPushAllow(env);
-  let sent = 0, failed = 0, removed = 0;
+  const endpoints = [];
   for (const s of results) {
     let prefs = {};
     try { prefs = s.prefs ? JSON.parse(s.prefs) : {}; } catch { prefs = {}; }
     if (pref && prefs[pref] === false) continue;
-    // Stored endpoints were checked on subscribe; check again before any request.
+    if (!followsMatch(s, match)) continue;
+    // Stored endpoints were checked on subscribe; checked again before any request.
     if (!allowedEndpoint(s.endpoint, devAllow)) continue;
+    endpoints.push(s.endpoint);
+  }
+  if (!endpoints.length) {
+    const summary = { at: new Date().toISOString(), title: payload.title, sent: 0, failed: 0, removed: 0, queued: 0 };
+    await setMeta(env, 'last_push', JSON.stringify(summary));
+    return summary;
+  }
+  const queue = await getPushQueue(env);
+  queue.push({ id: crypto.randomUUID(), at: new Date().toISOString(), payload, urgency, endpoints, sent: 0, failed: 0, removed: 0 });
+  await setMeta(env, 'push_queue', JSON.stringify(queue.slice(-PUSH_QUEUE_MAX_JOBS)));
+  return drainPushQueue(env, budget);
+}
+
+/** Sends up to budget.left queued messages, oldest push first; dead
+ *  subscriptions (404/410) are deleted. */
+async function drainPushQueue(env, budget = newBudget()) {
+  if (inQuietHours(Date.now())) return { sent: 0, reason: 'quiet hours' };
+  if (budget.left <= 0) return { sent: 0, reason: 'no budget left' };
+  const queue = await getPushQueue(env);
+  if (!queue.length) return { sent: 0, queued: 0 };
+  if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) return { sent: 0, reason: 'not configured' };
+
+  // Claimed (and written back) before sending, so an overlapping run cannot send twice.
+  const batch = [];
+  for (const job of queue) {
+    while (job.endpoints.length && batch.length < budget.left) batch.push({ job, endpoint: job.endpoints.shift() });
+  }
+  budget.left -= batch.length;
+  await setMeta(env, 'push_queue', JSON.stringify(queue.filter((j) => j.endpoints.length)));
+
+  const subs = new Map();
+  const list = batch.map((b) => b.endpoint);
+  for (let i = 0; i < list.length; i += 40) {
+    const part = list.slice(i, i + 40);
+    const { results } = await env.DB.prepare(
+      `SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE endpoint IN (${part.map(() => '?').join(', ')})`
+    ).bind(...part).all();
+    for (const r of results) subs.set(r.endpoint, r);
+  }
+
+  const owner = ownerEmail(env);
+  const vapid = { subject: `mailto:${owner}`, publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY };
+  const done = new Map();   // job id -> { sent, failed, removed }
+  let sent = 0, failed = 0, removed = 0;
+  for (const { job, endpoint } of batch) {
+    const c = done.get(job.id) || { sent: 0, failed: 0, removed: 0 };
+    done.set(job.id, c);
+    const s = subs.get(endpoint);
+    if (!s) continue;   // unsubscribed since it was queued
     try {
-      const r = await sendPush({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, vapid, { urgency });
-      if (r.ok) sent++;
-      else {
-        failed++;
+      const r = await sendPush({ endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, job.payload, vapid, { urgency: job.urgency });
+      if (r.ok) { sent++; c.sent++; } else {
+        failed++; c.failed++;
         if (r.gone) {
-          await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').bind(s.endpoint).run();
-          removed++;
+          await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').bind(endpoint).run();
+          removed++; c.removed++;
         }
       }
     } catch (err) {
-      failed++;
+      failed++; c.failed++;
       console.error('push send failed', err && err.message);
     }
   }
-  const summary = { at: new Date().toISOString(), title: payload.title, sent, failed, removed };
-  await setMeta(env, 'last_push', JSON.stringify(summary));
-  return summary;
+
+  // Running totals onto the jobs still queued; the last one touched is the summary.
+  const rest = await getPushQueue(env);
+  let summary = null;
+  for (const job of batch.length ? [...new Set(batch.map((b) => b.job))] : []) {
+    const c = done.get(job.id);
+    const left = rest.find((j) => j.id === job.id);
+    const total = { sent: job.sent + c.sent, failed: job.failed + c.failed, removed: job.removed + c.removed };
+    if (left) Object.assign(left, total);
+    summary = { at: new Date().toISOString(), title: job.payload && job.payload.title, ...total, queued: left ? left.endpoints.length : 0 };
+  }
+  if (rest.length) await setMeta(env, 'push_queue', JSON.stringify(rest));
+  if (summary) await setMeta(env, 'last_push', JSON.stringify(summary));
+  const queued = rest.reduce((n, j) => n + j.endpoints.length, 0);
+  return { sent, failed, removed, queued };
 }
 
 // ---------------------------------------------------------------------------
@@ -1610,6 +2522,68 @@ async function removeNotice(env, who, id) {
 // Sources added in the app (Version 3.5)
 // ---------------------------------------------------------------------------
 const SOURCE_KINDS = ['auto', 'rss', 'article'];
+// Version 3.16: never a source for the analysis - Telegram and Russian state
+// media (TASS, RT, RIA Novosti, Sputnik, Izvestia, Zvezda, Rossiyskaya
+// Gazeta). A host matches itself and its subdomains.
+// The same list as src/blocklist.py (keep them in step): Telegram, Russian
+// state media and the pro-Kremlin network around them. A host matches itself
+// and its subdomains; a page or feed title is matched as a whole name.
+const BLOCKED_SOURCE_HOSTS = [
+  // Telegram
+  't.me', 'telegram.me', 'telegram.org', 'telegra.ph', 'telesco.pe',
+  // State agencies, TV and papers
+  'tass.ru', 'tass.com', 'rt.com', 'ria.ru', 'sputniknews.com', 'sputniknews.ru', 'sputnikglobe.com',
+  'sputnik.by', 'sputnik.kz', 'sputniknews.cn', 'iz.ru', 'tvzvezda.ru', 'rg.ru', '1tv.ru', '1tv.com',
+  'vesti.ru', 'smotrim.ru', 'ren.tv', 'ntv.ru',
+  // Pro-Kremlin outlets
+  'lenta.ru', 'gazeta.ru', 'kp.ru', 'aif.ru', 'ukraina.ru', 'kommersant.ru', 'kommersant.com',
+  'interfax.ru', 'interfax.com', 'pravda.ru', 'news-front.info', 'news-front.su',
+  'southfront.org', 'southfront.press', 'rubaltic.ru', 'baltnews.com', 'eadaily.com', 'regnum.ru',
+  'inosmi.ru', 'rusvesna.su', 'tsargrad.tv', 'topwar.ru', 'reseauinternational.net',
+  // The "Pravda" network (Portal Kombat)
+  'news-pravda.com', 'pravda-en.com', 'pravda-fr.com', 'pravda-de.com', 'pravda-es.com', 'pravda-pl.com',
+  'pravda-fi.com', 'pravda-se.com', 'pravda-nl.com', 'pravda-it.com', 'pravda-pt.com',
+];
+// pravda-xx.com for any language code, and their subdomains.
+const PORTAL_KOMBAT_RE = /(^|\.)pravda-[a-z]{2,3}\.com$/;
+// Never blocked although they look alike: Ukrainska Pravda, Interfax-Ukraine.
+const ALLOWED_SOURCE_HOSTS = ['pravda.com.ua', 'interfax.com.ua'];
+const BLOCKED_OUTLET_RE = new RegExp('^(?:the\\s+)?(?:' + [
+  'tass(?:\\s+news\\s+agency)?', 'тасс', 'itar[-\\s]tass',
+  'rt(?:\\s+(?:news|international|en\\s+español|en\\s+espanol|france|deutsch|arabic|on\\s+rumble))?', 'russia\\s+today', 'rt\\.com',
+  'ria(?:\\s+novosti)?', 'риа\\s+новости', 'ria\\.ru',
+  'sputnik(?:\\s+(?:news|international|globe|india|africa|brasil|mundo))?', 'sputnikglobe(?:\\.com)?',
+  'izvestia', 'известия', 'iz\\.ru', 'zvezda', 'tv\\s*zvezda', 'звезда',
+  'rossiyskaya\\s+gazeta', 'российская\\s+газета', 'rg\\.ru',
+  'channel\\s+one(?:\\s+russia)?', 'первый\\s+канал', 'vesti(?:\\.ru)?', 'вести', 'ntv\\.ru', 'ren\\s*tv',
+  'lenta\\.ru', 'лента\\.ру', 'gazeta\\.ru', 'газета\\.ру',
+  'komsomolskaya\\s+pravda', 'комсомольская\\s+правда', 'kp\\.ru',
+  'argumenty\\s+i\\s+fakty', 'аргументы\\s+и\\s+факты', 'aif\\.ru',
+  'ukraina\\.ru', 'украина\\.ру', 'kommersant(?:\\.ru)?', 'коммерсантъ?', 'interfax(?:\\.ru)?', 'интерфакс',
+  'pravda\\.ru', 'pravda\\s+(?:en|fr|de|es|pl|fi|se|nl|it|pt)', 'news[-\\s]pravda(?:\\.com)?', 'portal\\s+kombat',
+  'news\\s*front', 'news-front(?:\\.info)?',
+  'south\\s*front', 'inosmi', 'eadaily', 'regnum', 'tsargrad', 'rubaltic', 'baltnews',
+  'telegram', 't\\.me',
+].join('|') + ')$', 'i');
+
+function blockedHost(host) {
+  const h = String(host || '').toLowerCase().replace(/\.$/, '').replace(/^www\./, '');
+  if (!h || ALLOWED_SOURCE_HOSTS.some((a) => h === a || h.endsWith(`.${a}`))) return false;
+  return PORTAL_KOMBAT_RE.test(h) || BLOCKED_SOURCE_HOSTS.some((b) => h === b || h.endsWith(`.${b}`));
+}
+function blockedSource(href) {
+  let host;
+  try { host = new URL(href).hostname; } catch { return false; }
+  return blockedHost(host);
+}
+/** A publisher's name (a feed or page title), or a bare domain. */
+function blockedOutlet(name) {
+  const n = String(name || '').replace(/\s+/g, ' ').trim();
+  if (!n) return false;
+  if (/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(n) && blockedHost(n)) return true;
+  return BLOCKED_OUTLET_RE.test(n);
+}
+const BLOCKED_SOURCE_MSG = 'Telegram, rysk statsmedia och det prokremlska nätverket runt dem (bl.a. TASS, RT, RIA, Sputnik, Izvestija, Lenta.ru, Gazeta.ru, Kommersant, Interfax, News Front och Pravda-nätverket) tas inte emot som källor.';
 const SOURCE_FETCH_MS = 8000;
 const SOURCE_PEEK_BYTES = 200000;
 
@@ -1694,8 +2668,11 @@ async function addSource(request, env, who) {
   if (!['http:', 'https:'].includes(url.protocol) || url.href.length > 1000) {
     throw new HttpError(400, 'Adressen måste börja med http:// eller https://.');
   }
+  if (blockedSource(url.href)) throw new HttpError(422, BLOCKED_SOURCE_MSG);
 
   const peek = await peekUrl(url.href);
+  // A link that redirects there (a shortener, a mirror) is refused too.
+  if (peek.finalUrl && blockedSource(peek.finalUrl)) throw new HttpError(422, BLOCKED_SOURCE_MSG);
   // Many news sites turn away fetches that are not a browser. An article
   // is still worth keeping: the jobs try again, and its address names it.
   if (peek.error && kind === 'rss') throw new HttpError(422, `Sidan ${peek.error} – kontrollera adressen.`);
@@ -1713,6 +2690,7 @@ async function addSource(request, env, who) {
     if (!feed) throw new HttpError(422, 'Hittade inget RSS-flöde på den adressen.');
     const fp = await peekUrl(feed);
     if (fp.error || !looksLikeFeed(fp)) throw new HttpError(422, 'Sidans RSS-flöde gick inte att läsa.');
+    if (blockedSource(feed) || (fp.finalUrl && blockedSource(fp.finalUrl))) throw new HttpError(422, BLOCKED_SOURCE_MSG);
     finalUrl = feed;
     const t = fp.text.match(/<title[^>]*>([\s\S]{1,300}?)<\/title>/i);
     title = t ? decodeEntities(t[1]).slice(0, 200) : url.hostname;
@@ -1720,6 +2698,8 @@ async function addSource(request, env, who) {
     finalKind = 'article';
     title = pageTitle(peek.text) || slugTitle(url) || url.hostname;
   }
+  // A feed names its publisher in its title: "TASS", "Lenta.ru" ...
+  if (finalKind === 'rss' && blockedOutlet(title)) throw new HttpError(422, BLOCKED_SOURCE_MSG);
   if (typeof body.title === 'string' && body.title.trim()) title = body.title.trim().slice(0, 200);
 
   const dup = await env.DB.prepare('SELECT id FROM sources WHERE active = 1 AND url = ?').bind(finalUrl).first();
@@ -1864,7 +2844,7 @@ function rateLimit(req, id) {
     }
   }
   w.n += 1;
-  if (w.n > RATE_LIMIT_PER_MIN) {
+  if (w.n > (id.kind === 'user' ? RATE_LIMIT_PER_MIN : RATE_LIMIT_PER_IP_MIN)) {
     throw new HttpError(429, 'too many requests', throttledReason(req, R.rateLimited));
   }
 }
@@ -2045,7 +3025,9 @@ async function verifyAccessJwt(token, env) {
 
   const now = Math.floor(Date.now() / 1000);
   const aud = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
-  if (!aud.includes(env.ACCESS_AUD)) return null;
+  // ACCESS_AUD may name several Access applications, comma-separated.
+  const want = String(env.ACCESS_AUD).split(',').map((a) => a.trim()).filter(Boolean);
+  if (!aud.some((a) => want.includes(a))) return null;
   if (claims.iss !== `https://${env.TEAM_DOMAIN}`) return null;
   if (typeof claims.exp !== 'number' || claims.exp < now) return null;
   if (typeof claims.nbf === 'number' && claims.nbf > now + 60) return null;
@@ -2093,4 +3075,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
+export const _test = { blockedSource, blockedOutlet, resetPublicLatest: () => { publicLatestMemo = null; }, reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };

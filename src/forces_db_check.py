@@ -15,6 +15,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import blocklist
+
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "config" / "forces_db"
 PUBLIC = ROOT / "webapp" / "public" / "forces"
@@ -24,8 +27,6 @@ FREE = re.compile(r"^(CC0|CC BY|CC-BY|Public domain|PD|Attribution)", re.I)
 STRIKE_IDS = ["geran-2", "shahed-131", "geran-3", "geran-4", "geran-5", "gerbera", "kh-101", "kh-555", "kalibr", "iskander-m",
               "iskander-k", "kn-23", "kinzhal", "kh-22", "kh-32", "kh-59", "kh-69", "kh-31p", "kh-31", "kh-35", "oniks", "tsirkon",
               "s-300", "s-400", "banderol", "orlan-10", "lancet", "supercam", "zala", "merlin-vr", "orion", "mohajer-6", "forpost"]
-# Never a source: Russian state media and Telegram.
-BANNED = re.compile(r"(^|[/.])(tass\.(ru|com)|rt\.com|ria\.ru|sputniknews\.|sputnik\.|iz\.ru|tvzvezda\.ru|rg\.ru|t\.me|telegram\.(org|me))(/|$)", re.I)
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 TEMPLATE = re.compile(r"^\S.* är en (militär flygbas|garnison för|luftvärnsgarnison|marinbas|robotgarnison) .*militärdistrikt|Här finns enligt källorna|Materiel som nämns:")
 UNIT_TEMPLATE = re.compile(r" är en? \w+ i (Rysslands|Belarus|ryska)\b.*Status: ")
@@ -143,7 +144,8 @@ def main() -> int:
         for m in EMAIL.finditer(text):
             err(f"{name}.json: email address {m.group(0)}")
         for u in urls(json.loads(text)):
-            if BANNED.search(u.split("?")[0]):
+            # Never a source: Telegram, Russian state media, the pro-Kremlin network.
+            if blocklist.blocked_host(u):
                 err(f"{name}.json: banned source {u}")
     files = [f for f in (PUBLIC / "img").iterdir() if f.is_file()]
     total = sum(f.stat().st_size for f in files)

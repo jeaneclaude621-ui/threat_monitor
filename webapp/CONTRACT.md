@@ -158,12 +158,27 @@ the owner out. `ADMINS`/`READERS` (optional Worker secrets) only seed the table 
 Rules: the last active admin cannot be demoted or removed; OWNER can't
 be demoted or removed. Every mutating request must carry
 `Origin` equal to the app's own origin (else `bad_origin`). Per-email
-rate limit ~120 requests/min (else 429 `rate_limited`).
+rate limit ~120 requests/min, per IP address without a login (guests)
+~600/min since 4 Nov 2026 (else 429 `rate_limited`).
 
 ## Richer report JSON (from 2 Oct reports; older ones lack these - render only if present)
 
 Per event: `known_sv` [strings], `unknown_sv` [strings], `thread_id`
 (one of the watchlist thread ids, or null).
+Since 5 Nov 2026 (src/app_data.py), per event:
+- `known_sv`: `[{text, refs: [article id]}]`, each sentence tied to the
+  event's own verified articles; reports from before keep plain strings.
+  Readers must accept both.
+- `unverified`: `true` when no verified news source backs the event (all
+  reports 19-30 Sep, and new events whose cited articles were dropped or
+  are only video/social posts). Absent otherwise. Shown as "Obekräftad –
+  ingen hämtad källa"; the event is kept, not removed.
+- `independent_sources`: integer, the number of independent outlets among
+  the verified articles (0 for legacy reports).
+- `score_capped_reason`: string, set when the credibility score was capped
+  (e.g. one source only); shown next to the score.
+- `correction { date, note_sv, refs }` and per report `also_reported
+  [{title_sv, refs}]`: see Version 3.39 below.
 Per article: `summary_sv` (2-3 sentences, what this article says),
 `published` (YYYY-MM-DD or null), `relation` one of
 `bekräftar` | `motsäger` | `tillför` | null.
@@ -569,3 +584,258 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   on the light model with the main one as fallback. Any call on the main
   model that finds its quota spent, or the model still overloaded after
   two retries, moves to the light model (src/common.py `ask_model`).
+
+# Version 3.16 (3 Nov 2026) - no Telegram or Russian state media as sources
+
+- `POST /api/admin/sources` answers 422 for a link to Telegram (t.me,
+  telegram.me, telegram.org, telegra.ph, telesco.pe) or Russian state
+  media (tass.ru, tass.com, rt.com, ria.ru, sputniknews.*, sputnikglobe.com,
+  sputnik.by, sputnik.kz, iz.ru, tvzvezda.ru, rg.ru), the host or any
+  subdomain - also when the link redirects there or a site's announced
+  feed lives there.
+- `GET /api/export/sources` leaves such sources out, so one added before
+  this version never reaches the analysis; `src/news_sources.py` drops
+  them again on its side.
+- Narrativ's reading of the Russian side (src/trends.py) is not a source
+  for the analysis and is unchanged.
+- App: the Sources form says that these are not accepted. Service worker
+  hm-v3.30.
+
+# Version 3.17 (3 Nov 2026) - guests: open to everyone
+
+- With `PUBLIC_READ` = `"1"`, a request without a valid Access token (or
+  from a verified address without an account) is a **guest** on the public
+  reads, GET or HEAD only: `/api/me`, `/api/reports`, `/api/reports/:date`,
+  `/api/assessments`, `/api/notices`, `/api/updates`, `/api/courses`,
+  `/api/strikes`, `/api/forces`, `/api/authorities`, `/api/trends`.
+  Everything else answers 401 as before (403 for a verified address
+  without an account). With `PUBLIC_READ` unset, nothing changes.
+- `/api/me` for a guest: `{email: null, role: "guest", is_owner: false,
+  alarm: null, refresh: null}`. `GET /api/assessments`: `[]`.
+- A guest's answer has every e-mail address, as a value or a key,
+  replaced by `Bedömare N` (stable within one answer), and drops
+  `author`, `added_by`, `created_by` and `actor`.
+- `/api/trends?side=ru` for a guest: only items with a Swedish title or
+  summary, with `title`, `detail` and `url` set to null - no Russian
+  headlines, quotes or links to the channels.
+- Guests' answers carry `Cache-Control: public, max-age=60` and
+  `Vary: Cookie`, and are cached a minute per isolate.
+- `GET /login` (behind Access) answers 302 to `/`. The app's *Logga in*
+  links go there.
+- `ACCESS_AUD` may name several Access applications, comma-separated.
+- App: the guest role hides Bedöm, the bell (notices) and admin, keeps read
+  marks on the device only, and reports no device. New page `#/om`: what
+  Hotmonitor is, AI-generated content (EU AI Act, art. 50), sources and
+  privacy. Service worker hm-v3.31.
+
+# Version 3.18 (4 Nov 2026) - all strikes in Russia, satellite map links
+
+- `/api/forces`: each night's `other` entries (attacks on targets in
+  Russia, Belarus or occupied Ukraine away from the listed bases:
+  refineries, depots, factories, ports ...) may carry `target_sv`,
+  `search_name`, `date`, and `lat`/`lon`/`precision` ("site" when
+  OpenStreetMap knows the facility, "town" when only the town; null when
+  not found). They get `firms` like base attacks: `{date, count,
+  confidence, radius_km}` (3 km at a site, 10 km at a town), or null
+  when the window passed without fire. Base attacks' `firms` gains
+  `radius_km`.
+- The nightly search looks for the bases by their English spelling
+  (romanised from the Russian name), not the Swedish display name, and
+  for Ukraine's strikes on refineries, depots, factories, power and ports.
+- `other` entries found only at their town are looked for again among
+  OpenStreetMap's features of the target's kind within 25 km (Overpass:
+  refineries, oil depots, power plants, ports, airfields, works ...); a
+  find gives `precision` "site" and `osm_name`.
+- An attack (on a base or elsewhere) needs at least one news source:
+  YouTube, X, Telegram and other social posts never stand alone.
+- When Gemini is overloaded the nightly forces call is tried once more ten
+  minutes later; if that fails too, the 12:00 and 21:00 runs try the night
+  again (`forces.py retry`).
+- App: every attack has a "Satellitkarta, bränder" button that opens NASA
+  FIRMS's map at the place, on the attack day and the next. Styrkor shows
+  the week's other strikes. Service worker hm-v3.33.
+
+# Version 3.19 (5 Nov 2026) - functions menu
+
+- App only: a small chip beside "Hotläget" on Idag ("15 nya", or
+  "Funktioner" when nothing is new) opens a sheet with every function:
+  the last 10 days' new ones first, then all of them by area, and a search
+  field that filters on every letter. Selecting one goes there. The list
+  is `webapp/public/features.js`: add a row (with the day it reached the
+  app) whenever a function is added. Admin-only rows are hidden for
+  others, login-only rows for guests. Service worker hm-v3.34.
+
+# Version 3.20 (5 Nov 2026) - back on every page
+
+- App only: every page but Idag has an arrow back at the top. It goes back
+  where you came from within the app (history.back), to the same scroll
+  position, and is labelled with that page ("Styrkor", "Händelsen" ...).
+  A page opened from outside falls back to its tab or Idag. Filters that
+  change the address in place keep the way back in step. Service worker
+  hm-v3.36.
+
+# Version 3.21 (5 Nov 2026) - fonts from the app itself
+
+- Newsreader and IBM Plex Sans (SIL Open Font License) are served from
+  `/fonts/` (latin, latin-ext, cyrillic), not Google Fonts: reading the
+  app sends nothing to a third party. CSP `style-src 'self'; font-src
+  'self'`. The About page says so. Service worker hm-v3.37.
+
+# Version 3.22 (5 Nov 2026) - before the public launch: share links, feed, access requests
+
+Worker:
+- **Guest cache.** The key keeps only the query parameters a public read
+  uses (`side`, `since`, `p`, in that order); `?x=1` and the like hit the
+  same entry. At 200 entries the least recently used goes, not all of
+  them. Guests' answers are also put in `caches.default` for 60 s, shared
+  by every isolate in a data centre (only on a custom domain; a no-op on
+  `workers.dev`).
+- **Share links.** `GET /h/<date>/<event id>` and `GET /d/<date>`
+  (`run_worker_first`) answer `index.html` with, from the report in D1:
+  `<title>` (`<title> · Hotmonitor`), `meta description`, `og:title`,
+  `og:description` (the first sentence of the event's `summary_sv`, or of
+  `title_sv` when that is empty; for a day the first sentence of
+  `executive_sv.top`, then `" · AI-sammanfattning · Hotmonitor"`),
+  `og:url` and `<link rel="canonical">` (the share path), `og:type`
+  `article`, `og:image` (`/og/<date>.png` when the deploy has it, else
+  `/og/default.png`, 1200x630), `twitter:card` `summary_large_image` and
+  `meta name="ai-generated" content="true"`. A day's `og:title` is
+  `Lägesbild <d month yyyy> · hotindex <x,x>`. Cached 10 min
+  (`Cache-Control: public, max-age=600`, and `caches.default`). A
+  malformed or impossible date, an unknown id or a day without a report
+  answers **404** with the plain `index.html` (no OG tags). With
+  `PUBLIC_READ` off the paths answer the plain app.
+- **`GET /feed.xml`**: RSS 2.0, the last 14 days. Per report an item
+  `Hotindex <x,x> · <top event's title_sv>` linking `/d/<date>`, and per
+  event scored 8 or more `<title_sv> (<score>/10)` linking
+  `/h/<date>/<id>`. Every description starts `AI-sammanfattning: `.
+  Cached 15 min.
+- **`GET /sitemap.xml`**: `/`, every `/d/<date>` and `/h/<date>/<id>` of
+  the last 90 days. **`/robots.txt`** (static, `public/robots.txt`)
+  allows everything but `/api/`; the Worker writes this host into its
+  `Sitemap:` line.
+- **U7.** `GET /api/me` for a verified Access address without an account
+  (with `PUBLIC_READ` on): `{ email: null, role: 'guest', is_owner: false,
+  alarm: null, refresh: null, verified_no_account: true,
+  access_request: null | { status, ts } }`, never cached. Everything else
+  still reads as a guest, pseudonymized as before.
+- **`POST /api/access-request`** (no body): needs a verified Access
+  identity, not a guest (401) or the machine (403), and the app's Origin.
+  201 with `{ id, email, ts, status: 'requested', decided_at: null,
+  decided_by: null }`; 200 with the same row if one is already open; 409
+  if the address already has access; 429 after three in a day; 503 with
+  500 open in all. Migration `0014_access_requests.sql`: `access_requests
+  (id PK, email, ts, status 'requested' | 'approved' | 'denied',
+  decided_at, decided_by)`.
+- **`GET /api/admin/access-requests[?status=requested]`** (admin): rows,
+  newest first, at most 500. **`POST
+  /api/admin/access-requests/<id>`** (admin) body `{ decision: 'approve' |
+  'deny', invite?: boolean }` -> `{ request, user }`. Approving makes a
+  reader through the same path as `POST /api/admin/users` (an invite is
+  queued unless `invite: false`); `user` is null on deny. 409 once
+  decided. Audit actions `access_request`, `access_approved`,
+  `access_denied`.
+- **Push in batches.** A push is queued in meta `push_queue` (the
+  matching endpoints) and sent 40 at a time: the first 40 at once, the
+  rest by a new cron every 10 min (`*/10 * * * *`). The free plan allows
+  50 subrequests per invocation. Pushes in one invocation share the 40.
+  meta `last_push` gains `queued`.
+- CSP: `object-src 'none'`, `upgrade-insecure-requests`.
+
+For the app (another session):
+- Turn `/h/<date>/<id>` into `#/handelse/<date>/<id>` and `/d/<date>`
+  into `#/rapport/<date>` at start, and use the share
+  paths in a Dela button (`navigator.share`, copy as fallback).
+- Add `<link rel="alternate" type="application/rss+xml"
+  title="Hotmonitor" href="/feed.xml">` to `index.html`'s `<head>`.
+- When `/api/me` has `verified_no_account`, say that the address has no
+  account yet and offer *Be om tillgång* (`POST /api/access-request`),
+  showing `access_request.status` once asked. The admin page lists
+  `GET /api/admin/access-requests?status=requested` with Godkänn / Avslå.
+- A 404 on a share path loads the app normally; it should show its own
+  "finns inte" page for the route.
+
+# Version 3.23 (5 Nov 2026) - push for guests, follow topics, text on share pages, one-call start
+
+Worker:
+- **Web Push for guests.** With `PUBLIC_READ` on, `GET /api/push/key`
+  is public, and `POST /api/push/subscribe`, `/api/push/unsubscribe` and
+  `/api/push/prefs` work without a login (also for a verified address
+  without an account). The subscription is the key: `email` is NULL
+  (migration `0015_guest_push.sql`, which also adds `topics` and
+  `countries`). A guest's POST needs the app's Origin; at most 20 such
+  writes an hour per IP; at most 5000 guest subscriptions (then 503); the
+  same push-service allowlist. A guest's `prefs` keep only `report`.
+  Subscribe answers `{ ok: true, guest: true|false }`. Unsubscribe as a
+  guest removes only a guest subscription.
+- Guests get only the public pushes from a report (index moved 0.5 or
+  more, events scored 9+). Never the missing-report or run alarms, admin
+  notices or "update everyone".
+- **Follow topics or countries.** `POST /api/push/prefs { endpoint,
+  topics?: [TOPICS], countries?: ['EE', ...] }` -> `{ ok, topics,
+  countries }` (404 if the endpoint is not this person's or a guest's
+  subscription). Subscribe takes the same two fields. Event pushes reach a
+  subscription only when one of the pushed events has a followed topic or
+  country; empty lists follow everything. An index push goes to all.
+- **Text on share pages.** `/h/...` and `/d/...` put the text into `<main
+  id="view">` as `<article id="ssr" lang="sv">`: the AI label, date,
+  credibility score, title, `summary_sv`, topics and countries, outlet
+  names and a link to the day (event); the index, top line and the events
+  linking `/h/...` (day); and the line *AI-genererad sammanställning ur
+  öppna källor. Kan innehålla fel. Hotmonitor är ett privat projekt och
+  ingen myndighet.* The app's first render replaces it.
+- **`GET /api/public/latest`** (public with `PUBLIC_READ` on, GET/HEAD):
+  `{ generated_at, index: [{ date, threat_index, threat_index_30d,
+  top_sv }] (newest first), latest: <newest report JSON> | null }`,
+  pseudonymized like every guest answer. `Cache-Control: public,
+  max-age=300`, and cached five minutes in `caches.default` and per
+  isolate.
+
+For the app (another session):
+- Guests: offer *Få notiser* (subscribe without logging in), with topic and
+  country choices sent to `/api/push/prefs`.
+- Guests' first view: read `/api/public/latest` instead of `/api/reports`
+  plus `/api/reports/<newest>`, and fetch older reports only when needed.
+- Give `#ssr` styles if wanted; it is visible only until the app renders.
+
+# Version 3.24 (5 Nov 2026) - the day's shareable image
+
+- The morning run deploys `public/og/<date>.png` and `og/latest.png`.
+  `/d/<date>` and `/h/<date>/<id>` use `/og/<date>.png` as `og:image`
+  when that file exists (checked with a HEAD through `env.ASSETS`), else
+  `/og/default.png`.
+- The start page `/` now runs through the Worker (`run_worker_first`):
+  `index.html` with `og:type` `website`, `og:title` Hotmonitor, the
+  tagline and AI label as description, `og:image` `/og/latest.png` (or the
+  default), `twitter:card` and canonical `/`. `<title>` is unchanged and
+  there is no `#ssr` article. `Cache-Control: public, max-age=60`, and
+  cached a minute in `caches.default`. With `PUBLIC_READ` off it is the
+  plain asset. Cost: one Worker request per app start (hash routes do not
+  reload the page).
+- Workers' sources blocklist matches `src/blocklist.py`; access requests
+  and guest push answer 503 naming the migration until 0014/0015 have run.
+
+# Version 3.39 (5 Nov 2026) - the app shows refs, caps, corrections; guest notices
+
+App only (webapp/public); no new endpoints.
+- `known_sv` is read as `[{text, refs: [article id]}]` or plain strings;
+  refs become small links to the event's own articles (matched on `id`).
+- At the event's score: `score_capped_reason` (shown as "Högst N: ...") or,
+  without one, `independent_sources` ("2 oberoende källor").
+- `event.correction { date, note_sv, refs }`: a "Rättelse" box at the top of
+  the event and "Rättad <datum>" on its row. `#/rattelser` lists every
+  corrected event in the loaded reports (last 30 days, or all on request),
+  linked from Om.
+- `report.also_reported [{ title_sv, refs }]`: a folded "Fler händelser i
+  dag" under the event list; refs match articles of any event that day.
+- Forces: `firms.baseline { days, count }` adds "Normalt N brandpunkter
+  veckan före"; change kind `uppgift` (with `claimed_kind`) reads "Uppgift:
+  <kind> <what> (en källa, listan oförändrad)".
+- Notices: the bell shows for guests too. Subscribe sends `topics` and
+  `countries` (kept in localStorage `hm.follow`); chips in the settings post
+  `/api/push/prefs { endpoint, topics, countries }`. A 503 (or, for a guest,
+  401/403/404 from an older Worker) shows "Notiser för gäster öppnar snart".
+- First visit: three intro cards (`hm.introSeen` in localStorage).
+- `<link rel="alternate" type="application/rss+xml" href="/feed.xml">` and
+  a link on Om; the Worker or the run must serve `/feed.xml`.
+- Service worker cache `hm-v3.39`.

@@ -39,8 +39,17 @@ async function getJSON(url, opts = {}) {
   }
   if (res.status === 401) throw new AuthError(`HTTP ${res.status}`);
   const type = res.headers.get('content-type') || '';
-  // An expired Access session answers with a redirect to its login page.
-  if (!type.includes('application/json')) throw new AuthError('not json');
+  if (!type.includes('application/json')) {
+    // Cloudflare's own error pages (1027: the daily quota is used up, or an
+    // overloaded origin) are HTML with a 429 or 5xx: not a login problem.
+    if (res.status === 429 || res.status >= 500) {
+      let text = '';
+      try { text = await res.text(); } catch { /* the status is enough */ }
+      throw new HttpError(res.status, /\b1027\b/.test(text) ? 'Cloudflare 1027 (kvoten slut)' : `HTTP ${res.status}`);
+    }
+    // An expired Access session answers with a redirect to its login page.
+    throw new AuthError('not json');
+  }
   const body = await res.json();
   if (res.status === 403) {
     const reason = String((body && (body.reason || body.error)) || '');
@@ -75,9 +84,27 @@ function emit() { for (const fn of listeners) fn(); }
 
 export function isAdmin() { return !!store.me && store.me.role === 'admin'; }
 
+// Version 3.17: read without logging in. Read marks stay on the device.
+export function isGuest() { return !!store.me && store.me.role === 'guest'; }
+
+// S5: the service worker keeps API answers for offline use. When who is
+// signed in changes (guest -> admin, logout, another account), drop them,
+// so one person's data does not linger for the next on a shared device.
+const who = (me) => (me ? `${me.role || ''}|${me.email || ''}` : '');
+function clearDataCache() {
+  store.reports.clear();
+  store.index = null;
+  try {
+    const sw = navigator.serviceWorker && navigator.serviceWorker.controller;
+    if (sw) sw.postMessage({ type: 'hm-clear-data' });
+  } catch { /* no service worker: nothing cached */ }
+}
+
 export async function loadMe() {
   try {
+    const before = lsGet(ME_KEY, null);
     store.me = await getJSON('/api/me', { cache: 'no-store' });
+    if (before && who(before) !== who(store.me)) clearDataCache();
     lsSet(ME_KEY, store.me);
     store.stale = false;
   } catch (e) {
@@ -134,8 +161,24 @@ export async function loadReport(date) {
   });
 }
 
-export async function loadAllReports() {
+// The reports dated from..to (inclusive, ISO dates) that the index lists.
+// Views load only the window they show: a first visit to Idag must not
+// cost one request per report ever published (review K1).
+export async function loadReportsRange(from, to) {
   const index = await loadIndex();
+  return loadMany(index.filter((x) => (!from || x.date >= from) && (!to || x.date <= to)));
+}
+
+// Reports already in memory, newest first; never fetches.
+export function loadedReports() {
+  return [...store.reports.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+export async function loadAllReports() {
+  return loadMany(await loadIndex());
+}
+
+async function loadMany(index) {
   const out = [];
   const queue = [...index];
   async function worker() {
@@ -151,7 +194,8 @@ export async function loadAllReports() {
 }
 
 export async function loadAssessments() {
-  const rows = await getJSON('/api/assessments');
+  // Guests are always answered [] (verdicts are not public): skip the request.
+  const rows = isGuest() ? [] : await getJSON('/api/assessments');
   const serverClientIds = new Set(rows.map((r) => r.client_id).filter(Boolean));
   // Anything the server already has was uploaded before a reload: drop it.
   store.outbox = store.outbox.filter((o) => !serverClientIds.has(o.client_id));
@@ -307,10 +351,22 @@ export async function loadUpdates() {
   return store.updates;
 }
 
+// Side data asked for by every redraw of Idag: one request per few minutes,
+// not one per redraw. A failure is remembered for a minute.
+const memo = new Map();
+function memoized(key, fn, ttl = 5 * 60000) {
+  const hit = memo.get(key);
+  if (hit && Date.now() < hit.until) return hit.promise;
+  const promise = fn();
+  memo.set(key, { promise, until: Date.now() + ttl });
+  promise.catch(() => { const m = memo.get(key); if (m && m.promise === promise) m.until = Date.now() + 60000; });
+  return promise;
+}
+
 // --- Russia's courses of action (Version 3.11) ----------------------------------
 
 export function loadCourses() {
-  return getJSON('/api/courses', { cache: 'no-store' });
+  return memoized('courses', () => getJSON('/api/courses', { cache: 'no-store' }));
 }
 
 // --- The forces map (Version 3.12) ----------------------------------------------
@@ -326,7 +382,7 @@ export function loadForces() {
 // --- The Swedish authorities' brief (Version 3.10) ------------------------------
 
 export function loadAuthorities() {
-  return getJSON('/api/authorities', { cache: 'no-store' });
+  return memoized('authorities', () => getJSON('/api/authorities', { cache: 'no-store' }));
 }
 
 // --- Trends (Version 3.9) ------------------------------------------------------
@@ -344,6 +400,7 @@ export async function loadNotices() {
 }
 
 export async function loadReads() {
+  if (isGuest()) return store.reads;
   const body = await getJSON('/api/reads', { cache: 'no-store' });
   const ids = Array.isArray(body && body.item_ids) ? body.item_ids : [];
   // Marks still waiting in the outbox stay read locally.
@@ -362,6 +419,7 @@ export function markRead(ids) {
   if (!fresh.length) return;
   for (const id of fresh) store.reads.add(id);
   lsSet(READ_CACHE_KEY, [...store.reads]);
+  if (isGuest()) { emit(); return; }
   // Batches of 200 keep each request small.
   for (let i = 0; i < fresh.length; i += 200) store.readsOutbox.push({ item_ids: fresh.slice(i, i + 200) });
   lsSet(READS_KEY, store.readsOutbox);
@@ -371,6 +429,7 @@ export function markRead(ids) {
 
 let flushingReads = false;
 export async function flushReads() {
+  if (isGuest()) return;
   if (flushingReads || !store.readsOutbox.length) return;
   flushingReads = true;
   try {
@@ -428,6 +487,7 @@ export function adminSend(method, path, body) { return sendJSON(method, path, bo
 
 // Once per session: whether the app runs from the home screen, and on what.
 export async function reportDevice(info) {
+  if (isGuest()) return;
   try {
     if (sessionStorage.getItem('hm.deviceSent') === JSON.stringify(info)) return;
   } catch { /* ignore */ }
@@ -445,6 +505,8 @@ export async function pushKey() {
 }
 export const pushSubscribe = (sub) => sendJSON('POST', '/api/push/subscribe', sub);
 export const pushUnsubscribe = (endpoint) => sendJSON('POST', '/api/push/unsubscribe', { endpoint });
+// Version 3.23: follow topics or countries; empty lists follow everything.
+export const pushPrefs = (endpoint, topics, countries) => sendJSON('POST', '/api/push/prefs', { endpoint, topics, countries });
 
 function sendJSON(method, path, body) {
   return getJSON(path, {

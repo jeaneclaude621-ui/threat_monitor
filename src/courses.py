@@ -28,13 +28,13 @@ a failure here stops nothing else.
 """
 import argparse
 import json
-import re
 import sys
 from datetime import date, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import DATA_DIR, OUTPUT_DIR, ask_model_json, load_hourly_log
+import common
 
 COURSES_PATH = DATA_DIR / "courses.json"
 SEED_PATH = Path(__file__).resolve().parent.parent / "config" / "courses_seed.json"
@@ -157,7 +157,8 @@ def apply(current: list, result: dict, refs: dict, today: str) -> list:
         for s in old["signs"]:
             got = statuses.get(s["id"], {})
             status = got.get("status") if got.get("status") in STATUSES else "inte observerat"
-            cited = [refs[r] for r in got.get("refs") or [] if r in refs]
+            # The reserve model sometimes answers refs as objects: only plain ids count.
+            cited = [refs[r] for r in got.get("refs") or [] if isinstance(r, str) and r in refs]
             signs.append({**s, "status": status,
                           "refs": [{"kind": k, "id": i, "date": d} for k, i, d in cited][:5],
                           "first_seen": s.get("first_seen") or (today if status != "inte observerat" else None)})
@@ -188,6 +189,7 @@ def run(report: dict = None, hourly: list = None, dry_run: bool = False):
     if dry_run:
         print(text)
         return
+    mark = common.calls_mark()
     result = ask_model_json(prompt_for(state["courses"], text), max_tokens=6000,
                             system="You are a Swedish security analyst keeping a standing assessment of "
                                    "Russia's courses of action. Strict JSON only.")
@@ -196,7 +198,8 @@ def run(report: dict = None, hourly: list = None, dry_run: bool = False):
     history.append({"date": today, "likelihood": {c["id"]: c["likelihood"] for c in courses}})
     state = {"date": today, "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
              "changed_sv": result.get("changed_sv") if isinstance(result.get("changed_sv"), str) else None,
-             "courses": courses, "history": history[-HISTORY_DAYS:]}
+             "courses": courses, "history": history[-HISTORY_DAYS:],
+             "generated_by": common.generated_by(mark)}
     with open(COURSES_PATH, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=1)
     print("  Courses of action: " + ", ".join(

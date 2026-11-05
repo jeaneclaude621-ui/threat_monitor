@@ -29,7 +29,7 @@ class Firms(unittest.TestCase):
         hit = forces_firms.match(rows, LAT, LON, date(2026, 10, 30))
         # Two points within 3 km in the 48 hours; the one 13 km away and the
         # one three days earlier are not counted.
-        self.assertEqual(hit, {"date": "2026-10-30", "count": 2, "confidence": "hög"})
+        self.assertEqual(hit, {"date": "2026-10-30", "count": 2, "confidence": "hög", "radius_km": 3.0})
 
     def test_error_text_is_not_csv(self):
         self.assertEqual(forces_firms.parse("Invalid MAP_KEY."), [])
@@ -48,7 +48,11 @@ class Firms(unittest.TestCase):
         self.assertEqual(n, 1)
         self.assertEqual(st["bases"][0]["events"][0]["firms"]["count"], 2)   # the same rows from each satellite source count once
         self.assertNotIn("firms", st["bases"][0]["events"][1])               # follow-ups are not checked
-        self.assertTrue(all("/TEST/" in u and "/2/2026-10-30" in u for u in urls))
+        self.assertTrue(all("/TEST/" in u for u in urls))
+        # The window after the attack, and the normal level in the 7 days
+        # before it (two requests per source: the API takes at most 5 days).
+        self.assertEqual(sorted({u.rsplit("/", 2)[-2] + "/" + u.rsplit("/", 1)[-1] for u in urls}),
+                         ["2/2026-10-28", "2/2026-10-30", "5/2026-10-23"])
 
     def test_old_attacks_are_not_checked(self):
         st = state("2026-10-01")
@@ -62,3 +66,81 @@ class Firms(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OtherStrikes(unittest.TestCase):
+    """Version 3.18: strikes away from the listed bases are placed and checked too."""
+
+    def test_pending_other_with_town_radius(self):
+        st = {"bases": [], "nights": [{"date": "2026-11-04", "other": [
+            {"place": "Raffinaderiet i X", "date": "2026-11-03", "lat": 47.7, "lon": 39.9, "precision": "town"},
+            {"place": "Utan plats", "date": "2026-11-03", "lat": None},
+            {"place": "Redan kollad", "date": "2026-11-03", "lat": 1, "lon": 1, "firms": None}]}]}
+        todo = forces_firms.pending(st, date(2026, 11, 4))
+        self.assertEqual(len(todo), 1)
+        self.assertEqual(todo[0][2], forces_firms.TOWN_RADIUS_KM)
+
+    def test_run_marks_other(self):
+        o = {"place": "Depå", "date": "2026-11-02", "lat": 47.7, "lon": 39.9, "precision": "site"}
+        st = {"bases": [], "nights": [{"date": "2026-11-03", "other": [o]}]}
+        csv_text = "latitude,longitude,acq_date,acq_time,confidence\n47.701,39.901,2026-11-02,2300,h\n"
+        forces_firms.run(st, today=date(2026, 11, 4), key="k", get=lambda u: csv_text)
+        self.assertEqual(o["firms"]["count"], 1)
+
+
+class Places(unittest.TestCase):
+    def test_search_name_and_locate(self):
+        import forces
+        self.assertEqual(forces.search_name({"name": "Voronezj", "name_ru": "Воронеж"}), "Voronezh")
+        self.assertEqual(forces.search_name({"name": "Jejsk", "name_ru": "Ейск"}), "Yeysk")
+        self.assertEqual(forces.search_name({"name": "Barsovo (51:a arsenalen)", "name_ru": "51-й арсенал ГРАУ"}), "Barsovo")
+        o1 = {"place": "A", "search_name": "Novoshakhtinsk oil refinery, Novoshakhtinsk"}
+        o2 = {"place": "B", "search_name": "Nowhere plant, Paris"}
+        st = {"nights": [{"date": "2026-11-04", "other": [o1, o2]}]}
+        answers = {"Novoshakhtinsk oil refinery, Novoshakhtinsk": {"lat": "47.80", "lon": "39.93", "category": "industrial"},
+                   "Nowhere plant, Paris": None, "Paris": {"lat": "48.85", "lon": "2.35", "category": "place"}}
+        n = forces.locate_other(st, lookup=lambda q: answers.get(q), pause=0)
+        self.assertEqual(n, 1)
+        self.assertEqual((o1["lat"], o1["precision"]), (47.8, "site"))
+        self.assertIsNone(o2["lat"])   # outside Russia, Belarus and occupied Ukraine
+
+
+class Sites(unittest.TestCase):
+    """Version 3.18: the facility itself from OpenStreetMap; news sources only; retry."""
+
+    def test_find_site_prefers_named_refinery(self):
+        import forces
+        els = [{"type": "way", "center": {"lat": 54.60, "lon": 39.80}, "tags": {"name": "Склад"}},
+               {"type": "way", "center": {"lat": 54.58, "lon": 39.82}, "tags": {"name": "Рязанский НПЗ"}}]
+        o = {"place": "Rjazans oljeraffinaderi", "target_sv": "oljeraffinaderi", "search_name": "Ryazan oil refinery, Ryazan"}
+        site = forces.find_site(o, {"lat": 54.63, "lon": 39.74}, overpass=lambda q: els)
+        self.assertEqual((site["lat"], site["precision"], site["osm_name"]), (54.58, "site", "Рязанский НПЗ"))
+        self.assertIsNone(forces.find_site({"target_sv": "okänt", "search_name": "x"}, {"lat": 1, "lon": 1}, overpass=lambda q: els))
+
+    def test_locate_town_then_site(self):
+        import forces
+        o = {"place": "P", "target_sv": "oljeraffinaderi", "search_name": "Ryazan oil refinery, Ryazan"}
+        st = {"nights": [{"date": "2026-11-05", "other": [o]}]}
+        answers = {"Ryazan": {"lat": "54.63", "lon": "39.74", "category": "boundary"}}
+        els = [{"type": "way", "center": {"lat": 54.58, "lon": 39.82}, "tags": {"name": "Рязанский НПЗ"}}]
+        forces.locate_other(st, lookup=lambda q: answers.get(q), pause=0, overpass=lambda q: els)
+        self.assertEqual((o["lat"], o["precision"]), (54.58, "site"))
+
+    def test_news_sources_only(self):
+        import forces
+        refs = {"A1": {"url": "https://www.youtube.com/watch?v=x", "outlet": "YouTube"},
+                "A2": {"url": "https://kyivindependent.com/a", "outlet": "The Kyiv Independent"}}
+        self.assertEqual(forces._news_sources({"refs": ["A1"]}, refs, "t"), [])
+        self.assertEqual(len(forces._news_sources({"refs": ["A1", "A2"]}, refs, "t")), 2)
+
+    def test_retry_marked_and_overload(self):
+        import forces
+        self.assertTrue(forces._overloaded(RuntimeError("503 UNAVAILABLE high demand")))
+        self.assertFalse(forces._overloaded(RuntimeError("429 RESOURCE_EXHAUSTED")))
+
+
+class Names(unittest.TestCase):
+    def test_lookups_exist(self):
+        import forces
+        for name in ("_nominatim", "_overpass", "find_site", "locate_other", "retry_if_due", "relocate"):
+            self.assertTrue(callable(getattr(forces, name, None)), name)

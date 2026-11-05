@@ -44,6 +44,13 @@ REQUEST_TIMEOUT_MS = 10 * 60 * 1000
 # fetched, never one the model made up.
 LAST_SEARCH_RESULTS = []
 
+# Every model call this process made, in order, as {model, requested,
+# fallback}: which model actually answered, and whether that was another
+# model than the one asked for (the main model unavailable). Read through
+# calls_mark() and generated_by(), which stamp each output with the models
+# that wrote it.
+MODEL_CALLS = []
+
 
 # --------------------------------------------------------------------------
 # State persistence
@@ -197,6 +204,54 @@ class ModelUnavailable(Exception):
     worth trying the other model, unlike a bad request."""
 
 
+class NoModelAvailable(RuntimeError):
+    """ask_model found neither the model nor its fallback available (or no
+    fallback was allowed). A RuntimeError, as before, for callers that
+    catch that."""
+
+
+_sha = []
+
+
+def code_sha() -> str:
+    """The commit the code runs from: GITHUB_SHA in Actions, else git."""
+    if not _sha:
+        sha = os.environ.get("GITHUB_SHA") or ""
+        if not sha:
+            try:
+                import subprocess
+                sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True,
+                                     text=True, timeout=10).stdout.strip()
+            except Exception:
+                sha = ""
+        _sha.append(sha[:12] or None)
+    return _sha[0]
+
+
+def calls_mark() -> int:
+    """A position in MODEL_CALLS: generated_by(since=mark) covers the calls after it."""
+    return len(MODEL_CALLS)
+
+
+def generated_by(since: int = 0) -> dict:
+    """Which models wrote an output: {models, fallback_used, code_sha,
+    calls} over the calls since `since` (calls_mark()). fallback_used is
+    true when any of them ran on another model than the one asked for -
+    the app then shows that a reserve model wrote it."""
+    calls = MODEL_CALLS[since:]
+    models = []
+    for c in calls:
+        if c["model"] not in models:
+            models.append(c["model"])
+    return {"models": models, "fallback_used": any(c["fallback"] for c in calls),
+            "code_sha": code_sha(), "calls": len(calls)}
+
+
+def main_model_failed(since: int = 0) -> bool:
+    """True when a call since `since` asked for the main model and got another."""
+    return any(c["fallback"] and c["requested"] == MODEL for c in MODEL_CALLS[since:])
+
+
 def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, model: str = None,
               fallback: str = None) -> str:
     """Send a prompt to Gemini and return the text of the response. The
@@ -218,16 +273,19 @@ def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, model: st
     name = model or MODEL
     if fallback is None and name == MODEL:
         fallback = lite_model()
+    used = name
     try:
         response = _generate_with_retry(get_client(), prompt, config, name)
     except ModelUnavailable as e:
         if not fallback or fallback == name:
-            raise RuntimeError(str(e)) from e
-        print(f"  ! {name} unavailable ({str(e)[:160]}); this call runs on {fallback}")
+            raise NoModelAvailable(str(e)) from e
+        print(f"  ! {name} unavailable ({str(e)[:160]}); this call runs on {fallback} (reserve model)")
         try:
             response = _generate_with_retry(get_client(), prompt, config, fallback)
         except ModelUnavailable as e2:
-            raise RuntimeError(f"{name}: {str(e)[:200]}; {fallback}: {e2}") from e2
+            raise NoModelAvailable(f"{name}: {str(e)[:200]}; {fallback}: {e2}") from e2
+        used = fallback
+    MODEL_CALLS.append({"model": used, "requested": name, "fallback": used != name})
 
     candidate = (response.candidates or [None])[0]
     finish = getattr(candidate, "finish_reason", None)
@@ -274,8 +332,12 @@ def ask_model_json(prompt: str, system: str = None, max_tokens: int = 2000, mode
     """ask_model + extract_json, with one recovery attempt. The model
     sometimes spends the whole token budget on narrative analysis and
     gets cut off before the JSON. Rather than discard that work, hand the
-    partial response back and ask for just the JSON object."""
+    partial response back and ask for just the JSON object - on the model
+    that wrote it, never another one: one answer is written by one model
+    (a recovery on another model would mix two models' work and hide which
+    one wrote the result)."""
     raw = ask_model(prompt, system=system, max_tokens=max_tokens, model=model, fallback=fallback)
+    answered = MODEL_CALLS[-1]["model"] if MODEL_CALLS else (model or MODEL)
     try:
         return extract_json(raw)
     except ValueError as first_err:
@@ -289,7 +351,7 @@ Your previous answer was cut off or was not valid JSON. Here it is:
 </previous_answer>
 
 Using ONLY the information in that previous answer, respond with the strict JSON object requested above and nothing else."""
-        raw2 = ask_model(recovery_prompt, system=system, max_tokens=max_tokens, model=model, fallback=fallback)
+        raw2 = ask_model(recovery_prompt, system=system, max_tokens=max_tokens, model=answered, fallback=False)
         return extract_json(raw2)
 
 

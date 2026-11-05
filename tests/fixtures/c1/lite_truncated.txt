@@ -1,0 +1,4 @@
+{"threat_index": 6.4, "threat_index_justification": "Elevated drone activity",
+ "events": [{"title": "Drones over Danish air base", "title_sv": "Drönare över dansk flygbas", "score": 6,
+   "articles": [{"ref": "A1", "outlet": "Reuters", "tier": 1}]},
+  {"title": "Cable cut off Gotland", "title_sv": "Kabel kapad utanf
