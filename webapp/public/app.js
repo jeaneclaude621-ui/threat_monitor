@@ -2,7 +2,7 @@
 // assessments and the admin/status pages. All data is rendered as text
 // (textContent / createElement), never as HTML.
 import {
-  store, onChange, isAdmin, isGuest, loadMe, loadIndex, loadReport, loadAllReports, loadAssessments,
+  store, onChange, isAdmin, isGuest, loadMe, loadIndex, loadReport, loadAllReports, loadReportsRange, loadedReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
   reportDevice, pushKey, pushSubscribe, pushUnsubscribe, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes,
@@ -634,6 +634,9 @@ async function computeBadges() {
     let arkiv = 0;
     for (const item of index) {
       if (item.date < scopeStart) break;
+      // A guest's badges count what is already loaded; fetching the week
+      // for them would add six requests to every first visit (review K1).
+      if (isGuest() && item.date !== latest && !store.reports.has(item.date)) continue;
       const r = await loadReport(item.date);
       const n = r.events.filter((e) => eventState(r.date, e) === 'new').length;
       if (item.date === latest) idag += n; else arkiv += n;
@@ -717,7 +720,22 @@ function setFacets(sel) { updateHash((q) => { q.delete('t'); if (sel.length) q.s
 const facetHref = (base, k) => `${base}?f=${encodeURIComponent(k)}`;
 
 // ---------------------------------------------------------------- Idag / rapport
-const FACET_DAYS = 30;          // the filter bar on Idag and Bedöm ranks over this window
+const FACET_DAYS = 30;          // Bedöm's filter bar, and how far back Ämnen, Karta and Källa look first
+
+// Review K1: a view loads the reports it shows, not the whole archive. Ämnen,
+// Karta and Källa start with the last FACET_DAYS; the reader can ask for all.
+let wholeArchive = false;
+async function searchableReports() {
+  if (wholeArchive) return loadAllReports();
+  const index = await loadIndex();
+  if (!index.length) return [];
+  return loadReportsRange(addDays(index[0].date, -(FACET_DAYS - 1)), index[0].date);
+}
+function olderReportsNote() {
+  if (wholeArchive) return null;
+  return h('p', { class: 'small muted' }, `Visar de senaste ${FACET_DAYS} dagarna. `,
+    h('button', { class: 'linkbtn', type: 'button', onclick: () => { wholeArchive = true; rerender(); } }, 'Ta med hela arkivet'));
+}
 const openUpdates = new Set();
 
 function ensureScope(index) { if (index.length) scopeStart = addDays(index[0].date, -(SCOPE_DAYS - 1)); }
@@ -733,12 +751,14 @@ async function viewReport(date, q) {
   const latest = index[0].date;
   const d = date || latest;
   const archived = d !== latest;
-  const [r, reports, brief, courses] = await Promise.all([loadReport(d), loadAllReports(),
+  // Only this report: the filter bar counts the events listed below, and a
+  // first visit costs a handful of requests (review K1).
+  const [r, brief, courses] = await Promise.all([loadReport(d),
     archived ? null : loadAuthorities().catch(() => null), archived ? null : loadCourses().catch(() => null)]);
+  const reports = loadedReports();
   const top = (r.executive_sv && r.executive_sv.top) || r.top_development;
   const selected = parseFacets(q);
-  const windowStart = addDays(d, -(FACET_DAYS - 1));
-  const facetEvents = reports.filter((x) => x.date >= windowStart && x.date <= d).flatMap((x) => x.events);
+  const facetEvents = r.events;
   const events = r.events.filter((e) => matchesFacets(e, selected));
 
   // Updates shown with this report: today's (or, for an archived report,
@@ -991,7 +1011,10 @@ const RELATION = { bekräftar: 'Bekräftar', motsäger: 'Motsäger', tillför: '
 function relationChip(rel) { return RELATION[rel] ? h('span', { class: `rel rel-${rel === 'bekräftar' ? 'ok' : rel === 'motsäger' ? 'no' : 'add'}` }, RELATION[rel]) : null; }
 
 async function viewEvent(date, id) {
-  const [r, reports, index] = await Promise.all([loadReport(date), loadAllReports(), loadIndex(), assessmentsReady]);
+  // The event's own report and the two after it (where its re-check lands);
+  // thread and related events come from what is already loaded.
+  const [r, , index] = await Promise.all([loadReport(date), loadReportsRange(date, addDays(date, 2)), loadIndex(), assessmentsReady]);
+  const reports = loadedReports();
   ensureScope(index);
   const e = r.events.find((x) => x.id === id);
   const isLatest = index.length && index[0].date === date;
@@ -1234,12 +1257,12 @@ function currentAllByOperator() {
 }
 
 async function viewSource(name) {
-  const [reports] = await Promise.all([loadAllReports(), assessmentsReady]);
+  const [reports] = await Promise.all([searchableReports(), assessmentsReady]);
   const key = norm(name);
   const hits = [];
   for (const r of reports) for (const e of r.events) for (const a of e.articles) if (norm(a.outlet) === key) hits.push({ r, e, a });
   const back = h('a', { class: 'back', href: '#/', onclick: (ev) => { if (history.length > 1) { ev.preventDefault(); history.back(); } } }, icon(['M12.5 4l-6 6 6 6'], '', '0 0 20 20'), 'Tillbaka');
-  if (!hits.length) return frag(back, emptyState(`Ingen källa som heter ”${name}” finns i rapporterna.`));
+  if (!hits.length) return frag(back, emptyState(`Ingen källa som heter ”${name}” finns i rapporterna.`), olderReportsNote());
   const tiers = new Map();
   for (const { a } of hits) if (a.tier) tiers.set(a.tier, (tiers.get(a.tier) || 0) + 1);
   const tier = [...tiers.entries()].sort((x, y) => y[1] - x[1])[0];
@@ -1273,6 +1296,7 @@ async function viewSource(name) {
           others.length ? countBy(others).map(([v, n], i) => frag(i ? ' ' : '', verdictPill(v), ` ${n}`)) : 'inga ännu'))),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, 'Förekommer i'),
+      olderReportsNote(),
       h('div', { class: 'card list' }, [...events.values()].sort((x, y) => (x.r.date < y.r.date ? 1 : -1)).map(({ r, e, a }) => {
         const v = mine.get(a.id);
         return h('div', { class: 'row' },
@@ -1303,8 +1327,7 @@ async function viewArchive(q) {
   const index = await loadIndex();
   if (!index.length) return emptyState('Inga rapporter ännu.');
   ensureScope(index);
-  const [latest, reports] = await Promise.all([loadReport(index[0].date), loadAllReports()]);
-  const byReport = new Map(reports.map((r) => [r.date, r]));
+  const latest = await loadReport(index[0].date);
   // The latest report carries the recalibrated history; older report files
   // may still hold the values they were first published with.
   const hist = new Map((latest.threat_index_history || []).map((x) => [x.date, x]));
@@ -1322,6 +1345,13 @@ async function viewArchive(q) {
 
   const selected = parseFacets(q);
   const filtering = selected.length > 0;
+  // The bars come from the index. Reports are loaded only for a filter (the
+  // period shown) and, signed in, for the unread counts of the news window;
+  // older days are listed from the index alone (review K1).
+  if (filtering) await loadReportsRange(start, last);
+  else if (!isGuest()) await loadReportsRange(scopeStart, last);
+  const reports = loadedReports();
+  const byReport = new Map(reports.map((r) => [r.date, r]));
   const inRange = reports.filter((r) => r.date >= start);
   const matchesOn = (d) => { const r = byReport.get(d); return r ? r.events.filter((e) => matchesFacets(e, selected)) : []; };
 
@@ -1436,7 +1466,7 @@ function highlight(text, terms) {
 }
 
 async function viewTopics(q) {
-  const [reports, index] = await Promise.all([loadAllReports(), loadIndex()]);
+  const [reports, index] = await Promise.all([searchableReports(), loadIndex()]);
   ensureScope(index);
   let query = q.get('q') || '';
   let selected = parseFacets(q);
@@ -1473,7 +1503,7 @@ async function viewTopics(q) {
     }
     const terms = query.trim().split(/\s+/).filter(Boolean);
     if (!terms.length && !selected.length) {
-      results.replaceChildren(h('p', { class: 'hint' }, 'Välj ett eller flera områden ovan, eller sök i alla rapporter.'));
+      results.replaceChildren(h('p', { class: 'hint' }, 'Välj ett eller flera områden ovan, eller sök i rapporterna.'), olderReportsNote() || '');
       return;
     }
     const nterms = terms.map(norm);
@@ -1482,6 +1512,7 @@ async function viewTopics(q) {
       h('div', { style: 'display:flex;justify-content:space-between;align-items:baseline;gap:8px' },
         h('h2', { class: 'title-m' }, selected.length ? selected.map(facetLabel).join(' + ') : 'Sökträffar'),
         h('span', { class: 'small muted' }, plural(hits.length, 'träff', 'träffar'))),
+      olderReportsNote(),
       hits.length ? null : h('p', { class: 'muted' }, 'Inga träffar.'),
       hits.slice(0, 100).map(({ r, e, outlets }) => {
         const state = eventState(r.date, e);
@@ -2709,10 +2740,13 @@ async function viewStrikes() {
 
 // ---------------------------------------------------------------- Karta
 async function viewMap(q) {
-  const [reports, index] = await Promise.all([loadAllReports(), loadIndex()]);
-  ensureScope(index);
-  if (!reports.length) return emptyState('Inga rapporter ännu.');
   const period = ['7', '30', 'all'].includes(q.get('p')) ? q.get('p') : '7';
+  const index = await loadIndex();
+  ensureScope(index);
+  if (!index.length) return emptyState('Inga rapporter ännu.');
+  const reports = period === 'all' ? await loadAllReports()
+    : await loadReportsRange(addDays(index[0].date, -(Number(period) - 1)), index[0].date);
+  if (!reports.length) return emptyState('Inga rapporter ännu.');
   const ref = reports[0].date;
   const cutoff = period === 'all' ? '' : addDays(ref, -(Number(period) - 1));
   const byCountry = new Map();
