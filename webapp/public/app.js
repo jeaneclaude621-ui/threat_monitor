@@ -3726,7 +3726,7 @@ function viewAbout() {
       h('p', null, 'Rysk statsmedia och Telegram används inte som nyhetskällor. Under Narrativ visas den ryska sidan bara som våra svenska sammanfattningar, utan länkar dit.'),
       h('h2', { class: 'title-m' }, 'Integritet'),
       h('p', null, guest
-        ? 'Du läser utan att logga in. Hotmonitor sätter inga egna kakor och har ingen spårning; typsnitten hämtas från Google Fonts, som då ser din IP-adress. Vad du har läst sparas bara i den här webbläsaren. Servern ser din IP-adress för att stoppa överbelastning, men den sparas inte med det du läser.'
+        ? 'Du läser utan att logga in. Hotmonitor sätter inga egna kakor, har ingen spårning och hämtar inget från tredje part när du läser. Vad du har läst sparas bara i den här webbläsaren. Servern ser din IP-adress för att stoppa överbelastning, men den sparas inte med det du läser.'
         : 'Du är inloggad med din e-postadress via Cloudflare Access. Adressen syns bara för administratörer.'),
       guest ? h('p', null, h('a', { class: 'btn primary', href: '/login' }, 'Logga in'), ' ',
         h('span', { class: 'small muted' }, 'för notiser och för att bedöma källor (kräver konto).')) : null));

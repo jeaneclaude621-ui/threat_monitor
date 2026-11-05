@@ -659,3 +659,10 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
   A page opened from outside falls back to its tab or Idag. Filters that
   change the address in place keep the way back in step. Service worker
   hm-v3.36.
+
+# Version 3.21 (5 Nov 2026) - fonts from the app itself
+
+- Newsreader and IBM Plex Sans (SIL Open Font License) are served from
+  `/fonts/` (latin, latin-ext, cyrillic), not Google Fonts: reading the
+  app sends nothing to a third party. CSP `style-src 'self'; font-src
+  'self'`. The About page says so. Service worker hm-v3.37.
