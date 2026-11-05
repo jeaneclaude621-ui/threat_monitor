@@ -216,7 +216,9 @@ order, so the new gate is in place before Access opens up:
    page lists the five seeded users; an address not in the list gets 403.
 
 Rate limiting is per Worker isolate (in memory, ~120 requests a minute per
-email, or per IP without a valid login) - no binding or extra setup.
+email; without a valid login 600 a minute per IP, since guests share
+addresses) - no binding or extra setup. The machine is exempt. Being per
+isolate, it does not protect the daily quota: see Version 3.22.
 Security log rows older than 90 days are pruned by the Worker itself.
 
 ## Version 3: push, missing-report alarm, home screen, backup export
@@ -413,13 +415,90 @@ To close it again: set `PUBLIC_READ` to `"0"` and deploy; guests then get
 
 | What | Free plan | What it means here |
 |---|---|---|
-| Worker requests | 100 000 a day, reset 00:00 UTC; over it, error 1027 | Only `/api/*` and `/login` count; the app's files are static assets, free and unlimited. A visit makes about 6-10 API calls, the archive more: roughly 10 000 visits a day. |
-| Worker CPU | 10 ms a request | Guests' answers are cached a minute per isolate and in the browser (`max-age=60`); the first answer is parsed once to replace e-mail addresses. |
+| Worker requests | 100 000 a day, reset 00:00 UTC; over it, error 1027 | `/api/*`, `/login` and (Version 3.22) `/h/*`, `/d/*`, `/feed.xml`, `/sitemap.xml` and `/robots.txt` count; the app's other files are static assets, free and unlimited. Measured (review 5 Nov 2026): a **first visit makes ~47-65 API calls** today, one per report, growing by one a day, until the app fetches only the last 30 days (K1); after that ~6-10. A tab switch costs 0-2, coming back after a minute ~5. That is roughly **1 500 first visits a day** today, not 10 000. |
+| Worker CPU | 10 ms a request | Guests' answers are cached a minute per isolate, in `caches.default` (on a custom domain) and in the browser (`max-age=60`); the first answer is parsed once to replace e-mail addresses. |
 | D1 | 5 million rows read and 100 000 written a day | Guests write nothing; the cache keeps reads to roughly one per path a minute per isolate. |
 | Access | 50 seats | Guests never pass Access and take no seat. |
 
 Above that, Workers Paid is $5 a month (10 million requests). The rate
-limit of 120 requests a minute per IP still applies to guests.
+limit of 600 requests a minute per IP (120 per logged-in person) still
+applies to guests; it is counted per isolate, so it stops a runaway client,
+not a deliberate attempt to empty the quota. For that, see Version 3.22.
+
+## Version 3.22: before the public launch
+
+Code in this version: share links (`/h/<date>/<id>`, `/d/<date>`) with
+Open Graph tags, `/feed.xml`, `/sitemap.xml`, `robots.txt`, access
+requests, pushes in batches of 40, and a guest cache that cannot be
+bypassed with junk query strings and is shared through `caches.default`.
+
+**1. Migration** (from `webapp/`, before the deploy):
+
+```sh
+npm run migrate:remote     # applies 0014_access_requests.sql
+```
+
+Until it has run, `POST /api/access-request` and the admin list answer 500;
+everything else works.
+
+**2. What the owner must do in Cloudflare** (none of it can be done from
+the code). The Worker's own rate limit is per isolate and runs only *after*
+a request has already been counted against the daily 100 000, so a script
+can empty the quota and take the app down for everyone, the Mac's upload
+included, until 00:00 UTC. In order of importance:
+
+1. **Workers Paid during the launch** ($5 a month: 10 million requests a
+   month, 30 s CPU, 1 000 subrequests per invocation). Workers & Pages ->
+   Plans -> Workers Paid. The cheapest insurance against a day offline;
+   it can be cancelled again afterwards.
+2. **A custom domain.** Add a domain you own as a zone (Free plan is
+   enough), then Workers & Pages -> hotmonitor -> Settings -> Domains &
+   Routes -> Add -> Custom domain. Only on a custom domain do the next two
+   steps and the shared cache (`caches.default`) work; on `workers.dev`
+   they cannot be set. Then:
+   - Update the Access application's destinations (`login`,
+     `api/ingest/*`, `api/export/*`) to the new hostname too, and set
+     `HOTMONITOR_URL` on the Mac and in GitHub Actions.
+   - SSL/TLS -> Edge Certificates: *Always Use HTTPS* and **HSTS** on.
+   - **No "Cache Everything" cache rule on `/api/*`**: Cloudflare would
+     ignore `Vary: Cookie` and could hand a logged-in person's answer to a
+     guest. The Worker caches guests' answers itself.
+3. **WAF rate limiting rule** (Security -> WAF -> Rate limiting rules; one
+   rule on Free): *If* URI Path starts with `/api/` *and* not URI Path
+   starts with `/api/ingest/` *and* not URI Path starts with
+   `/api/export/`, *with the same* IP, *when* more than 100 requests in
+   10 seconds, *then* Block for 10 seconds (the longest the Free plan
+   allows). It stops a flood at the edge, before the Worker runs and
+   before it counts. The Mac's paths are left out so an upload is never
+   blocked.
+4. **Bot Fight Mode** (Security -> Bots): on. It challenges known bad
+   bots before the Worker runs. Search engines and link previews (verified
+   bots) still get through.
+5. **Usage alarm at 70 % of the quota**: Notifications -> Add, search for
+   *Workers* and pick the usage alert (on Paid: *Usage Based Billing*);
+   threshold 70 % of the requests, e-mail to the owner. The names in the
+   dashboard change; if no such alert is offered on Free, watch Workers &
+   Pages -> hotmonitor -> Metrics on launch day instead.
+
+**3. Check after the deploy** (no credentials):
+
+```sh
+curl -s $HOTMONITOR_URL/robots.txt                          # Sitemap: <this host>/sitemap.xml
+curl -s $HOTMONITOR_URL/sitemap.xml | head                  # /d/<date> and /h/<date>/<id>
+curl -s $HOTMONITOR_URL/feed.xml | head                     # RSS 2.0
+curl -s $HOTMONITOR_URL/d/$(date +%F) | grep og:            # Open Graph tags
+curl -s -o /dev/null -w "%{http_code}\n" $HOTMONITOR_URL/h/2026-01-01/x   # 404
+```
+
+Paste a `/h/...` link into a chat app or the card validators of the social
+networks to see the preview. A day's own image is used when the deploy has
+`public/og/<date>.png`; otherwise `public/og/default.png`
+(`scripts/make_og_default.py` draws it).
+
+**Pushes** are queued (meta `push_queue`) and sent 40 at a time: the first
+40 at once, the rest by the new cron every ten minutes (`*/10 * * * *`,
+`PUSH_QUEUE_CRON`). With 200 subscribers the last get the push about 40
+minutes later. Systemstatus' last push shows how many are still queued.
 
 ## Deploying from GitHub Actions
 

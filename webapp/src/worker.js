@@ -111,6 +111,11 @@ export default {
       return new Response(null, { status: 302, headers: { Location: '/', 'Cache-Control': 'no-store' } });
     }
     if (!url.pathname.startsWith('/api/')) {
+      // Version 3.22: share links, the feed and the sitemap (run_worker_first).
+      if (request.method === 'GET' || request.method === 'HEAD') {
+        const page = await publicPage(request, env, ctx, url);
+        if (page) return page;
+      }
       return env.ASSETS.fetch(request);
     }
     const req = { request, env, ctx, url, who: null, email: null };
@@ -128,16 +133,25 @@ export default {
   },
 
   // Cron (wrangler.jsonc triggers): DISPATCH_CRON starts the scheduled
-  // runs; the other sends pushes held over the night, then the
-  // missing-report alarm.
+  // runs; PUSH_QUEUE_CRON sends the rest of large pushes; the other sends
+  // pushes held over the night, then the missing-report alarm.
   async scheduled(event, env, ctx) {
     const now = event.scheduledTime || Date.now();
     if (event.cron === DISPATCH_CRON) {
       ctx.waitUntil(startDueRuns(env, now));
       return;
     }
-    ctx.waitUntil(flushDeferredPushes(env, now)
-      .then(() => checkMissingReport(env, now))
+    // Version 3.22: the rest of a large push, PUSH_BATCH at a time.
+    if (event.cron === PUSH_QUEUE_CRON) {
+      ctx.waitUntil(drainPushQueue(env).catch((err) => {
+        console.error('push queue failed', err && err.stack ? err.stack : err);
+      }));
+      return;
+    }
+    const budget = newBudget();
+    ctx.waitUntil(flushDeferredPushes(env, now, budget)
+      .then(() => checkMissingReport(env, now, budget))
+      .then(() => drainPushQueue(env, budget))
       .catch((err) => {
         console.error('scheduled check failed', err && err.stack ? err.stack : err);
       }));
@@ -178,12 +192,22 @@ async function route(req) {
     }
   }
 
+  // Version 3.22: a verified address without an account may ask for one.
+  if (path === '/api/access-request') {
+    allow(method, 'POST');
+    if (id.kind !== 'user') throw new HttpError(403, 'log in with your e-mail address to ask for access');
+    return requestAccess(env, id.email);
+  }
+
   let who;
   try {
     who = id.kind === 'user' ? await userFor(id.email, req) : id;
   } catch (e) {
-    // A verified address without an account reads like everyone else.
-    if (guestOk && e instanceof HttpError && e.status === 403) return guestRead(req, path);
+    // A verified address without an account reads like everyone else,
+    // and /api/me tells the app so (U7), never from the shared cache.
+    if (guestOk && e instanceof HttpError && e.status === 403) {
+      return path === '/api/me' ? meWithoutAccount(env, id.email) : guestRead(req, path);
+    }
     throw e;
   }
   req.who = who;
@@ -448,6 +472,17 @@ async function routeAdmin(req, path, method) {
     return changeUser(env, who, target, { active: false });
   }
 
+  if (path === '/api/admin/access-requests') {
+    allow(method, 'GET');
+    return listAccessRequests(env, url);
+  }
+
+  const ar = path.match(/^\/api\/admin\/access-requests\/([^/]+)$/);
+  if (ar) {
+    allow(method, 'POST');
+    return decideAccessRequest(request, env, who, ar[1]);
+  }
+
   if (path === '/api/admin/security') {
     allow(method, 'GET');
     return securityReport(env, url);
@@ -512,7 +547,7 @@ const PUBLIC_PATHS = new Set(['/api/me', '/api/reports', '/api/assessments', '/a
 const GUEST = Object.freeze({ kind: 'guest' });
 const GUEST_CACHE_MS = 60000;
 const GUEST_CACHE_MAX = 200;
-const guestCache = new Map();   // per isolate: path+query -> {at, body}
+const guestCache = new Map();   // per isolate: normalized path+query -> {at, body}, oldest first
 const EMAIL_IN_TEXT = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 
 function isPublicPath(path) {
@@ -547,21 +582,70 @@ function pseudonymize(data) {
   return walk(data);
 }
 
+// Version 3.22: the cache key keeps only the parameters a public read uses,
+// so /api/reports?x=1, ?x=2 ... cannot each miss and read D1.
+const GUEST_PARAMS = ['side', 'since', 'p'];
+function guestKey(path, search) {
+  const q = new URLSearchParams(search);
+  const kept = new URLSearchParams();
+  for (const k of GUEST_PARAMS) {
+    const v = q.get(k);
+    if (v !== null && v !== '') kept.set(k, v.slice(0, 64));
+  }
+  const s = kept.toString();
+  return s ? `${path}?${s}` : path;
+}
+
+/** Least recently used first out; the whole map is never emptied at once. */
+function guestCachePut(key, entry) {
+  guestCache.delete(key);
+  while (guestCache.size >= GUEST_CACHE_MAX) guestCache.delete(guestCache.keys().next().value);
+  guestCache.set(key, entry);
+}
+
+// The Cache API (caches.default) is shared by every isolate in a data
+// centre. It works on a custom domain; on workers.dev it is a no-op.
+function edgeCache() {
+  try {
+    return typeof caches !== 'undefined' && caches.default ? caches.default : null;
+  } catch {
+    return null;
+  }
+}
+const edgeCacheUrl = (origin, key) => `${origin}/__guest-cache${key}`;
+
 /** A guest's read: the same answer as a user's, without names, cached a minute. */
 async function guestRead(req, path) {
-  const key = path + req.url.search;
+  const key = guestKey(path, req.url.search);
   const now = Date.now();
   const hit = guestCache.get(key);
   let body;
   if (hit && now - hit.at < GUEST_CACHE_MS) {
     body = hit.body;
+    guestCache.delete(key);
+    guestCache.set(key, hit);   // most recently used last
   } else {
-    const res = await dispatch(req, path, req.request.method, GUEST);
-    if (!res.ok) return res;
-    const text = await res.text();
-    body = text === 'null' ? text : JSON.stringify(pseudonymize(JSON.parse(text)));
-    if (guestCache.size >= GUEST_CACHE_MAX) guestCache.clear();
-    guestCache.set(key, { at: now, body });
+    const edge = edgeCache();
+    const edgeReq = edge ? new Request(edgeCacheUrl(req.url.origin, key)) : null;
+    let cached = null;
+    if (edge) {
+      try { cached = await edge.match(edgeReq); } catch { cached = null; }
+    }
+    if (cached) {
+      body = await cached.text();
+    } else {
+      const res = await dispatch(req, path, 'GET', GUEST);
+      if (!res.ok) return res;
+      const text = await res.text();
+      body = text === 'null' ? text : JSON.stringify(pseudonymize(JSON.parse(text)));
+      if (edge) {
+        const put = edge.put(edgeReq, new Response(body, {
+          headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': `public, max-age=${GUEST_CACHE_MS / 1000}` },
+        })).catch(() => {});
+        if (req.ctx && req.ctx.waitUntil) req.ctx.waitUntil(put); else await put;
+      }
+    }
+    guestCachePut(key, { at: now, body });
   }
   const headers = apiHeaders();
   headers['Cache-Control'] = 'public, max-age=60';
@@ -583,6 +667,291 @@ function requireReader(who) {
 function requireMachine(who) {
   if (!who) throw new HttpError(401, 'not authenticated');
   if (who.kind !== 'machine') throw new HttpError(403, 'forbidden');
+}
+
+// ---------------------------------------------------------------------------
+// Public pages (Version 3.22): share links with Open Graph tags
+// ---------------------------------------------------------------------------
+// /h/<date>/<event id> and /d/<date> serve index.html with the event's or
+// the day's title and first sentence in <title> and the Open Graph tags, so
+// a link shared in a chat or on social media shows what it is about. The
+// app turns the path into its own hash route. Rendered pages are cached ten
+// minutes in caches.default; a crawler's preview is one cheap D1 read at most.
+const SITE_NAME = 'Hotmonitor';
+const SITE_TAGLINE = 'AI-sammanställning av ryska hybridhot ur öppna källor';
+const AI_LABEL = 'AI-sammanfattning';
+const PAGE_CACHE_S = 600;
+const FEED_CACHE_S = 900;
+const FEED_DAYS = 14;
+const FEED_MIN_SCORE = 8;
+const SITEMAP_DAYS = 90;
+const EVENT_ID_RE = /^[\w.:-]{1,64}$/;
+const REPORT_CACHE_MAX = 30;
+const reportCache = new Map();   // per isolate: date -> {at, data|null}, oldest first
+
+/** The day's report, parsed, cached ten minutes per isolate; null if none. */
+async function reportData(env, date) {
+  const now = Date.now();
+  const hit = reportCache.get(date);
+  if (hit && now - hit.at < PAGE_CACHE_S * 1000) return hit.data;
+  const row = await env.DB.prepare('SELECT data FROM reports WHERE date = ?').bind(date).first();
+  let data = null;
+  if (row) {
+    try { data = pseudonymize(JSON.parse(row.data)); } catch { data = null; }
+  }
+  reportCache.delete(date);
+  while (reportCache.size >= REPORT_CACHE_MAX) reportCache.delete(reportCache.keys().next().value);
+  reportCache.set(date, { at: now, data });
+  return data;
+}
+
+const clean = (v) => String(v ?? '').replace(EMAIL_IN_TEXT, 'Bedömare').replace(/\s+/g, ' ').trim();
+
+/** The first sentence, at most ~200 characters. */
+function firstSentence(text) {
+  const t = clean(text);
+  if (!t) return '';
+  const m = t.match(/^.+?[.!?](?=\s|$)/);
+  let out = m ? m[0] : t;
+  if (out.length > 200) out = `${out.slice(0, 197).replace(/\s+\S*$/, '')}…`;
+  return out;
+}
+
+const svIndex = (v) => (typeof v === 'number' && Number.isFinite(v) ? v.toFixed(1).replace('.', ',') : null);
+const svDate = (date) => new Date(`${date}T12:00:00Z`).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+/** The event that matters most in a report: highest score first. */
+function topEvent(data) {
+  const events = Array.isArray(data && data.events) ? data.events.filter((e) => e && typeof e === 'object') : [];
+  return events.reduce((best, e) => (typeof e.score === 'number' && (!best || e.score > best.score) ? e : best), null);
+}
+
+function safeDecode(s) {
+  try { return decodeURIComponent(s); } catch { return ''; }
+}
+
+function realDate(date) {
+  if (!DATE_RE.test(date)) return false;
+  const d = new Date(`${date}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === date;
+}
+
+/** Title, description and canonical path for a share path, or null (404). */
+async function shareMeta(env, path) {
+  let m = path.match(/^\/h\/([^/]+)\/([^/]+)$/);
+  if (m) {
+    const date = safeDecode(m[1]);
+    const id = safeDecode(m[2]);
+    if (!realDate(date) || !EVENT_ID_RE.test(id)) return null;
+    const data = await reportData(env, date);
+    const events = Array.isArray(data && data.events) ? data.events : [];
+    const e = events.find((x) => x && x.id === id);
+    if (!e) return null;
+    const title = clean(e.title_sv || e.title).slice(0, 160) || `Händelse ${svDate(date)}`;
+    const first = firstSentence(e.summary_sv) || firstSentence(e.title_sv || e.title);
+    return { title, description: `${first} · ${AI_LABEL} · ${SITE_NAME}`, path: `/h/${date}/${encodeURIComponent(id)}`, date };
+  }
+  m = path.match(/^\/d\/([^/]+)$/);
+  if (m) {
+    const date = safeDecode(m[1]);
+    if (!realDate(date)) return null;
+    const data = await reportData(env, date);
+    if (!data) return null;
+    const idx = svIndex(data.threat_index);
+    const title = `Lägesbild ${svDate(date)}${idx ? ` · hotindex ${idx}` : ''}`;
+    const top = topEvent(data);
+    const first = firstSentence(data.executive_sv && data.executive_sv.top)
+      || firstSentence(data.top_development) || firstSentence(top && (top.summary_sv || top.title_sv));
+    return { title, description: `${first || SITE_TAGLINE} · ${AI_LABEL} · ${SITE_NAME}`, path: `/d/${date}`, date };
+  }
+  return undefined;   // not a share path
+}
+
+const escAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const escXml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+
+/** The day's own image when the deploy has one (public/og/<date>.png), else the default. */
+async function ogImage(env, origin, date) {
+  try {
+    const res = await env.ASSETS.fetch(new Request(`${origin}/og/${date}.png`, { method: 'HEAD' }));
+    if (res.ok && (res.headers.get('Content-Type') || '').startsWith('image/')) return `${origin}/og/${date}.png`;
+  } catch { /* the default below */ }
+  return `${origin}/og/default.png`;
+}
+
+async function indexHtml(env, origin) {
+  return env.ASSETS.fetch(new Request(`${origin}/`, { method: 'GET' }));
+}
+
+async function sharePage(request, env, url, meta) {
+  const page = await indexHtml(env, url.origin);
+  const headers = new Headers(page.headers);
+  headers.delete('Content-Length');
+  headers.delete('ETag');
+  if (!meta) {
+    headers.set('Cache-Control', 'no-store');
+    return new Response(request.method === 'HEAD' ? null : page.body, { status: 404, headers });
+  }
+  headers.set('Cache-Control', `public, max-age=${PAGE_CACHE_S}`);
+  const canonical = `${url.origin}${meta.path}`;
+  const image = await ogImage(env, url.origin, meta.date);
+  const tags = [
+    ['property', 'og:type', 'article'], ['property', 'og:site_name', SITE_NAME], ['property', 'og:locale', 'sv_SE'],
+    ['property', 'og:title', meta.title], ['property', 'og:description', meta.description],
+    ['property', 'og:url', canonical], ['property', 'og:image', image],
+    ['property', 'og:image:width', '1200'], ['property', 'og:image:height', '630'],
+    ['name', 'twitter:card', 'summary_large_image'], ['name', 'twitter:title', meta.title],
+    ['name', 'twitter:description', meta.description], ['name', 'twitter:image', image],
+    ['name', 'ai-generated', 'true'],
+  ].map(([k, n, v]) => `<meta ${k}="${n}" content="${escAttr(v)}">`).join('\n')
+    + `\n<link rel="canonical" href="${escAttr(canonical)}">\n`;
+  const out = new HTMLRewriter()
+    .on('title', { element(el) { el.setInnerContent(`${meta.title} · ${SITE_NAME}`); } })
+    .on('meta[name="description"]', { element(el) { el.setAttribute('content', meta.description); } })
+    .on('head', { element(el) { el.append(tags, { html: true }); } })
+    .transform(new Response(page.body, { status: 200, headers }));
+  return request.method === 'HEAD' ? new Response(null, { status: 200, headers: out.headers }) : out;
+}
+
+/** Serves a public page from caches.default, or builds and stores it. */
+async function cachedPage(request, ctx, url, build) {
+  const edge = edgeCache();
+  const key = `${url.origin}${url.pathname}`;
+  if (edge) {
+    try {
+      const hit = await edge.match(new Request(key));
+      if (hit) return request.method === 'HEAD' ? new Response(null, { status: hit.status, headers: hit.headers }) : hit;
+    } catch { /* build it */ }
+  }
+  const res = await build();
+  if (edge && res.status === 200 && request.method === 'GET') {
+    const [a, b] = res.body ? res.body.tee() : [null, null];
+    const put = edge.put(new Request(key), new Response(b, { status: 200, headers: res.headers })).catch(() => {});
+    if (ctx && ctx.waitUntil) ctx.waitUntil(put); else await put;
+    return new Response(a, { status: 200, headers: res.headers });
+  }
+  return res;
+}
+
+/** The Stockholm date `days` days before today. */
+function daysAgo(days) {
+  const today = stockholmClock(Date.now()).date;
+  return new Date(Date.parse(`${today}T12:00:00Z`) - days * 86400000).toISOString().slice(0, 10);
+}
+
+/** Reports since a date with their events, parsed by D1 (json_each), not here. */
+async function reportsWithEvents(env, since) {
+  const { results } = await env.DB.prepare(
+    `SELECT r.date, r.threat_index, r.top_sv,
+            json_extract(r.data, '$.executive_sv.top') AS exec_top,
+            json_extract(e.value, '$.id') AS id, json_extract(e.value, '$.score') AS score,
+            json_extract(e.value, '$.title_sv') AS title_sv, json_extract(e.value, '$.title') AS title,
+            json_extract(e.value, '$.summary_sv') AS summary_sv
+     FROM reports r LEFT JOIN json_each(r.data, '$.events') e
+     WHERE r.date >= ? ORDER BY r.date DESC`
+  ).bind(since).all();
+  const days = new Map();
+  for (const row of results) {
+    if (!realDate(row.date)) continue;
+    if (!days.has(row.date)) {
+      days.set(row.date, { date: row.date, threat_index: row.threat_index, top: row.exec_top || row.top_sv, events: [] });
+    }
+    if (typeof row.id === 'string' && EVENT_ID_RE.test(row.id)) {
+      days.get(row.date).events.push({ id: row.id, score: row.score, title_sv: row.title_sv, title: row.title, summary_sv: row.summary_sv });
+    }
+  }
+  return [...days.values()];
+}
+
+const rfc822 = (date) => new Date(`${date}T05:00:00Z`).toUTCString();
+
+/** RSS 2.0: the last 14 days' reports and their events scored 8 or more. */
+async function feedXml(env, url) {
+  const o = url.origin;
+  const days = await reportsWithEvents(env, daysAgo(FEED_DAYS - 1));
+  const items = [];
+  const item = (title, link, description, date) => items.push(
+    `<item><title>${escXml(title)}</title><link>${escXml(link)}</link>`
+    + `<guid isPermaLink="true">${escXml(link)}</guid><pubDate>${rfc822(date)}</pubDate>`
+    + `<description>${escXml(description)}</description></item>`);
+  for (const d of days) {
+    const top = topEvent(d);
+    const idx = svIndex(d.threat_index);
+    const headline = clean(top && (top.title_sv || top.title)) || firstSentence(d.top);
+    item(`${idx ? `Hotindex ${idx}` : `Lägesbild ${svDate(d.date)}`}${headline ? ` · ${headline}` : ''}`,
+      `${o}/d/${d.date}`, `${AI_LABEL}: ${firstSentence(d.top) || headline || SITE_TAGLINE}`, d.date);
+    for (const e of d.events) {
+      if (typeof e.score !== 'number' || e.score < FEED_MIN_SCORE) continue;
+      const title = clean(e.title_sv || e.title).slice(0, 160);
+      if (!title) continue;
+      item(`${title} (${Number.isInteger(e.score) ? e.score : svIndex(e.score)}/10)`, `${o}/h/${d.date}/${encodeURIComponent(e.id)}`,
+        `${AI_LABEL}: ${clean(e.summary_sv).slice(0, 1000) || title}`, d.date);
+    }
+  }
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    + '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel>\n'
+    + `<title>${SITE_NAME}</title><link>${o}/</link>`
+    + `<description>${escXml(`${SITE_TAGLINE}. Texterna är AI-genererade och kan innehålla fel.`)}</description>`
+    + `<language>sv</language><ttl>60</ttl>`
+    + `<lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`
+    + `<atom:link href="${o}/feed.xml" rel="self" type="application/rss+xml"/>\n`
+    + items.join('\n') + '\n</channel></rss>\n';
+  return new Response(xml, { status: 200, headers: {
+    'Content-Type': 'application/rss+xml; charset=utf-8',
+    'Cache-Control': `public, max-age=${FEED_CACHE_S}`,
+    'X-Content-Type-Options': 'nosniff',
+  } });
+}
+
+/** Every /d/<date> and /h/<date>/<id> of the last 90 days. */
+async function sitemapXml(env, url) {
+  const o = url.origin;
+  const days = await reportsWithEvents(env, daysAgo(SITEMAP_DAYS - 1));
+  const urls = [`<url><loc>${o}/</loc><changefreq>daily</changefreq></url>`];
+  for (const d of days) {
+    urls.push(`<url><loc>${o}/d/${d.date}</loc><lastmod>${d.date}</lastmod></url>`);
+    for (const e of d.events) urls.push(`<url><loc>${escXml(`${o}/h/${d.date}/${encodeURIComponent(e.id)}`)}</loc><lastmod>${d.date}</lastmod></url>`);
+  }
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls.join('\n') + '\n</urlset>\n';
+  return new Response(xml, { status: 200, headers: {
+    'Content-Type': 'application/xml; charset=utf-8',
+    'Cache-Control': `public, max-age=${FEED_CACHE_S}`,
+    'X-Content-Type-Options': 'nosniff',
+  } });
+}
+
+/** Share links, /feed.xml and /sitemap.xml; null for anything else. */
+async function publicPage(request, env, ctx, url) {
+  const path = url.pathname.replace(/\/+$/, '');
+  const isShare = /^\/[hd]\//.test(path);
+  if (path === '/robots.txt') {
+    // A Sitemap line must be absolute: this host, whatever the domain.
+    const res = await env.ASSETS.fetch(request);
+    if (!res.ok || request.method === 'HEAD') return res;
+    const text = (await res.text()).replace(/^Sitemap: \/sitemap\.xml$/m, `Sitemap: ${url.origin}/sitemap.xml`);
+    const headers = new Headers(res.headers);
+    headers.delete('Content-Length');
+    headers.delete('ETag');
+    return new Response(text, { status: 200, headers });
+  }
+  if (!isShare && path !== '/feed.xml' && path !== '/sitemap.xml') return null;
+  // With the public views off (PUBLIC_READ), nothing is told to the outside.
+  if (env.PUBLIC_READ !== '1') {
+    if (isShare) return sharePage(request, env, url, null).then((r) => new Response(r.body, { status: 200, headers: r.headers }));
+    return new Response('not found', { status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
+  }
+  try {
+    if (isShare) {
+      return await cachedPage(request, ctx, url, async () => sharePage(request, env, url, await shareMeta(env, path)));
+    }
+    if (path === '/feed.xml') return await cachedPage(request, ctx, url, () => feedXml(env, url));
+    return await cachedPage(request, ctx, url, () => sitemapXml(env, url));
+  } catch (err) {
+    console.error('public page failed', err && err.stack ? err.stack : err);
+    if (isShare) return env.ASSETS.fetch(new Request(`${url.origin}/`));
+    return new Response('temporarily unavailable', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '60' } });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -841,20 +1210,118 @@ async function addUser(request, env, actor) {
   if (body.role !== 'admin' && body.role !== 'reader') throw new HttpError(400, "role must be 'admin' or 'reader'");
   if (body.invite !== undefined && typeof body.invite !== 'boolean') throw new HttpError(400, 'invite must be true or false');
 
+  return grantAccess(env, actor, email, body.role, body.invite);
+}
+
+/** Adds a user, or changes an existing one's role or reactivates them.
+ *  invite: undefined mails a new user only, true always, false never. */
+async function grantAccess(env, actor, email, role, invite) {
   const existing = await env.DB.prepare('SELECT role, active FROM users WHERE email = ?').bind(email).first();
   const now = new Date().toISOString();
   if (existing) {
     // Someone already in the list gets mail only when asked for explicitly.
-    if (body.invite === true) await queueInvite(env, actor, email, body.role);
-    if (existing.active && existing.role === body.role) return json(await userRow(env, email), 200);
-    return changeUser(env, actor, email, { role: body.role, active: true });
+    if (invite === true) await queueInvite(env, actor, email, role);
+    if (existing.active && existing.role === role) return json(await userRow(env, email), 200);
+    return changeUser(env, actor, email, { role, active: true });
   }
   await env.DB.prepare(
     'INSERT INTO users (email, role, active, created_at, created_by) VALUES (?, ?, 1, ?, ?)'
-  ).bind(email, body.role, now, actor.email).run();
-  await audit(env, actor.email, 'add', email, { role: body.role });
-  if (body.invite !== false) await queueInvite(env, actor, email, body.role);
+  ).bind(email, role, now, actor.email).run();
+  await audit(env, actor.email, 'add', email, { role });
+  if (invite !== false) await queueInvite(env, actor, email, role);
   return json(await userRow(env, email), 201);
+}
+
+// ---------------------------------------------------------------------------
+// Access requests (Version 3.22)
+// ---------------------------------------------------------------------------
+// Someone who has proved an address through Access but has no account may
+// ask for one. Only the address and the time are kept; an admin approves
+// (a reader account, through grantAccess) or denies.
+const ACCESS_REQUESTS_PER_DAY = 3;
+const ACCESS_REQUESTS_OPEN_MAX = 500;
+const ACCESS_REQUEST_ID_RE = /^[0-9a-f-]{36}$/;
+const ACCESS_REQUEST_FIELDS = 'id, email, ts, status, decided_at, decided_by';
+
+async function latestAccessRequest(env, email) {
+  return env.DB.prepare(
+    `SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests WHERE email = ? ORDER BY ts DESC LIMIT 1`
+  ).bind(email).first();
+}
+
+/** /api/me for a verified address without an account: a guest who may ask. */
+async function meWithoutAccount(env, email) {
+  let request = null;
+  try {
+    const r = await latestAccessRequest(env, email);
+    if (r) request = { status: r.status, ts: r.ts };
+  } catch { /* the table may not be migrated yet */ }
+  return json({
+    email: null, role: 'guest', is_owner: false, alarm: null, refresh: null,
+    verified_no_account: true, access_request: request,
+  });
+}
+
+async function requestAccess(env, email) {
+  if (!EMAIL_RE.test(email)) throw new HttpError(400, 'the verified address is not a valid address');
+  if (email === ownerEmail(env)) throw new HttpError(409, 'this account already has access');
+  const user = await env.DB.prepare('SELECT active FROM users WHERE email = ?').bind(email).first();
+  if (user && user.active) throw new HttpError(409, 'this account already has access');
+
+  const open = await env.DB.prepare(
+    `SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests WHERE email = ? AND status = 'requested' ORDER BY ts DESC LIMIT 1`
+  ).bind(email).first();
+  if (open) return json(open, 200);   // asked already: the same request
+
+  const dayAgo = new Date(Date.now() - 86400000).toISOString();
+  const recent = await env.DB.prepare(
+    'SELECT COUNT(*) AS n FROM access_requests WHERE email = ? AND ts > ?'
+  ).bind(email, dayAgo).first();
+  if (recent && recent.n >= ACCESS_REQUESTS_PER_DAY) throw new HttpError(429, 'too many access requests today', R.rateLimited);
+  const waiting = await env.DB.prepare(
+    "SELECT COUNT(*) AS n FROM access_requests WHERE status = 'requested'"
+  ).first();
+  if (waiting && waiting.n >= ACCESS_REQUESTS_OPEN_MAX) throw new HttpError(503, 'too many open access requests, try later');
+
+  const row = { id: crypto.randomUUID(), email, ts: new Date().toISOString(), status: 'requested', decided_at: null, decided_by: null };
+  await env.DB.prepare(
+    "INSERT INTO access_requests (id, email, ts, status) VALUES (?, ?, ?, 'requested')"
+  ).bind(row.id, row.email, row.ts).run();
+  await audit(env, email, 'access_request', email, null);
+  return json(row, 201);
+}
+
+async function listAccessRequests(env, url) {
+  const status = url.searchParams.get('status');
+  if (status && !['requested', 'approved', 'denied'].includes(status)) {
+    throw new HttpError(400, "status must be 'requested', 'approved' or 'denied'");
+  }
+  const { results } = await (status
+    ? env.DB.prepare(`SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests WHERE status = ? ORDER BY ts DESC LIMIT 500`).bind(status)
+    : env.DB.prepare(`SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests ORDER BY ts DESC LIMIT 500`)
+  ).all();
+  return json(results);
+}
+
+async function decideAccessRequest(request, env, actor, id) {
+  if (!ACCESS_REQUEST_ID_RE.test(id)) throw new HttpError(400, 'bad access request id');
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'body must be a JSON object');
+  if (body.decision !== 'approve' && body.decision !== 'deny') throw new HttpError(400, "decision must be 'approve' or 'deny'");
+  if (body.invite !== undefined && typeof body.invite !== 'boolean') throw new HttpError(400, 'invite must be true or false');
+  const row = await env.DB.prepare(`SELECT ${ACCESS_REQUEST_FIELDS} FROM access_requests WHERE id = ?`).bind(id).first();
+  if (!row) throw new HttpError(404, 'no such access request');
+  if (row.status !== 'requested') throw new HttpError(409, `already ${row.status}`);
+  const status = body.decision === 'approve' ? 'approved' : 'denied';
+  const now = new Date().toISOString();
+  await env.DB.prepare('UPDATE access_requests SET status = ?, decided_at = ?, decided_by = ? WHERE id = ?')
+    .bind(status, now, actor.email, id).run();
+  await audit(env, actor.email, `access_${status}`, row.email, null);
+  const decided = { ...row, status, decided_at: now, decided_by: actor.email };
+  if (status === 'denied') return json({ request: decided, user: null });
+  // The person proved the address when asking; they become a reader.
+  const res = await grantAccess(env, actor, row.email, 'reader', body.invite);
+  return json({ request: decided, user: await res.json() }, 200);
 }
 
 // ---------------------------------------------------------------------------
@@ -1394,6 +1861,8 @@ async function dispatchWorkflow(env, workflow, inputs) {
  * that fails raises an admin alarm.
  */
 async function startDueRuns(env, nowMs) {
+  // Each start is a fetch too: leave room for them under the 50 subrequests.
+  const budget = { left: PUSH_BATCH - Object.keys(RUN_JOBS).length };
   const hour = Math.floor(stockholmClock(nowMs).minutes / 60);
   for (const [job, spec] of Object.entries(RUN_JOBS)) {
     if (!spec.hours.includes(hour)) continue;
@@ -1409,7 +1878,7 @@ async function startDueRuns(env, nowMs) {
         title: `${spec.label} kunde inte startas`,
         body: `Körningen ${String(hour).padStart(2, '0')}:00 startade inte: ${err.message.slice(0, 120)}`,
         url: '/#/admin',
-      }, 'high');
+      }, 'high', budget);
     }
   }
 }
@@ -1444,7 +1913,7 @@ async function getAlarm(env) {
 }
 
 /** Past 07:00 Stockholm time with no report for today: raise the alarm once per date. */
-async function checkMissingReport(env, nowMs) {
+async function checkMissingReport(env, nowMs, budget = newBudget()) {
   const { date, minutes } = stockholmClock(nowMs);
   if (minutes < ALARM_AFTER_MINUTES) return { checked: false, date };
   const report = await env.DB.prepare('SELECT 1 AS ok FROM reports WHERE date = ?').bind(date).first();
@@ -1457,7 +1926,7 @@ async function checkMissingReport(env, nowMs) {
     title: 'Dagens rapport har inte kommit',
     body: `Ingen morgonrapport för ${date} kl. 07:00. Se Systemstatus.`,
     url: '/#/admin',
-  }, 'high');
+  }, 'high', budget);
   return { checked: true, date, missing: true, raised: true };
 }
 
@@ -1599,7 +2068,7 @@ async function getDeferred(env) {
 }
 
 /** Sends the pushes held over quiet hours, once they have ended. */
-async function flushDeferredPushes(env, nowMs) {
+async function flushDeferredPushes(env, nowMs, budget = newBudget()) {
   if (inQuietHours(nowMs)) return { sent: 0, reason: 'quiet hours' };
   const held = await getDeferred(env);
   if (!held.length) return { sent: 0 };
@@ -1607,16 +2076,32 @@ async function flushDeferredPushes(env, nowMs) {
   await env.DB.prepare("DELETE FROM meta WHERE key = 'push_deferred'").run();
   let sent = 0;
   for (const p of held) {
-    const r = await pushTo(env, p.target, p.payload, p.urgency);
+    const r = await pushTo(env, p.target, p.payload, p.urgency, budget);
     sent += r.sent || 0;
   }
   await audit(env, 'system', 'push_deferred_sent', null, { pushes: held.length, sent });
   return { sent };
 }
 
-/** Sends to every matching subscription; dead ones (404/410) are deleted.
+// Version 3.22: one fetch per subscription, and the free plan allows 50
+// subrequests per invocation. So a push is queued (meta 'push_queue', the
+// matching endpoints) and sent PUSH_BATCH at a time: the first batch at
+// once, the rest by PUSH_QUEUE_CRON, every ten minutes. `budget` is shared
+// by every push of one invocation, so together they stay under the limit.
+const PUSH_BATCH = 40;
+const PUSH_QUEUE_CRON = '*/10 * * * *';
+const PUSH_QUEUE_MAX_JOBS = 20;
+const newBudget = () => ({ left: PUSH_BATCH });
+
+async function getPushQueue(env) {
+  const row = await env.DB.prepare("SELECT value FROM meta WHERE key = 'push_queue'").first();
+  if (!row || !row.value) return [];
+  try { const q = JSON.parse(row.value); return Array.isArray(q) ? q : []; } catch { return []; }
+}
+
+/** Queues a push for every matching subscription and sends the first batch.
  *  During quiet hours the push is held until 07:00 instead. */
-async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal') {
+async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal', budget = newBudget()) {
   if (inQuietHours(Date.now())) {
     const held = await getDeferred(env);
     held.push({ target: { adminsOnly, pref }, payload, urgency });
@@ -1630,39 +2115,97 @@ async function pushTo(env, { adminsOnly, pref }, payload, urgency = 'normal') {
   const owner = ownerEmail(env);
   const { results } = await env.DB.prepare(
     adminsOnly
-      ? `SELECT p.* FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
+      ? `SELECT p.endpoint, p.prefs FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
          WHERE p.email = ? OR (u.role = 'admin' AND u.active = 1)`
-      : `SELECT p.* FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
+      : `SELECT p.endpoint, p.prefs FROM push_subscriptions p LEFT JOIN users u ON u.email = p.email
          WHERE p.email = ? OR u.active = 1`
   ).bind(owner).all();
-
-  const vapid = { subject: `mailto:${owner}`, publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY };
   const devAllow = devPushAllow(env);
-  let sent = 0, failed = 0, removed = 0;
+  const endpoints = [];
   for (const s of results) {
     let prefs = {};
     try { prefs = s.prefs ? JSON.parse(s.prefs) : {}; } catch { prefs = {}; }
     if (pref && prefs[pref] === false) continue;
-    // Stored endpoints were checked on subscribe; check again before any request.
+    // Stored endpoints were checked on subscribe; checked again before any request.
     if (!allowedEndpoint(s.endpoint, devAllow)) continue;
+    endpoints.push(s.endpoint);
+  }
+  if (!endpoints.length) {
+    const summary = { at: new Date().toISOString(), title: payload.title, sent: 0, failed: 0, removed: 0, queued: 0 };
+    await setMeta(env, 'last_push', JSON.stringify(summary));
+    return summary;
+  }
+  const queue = await getPushQueue(env);
+  queue.push({ id: crypto.randomUUID(), at: new Date().toISOString(), payload, urgency, endpoints, sent: 0, failed: 0, removed: 0 });
+  await setMeta(env, 'push_queue', JSON.stringify(queue.slice(-PUSH_QUEUE_MAX_JOBS)));
+  return drainPushQueue(env, budget);
+}
+
+/** Sends up to budget.left queued messages, oldest push first; dead
+ *  subscriptions (404/410) are deleted. */
+async function drainPushQueue(env, budget = newBudget()) {
+  if (inQuietHours(Date.now())) return { sent: 0, reason: 'quiet hours' };
+  if (budget.left <= 0) return { sent: 0, reason: 'no budget left' };
+  const queue = await getPushQueue(env);
+  if (!queue.length) return { sent: 0, queued: 0 };
+  if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) return { sent: 0, reason: 'not configured' };
+
+  // Claimed (and written back) before sending, so an overlapping run cannot send twice.
+  const batch = [];
+  for (const job of queue) {
+    while (job.endpoints.length && batch.length < budget.left) batch.push({ job, endpoint: job.endpoints.shift() });
+  }
+  budget.left -= batch.length;
+  await setMeta(env, 'push_queue', JSON.stringify(queue.filter((j) => j.endpoints.length)));
+
+  const subs = new Map();
+  const list = batch.map((b) => b.endpoint);
+  for (let i = 0; i < list.length; i += 40) {
+    const part = list.slice(i, i + 40);
+    const { results } = await env.DB.prepare(
+      `SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE endpoint IN (${part.map(() => '?').join(', ')})`
+    ).bind(...part).all();
+    for (const r of results) subs.set(r.endpoint, r);
+  }
+
+  const owner = ownerEmail(env);
+  const vapid = { subject: `mailto:${owner}`, publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY };
+  const done = new Map();   // job id -> { sent, failed, removed }
+  let sent = 0, failed = 0, removed = 0;
+  for (const { job, endpoint } of batch) {
+    const c = done.get(job.id) || { sent: 0, failed: 0, removed: 0 };
+    done.set(job.id, c);
+    const s = subs.get(endpoint);
+    if (!s) continue;   // unsubscribed since it was queued
     try {
-      const r = await sendPush({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, vapid, { urgency });
-      if (r.ok) sent++;
-      else {
-        failed++;
+      const r = await sendPush({ endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, job.payload, vapid, { urgency: job.urgency });
+      if (r.ok) { sent++; c.sent++; } else {
+        failed++; c.failed++;
         if (r.gone) {
-          await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').bind(s.endpoint).run();
-          removed++;
+          await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').bind(endpoint).run();
+          removed++; c.removed++;
         }
       }
     } catch (err) {
-      failed++;
+      failed++; c.failed++;
       console.error('push send failed', err && err.message);
     }
   }
-  const summary = { at: new Date().toISOString(), title: payload.title, sent, failed, removed };
-  await setMeta(env, 'last_push', JSON.stringify(summary));
-  return summary;
+
+  // Running totals onto the jobs still queued; the last one touched is the summary.
+  const rest = await getPushQueue(env);
+  let summary = null;
+  for (const job of batch.length ? [...new Set(batch.map((b) => b.job))] : []) {
+    const c = done.get(job.id);
+    const left = rest.find((j) => j.id === job.id);
+    const total = { sent: job.sent + c.sent, failed: job.failed + c.failed, removed: job.removed + c.removed };
+    if (left) Object.assign(left, total);
+    summary = { at: new Date().toISOString(), title: job.payload && job.payload.title, ...total, queued: left ? left.endpoints.length : 0 };
+  }
+  if (rest.length) await setMeta(env, 'push_queue', JSON.stringify(rest));
+  if (summary) await setMeta(env, 'last_push', JSON.stringify(summary));
+  const queued = rest.reduce((n, j) => n + j.endpoints.length, 0);
+  return { sent, failed, removed, queued };
 }
 
 // ---------------------------------------------------------------------------
@@ -2227,4 +2770,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
+export const _test = { pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
