@@ -457,7 +457,8 @@ def _sources(entry: dict, refs: dict) -> list:
 
 
 def _news_sources(entry: dict, refs: dict, what: str) -> list:
-    """_sources, but only when at least one is a news source (Version 3.18)."""
+    """_sources, but only when at least one is a news source (Version 3.18):
+    for attacks, follow-ups, unit and equipment changes and other strikes."""
     src = _sources(entry, refs)
     if src and not any(is_news(x) for x in src):
         print(f"  ! Forces: {what} left out - only {', '.join(sorted({x['outlet'] or '?' for x in src}))} as source")
@@ -494,7 +495,7 @@ def apply(state: dict, result: dict, refs: dict, today: date) -> dict:
 
     for f in result.get("follow_ups") or []:
         b = by_id.get(f.get("base")) if ok(f, "text_sv") else None
-        src = _sources(f, refs) if b else []
+        src = _news_sources(f, refs, f"follow-up on {b['name']}") if b else []
         if not src:
             continue
         e = {"date": day, "kind": "uppföljning", "text_sv": _text(f["text_sv"]), "sources": src, "night": day}
@@ -507,7 +508,7 @@ def apply(state: dict, result: dict, refs: dict, today: date) -> dict:
         to = by_id.get(c.get("to_base")) if kind == "flyttat" else None
         if not b or kind not in CHANGE_KINDS or cat not in CATEGORIES or (kind == "flyttat" and (not to or to is b)):
             continue
-        src = _sources(c, refs)
+        src = _news_sources(c, refs, f"change at {b['name']}")
         if not src:
             continue
         what = _text(c["what"], 120)

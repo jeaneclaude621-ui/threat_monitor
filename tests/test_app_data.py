@@ -92,6 +92,43 @@ class RealDates(unittest.TestCase):
         self.assertNotIn("published", ev["articles"][0])
 
 
+class SocialNeverAlone(unittest.TestCase):
+    def test_youtube_alone_is_unverified(self):
+        ev = app_data.enrich_events([event({"ref": "A3", "outlet": "YouTube"})], "2026-11-05", LIST)[0]
+        self.assertEqual([a["outlet"] for a in ev["articles"]], ["YouTube"])
+        self.assertTrue(ev["unverified"])
+
+    def test_youtube_beside_news_is_fine(self):
+        ev = app_data.enrich_events([event({"ref": "A3"}, {"ref": "A1"})], "2026-11-05", LIST)[0]
+        self.assertNotIn("unverified", ev)
+
+
+class SocialNeverAloneInForces(unittest.TestCase):
+    REFS = {"A1": {"url": "https://www.youtube.com/watch?v=x", "outlet": "YouTube", "title": "Video"},
+            "A2": {"url": "https://kyivindependent.com/a", "outlet": "The Kyiv Independent", "title": "Report"}}
+
+    def state(self):
+        base = lambda i: {"id": i, "name": i, "curated": True, "events": [], "changes": [],  # noqa: E731
+                          "units": [], "equipment": ["Su-34"]}
+        return {"bases": [base("Q1"), base("Q2")]}
+
+    def test_follow_ups_and_changes_need_a_news_source(self):
+        from datetime import date
+        import forces
+        st = self.state()
+        result = {"follow_ups": [{"base": "Q1", "text_sv": "Skador bekräftade", "refs": ["A1"]}],
+                  "changes": [{"base": "Q1", "category": "materiel", "what": "Su-34", "kind": "flyttat",
+                               "to_base": "Q2", "text_sv": "Flyttade", "refs": ["A1"]}]}
+        night = forces.apply(st, result, self.REFS, date(2026, 11, 5))
+        self.assertEqual((night["follow_ups"], night["changes"]), ([], []))
+        self.assertEqual(st["bases"][0]["equipment"], ["Su-34"])
+        for part in result.values():
+            part[0]["refs"] = ["A1", "A2"]
+        night = forces.apply(st, result, self.REFS, date(2026, 11, 5))
+        self.assertEqual((len(night["follow_ups"]), len(night["changes"])), (1, 1))
+        self.assertEqual(st["bases"][0]["equipment"], [])
+
+
 class PoolDates(unittest.TestCase):
     def test_since(self):
         from datetime import datetime

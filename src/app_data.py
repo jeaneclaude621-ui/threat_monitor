@@ -137,8 +137,10 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
     `search_results` is the list of articles the model was given. Only an
     article cited by a "ref" (or url) in that list is kept, with the list's
     own link, title and outlet; an article the list does not have is left
-    out, never shown unlinked. An event left with no verified article is
-    kept but gets "unverified": true, which the app shows.
+    out, never shown unlinked. An event left with no verified article - or
+    whose only verified articles are video or social posts
+    (blocklist.is_news) - is kept but gets "unverified": true, which the
+    app shows.
 
     None means: no link check possible (backfill of reports from before
     refs), so the articles are the outlets the model read off the old
@@ -210,7 +212,8 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
         # Same article twice -> once.
         seen = set()
         ev["articles"] = [a for a in clean if not (a["id"] in seen or seen.add(a["id"]))]
-        if ev["articles"]:
+        # Video and social posts may stand beside a news source, never alone (#15).
+        if any(blocklist.is_news(a) for a in ev["articles"]):
             ev.pop("unverified", None)
         else:
             ev["unverified"] = True
