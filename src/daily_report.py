@@ -410,6 +410,7 @@ def evaluate_forecasts(history):
 # news warrants it; what does not make it goes in also_reported.
 SWEEP_ARTICLES, SWEEP_EVENTS, SWEEP_EVENTS_TYPICAL = 450, 10, 6
 RESERVE_SWEEP_ARTICLES, RESERVE_SWEEP_EVENTS = 200, 4
+RESERVE_SWEEP_SMALLER = [(120, 3), (80, 2)]   # when the reserve model's answer is cut off
 ALSO_REPORTED_MAX = 8
 # Days of earlier reports whose events a standing condition may name.
 STANDING_WINDOW_DAYS = 30
@@ -560,14 +561,26 @@ Respond as strict JSON:
         print(f"  ! Main model unavailable for the sweep ({str(e)[:160]}); reduced sweep on the reserve "
               f"model {reserve}: {RESERVE_SWEEP_ARTICLES} articles, at most {RESERVE_SWEEP_EVENTS} events")
     if result is None:
-        result = ask_model_json(build(RESERVE_SWEEP_ARTICLES, RESERVE_SWEEP_EVENTS), system=SYSTEM,
-                                max_tokens=22000, model=reserve, fallback=False)
-        result["events"] = (result.get("events") or [])[:RESERVE_SWEEP_EVENTS]
+        # The reserve model stops short of the main one's output length: a
+        # cut-off answer is tried again smaller (fewer articles and events),
+        # rather than losing the whole morning report.
+        ladder = [(RESERVE_SWEEP_ARTICLES, RESERVE_SWEEP_EVENTS)] + RESERVE_SWEEP_SMALLER
+        for i, (n_articles, n_events) in enumerate(ladder):
+            try:
+                result = ask_model_json(build(n_articles, n_events), system=SYSTEM,
+                                        max_tokens=22000, model=reserve, fallback=False)
+                break
+            except ValueError as e:
+                if i == len(ladder) - 1:
+                    raise
+                nxt = ladder[i + 1]
+                print(f"  ! Reserve sweep cut off ({str(e)[:80]}); again with {nxt[0]} articles, at most {nxt[1]} events")
+        result["events"] = (result.get("events") or [])[:n_events]
         result["sweep_reduced"] = True
     result["events"] = (result.get("events") or [])[:SWEEP_EVENTS]
     by = common.generated_by(mark)
     result["sweep_generated_by"] = {"models": by["models"], "reserve": bool(result.get("sweep_reduced")),
-                                    "articles": RESERVE_SWEEP_ARTICLES if result.get("sweep_reduced") else SWEEP_ARTICLES}
+                                    "articles": n_articles if result.get("sweep_reduced") else SWEEP_ARTICLES}
 
     enforce_bands(result)
     enrich_events(result.get("events", []), date.today().isoformat(), common.LAST_SEARCH_RESULTS,
