@@ -440,6 +440,16 @@ Respond as strict JSON:
 # --------------------------------------------------------------------------
 # Applying the answer
 # --------------------------------------------------------------------------
+# Not news: video and social posts. An attack rests on at least one news
+# source; these may stand beside one but never alone.
+NOT_NEWS = re.compile(r"(youtube|youtu\.be|\bx\.com|twitter|facebook|instagram|tiktok|telegram|\bt\.me\b|"
+                      r"reddit|\bvk\.com|vkontakte|rumble|odysee)", re.I)
+
+
+def is_news(src: dict) -> bool:
+    return not NOT_NEWS.search(f"{src.get('outlet') or ''} {src.get('url') or ''}")
+
+
 def _sources(entry: dict, refs: dict) -> list:
     import news_sources
     out = []
@@ -449,6 +459,15 @@ def _sources(entry: dict, refs: dict) -> list:
             out.append({"url": news_sources.decode_google_link(s["url"]), "outlet": (s.get("outlet") or "")[:100],
                         "title": (s.get("title") or "")[:300]})
     return out[:4]
+
+
+def _news_sources(entry: dict, refs: dict, what: str) -> list:
+    """_sources, but only when at least one is a news source (Version 3.18)."""
+    src = _sources(entry, refs)
+    if src and not any(is_news(x) for x in src):
+        print(f"  ! Forces: {what} left out - only {', '.join(sorted({x['outlet'] or '?' for x in src}))} as source")
+        return []
+    return src
 
 
 def _text(v, n=600) -> str:
@@ -467,7 +486,7 @@ def apply(state: dict, result: dict, refs: dict, today: date) -> dict:
 
     for a in result.get("attacks") or []:
         b = by_id.get(a.get("base")) if ok(a, "text_sv") else None
-        src = _sources(a, refs) if b else []
+        src = _news_sources(a, refs, f"attack on {b['name']}") if b else []
         if not src:
             continue
         when = a.get("date") if isinstance(a.get("date"), str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", a["date"]) else day
@@ -513,7 +532,7 @@ def apply(state: dict, result: dict, refs: dict, today: date) -> dict:
         night["changes"].append({"base": b["id"], **entry})
 
     for o in result.get("other") or []:
-        src = _sources(o, refs) if ok(o, "text_sv", "place") else []
+        src = _news_sources(o, refs, f"strike at {o.get('place')}") if ok(o, "text_sv", "place") else []
         if src:
             when = o.get("date") if isinstance(o.get("date"), str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", o["date"]) else day
             when = min(max(when, (today - timedelta(days=2)).isoformat()), day)
@@ -532,6 +551,68 @@ REGION_BOX = (27.0, 41.0, 180.0, 82.0)   # west, south, east, north
 SITE_CLASSES = {"man_made", "industrial", "landuse", "military", "aeroway", "power", "building", "amenity",
                 "railway", "harbour", "waterway"}
 MAX_LOOKUPS = 15
+OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]
+SITE_RADIUS_M = 25000   # how far from the town's centre the facility may be
+# What kind of target -> OpenStreetMap features that are such a facility.
+# The first kind whose words appear in target_sv or search_name is used.
+SITE_KINDS = [
+    (r"raffinader|refiner|нпз|oljeförädl", ['nwr["industrial"="refinery"]', 'nwr["man_made"="works"]["product"~"oil|petrol|fuel",i]',
+                                            'nwr["man_made"="works"]["name"~"НПЗ|нефтеперераб|refiner",i]',
+                                            'nwr["landuse"="industrial"]["name"~"НПЗ|нефтеперераб|refiner",i]']),
+    (r"oljedepå|oljehubb|oljeterminal|bränsledepå|oil depot|oil terminal|fuel depot|tank farm|нефтебаз|pumping|pumpstation",
+     ['nwr["industrial"~"oil|fuel|depot|tank_farm",i]', 'nwr["landuse"="industrial"]["name"~"нефтебаз|нефте|oil|транснефть",i]',
+      'nwr["man_made"="pumping_station"]["substance"~"oil",i]']),
+    (r"kraftverk|värmeverk|power plant|power station|тэц|грэс|гэс|aэс",
+     ['nwr["power"="plant"]']),
+    (r"transformator|ställverk|substation", ['nwr["power"="substation"]["voltage"~"[0-9]{6}"]']),
+    (r"hamn|port|terminal|kaj", ['nwr["landuse"="port"]', 'nwr["harbour"="yes"]', 'nwr["industrial"="port"]']),
+    (r"flygfält|flygplats|flygbas|airfield|airport|air base|аэродром",
+     ['nwr["aeroway"="aerodrome"]']),
+    (r"ammunition|arsenal|vapendepå|munitions", ['nwr["military"~"ammunition|depot",i]', 'nwr["landuse"="military"]']),
+    (r"fabrik|verkstad|anläggning|factory|plant|works|logistik|lager|warehouse|hub",
+     ['nwr["man_made"="works"]', 'nwr["building"~"warehouse|industrial",i]["name"]', 'nwr["landuse"="industrial"]["name"]']),
+]
+
+
+def _overpass(query: str):
+    data = urllib.parse.urlencode({"data": query}).encode()
+    last = None
+    for url in OVERPASS:
+        try:
+            req = urllib.request.Request(url, data=data, headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return json.loads(r.read().decode("utf-8")).get("elements", [])
+        except Exception as e:
+            last = e
+    raise last
+
+
+def find_site(o: dict, town: dict, overpass=None):
+    """The facility near the town, from OpenStreetMap: the features of the
+    target's kind within SITE_RADIUS_M; a name sharing a word with the
+    search name wins, then the nearest. None when the kind is unknown or
+    nothing is found."""
+    overpass = overpass or _overpass
+    text = f"{o.get('target_sv') or ''} {o.get('search_name') or ''}"
+    selectors = next((sel for words, sel in SITE_KINDS if re.search(words, text, re.I)), None)
+    if not selectors:
+        return None
+    lat, lon = town["lat"], town["lon"]
+    q = "[out:json][timeout:40];(" + "".join(f"{s}(around:{SITE_RADIUS_M},{lat},{lon});" for s in selectors) + ");out center tags 40;"
+    rows = []
+    for el in overpass(q):
+        c = el.get("center") or el
+        if "lat" in c and "lon" in c:
+            rows.append((float(c["lat"]), float(c["lon"]), (el.get("tags") or {}).get("name") or ""))
+    if not rows:
+        return None
+    words = {w.lower() for w in re.findall(r"\w{4,}", o.get("search_name") or "")}
+
+    def score(r):
+        named = any(w in r[2].lower() for w in words) or bool(re.search(r"НПЗ|нефтеперераб|refiner", r[2], re.I))
+        return (not named, km({"lat": lat, "lon": lon}, {"lat": r[0], "lon": r[1]}))
+    best = min(rows, key=score)
+    return {"lat": round(best[0], 5), "lon": round(best[1], 5), "precision": "site", "osm_name": best[2][:120] or None}
 
 
 def _nominatim(q: str):
@@ -541,7 +622,7 @@ def _nominatim(q: str):
     return rows[0] if rows else None
 
 
-def locate_other(state: dict, lookup=None, pause: float = 1.1) -> int:
+def locate_other(state: dict, lookup=None, pause: float = 1.1, overpass=None, again: bool = False) -> int:
     """Coordinates for the recent "other" strikes, from OpenStreetMap's
     Nominatim (one request a second, as its policy asks): the facility when
     OSM knows it ("precision": "site"), else the town ("town"). Cached by
@@ -552,7 +633,7 @@ def locate_other(state: dict, lookup=None, pause: float = 1.1) -> int:
     placed = asked = 0
     for n in state.get("nights", [])[-3:]:
         for o in n.get("other", []):
-            if "lat" in o or not o.get("search_name"):
+            if ("lat" in o and not again) or not o.get("search_name"):
                 continue
             names = [o["search_name"]]
             if "," in o["search_name"]:
@@ -580,7 +661,19 @@ def locate_other(state: dict, lookup=None, pause: float = 1.1) -> int:
                     cache[q] = hit
                 if hit:
                     break
+            # Only the town found: look for the facility itself around it.
+            if hit and hit["precision"] == "town":
+                try:
+                    site = find_site(o, hit, overpass)
+                except Exception as e:
+                    print(f"  ! Places: OpenStreetMap features near {o['place']}: {type(e).__name__}")
+                    site = None
+                if site:
+                    hit = site
             o["lat"], o["lon"], o["precision"] = (hit["lat"], hit["lon"], hit["precision"]) if hit else (None, None, None)
+            if hit and hit.get("osm_name"):
+                o["osm_name"] = hit["osm_name"]
+            print(f"  Places: {o['place']} -> {hit['precision'] + ' ' + (hit.get('osm_name') or '') if hit else 'not found'}")
             placed += bool(hit)
     return placed
 
@@ -619,20 +712,28 @@ def run(report: dict = None, pool=None, dry_run: bool = False):
     system = ("You keep a factual record of Russian military bases and forces "
               "from open reporting, for a Swedish monitor. Strict JSON only.")
     try:
-        result = ask_model_json(prompt_for(state, text, today), max_tokens=6000, system=system)
+        result = _ask_with_retry(prompt_for(state, text, today), system)
     except Exception as e:
         # The main model's daily quota (20 calls, shared with the reports) is
         # spent: the lighter survey model has its own, so the night still runs.
         if "RESOURCE_EXHAUSTED" not in str(e) and "429" not in str(e):
+            _mark_retry(state, today, e)
             survey(state)
             raise
         import forces_survey
         model = forces_survey.survey_model()
         if not model:
+            _mark_retry(state, today, e)
             survey(state)
             raise
         print(f"  ! Forces: main model quota spent; the night runs on {model}")
-        result = ask_model_json(prompt_for(state, text, today), max_tokens=6000, system=system, model=model)
+        try:
+            result = ask_model_json(prompt_for(state, text, today), max_tokens=6000, system=system, model=model)
+        except Exception as e2:
+            _mark_retry(state, today, e2)
+            survey(state)
+            raise
+    state.pop("retry", None)
     night = apply(state, result, refs, today)
     state["nights"] = [n for n in state.get("nights", []) if n["date"] != night["date"]] + [night]
     state["nights"] = state["nights"][-NIGHTS_KEPT:]
@@ -713,6 +814,56 @@ def export_db():
     print(f"{len(db['systems'])} systems, {len(db['units'])} units -> {PUBLIC_FORCES}")
 
 
+RETRY_WAIT_S = 600   # one more try in the same run, ten minutes later
+
+
+def _overloaded(e) -> bool:
+    return any(k in str(e) for k in ("503", "UNAVAILABLE", "overloaded", "high demand", "timed out"))
+
+
+def _ask_with_retry(prompt: str, system: str):
+    """The model call; when Gemini is overloaded (503 on both models), once
+    more after RETRY_WAIT_S. Quota (429) is not waited out here."""
+    import time
+    from common import ask_model_json
+    try:
+        return ask_model_json(prompt, max_tokens=6000, system=system)
+    except Exception as e:
+        if not _overloaded(e):
+            raise
+        print(f"  ! Forces: Gemini overloaded; trying again in {RETRY_WAIT_S // 60} minutes")
+        time.sleep(RETRY_WAIT_S)
+        return ask_model_json(prompt, max_tokens=6000, system=system)
+
+
+def _mark_retry(state: dict, today: date, err) -> None:
+    """The night failed: the 12:00 and 21:00 runs (schedule/run_job.py) try it again."""
+    state["retry"] = {"date": today.isoformat(), "reason": str(err)[:200]}
+    with open(STATE_PATH, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=1)
+
+
+def retry_if_due():
+    """`forces.py retry`: runs the night again when it failed today; otherwise nothing."""
+    st = load()
+    due = (st.get("retry") or {}).get("date") == date.today().isoformat()
+    if not due:
+        return
+    print("  Forces: the night failed earlier today; running it again")
+    run()
+
+
+def relocate(dry_run: bool = True):
+    """`forces.py places [--save]`: places the last nights' other strikes again
+    and prints where (a check of the OpenStreetMap lookups)."""
+    st = load()
+    n = locate_other(st, again=True)
+    print(f"  Places: {n} placed")
+    if not dry_run:
+        with open(STATE_PATH, "w", encoding="utf-8") as f:
+            json.dump(st, f, ensure_ascii=False, indent=1)
+
+
 def run_safe(report: dict = None, pool=None):
     """For daily_report.py: never let this stop the report run."""
     try:
@@ -739,6 +890,10 @@ if __name__ == "__main__":
             from app_sync import push_forces
             merge(st, listed_bases(st))
             push_forces(payload(st))
+    elif len(sys.argv) == 2 and sys.argv[1] == "retry":
+        retry_if_due()
+    elif len(sys.argv) >= 2 and sys.argv[1] == "places":
+        relocate(dry_run="--save" not in sys.argv)
     elif len(sys.argv) >= 2 and sys.argv[1] == "survey":
         ap = argparse.ArgumentParser()
         ap.add_argument("cmd")

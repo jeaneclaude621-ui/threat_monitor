@@ -70,8 +70,9 @@ JOBS = {
     "forces_images": ["src/forces_db_images.py", "job"],
     "repush": ["src/app_sync.py", "repush"],
     "firms_check": ["src/forces_firms.py", "check"],
+    "forces_places": ["src/forces.py", "places"],
 }
-QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check"}   # forces: a manual extra run; the nightly one runs inside daily
+QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check", "forces_places"}   # forces: a manual extra run; the nightly one runs inside daily
 HOST = "cloud"
 
 # Jobs whose output belongs in the code repo, not the state repo: the weekly
@@ -273,6 +274,11 @@ def main() -> int:
         report_run(run)
 
     code, warnings = run_and_watch(JOBS[args.job])
+    if args.job == "hourly":
+        # The forces night failed this morning (Gemini overloaded): try it
+        # again now; `forces.py retry` does nothing when it did not.
+        _, more = run_and_watch(["src/forces.py", "retry"])
+        warnings = warnings + more
     if code != 0:
         log(f"! {args.job} exited with code {code}")
     if not args.test:

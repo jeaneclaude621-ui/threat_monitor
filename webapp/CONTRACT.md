@@ -628,6 +628,15 @@ articles it reads (`src/news_sources.py`). Admins can add to what is read.
 - The nightly search looks for the bases by their English spelling
   (romanised from the Russian name), not the Swedish display name, and
   for Ukraine's strikes on refineries, depots, factories, power and ports.
+- `other` entries found only at their town are looked for again among
+  OpenStreetMap's features of the target's kind within 25 km (Overpass:
+  refineries, oil depots, power plants, ports, airfields, works ...); a
+  find gives `precision` "site" and `osm_name`.
+- An attack (on a base or elsewhere) needs at least one news source:
+  YouTube, X, Telegram and other social posts never stand alone.
+- When Gemini is overloaded the nightly forces call is tried once more ten
+  minutes later; if that fails too, the 12:00 and 21:00 runs try the night
+  again (`forces.py retry`).
 - App: every attack has a "Satellitkarta, bränder" button that opens NASA
   FIRMS's map at the place, on the attack day and the next. Styrkor shows
   the week's other strikes. Service worker hm-v3.33.
