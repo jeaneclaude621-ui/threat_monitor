@@ -785,7 +785,7 @@ def prune_known(ev: dict) -> int:
     out = []
     for x in ev["known_sv"]:
         if isinstance(x, dict):
-            refs = [r for r in x.get("refs") or [] if r in ids]
+            refs = [r for r in x.get("refs") or [] if isinstance(r, str) and r in ids]
             if not refs:
                 continue
             x = {**x, "refs": refs}

@@ -258,7 +258,7 @@ Respond as strict JSON:
                             "authorities and NATO say. Strict JSON only.", max_tokens=6000)
 
     def build(it, label):
-        cited = [refs[r] for r in it.get("refs") or [] if r in refs]
+        cited = [refs[r] for r in it.get("refs") or [] if isinstance(r, str) and r in refs]
         if not cited or not isinstance(it.get("text_sv"), str):
             return None
         # Drop it when every source's address dates it before the window.

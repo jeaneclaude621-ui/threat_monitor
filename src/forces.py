@@ -452,7 +452,7 @@ def _sources(entry: dict, refs: dict) -> list:
     import news_sources
     out = []
     for r in entry.get("refs") or []:
-        if r in refs and refs[r].get("url"):
+        if isinstance(r, str) and r in refs and refs[r].get("url"):
             s = refs[r]
             out.append({"url": news_sources.decode_google_link(s["url"]), "outlet": (s.get("outlet") or "")[:100],
                         "title": (s.get("title") or "")[:300]})

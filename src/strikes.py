@@ -323,7 +323,7 @@ def _prelim_night(n: dict, missing: list, refs: dict):
         t["destroyed"] += destroyed or 0
     if not rows:
         return None
-    sources = [refs[r] for r in n.get("refs") or [] if r in refs and refs[r].get("url")][:4]
+    sources = [refs[r] for r in n.get("refs") or [] if isinstance(r, str) and r in refs and refs[r].get("url")][:4]
     if not sources:
         return None
     return {"date": n["date"], "rows": rows, "totals": totals, "preliminary": True, "sources": sources}

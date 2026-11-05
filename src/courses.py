@@ -157,7 +157,8 @@ def apply(current: list, result: dict, refs: dict, today: str) -> list:
         for s in old["signs"]:
             got = statuses.get(s["id"], {})
             status = got.get("status") if got.get("status") in STATUSES else "inte observerat"
-            cited = [refs[r] for r in got.get("refs") or [] if r in refs]
+            # The reserve model sometimes answers refs as objects: only plain ids count.
+            cited = [refs[r] for r in got.get("refs") or [] if isinstance(r, str) and r in refs]
             signs.append({**s, "status": status,
                           "refs": [{"kind": k, "id": i, "date": d} for k, i, d in cited][:5],
                           "first_seen": s.get("first_seen") or (today if status != "inte observerat" else None)})
