@@ -731,14 +731,38 @@ def drop_repeated_articles(events: list, recent: list):
         return _norm_url(url) + ("#" + url.split("#", 1)[1] if "#" in url else "")
     cited = {key(a["url"]) for _, r in recent for e in r.get("events", [])
              for a in e.get("articles", []) if a.get("url")}
-    dropped = 0
+    dropped = sentences = 0
     for ev in events:
         fresh = [a for a in ev.get("articles", []) if not (a.get("url") and key(a["url"]) in cited)]
         if fresh and len(fresh) < len(ev.get("articles", [])):
             dropped += len(ev["articles"]) - len(fresh)
             ev["articles"] = fresh
+            sentences += prune_known(ev)
     if dropped:
         print(f"  Left out {dropped} article(s) already cited in the last {REPEAT_WINDOW_DAYS} days' reports")
+    if sentences:
+        print(f"  Left out {sentences} known_sv sentence(s) whose refs were all among them")
+
+
+def prune_known(ev: dict) -> int:
+    """known_sv {text, refs} after articles were taken out of the event:
+    refs to articles no longer on it are dropped, and a sentence left
+    with no ref is dropped. Plain strings (reports from before refs) are
+    kept. Returns how many sentences were dropped."""
+    if not isinstance(ev.get("known_sv"), list):
+        return 0
+    ids = {a.get("id") for a in ev.get("articles", [])}
+    out = []
+    for x in ev["known_sv"]:
+        if isinstance(x, dict):
+            refs = [r for r in x.get("refs") or [] if r in ids]
+            if not refs:
+                continue
+            x = {**x, "refs": refs}
+        out.append(x)
+    n = len(ev["known_sv"]) - len(out)
+    ev["known_sv"] = out
+    return n
 
 
 RECALIBRATION_PATH = common.DATA_DIR / "recalibration.json"
