@@ -558,13 +558,18 @@ SITE_RADIUS_M = 20000   # how far from the town's centre the facility may be
 # A specific kind (a refinery, a power plant, an airfield) may be taken
 # without a name match when it is the only one around; the rest only by name.
 SPECIFIC = {"refinery", "power", "aerodrome"}
+# Names that say the kind ("Рязанский НПЗ"): among several features, these come first.
+KIND_NAMES = {"refinery": r"НПЗ|нефтеперераб|refiner|нефтехим",
+              "oil": r"нефтебаз|нефтепрод|нефт|транснефт|oil|fuel|ГСМ",
+              "power": r"ТЭЦ|ГРЭС|ГЭС|АЭС|электростан|power"}
 SITE_KINDS = [
-    ("refinery", r"raffinader|refiner|нпз|oljeförädl", ['nwr["industrial"="refinery"]', 'nwr["man_made"="works"]["product"~"oil|petrol|fuel",i]',
-                                            'nwr["man_made"="works"]["name"~"НПЗ|нефтеперераб|refiner",i]',
-                                            'nwr["landuse"="industrial"]["name"~"НПЗ|нефтеперераб|refiner",i]']),
+    # Light queries (no name patterns on the server, which timed out around
+    # a city): named industrial areas come back and are sorted here.
+    ("refinery", r"raffinader|refiner|нпз|oljeförädl", ['nwr["industrial"="refinery"]', 'wr["man_made"="works"]["name"]',
+                                                        'wr["landuse"="industrial"]["name"]']),
     ("oil", r"oljedepå|oljehubb|oljeterminal|bränsledepå|oil depot|oil terminal|fuel depot|tank farm|нефтебаз|pumping|pumpstation",
-     ['nwr["industrial"~"oil|fuel|depot|tank_farm",i]', 'nwr["landuse"="industrial"]["name"~"нефтебаз|нефте|oil|транснефть",i]',
-      'nwr["man_made"="pumping_station"]["substance"~"oil",i]']),
+     ['nwr["industrial"~"oil|fuel|depot|tank_farm"]', 'wr["landuse"="industrial"]["name"]',
+      'nwr["man_made"="pumping_station"]']),
     ("power", r"kraftverk|värmeverk|power plant|power station|тэц|грэс|гэс|aэс",
      ['nwr["power"="plant"]']),
     ("substation", r"transformator|ställverk|substation", ['nwr["power"="substation"]["voltage"~"[0-9]{6}"]']),
@@ -613,7 +618,7 @@ def find_site(o: dict, town: dict, overpass=None):
     if not selectors:
         return None
     lat, lon = town["lat"], town["lon"]
-    q = "[out:json][timeout:60];(" + "".join(f"{s}(around:{SITE_RADIUS_M},{lat},{lon});" for s in selectors) + ");out center tags 60;"
+    q = "[out:json][timeout:60];(" + "".join(f"{s}(around:{SITE_RADIUS_M},{lat},{lon});" for s in selectors) + ");out center tags 300;"
     rows, seen = [], set()
     for el in overpass(q):
         c = el.get("center") or el
@@ -625,6 +630,14 @@ def find_site(o: dict, town: dict, overpass=None):
         return None
     words = {w for w in re.findall(r"[a-z]{4,}", _latin(o.get("search_name") or "")) if w not in GENERIC_WORDS}
     dist = lambda r: km({"lat": lat, "lon": lon}, {"lat": r[0], "lon": r[1]})
+    # Features whose name says the kind; for a refinery or a power plant only
+    # those count, as the query also brings every named industrial area.
+    if kind in KIND_NAMES:
+        kinded = [r for r in rows if re.search(KIND_NAMES[kind], r[2], re.I)]
+        tagged_only = [r for r in rows if not r[2]] if kind in SPECIFIC else []
+        rows = kinded or (tagged_only if kind in SPECIFIC else [])
+        if not rows:
+            return None
     named = [r for r in rows if r[2] and any(w[:6] in _latin(r[2]) for w in words)]
     if named:
         best = min(named, key=dist)
