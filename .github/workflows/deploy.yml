@@ -12,6 +12,12 @@ on:
   push:
     branches: [main]
     paths: ["webapp/**"]
+  # The morning run commits the day's shareable image with the workflow's own
+  # token, which starts no push workflow: deploy after it instead.
+  workflow_run:
+    workflows: ["Scheduled jobs"]
+    types: [completed]
+    branches: [main]
 
 concurrency:
   group: deploy-webapp

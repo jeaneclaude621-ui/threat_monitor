@@ -330,6 +330,12 @@ def main() -> int:
         # again now; `forces.py retry` does nothing when it did not.
         _, more = run_and_watch(["src/forces.py", "retry"])
         warnings = warnings + more
+    if args.job == "daily" and code == 0 and not args.test:
+        # The day's shareable image (src/og_image.py), into the code repo so
+        # the next deploy (deploy.yml runs after this workflow) serves it.
+        og, _ = run_and_watch(JOBS["og_image"])
+        if og == 0:
+            commit_code("og_image", f"Shareable image for {now:%Y-%m-%d}")
     if code != 0:
         log(f"! {args.job} exited with code {code}")
     if not args.test:
