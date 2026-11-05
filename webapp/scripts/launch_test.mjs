@@ -115,11 +115,12 @@ const report = {
 };
 db.reports.set(today, { date: today, threat_index: 6.4, threat_index_30d: 6.0, top_sv: report.executive_sv.top, data: JSON.stringify(report) });
 
+const assetImages = new Set();   // og images the 'deploy' has
 const INDEX_HTML = '<!doctype html><html lang="sv"><head><meta charset="utf-8"><title>Hotmonitor</title>'
   + '<meta name="description" content="Daglig bedömning."></head><body><main id="view"><p>Laddar…</p></main></body></html>';
 const env = {
   PUBLIC_READ: '1', TEAM_DOMAIN: 'team.cloudflareaccess.com', ACCESS_AUD: 'aud', DB: db,
-  ASSETS: { fetch: async (req) => new Response(new URL(req.url).pathname === '/' ? INDEX_HTML
+  ASSETS: { fetch: async (req) => assetImages.has(new URL(req.url).pathname) ? new Response(null, { headers: { 'Content-Type': 'image/png' } }) : new Response(new URL(req.url).pathname === '/' ? INDEX_HTML
     : new URL(req.url).pathname === '/robots.txt' ? (await import('node:fs')).readFileSync(new URL('../public/robots.txt', import.meta.url), 'utf8') : 'asset', { headers: { 'Content-Type': 'text/html; charset=utf-8' } }) },
 };
 
@@ -536,6 +537,30 @@ expect('only GET', r.status, 405);
   expect('push still goes out without 0015', pr.sent, 1);
   Date.now = realNow; globalThis.fetch = realFetch;
 }
+
+// --- Shareable images (Version 3.24) ---------------------------------------------
+edgeStore.clear();
+assetImages.add(`/og/${today}.png`);
+r = await get(`/d/${today}`);
+expect('day page uses the day\'s image when deployed', metaOf(await r.text(), 'og:image'), `${ORIGIN}/og/${today}.png`);
+r = await get(`/h/${today}/${today}-e1`);
+expect('event page uses the day\'s image', metaOf(await r.text(), 'og:image'), `${ORIGIN}/og/${today}.png`);
+r = await get('/');
+let home = await r.text();
+expect('start page: default image without latest.png', metaOf(home, 'og:image'), `${ORIGIN}/og/default.png`);
+edgeStore.clear();
+assetImages.add('/og/latest.png');
+r = await get('/');
+home = await r.text();
+expect('start page 200', r.status, 200);
+expect('start page: og/latest.png', metaOf(home, 'og:image'), `${ORIGIN}/og/latest.png`);
+expect('start page: og:type website', metaOf(home, 'og:type'), 'website');
+expect('start page keeps its <title>', home.match(/<title>([^<]*)<\/title>/)[1], 'Hotmonitor');
+expect('start page canonical /', (home.match(/<link rel="canonical" href="([^"]*)"/) || [])[1], `${ORIGIN}/`);
+expect('start page: no SSR article', home.includes('id="ssr"'), false);
+expect('start page: short browser cache', r.headers.get('cache-control'), 'public, max-age=60');
+r = await worker.fetch(new Request(`${ORIGIN}/`), { ...env, PUBLIC_READ: '0' }, { waitUntil: () => {} });
+expect('PUBLIC_READ off: start page untouched', (await r.text()).includes('og:image'), false);
 
 console.log(`\nlaunch_test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

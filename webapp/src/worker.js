@@ -778,6 +778,7 @@ const SITE_NAME = 'Hotmonitor';
 const SITE_TAGLINE = 'AI-sammanställning av ryska hybridhot ur öppna källor';
 const AI_LABEL = 'AI-sammanfattning';
 const PAGE_CACHE_S = 600;
+const HOME_CACHE_S = 60;   // the app's own page: a deploy shows within a minute
 const FEED_CACHE_S = 900;
 const FEED_DAYS = 14;
 const FEED_MIN_SCORE = 8;
@@ -912,10 +913,12 @@ const escAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').
 const escXml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 
 /** The day's own image when the deploy has one (public/og/<date>.png), else the default. */
-async function ogImage(env, origin, date) {
+// The morning run deploys public/og/<date>.png and og/latest.png. A missing
+// file answers index.html (single-page fallback), hence the type check.
+async function ogImage(env, origin, name) {
   try {
-    const res = await env.ASSETS.fetch(new Request(`${origin}/og/${date}.png`, { method: 'HEAD' }));
-    if (res.ok && (res.headers.get('Content-Type') || '').startsWith('image/')) return `${origin}/og/${date}.png`;
+    const res = await env.ASSETS.fetch(new Request(`${origin}/og/${name}.png`, { method: 'HEAD' }));
+    if (res.ok && (res.headers.get('Content-Type') || '').startsWith('image/')) return `${origin}/og/${name}.png`;
   } catch { /* the default below */ }
   return `${origin}/og/default.png`;
 }
@@ -933,11 +936,11 @@ async function sharePage(request, env, url, meta) {
     headers.set('Cache-Control', 'no-store');
     return new Response(request.method === 'HEAD' ? null : page.body, { status: 404, headers });
   }
-  headers.set('Cache-Control', `public, max-age=${PAGE_CACHE_S}`);
+  headers.set('Cache-Control', `public, max-age=${meta.maxAge || PAGE_CACHE_S}`);
   const canonical = `${url.origin}${meta.path}`;
-  const image = await ogImage(env, url.origin, meta.date);
+  const image = await ogImage(env, url.origin, meta.image || meta.date);
   const tags = [
-    ['property', 'og:type', 'article'], ['property', 'og:site_name', SITE_NAME], ['property', 'og:locale', 'sv_SE'],
+    ['property', 'og:type', meta.type || 'article'], ['property', 'og:site_name', SITE_NAME], ['property', 'og:locale', 'sv_SE'],
     ['property', 'og:title', meta.title], ['property', 'og:description', meta.description],
     ['property', 'og:url', canonical], ['property', 'og:image', image],
     ['property', 'og:image:width', '1200'], ['property', 'og:image:height', '630'],
@@ -947,7 +950,7 @@ async function sharePage(request, env, url, meta) {
   ].map(([k, n, v]) => `<meta ${k}="${n}" content="${escAttr(v)}">`).join('\n')
     + `\n<link rel="canonical" href="${escAttr(canonical)}">\n`;
   const out = new HTMLRewriter()
-    .on('title', { element(el) { el.setInnerContent(`${meta.title} · ${SITE_NAME}`); } })
+    .on('title', { element(el) { el.setInnerContent(meta.title === SITE_NAME ? SITE_NAME : `${meta.title} · ${SITE_NAME}`); } })
     .on('meta[name="description"]', { element(el) { el.setAttribute('content', meta.description); } })
     .on('head', { element(el) { el.append(tags, { html: true }); } })
     .on('main#view', { element(el) { if (meta.article) el.setInnerContent(meta.article, { html: true }); } })
@@ -1067,6 +1070,18 @@ async function sitemapXml(env, url) {
 async function publicPage(request, env, ctx, url) {
   const path = url.pathname.replace(/\/+$/, '');
   const isShare = /^\/[hd]\//.test(path);
+  // Version 3.24: the start page shows the latest shareable image when shared.
+  if (url.pathname === '/' && env.PUBLIC_READ === '1') {
+    try {
+      return await cachedPage(request, ctx, url, () => sharePage(request, env, url, {
+        title: SITE_NAME, type: 'website', path: '/', image: 'latest', maxAge: HOME_CACHE_S,
+        description: `${SITE_TAGLINE}, varje morgon. · ${AI_LABEL} · ${SITE_NAME}`,
+      }));
+    } catch (err) {
+      console.error('start page failed', err && err.stack ? err.stack : err);
+      return env.ASSETS.fetch(request);
+    }
+  }
   if (path === '/robots.txt') {
     // A Sitemap line must be absolute: this host, whatever the domain.
     const res = await env.ASSETS.fetch(request);

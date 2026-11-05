@@ -783,3 +783,20 @@ For the app (another session):
 - Guests' first view: read `/api/public/latest` instead of `/api/reports`
   plus `/api/reports/<newest>`, and fetch older reports only when needed.
 - Give `#ssr` styles if wanted; it is visible only until the app renders.
+
+# Version 3.24 (5 Nov 2026) - the day's shareable image
+
+- The morning run deploys `public/og/<date>.png` and `og/latest.png`.
+  `/d/<date>` and `/h/<date>/<id>` use `/og/<date>.png` as `og:image`
+  when that file exists (checked with a HEAD through `env.ASSETS`), else
+  `/og/default.png`.
+- The start page `/` now runs through the Worker (`run_worker_first`):
+  `index.html` with `og:type` `website`, `og:title` Hotmonitor, the
+  tagline and AI label as description, `og:image` `/og/latest.png` (or the
+  default), `twitter:card` and canonical `/`. `<title>` is unchanged and
+  there is no `#ssr` article. `Cache-Control: public, max-age=60`, and
+  cached a minute in `caches.default`. With `PUBLIC_READ` off it is the
+  plain asset. Cost: one Worker request per app start (hash routes do not
+  reload the page).
+- Workers' sources blocklist matches `src/blocklist.py`; access requests
+  and guest push answer 503 naming the migration until 0014/0015 have run.
