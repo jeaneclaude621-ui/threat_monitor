@@ -2897,12 +2897,11 @@ async function viewForces() {
       h('div', { class: 'kicker' }, `Lägesbild ${dateShort(data.date)}`),
       h('h1', { class: 'title-xl' }, 'Ryska styrkor'))),
     forcesSeg(false),
-    night ? h('section', { class: 'card card-pad' },
-      h('h2', { class: 'fsub' }, `Senaste dygnet (natten till ${dateShort(night.date)})`),
+    // Folded to their headings so the map fits on the first screen; a tap opens them.
+    night ? foldCard('night', `Senaste dygnet (natten till ${dateShort(night.date)})`, nightRows.length ? plural(nightRows.length, 'notering', 'noteringar') : null,
       night.summary_sv ? h('p', { class: 'body-sm' }, night.summary_sv) : null,
       nightRows.length ? h('ul', { class: 'coa-signs' }, nightRows) : h('p', { class: 'small muted' }, 'Inget nytt rapporterat om baserna eller styrkorna.')) : null,
-    otherWeek.length ? h('section', { class: 'card card-pad' },
-      h('h2', { class: 'fsub' }, 'Andra anfall i Ryssland och ockuperade områden, senaste veckan'),
+    otherWeek.length ? foldCard('other', 'Andra anfall i Ryssland och ockuperade områden, senaste veckan', String(otherWeek.length),
       h('p', { class: 'small muted' }, 'Raffinaderier, depåer, fabriker, hamnar och andra mål utanför baslistan. Satellitkartan visar NASA:s brandpunkter på platsen dagen för anfallet och dagen efter.'),
       h('ul', { class: 'coa-signs' }, otherWeek.map(otherStrikeRow))) : null,
     h('p', { class: 'small muted' }, `${bases.length} baser: ${counts.anfallen} anfallna senaste 30 dagarna, ${counts.aktiv} med kända förband, ${counts['okänd']} bara position.`),
@@ -2914,6 +2913,16 @@ async function viewForces() {
     info, detail, list,
     h('p', { class: 'notice' }, 'Uppdateras varje natt efter morgonrapporten. AI läser senaste dygnets öppna rapportering (inte rysk statsmedia) och noterar anfall mot baser, uppföljningar och ändringar i förband och materiel, alltid med källa. ',
       'Baspositioner från Wikidata och grunddatabasen; förband och materiel utgår från öppna källor (Wikipedia, ukrainska och västliga medier). Tryck på ett förband eller ett system för mer. Bilder från Wikimedia Commons under fri licens. Inte verifierat. Påverkar inte index.'));
+}
+
+// A card folded to its heading (Styrkor); remembers being open while the app runs.
+const foldOpen = new Set();
+function foldCard(key, title, count, ...body) {
+  const d = h('details', { class: 'card fold', open: foldOpen.has(key) || null,
+    ontoggle: (ev) => { if (ev.currentTarget.open) foldOpen.add(key); else foldOpen.delete(key); } },
+  h('summary', null, h('h2', { class: 'fsub fold-h' }, title), count ? h('span', { class: 'small muted' }, count) : null, chevDown()),
+  h('div', { class: 'fold-body' }, ...body));
+  return d;
 }
 
 // ---------------------------------------------------------------- strike map (Version 3.13)
