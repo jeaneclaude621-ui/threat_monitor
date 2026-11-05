@@ -9,8 +9,9 @@
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    // /h/* and /d/* are share links with Open Graph tags (Version 3.22).
-    "run_worker_first": ["/api/*", "/login", "/h/*", "/d/*"],
+    // /h/* and /d/* are share links with Open Graph tags, /feed.xml the RSS
+    // feed (Version 3.22).
+    "run_worker_first": ["/api/*", "/login", "/h/*", "/d/*", "/feed.xml"],
     "not_found_handling": "single-page-application"
   },
   "d1_databases": [

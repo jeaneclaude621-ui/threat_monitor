@@ -799,11 +799,81 @@ async function cachedPage(request, ctx, url, build) {
   return res;
 }
 
+/** The Stockholm date `days` days before today. */
+function daysAgo(days) {
+  const today = stockholmClock(Date.now()).date;
+  return new Date(Date.parse(`${today}T12:00:00Z`) - days * 86400000).toISOString().slice(0, 10);
+}
+
+/** Reports since a date with their events, parsed by D1 (json_each), not here. */
+async function reportsWithEvents(env, since) {
+  const { results } = await env.DB.prepare(
+    `SELECT r.date, r.threat_index, r.top_sv,
+            json_extract(r.data, '$.executive_sv.top') AS exec_top,
+            json_extract(e.value, '$.id') AS id, json_extract(e.value, '$.score') AS score,
+            json_extract(e.value, '$.title_sv') AS title_sv, json_extract(e.value, '$.title') AS title,
+            json_extract(e.value, '$.summary_sv') AS summary_sv
+     FROM reports r LEFT JOIN json_each(r.data, '$.events') e
+     WHERE r.date >= ? ORDER BY r.date DESC`
+  ).bind(since).all();
+  const days = new Map();
+  for (const row of results) {
+    if (!realDate(row.date)) continue;
+    if (!days.has(row.date)) {
+      days.set(row.date, { date: row.date, threat_index: row.threat_index, top: row.exec_top || row.top_sv, events: [] });
+    }
+    if (typeof row.id === 'string' && EVENT_ID_RE.test(row.id)) {
+      days.get(row.date).events.push({ id: row.id, score: row.score, title_sv: row.title_sv, title: row.title, summary_sv: row.summary_sv });
+    }
+  }
+  return [...days.values()];
+}
+
+const rfc822 = (date) => new Date(`${date}T05:00:00Z`).toUTCString();
+
+/** RSS 2.0: the last 14 days' reports and their events scored 8 or more. */
+async function feedXml(env, url) {
+  const o = url.origin;
+  const days = await reportsWithEvents(env, daysAgo(FEED_DAYS - 1));
+  const items = [];
+  const item = (title, link, description, date) => items.push(
+    `<item><title>${escXml(title)}</title><link>${escXml(link)}</link>`
+    + `<guid isPermaLink="true">${escXml(link)}</guid><pubDate>${rfc822(date)}</pubDate>`
+    + `<description>${escXml(description)}</description></item>`);
+  for (const d of days) {
+    const top = topEvent(d);
+    const idx = svIndex(d.threat_index);
+    const headline = clean(top && (top.title_sv || top.title)) || firstSentence(d.top);
+    item(`${idx ? `Hotindex ${idx}` : `Lägesbild ${svDate(d.date)}`}${headline ? ` · ${headline}` : ''}`,
+      `${o}/d/${d.date}`, `${AI_LABEL}: ${firstSentence(d.top) || headline || SITE_TAGLINE}`, d.date);
+    for (const e of d.events) {
+      if (typeof e.score !== 'number' || e.score < FEED_MIN_SCORE) continue;
+      const title = clean(e.title_sv || e.title).slice(0, 160);
+      if (!title) continue;
+      item(`${title} (${Number.isInteger(e.score) ? e.score : svIndex(e.score)}/10)`, `${o}/h/${d.date}/${encodeURIComponent(e.id)}`,
+        `${AI_LABEL}: ${clean(e.summary_sv).slice(0, 1000) || title}`, d.date);
+    }
+  }
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    + '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel>\n'
+    + `<title>${SITE_NAME}</title><link>${o}/</link>`
+    + `<description>${escXml(`${SITE_TAGLINE}. Texterna är AI-genererade och kan innehålla fel.`)}</description>`
+    + `<language>sv</language><ttl>60</ttl>`
+    + `<lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`
+    + `<atom:link href="${o}/feed.xml" rel="self" type="application/rss+xml"/>\n`
+    + items.join('\n') + '\n</channel></rss>\n';
+  return new Response(xml, { status: 200, headers: {
+    'Content-Type': 'application/rss+xml; charset=utf-8',
+    'Cache-Control': `public, max-age=${FEED_CACHE_S}`,
+    'X-Content-Type-Options': 'nosniff',
+  } });
+}
+
 /** Share links, /feed.xml and /sitemap.xml; null for anything else. */
 async function publicPage(request, env, ctx, url) {
   const path = url.pathname.replace(/\/+$/, '');
   const isShare = /^\/[hd]\//.test(path);
-  if (!isShare) return null;   //PUBLIC_PATHS_MORE
+  if (!isShare && path !== '/feed.xml') return null;   //PUBLIC_PATHS_MORE
   // With the public views off (PUBLIC_READ), nothing is told to the outside.
   if (env.PUBLIC_READ !== '1') {
     if (isShare) return sharePage(request, env, url, null).then((r) => new Response(r.body, { status: 200, headers: r.headers }));
@@ -813,7 +883,8 @@ async function publicPage(request, env, ctx, url) {
     if (isShare) {
       return await cachedPage(request, ctx, url, async () => sharePage(request, env, url, await shareMeta(env, path)));
     }
-    //FEED_SITEMAP
+    if (path === '/feed.xml') return await cachedPage(request, ctx, url, () => feedXml(env, url));
+    //SITEMAP
   } catch (err) {
     console.error('public page failed', err && err.stack ? err.stack : err);
     if (isShare) return env.ASSETS.fetch(new Request(`${url.origin}/`));

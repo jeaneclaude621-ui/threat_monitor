@@ -54,6 +54,17 @@ class MockD1 {
         return { meta: { changes: 1 } };
       },
       async all() {
+        if (/json_each/.test(sql)) {
+          const rows = [];
+          for (const r of [...db.reports.values()].sort((a, b) => (a.date < b.date ? 1 : -1))) {
+            if (r.date < args[0]) continue;
+            const d = JSON.parse(r.data);
+            const base = { date: r.date, threat_index: r.threat_index, top_sv: r.top_sv, exec_top: d.executive_sv && d.executive_sv.top };
+            if (!d.events || !d.events.length) rows.push({ ...base, id: null });
+            for (const e of d.events || []) rows.push({ ...base, id: e.id, score: e.score, title_sv: e.title_sv, title: e.title, summary_sv: e.summary_sv });
+          }
+          return { results: rows };
+        }
         if (/FROM reports/.test(sql)) {
           db.reads++;
           const rows = [...db.reports.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -185,6 +196,24 @@ for (const bad of [`/h/${today}/nope`, '/h/2026-13-40/x-e1', '/d/1999-01-01', '/
 r = await worker.fetch(new Request(`${ORIGIN}/d/${today}`), { ...env, PUBLIC_READ: '0' }, { waitUntil: () => {} });
 html = await r.text();
 expect('PUBLIC_READ off: the plain app, no OG tags', html.includes('og:title'), false);
+
+// --- /feed.xml ----------------------------------------------------------------
+const old = new Date(Date.now() - 20 * 86400000).toISOString().slice(0, 10);
+db.reports.set(old, { date: old, threat_index: 5, top_sv: 'Gammal.', data: JSON.stringify({ date: old, events: [{ id: `${old}-e1`, score: 9, title_sv: 'För gammal' }] }) });
+r = await get('/feed.xml');
+const feed = await r.text();
+expect('feed 200', r.status, 200);
+expect('feed is RSS', r.headers.get('content-type'), 'application/rss+xml; charset=utf-8');
+expect('feed may be cached', r.headers.get('cache-control'), 'public, max-age=900');
+expect('feed is RSS 2.0', feed.includes('<rss version="2.0"'), true);
+expect('report item: index and top event', feed.includes('<title>Hotindex 6,4 · Kabel skadad i Östersjön</title>'), true);
+expect('report item links to /d/', feed.includes(`<link>${ORIGIN}/d/${today}</link>`), true);
+expect('event 9 is in', feed.includes(`<link>${ORIGIN}/h/${today}/${today}-e1</link>`), true);
+expect('event 5 is not', feed.includes(`${today}-e2`), false);
+expect('descriptions say AI-sammanfattning', (feed.match(/<description>AI-sammanfattning: /g) || []).length, 2);
+expect('markup escaped', feed.includes('<script>'), false);
+expect('older than 14 days left out', feed.includes(old), false);
+expect('well-formed item count', (feed.match(/<item>/g) || []).length, (feed.match(/<\/item>/g) || []).length);
 
 console.log(`\nlaunch_test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
