@@ -150,6 +150,7 @@ export default {
     }
     const budget = newBudget();
     ctx.waitUntil(flushDeferredPushes(env, now, budget)
+      .then(() => retryMissingReport(env, now))
       .then(() => checkMissingReport(env, now, budget))
       .then(() => drainPushQueue(env, budget))
       .catch((err) => {
@@ -2070,6 +2071,41 @@ async function getAlarm(env) {
   return { missing_report: row && row.value ? row.value : null };
 }
 
+// Version 3.25: the morning report is started again when it has not come:
+// at 05:30 and at 07:00 Stockholm time, at most twice a day, never while a
+// run of it is still going. Gemini overloaded or out of quota is the usual
+// cause, and it often passes within the hour.
+const REPORT_RETRY_AT_MINUTES = [5 * 60 + 30, 7 * 60];
+const RUN_STILL_GOING_MS = 50 * 60 * 1000;
+
+async function retryMissingReport(env, nowMs) {
+  const { date, minutes } = stockholmClock(nowMs);
+  const due = REPORT_RETRY_AT_MINUTES.filter((m) => minutes >= m).length;   // 0, 1 or 2
+  if (!due) return { retried: false, reason: 'too early' };
+  const report = await env.DB.prepare('SELECT 1 AS ok FROM reports WHERE date = ?').bind(date).first();
+  if (report) return { retried: false, reason: 'report here' };
+  const row = await env.DB.prepare("SELECT value FROM meta WHERE key = 'report_retries'").first();
+  let state = { date, n: 0 };
+  try { if (row && row.value) { const v = JSON.parse(row.value); if (v.date === date) state = v; } } catch { /* start over */ }
+  if (state.n >= due) return { retried: false, reason: 'already retried' };
+  const running = await env.DB.prepare(
+    "SELECT started_at FROM runs WHERE job = 'daily' AND status = 'running' AND started_at > ? ORDER BY started_at DESC LIMIT 1"
+  ).bind(new Date(nowMs - RUN_STILL_GOING_MS).toISOString()).first();
+  if (running) return { retried: false, reason: 'a run is still going' };
+  state.n += 1;
+  await setMeta(env, 'report_retries', JSON.stringify(state));
+  try {
+    // No `at`: run_job.py would skip a slot that has already started once.
+    await dispatchWorkflow(env, RUN_JOBS.daily.workflow, { job: 'daily', test: 'false', at: '' });
+    await audit(env, 'system', 'retry', null, { report_retry: date, attempt: state.n });
+    return { retried: true, attempt: state.n };
+  } catch (err) {
+    console.error('report retry failed', err.message);
+    await audit(env, 'system', 'alarm', null, { report_retry_failed: date, error: err.message });
+    return { retried: false, reason: err.message };
+  }
+}
+
 /** Past 07:00 Stockholm time with no report for today: raise the alarm once per date. */
 async function checkMissingReport(env, nowMs, budget = newBudget()) {
   const { date, minutes } = stockholmClock(nowMs);
@@ -2082,7 +2118,7 @@ async function checkMissingReport(env, nowMs, budget = newBudget()) {
   await audit(env, 'system', 'alarm', null, { missing_report: date });
   await pushTo(env, { adminsOnly: true, pref: 'alarm' }, {
     title: 'Dagens rapport har inte kommit',
-    body: `Ingen morgonrapport för ${date} kl. 07:00. Se Systemstatus.`,
+    body: `Ingen morgonrapport för ${date} kl. 07:00. Den körs om automatiskt kl. 05:30 och 07:00. Se Systemstatus.`,
     url: '/#/admin',
   }, 'high', budget);
   return { checked: true, date, missing: true, raised: true };
@@ -3075,4 +3111,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { blockedSource, blockedOutlet, resetPublicLatest: () => { publicLatestMemo = null; }, reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
+export const _test = { retryMissingReport, blockedSource, blockedOutlet, resetPublicLatest: () => { publicLatestMemo = null; }, reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };

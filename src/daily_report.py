@@ -565,10 +565,20 @@ Respond as strict JSON:
         # cut-off answer is tried again smaller (fewer articles and events),
         # rather than losing the whole morning report.
         ladder = [(RESERVE_SWEEP_ARTICLES, RESERVE_SWEEP_EVENTS)] + RESERVE_SWEEP_SMALLER
+        third = common.third_model()
         for i, (n_articles, n_events) in enumerate(ladder):
             try:
-                result = ask_model_json(build(n_articles, n_events), system=SYSTEM,
-                                        max_tokens=22000, model=reserve, fallback=False)
+                try:
+                    result = ask_model_json(build(n_articles, n_events), system=SYSTEM,
+                                            max_tokens=22000, model=reserve, fallback=False)
+                except common.NoModelAvailable as e:
+                    # The reserve model overloaded or spent too: the third model (Version 3.25).
+                    if not third or third in (reserve, common.MODEL):
+                        raise
+                    print(f"  ! {reserve} unavailable for the sweep ({str(e)[:120]}); the sweep runs on {third} (third model)")
+                    reserve = third
+                    result = ask_model_json(build(n_articles, n_events), system=SYSTEM,
+                                            max_tokens=22000, model=reserve, fallback=False)
                 break
             except ValueError as e:
                 if i == len(ladder) - 1:

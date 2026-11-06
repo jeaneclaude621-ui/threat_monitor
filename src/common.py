@@ -199,6 +199,38 @@ def lite_model() -> str:
     return name
 
 
+_third = []
+
+
+def _gemini_version(n: str):
+    m = re.search(r"gemini-(\d+)(?:\.(\d+))?", n)
+    return (int(m[1]), int(m[2] or 0)) if m else (0, 0)
+
+
+def third_model() -> str:
+    """A third model for when both the main and the light one are spent or
+    overloaded (Version 3.25): THIRD_MODEL, else the newest plain flash model
+    the key can use that is neither of the other two (2.5 or newer, so it
+    takes the thinking budget), else None. On the free tier it has a daily
+    quota of its own."""
+    if _third:
+        return _third[0]
+    name = os.environ.get("THIRD_MODEL")
+    if not name:
+        try:
+            client = get_client()
+            names = [m.name.removeprefix("models/") for m in client.models.list()]
+        except Exception:
+            names = []
+        taken = {MODEL, lite_model()}
+        flash = [n for n in names if "flash" in n and "lite" not in n and n not in taken
+                 and not re.search(r"preview|exp|tts|image|audio|live|8b", n)
+                 and _gemini_version(n) >= (2, 5)]
+        name = max(flash, key=lambda n: (_gemini_version(n), -len(n))) if flash else None
+    _third.append(name)
+    return name
+
+
 class ModelUnavailable(Exception):
     """The model is overloaded past OVERLOAD_RETRIES, or its quota is spent:
     worth trying the other model, unlike a bad request."""
@@ -282,9 +314,18 @@ def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, model: st
         print(f"  ! {name} unavailable ({str(e)[:160]}); this call runs on {fallback} (reserve model)")
         try:
             response = _generate_with_retry(get_client(), prompt, config, fallback)
+            used = fallback
         except ModelUnavailable as e2:
-            raise NoModelAvailable(f"{name}: {str(e)[:200]}; {fallback}: {e2}") from e2
-        used = fallback
+            # Both spent or overloaded: the third model, with a quota of its own.
+            third = third_model()
+            if not third or third in (name, fallback):
+                raise NoModelAvailable(f"{name}: {str(e)[:200]}; {fallback}: {e2}") from e2
+            print(f"  ! {fallback} unavailable too ({str(e2)[:120]}); this call runs on {third} (third model)")
+            try:
+                response = _generate_with_retry(get_client(), prompt, config, third)
+            except Exception as e3:
+                raise NoModelAvailable(f"{name}: {str(e)[:200]}; {fallback}: {str(e2)[:200]}; {third}: {str(e3)[:200]}") from e3
+            used = third
     MODEL_CALLS.append({"model": used, "requested": name, "fallback": used != name})
 
     candidate = (response.candidates or [None])[0]

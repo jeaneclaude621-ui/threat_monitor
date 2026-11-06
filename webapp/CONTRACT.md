@@ -839,3 +839,14 @@ App only (webapp/public); no new endpoints.
 - `<link rel="alternate" type="application/rss+xml" href="/feed.xml">` and
   a link on Om; the Worker or the run must serve `/feed.xml`.
 - Service worker cache `hm-v3.39`.
+
+# Version 3.25 (6 Nov 2026) - the morning report retried, a third model
+
+- Worker: when today's report has not come, the morning report is started
+  again at 05:30 and at 07:00 Stockholm time (at most twice a day, never
+  while a run of it is still going; meta `report_retries`, audit
+  `retry`). The 07:00 alarm says so.
+- `src/common.py`: when the main and the light model are both spent or
+  overloaded, a call goes to a third Gemini model (`THIRD_MODEL`, else the
+  newest plain flash model the key can use, 2.5 or newer), with a daily
+  quota of its own. The morning sweep's reserve does the same.
