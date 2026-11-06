@@ -2121,14 +2121,17 @@ function russianGate() {
 function trendRow(t, ru, threadEvents) {
   const open = openTrends.has(t.id);
   const toggle = () => { if (open) openTrends.delete(t.id); else openTrends.add(t.id); rerender(); };
-  const title = t.title_sv || t.title;
+  // A Russian post the translation has not reached yet (Gemini overloaded):
+  // no Russian headline in the list; the original only when opened.
+  const untranslated = ru && !t.title_sv && !t.summary_sv;
+  const title = untranslated ? 'Översättning kommer' : (t.title_sv || t.title);
   const threadEvent = t.thread_id ? threadEvents.find(({ e }) => e.thread_id === t.thread_id) : null;
   return h('div', { class: `upd-wrap${ru ? ' trend-ru' : ''}` },
     h('button', { class: 'row rowbtn', type: 'button', 'aria-expanded': String(open), onclick: toggle },
       h('span', { class: 'row-main' },
         h('span', { class: 'row-sub' }, ru ? h('span', { class: 'ru-label' }, 'Rysk sida') : null, ru ? ' ' : null,
           `${TREND_SOURCE[t.source] || t.source}${t.place ? ` · ${t.place}` : ''}`),
-        h('span', { class: 'row-title' }, title),
+        h('span', { class: `row-title${untranslated ? ' muted' : ''}` }, title),
         t.metric_sv ? h('span', { class: 'row-sub' }, t.metric_sv) : null),
       t.spike && t.spike >= 2 ? h('span', { class: 'nbadge' }, `${String(t.spike).replace('.', ',')}×`) : null,
       chevDown()),
@@ -2139,7 +2142,8 @@ function trendRow(t, ru, threadEvents) {
       : t.title_sv || t.summary_sv
         ? h('details', { class: 'small muted' }, h('summary', null, ru ? 'Originalet på ryska' : 'Originalet'),
           h('p', { lang: ru ? 'ru' : null }, t.title), t.detail ? h('p', { lang: ru ? 'ru' : null }, t.detail) : null)
-        : t.detail ? h('p', { class: 'body-sm', lang: ru ? 'ru' : null }, t.detail) : null,
+        : t.detail ? frag(untranslated ? h('p', { class: 'small muted' }, 'Originalet på ryska. Den svenska översättningen kommer vid nästa körning.') : null,
+          h('p', { class: 'body-sm', lang: ru ? 'ru' : null }, t.detail)) : null,
       ru ? h('p', { class: 'small muted' }, 'Ett påstående från den ryska sidan, inte bekräftat.') : null,
       h('p', { class: 'small muted' }, `Sågs först ${tsFmt(t.first_seen)}${t.last_seen !== t.first_seen ? `, senast ${tsFmt(t.last_seen)}` : ''}`),
       h('div', { class: 'btn-row' },

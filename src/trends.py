@@ -287,6 +287,7 @@ def rank(item: dict) -> float:
 # Open items already in Swedish or English need no translation.
 NATIVE_PLACES = {"sv.wikipedia", "en.wikipedia", "SE", "GB", "US"}
 MAX_TRANSLATE = 60
+RETRY_WAIT_S = 600   # one more try when Gemini is overloaded
 
 
 def needs_swedish(item: dict) -> bool:
@@ -400,7 +401,17 @@ def run(dry_run: bool = False, force_summary: bool = False):
               + (f" and summarise {len(todays)}" if summary_due else ""))
     elif to_translate or summary_due:
         try:
-            result = ask_gemini(to_translate, todays, today if summary_due else None)
+            try:
+                result = ask_gemini(to_translate, todays, today if summary_due else None)
+            except Exception as e:
+                # Both models overloaded (503): once more ten minutes later, so
+                # the Russian side is not left untranslated until the next run.
+                if not any(k in str(e) for k in ("503", "UNAVAILABLE", "high demand", "timed out")):
+                    raise
+                import time
+                print(f"  ! Gemini overloaded; Swedish titles again in {RETRY_WAIT_S // 60} minutes")
+                time.sleep(RETRY_WAIT_S)
+                result = ask_gemini(to_translate, todays, today if summary_due else None)
             done = 0
             for iid, sv in (result.get("items") or {}).items():
                 if iid in data["items"] and isinstance(sv, dict) and isinstance(sv.get("title_sv"), str):
