@@ -17,13 +17,15 @@ class Status(unittest.TestCase):
         self.assertEqual(run_job.run_status(1, ["! 429"]), "failed")
         for w in ("! PUT /api/ingest/reports: HTTP 401 b'invalid_jwt'",
                   "! gemini-3.8-flash unavailable (429 RESOURCE_EXHAUSTED); this call runs on lite",
-                  "! Gemini API unavailable (503 UNAVAILABLE); retrying in 30s",
                   "! Courses of action failed (boom)",
                   "! thread check FAILED"):
             self.assertEqual(run_job.run_status(0, [w]), "partial", w)
 
     def test_numbers_must_stand_alone(self):
         self.assertEqual(run_job.run_status(0, ["! 14010 items", "! id 5031"]), "ok")
+        # A retry that went on is not a failure.
+        self.assertEqual(run_job.run_status(0, ["! Gemini API unavailable (503 UNAVAILABLE); retrying in 30s",
+                                                "! JSON parse failed (x); retrying with the partial response"]), "ok")
 
     def test_reasons_once_each(self):
         ws = ["! HTTP 401", "! HTTP 401 again", "! 503 high demand", "! x failed"]
