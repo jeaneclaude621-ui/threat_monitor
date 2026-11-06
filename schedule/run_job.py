@@ -231,11 +231,19 @@ def run_and_watch(script: list) -> tuple:
 PARTIAL_MARKERS = re.compile(r"\b(401|429|503)\b|failed", re.IGNORECASE)
 
 
+RECOVERED = re.compile(r"retrying|trying again|again in \d+ minutes", re.I)
+
+
 def partial_reasons(warnings: list) -> list:
     """The markers (401, 429, 503, failed) found in the job's warning
     lines, each once, in order of first appearance."""
     found = []
     for w in warnings:
+        # A warning about a retry is not a failure: the step went on ("JSON
+        # parse failed ...; retrying", "503 ...; retrying in 30s"). A switch to
+        # the reserve model still counts: it lowers the quality.
+        if RECOVERED.search(w):
+            continue
         for m in PARTIAL_MARKERS.finditer(w):
             k = m.group(0).lower()
             if k not in found:
