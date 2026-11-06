@@ -15,7 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import load_state, save_state, ask_model_json, append_hourly_entry, lite_model, MODEL
+from common import load_state, save_state, ask_model_json, append_hourly_entry, lite_model, third_model, MODEL
 from reply_checker import check_replies
 from app_sync import push_updates
 from app_data import enrich_events
@@ -201,7 +201,7 @@ def run_once():
         # (3 Nov: the 04:00 report found the quota spent). The main model
         # takes over if the light one is overloaded or spent.
         answers = ask_model_json(prompt, system=SYSTEM, max_tokens=TOKENS_PER_THREAD * len(ids),
-                                 model=lite_model() or None, fallback=MODEL).get("threads")
+                                 model=lite_model() or None, fallback=third_model() or MODEL).get("threads")
     except Exception as e:
         print(f"  ! thread check failed ({e})")
         answers = None

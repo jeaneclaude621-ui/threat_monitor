@@ -3,7 +3,7 @@
 // at 05:30 and 07:00 Stockholm time, at most twice, never while a run goes.
 //   node scripts/retry_test.mjs
 import { _test } from '../src/worker.js';
-const { retryMissingReport } = _test;
+const { retryMissingReport, startDueRuns, lastDueMs } = _test;
 
 let pass = 0, fail = 0;
 const expect = (name, got, want) => {
@@ -54,6 +54,19 @@ expect('report here: no retry', (await retryMissingReport(e.env, at('04:30'))).r
 
 e = makeEnv({ running: true });
 expect('a run still going: no retry', (await retryMissingReport(e.env, at('04:30'))).reason, 'a run is still going');
+
+// Version 3.26: Narrativ starts at half past, the others on the hour.
+e = makeEnv();
+await startDueRuns(e.env, at('07:00'));   // 08:00 Stockholm
+expect('08:00: no Narrativ', e.dispatched.length, 0);
+await startDueRuns(e.env, at('07:30'));   // 08:30
+expect('08:30: Narrativ', e.dispatched.map((d) => d.inputs.at), ['8']);
+e = makeEnv();
+await startDueRuns(e.env, at('11:00'));   // 12:00: the thread check, not Narrativ
+expect('12:00: only the thread check', e.dispatched.map((d) => d.inputs.job), ['hourly']);
+await startDueRuns(e.env, at('11:30'));
+expect('12:30: Narrativ', e.dispatched.length, 2);
+expect('due time counts the half hour', new Date(lastDueMs([8], at('07:45'), 30)).toISOString().slice(11, 16), '07:30');
 
 console.log(`\nretry_test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

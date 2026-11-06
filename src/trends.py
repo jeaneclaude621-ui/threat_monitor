@@ -346,9 +346,11 @@ Respond as strict JSON with just those keys:
     # The light model, with its own daily quota: the reports' model ran out
     # on most runs on 2 Nov and left half the Russian posts untranslated.
     # The main model takes over if the light one is overloaded or spent.
-    from common import lite_model, MODEL
+    # Version 3.26: the third model is the reserve, not the main one, so the
+    # day's runs leave the main model's quota to the morning report.
+    from common import lite_model, third_model, MODEL
     return ask_model_json(prompt, system=system, max_tokens=tokens,
-                          model=lite_model() or None, fallback=MODEL)
+                          model=lite_model() or None, fallback=third_model() or MODEL)
 
 
 # --------------------------------------------------------------------------

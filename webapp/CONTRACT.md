@@ -850,3 +850,15 @@ App only (webapp/public); no new endpoints.
   overloaded, a call goes to a third Gemini model (`THIRD_MODEL`, else the
   newest plain flash model the key can use, 2.5 or newer), with a daily
   quota of its own. The morning sweep's reserve does the same.
+
+# Version 3.26 (6 Nov 2026) - the day's runs spare the main model
+
+- Narrativ (`trends`) starts at half past (08:30, 12:30, 16:30, 21:30), not
+  with the thread check at 12 and 21: RUN_JOBS `minute: 30`, a new Worker
+  cron `30 6,7,10,11,14,15,19,20 * * *`; the status page shows the half hour
+  and a 'partial' run yellow.
+- The main model's daily quota (reset at 09:00 Stockholm time) is kept for
+  the 04:00 morning report: Narrativ and the thread check fall back to the
+  third model instead of the main one, and the authorities brief runs on the
+  third model with the light one as reserve (as before when the key has no
+  third model).

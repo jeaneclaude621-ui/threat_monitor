@@ -254,8 +254,13 @@ date). Nothing worth knowing gives no items.
 Respond as strict JSON:
 {{"overall_sv": "...", "items": [{{"agency": "...", "refs": ["A1"], "text_sv": "..."}}],
   "nato_overall_sv": "...", "nato_items": [{{"topic": "...", "refs": ["A9"], "text_sv": "..."}}]}}"""
+    # Version 3.26: the third model first (a full flash model with a quota of
+    # its own), the light one as reserve: the main model's quota is kept for
+    # the morning report. Without a third model, as before.
+    third = common.third_model()
     result = ask_model_json(prompt, system="You brief a Swedish security analysis team on what Swedish "
-                            "authorities and NATO say. Strict JSON only.", max_tokens=6000)
+                            "authorities and NATO say. Strict JSON only.", max_tokens=6000,
+                            model=third or None, fallback=(common.lite_model() or common.MODEL) if third else None)
 
     def build(it, label):
         cited = [refs[r] for r in it.get("refs") or [] if isinstance(r, str) and r in refs]

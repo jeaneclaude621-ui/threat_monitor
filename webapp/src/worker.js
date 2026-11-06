@@ -70,7 +70,8 @@ const INVITE_ID_RE = /^[0-9a-f-]{36}$/;
 const RUN_JOBS = {
   daily: { label: 'Morgonrapport', hours: [4], maxMinutes: 45, workflow: 'scheduled-jobs.yml' },
   hourly: { label: 'Trådbevakning', hours: [12, 21], maxMinutes: 20, workflow: 'scheduled-jobs.yml' },
-  trends: { label: 'Narrativ', hours: [8, 12, 16, 21], maxMinutes: 15, workflow: 'trends.yml' },
+  // Version 3.26: half past, so it does not start with the thread check at 12 and 21.
+  trends: { label: 'Narrativ', hours: [8, 12, 16, 21], minute: 30, maxMinutes: 25, workflow: 'trends.yml' },
   authorities: { label: 'Myndigheter', hours: [7, 17], maxMinutes: 15, workflow: 'authorities.yml' },
 };
 const RUN_START_GRACE_MIN = 75;   // GitHub's own cron, the fallback, can lag
@@ -81,7 +82,9 @@ const MAC_QUIET_MIN = 30;
 // Version 3.8: the cron that starts the runs (wrangler.jsonc). It fires at
 // both UTC hours that can be each Stockholm hour in RUN_JOBS, summer and
 // winter time; startDueRuns starts only the jobs due at the Stockholm hour.
-const DISPATCH_CRON = '0 2,3,5,6,7,10,11,14,15,16,19,20 * * *';          // the invitation job (GitHub Actions) polls every 5 min; its cron can lag
+const DISPATCH_CRON = '0 2,3,5,6,7,10,11,14,15,16,19,20 * * *';
+// The jobs due at half past (`minute: 30` in RUN_JOBS), same idea.
+const DISPATCH_CRON_HALF = '30 6,7,10,11,14,15,19,20 * * *';          // the invitation job (GitHub Actions) polls every 5 min; its cron can lag
 
 // Reasons written to security_log (CONTRACT.md, Version 2).
 const R = {
@@ -137,7 +140,7 @@ export default {
   // pushes held over the night, then the missing-report alarm.
   async scheduled(event, env, ctx) {
     const now = event.scheduledTime || Date.now();
-    if (event.cron === DISPATCH_CRON) {
+    if (event.cron === DISPATCH_CRON || event.cron === DISPATCH_CRON_HALF) {
       ctx.waitUntil(startDueRuns(env, now));
       return;
     }
@@ -1708,10 +1711,11 @@ async function ingestRun(request, env, id) {
 }
 
 /** The latest due time of a job at or before `nowMs`, from its Stockholm hours. */
-function lastDueMs(hours, nowMs) {
+function lastDueMs(hours, nowMs, minute = 0) {
   const { minutes } = stockholmClock(nowMs);
-  const today = hours.filter((h) => h * 60 <= minutes);
-  const back = today.length ? minutes - Math.max(...today) * 60 : minutes + 24 * 60 - Math.max(...hours) * 60;
+  const at = hours.map((h) => h * 60 + minute);
+  const today = at.filter((m) => m <= minutes);
+  const back = today.length ? minutes - Math.max(...today) : minutes + 24 * 60 - Math.max(...at);
   return nowMs - (nowMs % 60000) - back * 60000;
 }
 
@@ -1727,7 +1731,7 @@ const stockholmHHMM = (ms) => new Date(ms).toLocaleTimeString('sv-SE', {
  */
 function runHealth(spec, last, nowMs) {
   if (!last) return { light: 'yellow', text: 'Ingen körning rapporterad än' };
-  const due = lastDueMs(spec.hours, nowMs);
+  const due = lastDueMs(spec.hours, nowMs, spec.minute || 0);
   if (last.status === 'running') {
     const mins = Math.round((nowMs - Date.parse(last.started_at)) / 60000);
     return mins > spec.maxMinutes * 2
@@ -1745,6 +1749,7 @@ function runHealth(spec, last, nowMs) {
   }
   const warnings = JSON.parse(last.warnings || '[]');
   if (last.status === 'failed') return { light: 'red', text: `Misslyckades (kod ${last.exit_code ?? '?'})` };
+  if (last.status === 'partial') return { light: 'yellow', text: 'Klar, men en del föll' };
   if (warnings.length) return { light: 'yellow', text: `Klar med ${warnings.length === 1 ? '1 varning' : `${warnings.length} varningar`}` };
   return { light: 'green', text: 'Klar utan fel' };
 }
@@ -1756,7 +1761,7 @@ async function runsStatus(env, nowMs, pendingInvites, invitePullAt) {
     const last = results.find((r) => r.job === job) || null;
     return {
       job, label: spec.label,
-      due: spec.hours.map((h) => `${String(h).padStart(2, '0')}:00`),
+      due: spec.hours.map((h) => `${String(h).padStart(2, '0')}:${String(spec.minute || 0).padStart(2, '0')}`),
       ...runHealth(spec, last, nowMs),
       last: last ? recent.find((r) => r.id === last.id) : null,
     };
@@ -2022,9 +2027,11 @@ async function dispatchWorkflow(env, workflow, inputs) {
 async function startDueRuns(env, nowMs) {
   // Each start is a fetch too: leave room for them under the 50 subrequests.
   const budget = { left: PUSH_BATCH - Object.keys(RUN_JOBS).length };
-  const hour = Math.floor(stockholmClock(nowMs).minutes / 60);
+  const { minutes } = stockholmClock(nowMs);
+  const hour = Math.floor(minutes / 60);
+  const half = minutes % 60 >= 30 ? 30 : 0;
   for (const [job, spec] of Object.entries(RUN_JOBS)) {
-    if (!spec.hours.includes(hour)) continue;
+    if (!spec.hours.includes(hour) || (spec.minute || 0) !== half) continue;
     try {
       // scheduled-jobs.yml runs several jobs and takes `job`; trends.yml does not.
       const inputs = { test: 'false', at: String(hour) };
@@ -2035,7 +2042,7 @@ async function startDueRuns(env, nowMs) {
       await audit(env, 'system', 'alarm', null, { run_not_started: job, error: err.message });
       await pushTo(env, { adminsOnly: true, pref: 'alarm' }, {
         title: `${spec.label} kunde inte startas`,
-        body: `Körningen ${String(hour).padStart(2, '0')}:00 startade inte: ${err.message.slice(0, 120)}`,
+        body: `Körningen ${String(hour).padStart(2, '0')}:${String(half).padStart(2, '0')} startade inte: ${err.message.slice(0, 120)}`,
         url: '/#/admin',
       }, 'high', budget);
     }
@@ -3111,4 +3118,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { retryMissingReport, blockedSource, blockedOutlet, resetPublicLatest: () => { publicLatestMemo = null; }, reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
+export const _test = { startDueRuns, lastDueMs, retryMissingReport, blockedSource, blockedOutlet, resetPublicLatest: () => { publicLatestMemo = null; }, reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
