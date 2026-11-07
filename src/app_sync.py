@@ -193,6 +193,20 @@ def push_strikes(data: dict) -> bool:
         return False
 
 
+def push_channels(data: dict) -> bool:
+    """The Telegram channel figures (src/telegram_log.py stats)."""
+    if not _config():
+        print("  App upload skipped - HOTMONITOR_URL / CF_ACCESS_CLIENT_* not set")
+        return False
+    try:
+        _request("PUT", "/api/ingest/channels", data)
+        print("  Uploaded the channel figures to web app")
+        return True
+    except Exception as e:
+        print(f"  ! Channel figures upload failed: {e}")
+        return False
+
+
 def push_authorities(brief: dict) -> bool:
     """The Swedish authorities' brief (src/authorities.py)."""
     if not _config():

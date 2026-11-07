@@ -375,6 +375,10 @@ export function loadStrikes() {
   return getJSON('/api/strikes', { cache: 'no-store' });
 }
 
+export function loadChannels() {
+  return getJSON('/api/channels', { cache: 'no-store' });
+}
+
 export function loadForces() {
   return getJSON('/api/forces', { cache: 'no-store' });
 }

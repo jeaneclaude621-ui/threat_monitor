@@ -376,7 +376,7 @@ def _clamp(x: float) -> float:
     return round(max(0.0, min(10.0, x)), 1)
 
 
-def stats(now: datetime = None) -> dict:
+def stats(now: datetime = None, push: bool = True) -> dict:
     now = now or datetime.now(timezone.utc)
     since = (now - timedelta(days=STATS_DAYS)).strftime("%Y-%m-%d")
     days = [(now - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(STATS_DAYS + 1)]
@@ -491,6 +491,9 @@ def stats(now: datetime = None) -> dict:
     result = {"generated_at": _iso(now), "days": STATS_DAYS, "since": since, "posts": len(posts),
               "known_strikes": len(events), "strikes_mentioned": len(mentions), "channels": out}
     STATS_PATH.write_text(json.dumps(result, ensure_ascii=False, indent=1), encoding="utf-8")
+    if push:
+        from app_sync import push_channels
+        push_channels(result)
     print(f"  Telegram figures: {len(posts)} posts in {STATS_DAYS} days, {len(events)} known strikes, "
           f"{len(mentions)} of them mentioned")
     return result

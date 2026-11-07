@@ -903,3 +903,18 @@ App only (webapp/public); no new endpoints.
   screen, Om and Rättelser. Arkiv's unread count shows on "Mer".
 - The fallback-model note is a chip in the hero; the share button an icon
   in the header; the home-screen card moved into "Mer".
+
+# Version 3.30 (7 Nov 2026) - the Telegram channels judged
+
+- `GET /api/channels` (readers and guests): the newest Telegram channel
+  figures from src/telegram_log.py (data/telegram/stats.json): per channel
+  its kind, posts, rhythm (posts per Stockholm hour, night share), forwarding
+  and its top sources, own pictures, copied text, views, and its strike posts
+  against the strikes known from the news and the Ukrainian Air Force; with
+  30+ posts three indicators of 0-10 (bot_likeness, firsthand, accuracy) and
+  their parts.
+- `PUT /api/ingest/channels` (machine): one row a day in `channel_stats`
+  (kept 60 days). The Worker makes the table when missing, as the deploy
+  token may lack D1 Edit; migrations/0016_channels.sql is the same.
+- Narrativ gets a third segment, "Kanaler" (`#/narrativ?s=kanaler`): a
+  fold-out box per channel, sortable by each indicator, and who forwards whom.

@@ -68,7 +68,7 @@ def test_stats_copies_and_strikes(tmp_path, monkeypatch):
         "b/3": {"id": "b/3", "channel": "b", "published": "2026-11-07T05:00:00Z", "text": long + "!", "views": 5, "views_at": {}},
     }
     T.save_days(posts, ["2026-11-07"])
-    r = T.stats(datetime(2026, 11, 8, 4, 0, tzinfo=timezone.utc))
+    r = T.stats(datetime(2026, 11, 8, 4, 0, tzinfo=timezone.utc), push=False)
     a, b = r["channels"]["a"], r["channels"]["b"]
     assert r["strikes_mentioned"] == 1
     assert a["strikes_first"] == 1 and a["strikes_own_media"] == 1 and b["strikes_first"] == 0

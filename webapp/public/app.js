@@ -5,7 +5,7 @@ import {
   store, onChange, isAdmin, isGuest, loadMe, loadIndex, loadReport, loadAllReports, loadReportsRange, loadedReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
-  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, pushPrefs, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes,
+  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, pushPrefs, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes, loadChannels,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
 import { FEATURES, AREAS, NEW_DAYS } from './features.js';
@@ -2275,10 +2275,12 @@ function trendRow(t, ru, threadEvents) {
 }
 
 async function viewTrends(q) {
+  if (q.get('s') === 'kanaler') return viewChannels();
   const ru = q.get('s') === 'ru';
   const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Vilken sida' },
     h('button', { type: 'button', 'aria-pressed': String(!ru), onclick: () => { location.hash = '#/narrativ'; } }, 'Öppna källor'),
-    h('button', { type: 'button', 'aria-pressed': String(ru), class: 'seg-ru', onclick: () => { location.hash = '#/narrativ?s=ru'; } }, 'Rysk sida'));
+    h('button', { type: 'button', 'aria-pressed': String(ru), class: 'seg-ru', onclick: () => { location.hash = '#/narrativ?s=ru'; } }, 'Rysk sida'),
+    h('button', { type: 'button', 'aria-pressed': 'false', onclick: () => { location.hash = '#/narrativ?s=kanaler'; } }, 'Kanaler'));
   const head = frag(
     h('header', { class: 'page-head' }, h('div', null, h('div', { class: 'kicker' }, aiTag()), h('h1', { class: 'title-l' }, 'Narrativ'))),
     h('p', { class: 'hint' }, 'Det som sprids just nu. Inte bedömt och inte bekräftat – påverkar inte rapporten, trådarna eller index.'),
@@ -2313,6 +2315,102 @@ async function viewTrends(q) {
       h('h2', { class: 'kicker' }, 'Tidigare'),
       h('div', { class: 'card list' }, older.map((t) => trendRow(t, ru, threadEvents)))) : null,
     status.length ? h('p', { class: 'small muted' }, `Källor: ${status.join(', ')}`) : null);
+}
+
+// ---------------------------------------------------------------- channels (Version 3.30)
+// The Telegram channels Hotmonitor logs (src/telegram_log.py), judged as
+// channels: rhythm, forwarding, copied text, views, and their strike posts
+// against the strikes known from the news and the Ukrainian Air Force.
+const CHANNEL_KIND = { stat: 'Statlig', propaganda: 'Propagandamedia', milblogg: 'Militärbloggare', ua: 'Ukrainsk officiell',
+  oberoende: 'Oberoende', region: 'Regional' };
+const CHANNEL_SORT = [['bot_likeness', 'Botlikhet'], ['firsthand', 'Förstahand'], ['accuracy', 'Träffsäkerhet'], ['per_day', 'Inlägg/dygn']];
+let channelSort = 'bot_likeness';
+const indVal = (c, k) => (k === 'per_day' ? c.per_day : c.indicators && c.indicators[k] ? c.indicators[k].value : null);
+const pct = (x) => (x == null ? '–' : `${Math.round(x * 100)} %`);
+const num = (x) => (x == null ? '–' : Number(x).toLocaleString('sv-SE'));
+
+// Bot-likeness high is a warning (amber); first-hand and accuracy high are good (blue).
+function scorePill(label, v, good = false) {
+  const level = v == null ? 'none' : v >= 6.5 ? 'hi' : v >= 3.5 ? 'mid' : 'lo';
+  const cls = `cs-pill ${level}${good && level !== 'none' ? ' good' : ''}`;
+  return h('span', { class: cls, title: label }, `${label} ${v == null ? '–' : String(v).replace('.', ',')}`);
+}
+
+function hoursBars(hours) {
+  const max = Math.max(1, ...hours);
+  return h('div', { class: 'cs-hours', role: 'img', 'aria-label': `Inlägg per timme (svensk tid), flest kl. ${hours.indexOf(max)}` },
+    hours.map((n, i) => h('span', { style: `height:${Math.round((n / max) * 100)}%`, title: `kl. ${i}: ${n}` })),
+    h('div', { class: 'cs-hours-axis small muted' }, h('span', null, '00'), h('span', null, '06'), h('span', null, '12'), h('span', null, '18'), h('span', null, '24')));
+}
+
+function channelBox(name, c) {
+  const ind = c.indicators || {};
+  const v = (k) => (ind[k] ? ind[k].value : null);
+  const parts = (k, labels) => (ind[k] && ind[k].parts ? Object.entries(ind[k].parts).map(([p, x]) => `${labels[p] || p} ${String(x).replace('.', ',')}`).join(' · ') : null);
+  const row = (label, value) => h('div', { class: 'wrow' }, h('span', null, label), h('span', null, value));
+  return infoBox(`ch-${name}`, {
+    iconCls: c.kind === 'oberoende' || c.kind === 'ua' ? 'blue' : 'amber',
+    iconEl: (CHANNEL_KIND[c.kind] || '?').slice(0, 1),
+    kicker: `${CHANNEL_KIND[c.kind] || c.kind} · ${c.per_day != null ? `${String(c.per_day).replace('.', ',')} inlägg/dygn` : `${c.posts} inlägg`}`,
+    title: `@${name}`,
+    sub: c.indicators ? frag(scorePill('Bot', v('bot_likeness')), ' ', scorePill('Förstahand', v('firsthand'), true), ' ', scorePill('Träff', v('accuracy'), true))
+      : `För få inlägg för betyg (${c.posts} av minst 30)`,
+    body: frag(
+      row('Prenumeranter', num(c.subscribers)),
+      row('Visningar per inlägg (median)', num(c.median_views)),
+      row('Visningar per prenumerant', c.views_per_subscriber == null ? '–' : pct(c.views_per_subscriber)),
+      row('Visningar 1 → 24 h', c.views_growth_1_24h == null ? '–' : `×${String(c.views_growth_1_24h).replace('.', ',')}`),
+      c.hours ? h('div', null, h('div', { class: 'small muted' }, 'När kanalen postar (svensk tid)'), hoursBars(c.hours)) : null,
+      row('Andel på natten (01–05)', pct(c.night_share)),
+      row('Vidarebefordrat', pct(c.forwarded_share)),
+      c.top_forwarded && c.top_forwarded.length ? h('p', { class: 'small' }, h('b', null, 'Vidarebefordrar oftast: '),
+        c.top_forwarded.map(([n, k]) => `${n} (${k})`).join(', ')) : null,
+      row('Egna bilder/video', pct(c.own_media_share)),
+      row('Kopierad text från andra kanaler', `${c.copied || 0} (${pct(c.copied_share)})`),
+      row('Text som andra kopierat härifrån', String(c.origin_of_copies || 0)),
+      h('h3', { class: 'fsub' }, 'Anfall'),
+      row('Kända anfall den nämnt', String(c.strikes_reported || 0)),
+      row('Först av kanalerna', String(c.strikes_first || 0)),
+      row('Inom en timme från den första', String(c.strikes_within_hour || 0)),
+      row('Med egna bilder', String(c.strikes_own_media || 0)),
+      row('Tid efter den första (median)', c.median_lead_min == null ? '–' : `${c.median_lead_min} min`),
+      row('Anfallsinlägg som stämde', `${c.strike_posts_matched || 0} av ${c.strike_posts || 0}`),
+      c.indicators ? h('p', { class: 'small muted' },
+        h('b', null, 'Botlikhet: '), parts('bot_likeness', { dygnet_runt: 'dygnet runt', natt: 'natt', jamn_takt: 'jämn takt', kopierad_text: 'kopierad text', jamna_visningar: 'jämna visningar' }), h('br'),
+        h('b', null, 'Förstahand: '), parts('firsthand', { forst: 'först', inom_en_timme: 'inom en timme', egna_bilder: 'egna bilder' })) : null,
+      h('button', { class: 'btn', type: 'button', onclick: () => openExternal(`https://t.me/s/${name}`, { outlet: 'Telegram' }) }, 'Öppna kanalen på Telegram')),
+  });
+}
+
+async function viewChannels() {
+  const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Vilken sida' },
+    h('button', { type: 'button', 'aria-pressed': 'false', onclick: () => { location.hash = '#/narrativ'; } }, 'Öppna källor'),
+    h('button', { type: 'button', 'aria-pressed': 'false', class: 'seg-ru', onclick: () => { location.hash = '#/narrativ?s=ru'; } }, 'Rysk sida'),
+    h('button', { type: 'button', 'aria-pressed': 'true' }, 'Kanaler'));
+  const head = frag(
+    h('header', { class: 'page-head' }, h('div', null, h('div', { class: 'kicker' }, 'Telegram'), h('h1', { class: 'title-l' }, 'Narrativ'))),
+    seg);
+  const data = await loadChannels().catch(() => null);
+  if (!data || !data.channels) return frag(head, emptyState('Inga kanalsiffror ännu. De räknas varje natt efter kl. 03 ur loggen av kanalerna.'));
+  const list = Object.entries(data.channels);
+  const sorted = list.slice().sort(([, a], [, b]) => (indVal(b, channelSort) ?? -1) - (indVal(a, channelSort) ?? -1));
+  // Who forwards whom, across the channels: the strongest links.
+  const links = list.flatMap(([n, c]) => (c.top_forwarded || []).map(([src, k]) => ({ from: src, to: n, k })))
+    .filter((l) => l.from !== l.to).sort((a, b) => b.k - a.k).slice(0, 12);
+  return frag(head,
+    h('div', { class: 'notice', role: 'note' },
+      h('b', null, 'Grova indikatorer, inte bevis. '),
+      'Telegram är aldrig källa i rapporten. Botlikhet: postar dygnet runt i jämn takt, kopierar text, jämna visningar. ',
+      'Förstahand: först och med egna bilder om anfall som senare bekräftats. Träffsäkerhet: andel av kanalens anfallsinlägg med ort som stämmer med ett känt anfall. ',
+      'Var avsändaren befinner sig syns inte på Telegram.'),
+    h('p', { class: 'small muted' }, `Senaste ${data.days} dagarna · ${num(data.posts)} inlägg · ${data.known_strikes} kända anfall, ${data.strikes_mentioned} nämnda i kanalerna · uppdaterad ${tsFmt(data.generated_at)}`),
+    h('div', { class: 'chips', role: 'group', 'aria-label': 'Sortera' }, CHANNEL_SORT.map(([k, label]) => h('button', {
+      class: 'chip', type: 'button', 'aria-pressed': String(channelSort === k), onclick: () => { channelSort = k; rerender(); } }, label))),
+    sorted.map(([n, c]) => channelBox(n, c)),
+    links.length ? h('section', { class: 'section' },
+      h('h2', { class: 'kicker' }, 'Vem förstärker vem'),
+      h('div', { class: 'card card-pad' }, links.map((l) => h('div', { class: 'wrow' },
+        h('span', null, `@${l.to} vidarebefordrar ${l.from}`), h('span', null, `${l.k} gånger`))))) : null);
 }
 
 // ---------------------------------------------------------------- forces map (Version 3.12)

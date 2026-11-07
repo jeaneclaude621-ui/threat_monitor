@@ -341,6 +341,12 @@ async function dispatch(req, path, method, who) {
     return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
   }
 
+  if (path === '/api/channels') {
+    allow(method, 'GET');
+    requireReader(who);
+    return getChannels(env);
+  }
+
   if (path === '/api/forces') {
     allow(method, 'GET');
     requireReader(who);
@@ -397,6 +403,12 @@ async function dispatch(req, path, method, who) {
     allow(method, 'PUT');
     requireMachine(who);
     return ingestStrikes(request, env);
+  }
+
+  if (path === '/api/ingest/channels') {
+    allow(method, 'PUT');
+    requireMachine(who);
+    return ingestChannels(request, env);
   }
 
   if (path === '/api/ingest/forces') {
@@ -577,7 +589,7 @@ function allow(method, expected) {
 // /api/me answers role 'guest'; reads, push, devices, admin, ingest and
 // export always need a login or the machine.
 const PUBLIC_PATHS = new Set(['/api/me', '/api/push/key', '/api/reports', '/api/assessments', '/api/notices', '/api/updates',
-  '/api/courses', '/api/strikes', '/api/forces', '/api/authorities', '/api/trends']);
+  '/api/courses', '/api/strikes', '/api/forces', '/api/authorities', '/api/trends', '/api/channels']);
 const GUEST = Object.freeze({ kind: 'guest' });
 const GUEST_CACHE_MS = 60000;
 const GUEST_CACHE_MAX = 200;
@@ -1902,6 +1914,45 @@ async function ingestStrikes(request, env) {
   await env.DB.batch([
     env.DB.prepare('INSERT INTO strike_maps (date, data) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET data = excluded.data').bind(b.date, data),
     env.DB.prepare("DELETE FROM strike_maps WHERE date < date('now', '-14 days')"),
+  ]);
+  return json({ ok: true });
+}
+
+// Version 3.30: the Telegram channel figures (src/telegram_log.py). The
+// table is made here when missing: the deploy's migrations need D1 Edit on
+// the token, which it may lack (migrations/0016_channels.sql is the same).
+const CHANNELS_TABLE = 'CREATE TABLE IF NOT EXISTS channel_stats (date TEXT PRIMARY KEY, data TEXT NOT NULL)';
+async function getChannels(env) {
+  try {
+    const row = await env.DB.prepare('SELECT data FROM channel_stats ORDER BY date DESC LIMIT 1').first();
+    return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
+  } catch (e) {
+    if (/no such table/i.test(String(e && e.message))) return json(null);
+    throw e;
+  }
+}
+
+async function ingestChannels(request, env) {
+  const b = await readJson(request);
+  if (!b || typeof b !== 'object' || typeof b.generated_at !== 'string' || !DATE_RE.test(b.generated_at.slice(0, 10))) {
+    throw new HttpError(400, 'body must be channel figures with generated_at');
+  }
+  if (!b.channels || typeof b.channels !== 'object' || Array.isArray(b.channels)) throw new HttpError(400, 'channels must be an object');
+  const names = Object.keys(b.channels);
+  if (!names.length || names.length > 300) throw new HttpError(400, 'channels: 1 to 300');
+  for (const n of names) {
+    const c = b.channels[n];
+    if (!/^[A-Za-z0-9_]{3,64}$/.test(n) || !c || typeof c !== 'object' || typeof c.posts !== 'number') {
+      throw new HttpError(400, `channel ${n.slice(0, 64)}: needs a name and posts`);
+    }
+  }
+  const data = JSON.stringify(b);
+  if (data.length > MAX_BODY_BYTES) throw new HttpError(413, 'channel figures too large');
+  const date = b.generated_at.slice(0, 10);
+  await env.DB.batch([
+    env.DB.prepare(CHANNELS_TABLE),
+    env.DB.prepare('INSERT INTO channel_stats (date, data) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET data = excluded.data').bind(date, data),
+    env.DB.prepare("DELETE FROM channel_stats WHERE date < date('now', '-60 days')"),
   ]);
   return json({ ok: true });
 }

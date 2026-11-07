@@ -992,3 +992,16 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 .hero-chip { align-self: flex-start; font-size: 12px; font-weight: 600; color: var(--hero); background: var(--hero-amber); border-radius: 10px; padding: 2px 8px; }
 .ibox-h { margin: 0; font: inherit; }
 .ibox-kicker.amber { color: var(--amber); }
+
+/* ---- version 3.30: Telegram channels ---- */
+.cs-pill { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 10px; padding: 1px 7px; margin-top: 2px; }
+.cs-pill.hi { background: var(--neg-strong-bg); color: var(--neg-strong-fg); }
+.cs-pill.mid { background: var(--neg-bg); color: var(--neg-fg); }
+.cs-pill.lo { background: var(--pos-bg); color: var(--pos-fg); }
+.cs-pill.none { background: var(--chip); color: var(--muted); }
+.cs-hours { display: flex; align-items: flex-end; gap: 2px; height: 48px; position: relative; margin: 6px 0 18px; }
+.cs-hours > span { flex: 1; background: var(--hero-line); border-radius: 2px 2px 0 0; min-height: 1px; }
+.cs-hours-axis { position: absolute; left: 0; right: 0; bottom: -18px; display: flex; justify-content: space-between; }
+.cs-pill.good.hi { background: var(--pos-strong-bg); color: var(--pos-strong-fg); }
+.cs-pill.good.mid { background: var(--pos-bg); color: var(--pos-fg); }
+.cs-pill.good.lo { background: var(--chip); color: var(--ink); }
