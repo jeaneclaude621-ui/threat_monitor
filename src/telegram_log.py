@@ -64,19 +64,20 @@ TEXT_CAP = 2000
 VIEW_AGES = [1, 3, 6, 12, 24, 48, 96]   # hours: views recorded once past each age
 MIN_POSTS = 30         # fewer posts in the period: no indicators
 
-# Public channels with a web preview, by kind. "region": governors of the
-# Russian border regions; "ua": Ukrainian official; "oberoende": independent
-# Russian-language media. Run `check` after a change.
+# Public channels with a web preview, by kind. "ua": Ukrainian official;
+# "oberoende": independent Russian-language media. Run `check` after a change.
+# Left out after the check of 7 Nov 2026: rt_russian and the border governors
+# (vv_gladkov, Khinshtein, AV_Bogomaz) have no web preview; grey_zone and
+# rusich_army have not posted since July.
 CHANNELS = {
     "tass_agency": "stat", "mod_russia": "stat", "MID_Russia": "stat", "medvedev_telegram": "stat",
-    "rt_russian": "stat", "zvezdanews": "stat",
+    "zvezdanews": "stat",
     "SolovievLive": "propaganda", "readovkanews": "propaganda", "mash": "propaganda", "shot_shot": "propaganda",
     "bazabazon": "propaganda",
-    "rybar": "milblogg", "boris_rozhin": "milblogg", "wargonzo": "milblogg", "grey_zone": "milblogg",
-    "dva_majors": "milblogg", "rusich_army": "milblogg", "voenkorKotenok": "milblogg", "RVvoenkor": "milblogg",
+    "rybar": "milblogg", "boris_rozhin": "milblogg", "wargonzo": "milblogg",
+    "dva_majors": "milblogg", "voenkorKotenok": "milblogg", "RVvoenkor": "milblogg",
     "epoddubny": "milblogg", "sashakots": "milblogg", "voin_dv": "milblogg", "Sladkov_plus": "milblogg",
     "milinfolive": "milblogg", "mig41": "milblogg",
-    "vv_gladkov": "region", "Khinshtein": "region", "AV_Bogomaz": "region",
     "kpszsu": "ua",
     "astrapress": "oberoende", "supernova_plus": "oberoende", "exilenova_plus": "oberoende",
 }
