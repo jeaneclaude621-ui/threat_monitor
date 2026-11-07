@@ -3950,7 +3950,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-07"
     }
-   ]
+   ],
+   "image": {
+    "file": "sys-fab-umpk.jpg",
+    "commons_file": "File:FAB-500 alsGleitbombe Kiew Museum-lokaler-Konflikte (außen) 20260705 04cr.jpg",
+    "author": "photo User:Zenwort",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AFAB-500_alsGleitbombe_Kiew_Museum-lokaler-Konflikte_%28au%C3%9Fen%29_20260705_04cr.jpg"
+   }
   },
   {
    "id": "an-12",
@@ -3974,7 +3982,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-07"
     }
-   ]
+   ],
+   "image": {
+    "file": "sys-an-12.jpg",
+    "commons_file": "File:Antonov An-12BK, Russia - Air Force AN1879625.jpg",
+    "author": "Igor Dvurekov",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AAntonov_An-12BK%2C_Russia_-_Air_Force_AN1879625.jpg"
+   }
   },
   {
    "id": "an-72",
@@ -3999,7 +4015,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-07"
     }
-   ]
+   ],
+   "image": {
+    "file": "sys-an-72.jpg",
+    "commons_file": "File:Russian Air Force - Antonov An-72.jpg",
+    "author": "Kirill Naumenko - Moscow City Spotters",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ARussian_Air_Force_-_Antonov_An-72.jpg"
+   }
   },
   {
    "id": "an-30",
@@ -4020,7 +4044,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-07"
     }
-   ]
+   ],
+   "image": {
+    "file": "sys-an-30.jpg",
+    "commons_file": "File:An-30 - RA-26226.jpg",
+    "author": "Gartenfreuden (Wolfgang)",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AAn-30_-_RA-26226.jpg"
+   }
   },
   {
    "id": "an-148",
@@ -4042,7 +4074,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-07"
     }
-   ]
+   ],
+   "image": {
+    "file": "sys-an-148.jpg",
+    "commons_file": "File:Air Koryo Antonov An-148-100B.jpg",
+    "author": "wc",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AAir_Koryo_Antonov_An-148-100B.jpg"
+   }
   },
   {
    "id": "tu-134",
@@ -4065,7 +4105,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-07"
     }
-   ]
+   ],
+   "image": {
+    "file": "sys-tu-134.jpg",
+    "commons_file": "File:Tu-134UBL.jpg",
+    "author": "Vitaly Kuzmin",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ATu-134UBL.jpg"
+   }
   },
   {
    "id": "l-39",
@@ -4091,7 +4139,15 @@
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-07"
     }
-   ]
+   ],
+   "image": {
+    "file": "sys-l-39.jpg",
+    "commons_file": "File:Aero L-39, Прочее - Россия -RP91602.jpg",
+    "author": "Igor Dvurekov",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AAero_L-39%2C_%D0%9F%D1%80%D0%BE%D1%87%D0%B5%D0%B5_-_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D1%8F_-RP91602.jpg"
+   }
   },
   {
    "id": "s-70-ochotnik",
@@ -4120,7 +4176,14 @@
    ]
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-an-140.jpg",
+    "commons_file": "File:Russian Air Force Antonov An-140 Usanov.jpg",
+    "author": "Alexander Usanov",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ARussian_Air_Force_Antonov_An-140_Usanov.jpg"
+   },
    "id": "an-140",
    "name": "An-140",
    "name_ru": "Ан-140",
@@ -4151,7 +4214,14 @@
    ]
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b2-l-410.jpg",
+    "commons_file": "File:Landing L-410 (3175267824).jpg",
+    "author": "Aleksandr Markin",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ALanding_L-410_%283175267824%29.jpg"
+   },
    "id": "b2-l-410",
    "name": "L-410 Turbolet",
    "name_ru": "Л-410",
@@ -4183,7 +4253,14 @@
    ]
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b2-ansat.jpg",
+    "commons_file": "File:Kazan Ansat - 100th anniversary of Russian Air Force -02.jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AKazan_Ansat_-_100th_anniversary_of_Russian_Air_Force_-02.jpg"
+   },
    "id": "b2-ansat",
    "name": "Ansat-U",
    "name_ru": "Ансат-У",
@@ -4214,7 +4291,14 @@
    ]
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b2-ka-226.jpg",
+    "commons_file": "File:Russian Air Force, 56, Kamov Ka-226 (21418599386).jpg",
+    "author": "Anna Zvereva from Tallinn, Estonia",
+    "license": "CC BY-SA 2.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ARussian_Air_Force%2C_56%2C_Kamov_Ka-226_%2821418599386%29.jpg"
+   },
    "id": "b2-ka-226",
    "name": "Ka-226",
    "name_ru": "Ка-226",
@@ -4245,7 +4329,14 @@
    ]
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b2-mi-2.jpg",
+    "commons_file": "File:Mi-2(SP-SXA).jpg",
+    "author": "Stiopa",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AMi-2%28SP-SXA%29.jpg"
+   },
    "id": "b2-mi-2",
    "name": "Mi-2",
    "name_ru": "Ми-2",
@@ -4276,7 +4367,14 @@
    ]
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b3-t-90a.jpg",
+    "commons_file": "File:T-90M.jpg",
+    "author": "Ministry of Defence of the Russian Federation",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AT-90M.jpg"
+   },
    "name": "T-90A",
    "name_ru": "Т-90А",
    "category_sv": "Stridsfordon",
@@ -4302,7 +4400,14 @@
    "id": "b3-t-90a"
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b3-t-72b.jpg",
+    "commons_file": "File:Alabino05042017-40.jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AAlabino05042017-40.jpg"
+   },
    "name": "T-72B",
    "name_ru": "Т-72Б",
    "category_sv": "Stridsfordon",
@@ -4329,7 +4434,14 @@
    "id": "b3-t-72b"
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b3-t-80bv.jpg",
+    "commons_file": "File:T-80BVM.jpg",
+    "author": "Ministry of Defence of the Russian Federation",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AT-80BVM.jpg"
+   },
    "name": "T-80BV",
    "name_ru": "Т-80БВ",
    "category_sv": "Stridsfordon",
@@ -4356,7 +4468,14 @@
    "id": "b3-t-80bv"
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b3-tunguska.jpg",
+    "commons_file": "File:2008 Moscow Victory Day Parade - 9K22 Tunguska.jpg",
+    "author": "Пользователь",
+    "license": "CC BY 3.0",
+    "license_url": "https://creativecommons.org/licenses/by/3.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3A2008_Moscow_Victory_Day_Parade_-_9K22_Tunguska.jpg"
+   },
    "name": "2K22 Tunguska",
    "name_ru": "2К22 «Тунгуска»",
    "category_sv": "Luftvärn",
@@ -4382,7 +4501,14 @@
    "id": "b3-tunguska"
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b3-strela-10.jpg",
+    "commons_file": "File:9A35 combat vehicle 9K35 Strela-10 - TankBiathlon14part2-37.jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3A9A35_combat_vehicle_9K35_Strela-10_-_TankBiathlon14part2-37.jpg"
+   },
    "name": "9K35 Strela-10",
    "name_ru": "9К35 «Стрела-10»",
    "category_sv": "Luftvärn",
@@ -4409,7 +4535,14 @@
    "id": "b3-strela-10"
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b3-2s12-sani.jpg",
+    "commons_file": "File:2S12 Sani (heavy mortar system).jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3A2S12_Sani_%28heavy_mortar_system%29.jpg"
+   },
    "name": "2S12 Sani",
    "name_ru": "2С12 «Сани»",
    "category_sv": "Artilleri",
@@ -4435,7 +4568,14 @@
    "id": "b3-2s12-sani"
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b3-2s23.jpg",
+    "commons_file": "File:ParkPatriot2015part11-150.jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AParkPatriot2015part11-150.jpg"
+   },
    "name": "2S23 Nona-SVK",
    "name_ru": "2С23 «Нона-СВК»",
    "category_sv": "Artilleri",
@@ -4461,7 +4601,14 @@
    "id": "b3-2s23"
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b3-bmd-1.jpg",
+    "commons_file": "File:Vdvcompetition11.jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AVdvcompetition11.jpg"
+   },
    "name": "BMD-1",
    "name_ru": "БМД-1",
    "category_sv": "Stridsfordon",
@@ -4487,7 +4634,14 @@
    "id": "b3-bmd-1"
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b3-btr-d.jpg",
+    "commons_file": "File:Army2016-252.jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3AArmy2016-252.jpg"
+   },
    "name": "BTR-D",
    "name_ru": "БТР-Д",
    "category_sv": "Stridsfordon",
@@ -4513,7 +4667,14 @@
    "id": "b3-btr-d"
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b3-btr-80.jpg",
+    "commons_file": "File:2011 Moscow Victory Day Parade (360-06) (cropped).jpg",
+    "author": "Vitaly V. Kuzmin",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3A2011_Moscow_Victory_Day_Parade_%28360-06%29_%28cropped%29.jpg"
+   },
    "name": "BTR-80",
    "name_ru": "БТР-80",
    "category_sv": "Stridsfordon",
@@ -4539,7 +4700,14 @@
    "id": "b3-btr-80"
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b3-btr-70.jpg",
+    "commons_file": "File:BTR-70.jpg",
+    "author": "N1C4T97",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ABTR-70.jpg"
+   },
    "name": "BTR-70",
    "name_ru": "БТР-70",
    "category_sv": "Stridsfordon",
@@ -4564,7 +4732,14 @@
    "id": "b3-btr-70"
   },
   {
-   "image": null,
+   "image": {
+    "file": "sys-b3-totjka-u.jpg",
+    "commons_file": "File:Tochka-U rep parad Yekat.jpg",
+    "author": "Владислав Фальшивомонетчик",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source_url": "https://commons.wikimedia.org/wiki/File%3ATochka-U_rep_parad_Yekat.jpg"
+   },
    "name": "OTR-21 Totjka-U",
    "name_ru": "ОТР-21 «Точка-У»",
    "category_sv": "Robot",

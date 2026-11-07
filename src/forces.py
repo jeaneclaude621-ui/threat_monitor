@@ -153,6 +153,27 @@ def _fold(t) -> str:
     return re.sub(r"[^a-z0-9а-яё]", "", str(t or "").lower())
 
 
+# Hand-kept type words ("Ubåtar", "Korvetter") and the system cards they cover:
+# the word goes when the base already lists such a class by name.
+SHIP_WORDS = {
+    "ubåtar": {"cat": "Ubåt"},
+    "fartyg": {"cat": "Fartyg"},
+    "korvetter": {"ids": {"steregusjtjij", "bujan-m", "karakurt", "bykov"}},
+    "fregatter": {"ids": {"gorsjkov", "grigorovitj", "gepard"}},
+    "jagare": {"ids": {"udaloj", "sovremennyj"}},
+    "kryssare": {"ids": {"kirov", "slava"}},
+    "landstigningsfartyg": {"ids": {"ropucha", "ivan-gren"}},
+}
+
+
+def _covered(word: str, sids: list, db: dict) -> bool:
+    rule = SHIP_WORDS.get(str(word).strip().lower())
+    if not rule:
+        return False
+    return any(sid in rule.get("ids", ()) or (db["systems"].get(sid) or {}).get("category_sv") == rule.get("cat")
+               for sid in sids)
+
+
 def _display(db_base: dict, db: dict) -> tuple:
     """The base's units and equipment as display strings (the hand-kept
     names first, then the database's), at most 60 of each."""
@@ -168,6 +189,7 @@ def _display(db_base: dict, db: dict) -> tuple:
     for u in db["units"].values():
         if db_base["id"] in (u.get("garrison") or []):
             sids += [e for e in u.get("equipment") or [] if e not in sids]
+    equipment = [e for e in equipment if not _covered(e, sids, db)]
     for sid in sids:
         x = db["systems"].get(sid)
         if x and not any(_fold(x["name"]).startswith(_fold(e)) or _fold(e).startswith(_fold(x["name"].split(" ")[0])) for e in equipment):

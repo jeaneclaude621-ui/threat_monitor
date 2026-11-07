@@ -876,3 +876,14 @@ App only (webapp/public); no new endpoints.
   system cards. Service worker bumped.
 - `config/forces_db/research/todo-*.json`: the bases with no known
   equipment, the basis for the research pass.
+
+# Version 3.28 (7 Nov 2026) - pictures for the new systems, ship types named
+
+- `/api/forces`: a hand-kept type word in a base's `equipment` ("Ubåtar",
+  "Korvetter", "Fregatter", "Jagare", "Kryssare", "Landstigningsfartyg",
+  "Fartyg") is left out when the base already lists a class of that type
+  by name (forces.py `SHIP_WORDS`). Baltijsk gets the Steregusjtjij and
+  Ropucha classes and Novorossijsk the Admiral Grigorovitj class, with
+  sources.
+- `systems.json`: Commons photos for 24 of the 27 systems that had none,
+  each looked at by hand; Banderol, Oresjnik and S-70 have no free photo.

@@ -1,0 +1,35 @@
+{
+ "accessed": "2026-11-07",
+ "bases": {
+  "baltijskaja-vojenno-morskaja-baza": {
+   "equipment": [
+    "kalibr",
+    "steregusjtjij",
+    "ropucha"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Steregushchiy-class_corvette",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_landing_ship_Korolev",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "novorossijskaja-vojenno-morskaja-baza": {
+   "equipment": [
+    "kilo",
+    "kalibr",
+    "grigorovitj"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Admiral_Makarov_(frigate)",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  }
+ }
+}
