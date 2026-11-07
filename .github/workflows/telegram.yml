@@ -42,6 +42,9 @@ jobs:
       - name: Run
         env:
           DISPATCH_JOB: ${{ inputs.job }}
+          HOTMONITOR_URL: ${{ secrets.HOTMONITOR_URL }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
         run: |
           set -o pipefail
           case "${DISPATCH_JOB:-collect}" in
