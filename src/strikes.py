@@ -64,7 +64,7 @@ LAUNCH = {
     "saky": (45.09, 33.6), "chauda": (45.0, 35.83), "vologda oblast": (59.9, 40.0), "dzhankoi": (45.7, 34.42), "donetsk oblast": (48.0, 37.8), "luhansk oblast": (48.6, 39.3),
     "zaporizhzhia oblast": (47.3, 35.5), "kherson oblast": (46.6, 33.4), "mozdok": (43.79, 44.6),
     "murmansk oblast": (68.5, 33.0), "olenya": (68.15, 33.46), "shaykovka": (54.23, 34.37),
-    "soltsy": (58.14, 30.33), "belarus": (53.7, 27.9), "kaliningrad": (54.7, 20.5),
+    "soltsy": (58.14, 30.33), "orenburg oblast": (51.8, 55.1), "orenburg": (51.77, 55.1), "belarus": (53.7, 27.9), "kaliningrad": (54.7, 20.5),
 }
 # Target regions in Ukraine, lat/lon (oblast centres).
 TARGET = {
@@ -117,11 +117,17 @@ def kind_of(model: str) -> str:
     return next((k for k, rx in KINDS if rx.search(model or "")), "övrigt")
 
 
+# Cyrillic letters that look Latin, as typed into the dataset ("Zakarpattia оblast").
+LOOKALIKES = str.maketrans("аеорсухіјкмтвн", "aeopcyxijkmtbh")
+
+
 def places(text: str, table: dict) -> tuple:
     """([{name, lat, lon}], [unknown names]) from "A and B, C"."""
     found, unknown = [], []
     for part in re.split(r"\s+and\s+|,|;|/", text or ""):
         name = part.strip().lower().replace("’", "'")
+        if re.search(r"[a-z]", name):   # a Latin name with a stray Cyrillic look-alike
+            name = name.translate(LOOKALIKES)
         if not name:
             continue
         key = name if name in table else name.removesuffix(" region").replace(" region", " oblast")

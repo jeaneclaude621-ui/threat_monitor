@@ -51,3 +51,8 @@ def test_google_news_gives_up_on_404(monkeypatch):
     monkeypatch.setattr(news_sources.time, "sleep", lambda s: None)
     assert news_sources.google_news("x") == []
     assert len(calls) == 1
+
+
+def test_places_with_cyrillic_lookalike_and_orenburg():
+    assert strikes.places("Zakarpattia оblast", strikes.TARGET)[0][0]["lat"] == 48.4
+    assert strikes.places("Orenburg oblast", strikes.LAUNCH)[0][0]["lon"] == 55.1
