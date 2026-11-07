@@ -887,3 +887,19 @@ App only (webapp/public); no new endpoints.
   sources.
 - `systems.json`: Commons photos for 24 of the 27 systems that had none,
   each looked at by hand; Banderol, Oresjnik and S-70 have no free photo.
+
+# Version 3.29 (7 Nov 2026) - Idag as fold-out boxes, the tabs at the top
+
+- Idag: the hero, then "Viktigast i dag" and one box each for the day's
+  events, the live updates, last night's air attacks on Ukraine
+  (`/api/strikes`, the newest day if from the last two days), last night's
+  strikes in Russia (`/api/forces` `nights`) and the assessment ("Kort om
+  allt" with the authorities' and courses-of-action rows). Each box shows a
+  headline and one line of figures and opens on a tap. Both feeds are
+  fetched at most every ten minutes for Idag.
+- The tab bar sits at the top, inside the sticky `.topbars`: Idag, Karta,
+  Styrkor, Narrativ (Bedöm for admins) and "Mer", a sheet with Arkiv,
+  Ämnen, Myndigheter, Handlingsalternativ, Funktioner, notifications, home
+  screen, Om and Rättelser. Arkiv's unread count shows on "Mer".
+- The fallback-model note is a chip in the hero; the share button an icon
+  in the header; the home-screen card moved into "Mer".

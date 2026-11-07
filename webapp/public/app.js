@@ -219,11 +219,40 @@ function updateHash(mutate) {
   route({ keepScroll: true });
 }
 
+// The pages behind "Mer" light that button instead of a tab.
+const MORE_ROUTES = new Set(['arkiv', 'rapport', 'amnen', 'myndigheter', 'handlingsalternativ', 'om', 'rattelser']);
 function setTab(tab) {
-  for (const a of document.querySelectorAll('.tabbar a')) {
-    if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page');
+  const shown = MORE_ROUTES.has(currentRoute) ? 'mer' : tab;
+  for (const a of document.querySelectorAll('.tabbar [data-tab]')) {
+    if (a.dataset.tab === shown) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');
   }
+}
+
+// "Mer": the pages without a tab of their own, and the app's settings.
+function openMore() {
+  openSheet((close) => {
+    const go = (href) => () => { close(); if (location.hash === href) route(); else location.hash = href; };
+    const act = (fn) => () => { close(); setTimeout(fn, 0); };
+    const nNew = firstVisitNow ? 0 : newFeatures().length;
+    const unreadArchive = badgeCounts.arkiv || 0;
+    const row = (label, note, onclick) => h('li', null,
+      h('button', { class: 'more-row', type: 'button', onclick }, h('span', null, label), note ? h('span', { class: 'more-note' }, note) : null));
+    return frag(
+      h('h2', { class: 'title-m' }, 'Mer'),
+      h('ul', { class: 'more-list' },
+        row('Arkiv', unreadArchive ? `${unreadArchive} olästa` : 'Tidigare dagar', go('#/arkiv')),
+        row('Ämnen', 'Sök och följ', go('#/amnen')),
+        row('Myndigheter', 'Svenska lägesbilder', go('#/myndigheter')),
+        row('Handlingsalternativ', null, go('#/handlingsalternativ')),
+        row('Funktioner', nNew ? `${nNew} nya` : null, act(openFeatures)),
+        row('Notiser och hemskärm', null, act(openSettings)),
+        canOfferInstall() ? row('Lägg till på hemskärmen', null, act(openInstall)) : null,
+        row('Om Hotmonitor', null, go('#/om')),
+        row('Rättelser', null, go('#/rattelser')),
+        isAdmin() ? row('Status och administration', null, go('#/admin')) : null),
+      h('div', { class: 'sheet-actions' }, h('button', { class: 'btn', type: 'button', onclick: close }, 'Stäng')));
+  }, { label: 'Mer' });
 }
 
 async function route({ keepScroll = false } = {}) {
@@ -410,29 +439,10 @@ window.addEventListener('beforeinstallprompt', (ev) => {
 });
 window.addEventListener('appinstalled', () => { installPrompt = null; if (currentRoute === '') rerender(); });
 
-const SNOOZE_KEY = 'hm.installSnooze';
-function installSnoozed() {
-  try { return Date.now() < Number(localStorage.getItem(SNOOZE_KEY) || 0); } catch { return false; }
-}
-function snoozeInstall() {
-  try { localStorage.setItem(SNOOZE_KEY, String(Date.now() + 7 * 86400000)); } catch { /* private mode */ }
-}
 // iOS never fires beforeinstallprompt; ignore one a simulated iOS page gets.
 const promptReady = () => !!installPrompt && !isIOS();
 const canOfferInstall = () => !isStandalone() && (isIOS() || isAndroid() || promptReady());
 
-function installCard() {
-  if (!canOfferInstall() || installSnoozed()) return null;
-  return h('section', { class: 'card card-pad install', 'aria-labelledby': 'install-title' },
-    h('div', { class: 'install-row' },
-      h('img', { class: 'install-icon', src: '/apple-touch-icon.png', alt: '', width: 48, height: 48 }),
-      h('div', null,
-        h('h2', { class: 'kicker amber', id: 'install-title' }, 'Lägg till på hemskärmen'),
-        h('p', { class: 'small' }, 'Öppna Hotmonitor som en app: i helskärm, snabbare, och med notiser vid allvarliga händelser.'))),
-    h('div', { class: 'btn-row' },
-      h('button', { class: 'btn primary', type: 'button', onclick: () => openInstall() }, promptReady() ? 'Installera' : 'Så gör du'),
-      h('button', { class: 'btn', type: 'button', onclick: () => { snoozeInstall(); rerender(); } }, 'Inte nu')));
-}
 
 function figIcon(paths, cls) { return icon(paths, cls, '0 0 24 24'); }
 const shareGlyph = (cls = 'fig-glyph') => figIcon(['M12 3v12', 'M8 7l4-4 4 4', 'M6 11H5v10h14V11h-1'], cls);
@@ -861,8 +871,9 @@ async function computeBadges() {
 }
 
 function paintBadges() {
-  for (const a of document.querySelectorAll('.tabbar a')) {
-    const n = badgeCounts[a.dataset.tab] || 0;
+  for (const a of document.querySelectorAll('.tabbar [data-tab]')) {
+    // Arkiv sits behind "Mer" (Version 3.29): its unread count shows there.
+    const n = (a.dataset.tab === 'mer' ? badgeCounts.arkiv : badgeCounts[a.dataset.tab]) || 0;
     let b = a.querySelector('.tbadge');
     if (!n) { if (b) b.remove(); a.removeAttribute('aria-description'); continue; }
     if (!b) { b = h('span', { class: 'tbadge', 'aria-hidden': 'true' }); a.append(b); }
@@ -946,6 +957,93 @@ function ensureScope(index) { if (index.length) scopeStart = addDays(index[0].da
 const FEED_PREVIEW = 3;
 let showAllFeed = false;
 
+// Version 3.29: Idag as fold-out info boxes. Each box shows its kicker, a
+// headline and one line of figures; a tap opens it. Which are open is kept
+// for the visit (openBoxes); the day's summary is always open.
+const openBoxes = new Set();
+function infoBox(id, { iconEl, iconCls = '', kicker, title, sub, body }) {
+  const bodyId = `ibox-${id}`;
+  const open = openBoxes.has(id);
+  const panel = h('div', { class: 'ibox-body', id: bodyId, hidden: !open || null }, body);
+  const btn = h('button', { class: 'ibox-head', type: 'button', 'aria-expanded': String(open), 'aria-controls': bodyId,
+    onclick: () => {
+      const now = !openBoxes.has(id);
+      if (now) openBoxes.add(id); else openBoxes.delete(id);
+      btn.setAttribute('aria-expanded', String(now));
+      panel.hidden = !now;
+    } },
+  h('span', { class: `ibox-icon ${iconCls}`, 'aria-hidden': 'true' }, iconEl),
+  h('span', { class: 'ibox-main' },
+    h('span', { class: 'ibox-kicker' }, kicker),
+    h('span', { class: 'ibox-title' }, title),
+    sub ? h('span', { class: 'ibox-sub' }, sub) : null),
+  icon(['M4 6l4 4 4-4'], 'chev ibox-chev'));
+  return h('section', { class: 'ibox' }, h('h2', { class: 'ibox-h' }, btn), panel);
+}
+const boxIcon = (paths) => icon(paths, '', '0 0 24 24');
+
+// The strike map and the forces night for Idag, fetched at most every ten minutes.
+let idagSide = { at: 0, p: null };
+function loadIdagSide() {
+  if (!idagSide.p || Date.now() - idagSide.at > 600000) {
+    idagSide = { at: Date.now(), p: Promise.all([loadStrikes().catch(() => null), loadForces().catch(() => null)]) };
+  }
+  return idagSide.p;
+}
+const recent = (iso, days = 2) => !!iso && iso >= new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+const KIND_PLURAL = { 'drönare': 'drönare', kryssningsrobot: 'kryssningsrobotar', 'ballistisk robot': 'ballistiska robotar' };
+
+function strikesBox(data) {
+  const day = data && Array.isArray(data.days) ? data.days[0] : null;
+  if (!day || !recent(day.date)) return null;
+  const totals = Object.entries(day.totals || {});
+  const launched = totals.reduce((n, [, t]) => n + (Number(t.launched) || 0), 0);
+  const destroyed = totals.reduce((n, [, t]) => n + (Number(t.destroyed) || 0), 0);
+  if (!launched) return null;
+  const today = new Date().toLocaleDateString('sv-SE');
+  return infoBox('ua', {
+    iconCls: 'blue', iconEl: boxIcon(['M3 20L20 4', 'M14 4h6v6']),
+    kicker: day.date === today ? 'Anfall mot Ukraina i natt' : `Anfall mot Ukraina, natten till ${dateShort(day.date)}`,
+    title: totals.map(([k, t]) => `${t.launched} ${KIND_PLURAL[k] || k}`).join(', '),
+    sub: [`${destroyed} av ${launched} nedskjutna`, 'Ukrainas flygvapen', day.preliminary ? 'preliminärt' : null].filter(Boolean).join(' · '),
+    body: frag(
+      (day.rows || []).filter((r) => !r.hidden).map((r) => h('div', { class: 'wrow' },
+        h('span', null, r.model), h('span', null, `${r.launched} avfyrade${r.destroyed != null ? ` · ${r.destroyed} ned` : ''}`))),
+      h('a', { class: 'btn', href: '#/styrkor?s=anfall' }, 'Visa på anfallskartan')),
+  });
+}
+
+function forcesNightBox(data) {
+  const night = data && Array.isArray(data.nights) ? data.nights.at(-1) : null;
+  if (!night || !recent(night.date)) return null;
+  const items = [...(night.attacks || []), ...(night.follow_ups || []), ...(night.other || [])];
+  if (!items.length && !night.summary_sv) return null;
+  // "Proton-fabriken i Orjol, Orjol oblast" -> "Proton-fabriken i Orjol": the headline stays short.
+  const places = [...new Set((night.other || []).map((o) => String(o.place || '').split(',')[0].trim()).filter(Boolean))];
+  const baseHits = (night.attacks || []).length;
+  const title = places.length
+    ? `${places.slice(0, 2).join(', ')}${places.length > 2 ? ` och ${places.length - 2} till` : ''}`
+    : baseHits ? plural(baseHits, 'bas anfallen', 'baser anfallna') : firstSentence(night.summary_sv, 90);
+  return infoBox('ru', {
+    iconCls: 'amber', iconEl: boxIcon(['M12 3l8 4v5c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V7l8-4z']),
+    kicker: `Anfall i Ryssland, natten till ${dateShort(night.date)}`,
+    title,
+    sub: items.length ? plural(items.length, 'notering', 'noteringar') + (baseHits ? ` · ${plural(baseHits, 'bas', 'baser')}` : '') : null,
+    body: frag(
+      night.summary_sv ? h('p', { class: 'body-sm' }, night.summary_sv) : null,
+      h('a', { class: 'btn', href: '#/styrkor' }, 'Öppna Styrkor')),
+  });
+}
+
+// The Swedish 30-day line from "Kort om allt" ("30 dagar (4,2): ..."), for the box's headline.
+function outlookSv(sections) {
+  for (const sec of sections) {
+    const it = (sec.items || []).find((x) => /^30\s*dagar/i.test(x.label || ''));
+    if (it && it.text) return it.text;
+  }
+  return null;
+}
+
 async function viewReport(date, q) {
   const index = await loadIndex();
   if (!index.length) return emptyState('Inga rapporter ännu.');
@@ -955,13 +1053,16 @@ async function viewReport(date, q) {
   const archived = d !== latest;
   // Only this report: the filter bar counts the events listed below, and a
   // first visit costs a handful of requests (review K1).
-  const [r, brief, courses] = await Promise.all([loadReport(d),
-    archived ? null : loadAuthorities().catch(() => null), archived ? null : loadCourses().catch(() => null)]);
+  const [r, brief, courses, side] = await Promise.all([loadReport(d),
+    archived ? null : loadAuthorities().catch(() => null), archived ? null : loadCourses().catch(() => null),
+    archived ? [null, null] : loadIdagSide()]);
+  const [strikesData, forcesData] = side || [null, null];
   const reports = loadedReports();
   const top = (r.executive_sv && r.executive_sv.top) || r.top_development;
   const selected = parseFacets(q);
   const facetEvents = r.events;
   const events = r.events.filter((e) => matchesFacets(e, selected));
+  if (selected.length) openBoxes.add('ev');
 
   // Updates shown with this report: today's (or, for an archived report,
   // that day's); with none today, the latest few so the section is never stale.
@@ -973,40 +1074,27 @@ async function viewReport(date, q) {
   if (selected.length) feed = feed.filter((u) => textMatchesFacets(`${u.title_sv || ''} ${u.summary_sv || ''} ${u.thread_label || ''}`, selected));
 
   const admin = isAdmin();
-  return frag(
-    date ? backLink('#/arkiv', 'Arkiv') : null,
-    h('header', { class: 'page-head' },
-      h('div', null,
-        h('div', { class: 'kicker' }, dateLong(d)),
-        h('div', { class: 'title-row' },
-          h('h1', { class: 'title-xl' }, archived ? 'Rapport' : 'Hotläget'),
-          archived ? null : featuresChip())),
-      h('div', { class: 'head-actions' },
-        date ? null : h('a', { class: 'head-link', href: '#/arkiv' }, 'Tidigare dagar'),
-        date ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
-        date ? null : h('a', { class: 'head-link', href: '#/om' }, 'Om'),
-        isGuest() && !date && !noAccount() ? h('a', { class: 'head-link', href: '/login' }, 'Logga in') : null,
-        admin ? h('a', { class: 'icon-btn', href: '#/admin', 'aria-label': 'Status och administration', title: 'Status och administration' }, gearIcon()) : null)),
-    archived ? null : noticeCards(),
-    archived ? null : noAccountCard(),
-    // The figures and the news first; what is new for me, the controls
-    // and the device cards come after or fold away.
-    heroCard(r),
-    aiLine(),
-    fallbackNote(r),
-    h('div', { class: 'share-row' }, shareButton({
-      title: `Hotläget ${dateLong(d)} · Hotmonitor`,
-      text: `Hotindex ${fmt1(r.threat_index)} av 10. ${firstSentence(top || '', 140)} (AI-sammanfattning · Hotmonitor)`,
-      url: shareDayUrl(d),
-    }, archived ? 'Dela rapporten' : 'Dela dagens läge')),
-    top ? h('section', { class: 'section' },
-      h('div', { class: 'kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
-      h('p', { class: 'lead' }, top)) : null,
-    archived ? null : authoritiesRow(brief),
-    archived ? null : coursesRow(courses),
-    archived ? null : newBox(latest, r),
-    h('section', { class: 'section' },
-      h('h2', { class: 'kicker' }, 'Dygnets händelser'),
+  const share = {
+    title: `Hotläget ${dateLong(d)} · Hotmonitor`,
+    text: `Hotindex ${fmt1(r.threat_index)} av 10. ${firstSentence(top || '', 140)} (AI-sammanfattning · Hotmonitor)`,
+    url: shareDayUrl(d),
+  };
+  const best = events.reduce((m, e) => (Number(e.score) > Number(m) ? e.score : m), 0);
+  const fresh = events.filter((e) => eventState(r.date, e) === 'new').length;
+  const lastUpd = feed[0];
+  const updTime = lastUpd && !Number.isNaN(new Date(lastUpd.ts).getTime())
+    ? new Date(lastUpd.ts).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }) : null;
+  const ex = r.executive_sv;
+  const exParts = ex && Array.isArray(ex.sections) ? ex.sections : [];
+
+  const eventsBox = infoBox('ev', {
+    iconCls: 'dark', iconEl: String(events.length),
+    kicker: archived ? 'Dagens händelser' : 'Dygnets händelser',
+    title: events.length ? `${events[0].title_sv || events[0].title}${events.length > 1 ? `, och ${events.length - 1} till` : ''}`
+      : selected.length ? `Inga händelser för ${selected.map(facetLabel).join(' + ')}` : 'Inga händelser registrerade',
+    sub: [best ? `Högsta trovärdighet ${fmtScore(best)}` : null, fresh ? `${fresh} nya` : null,
+      selected.length ? `Filter: ${selected.map(facetLabel).join(' + ')}` : null].filter(Boolean).join(' · '),
+    body: frag(
       h('p', { class: 'hint' }, 'Siffran vid varje händelse är trovärdighet: hur väl uppgiften är bekräftad av källorna (1–10), inte hur allvarlig den är.'),
       // Into the Narrativ tab's Russian side, which still asks first.
       archived ? null : h('a', { class: 'ru-link', href: '#/narrativ?s=ru' },
@@ -1015,28 +1103,65 @@ async function viewReport(date, q) {
       events.length
         ? h('div', { class: 'card list' }, events.map((e) => eventRow(r.date, e)))
         : selected.length
-          ? h('div', { class: 'card card-pad' },
-            h('p', { class: 'small' }, `Inga händelser ${archived ? 'den dagen' : 'i dag'} för ${selected.map(facetLabel).join(' + ')}.`),
-            h('a', { class: 'btn', href: `#/arkiv?f=${encodeURIComponent(selected.join(','))}&r=30` }, 'Visa i arkivet'))
-          : h('p', { class: 'muted' }, 'Inga händelser registrerade.'),
+          ? h('a', { class: 'btn', href: `#/arkiv?f=${encodeURIComponent(selected.join(','))}&r=30` }, 'Visa i arkivet')
+          : null,
       alsoReported(r, archived)),
-    feed.length || !archived ? h('section', { class: 'section' },
+  });
+
+  const liveBox = feed.length || !archived ? infoBox('live', {
+    iconCls: 'amber', iconEl: boxIcon(['M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16z', 'M12 8v4l3 2']),
+    kicker: updTime ? `${feedTitle} · senast ${updTime}` : feedTitle,
+    title: lastUpd ? (lastUpd.title_sv || firstSentence(lastUpd.summary_sv, 90) || 'Uppdatering')
+      : selected.length ? 'Inga uppdateringar för filtret' : 'Inga uppdateringar ännu i dag',
+    sub: feed.length ? plural(feed.length, 'uppdatering', 'uppdateringar') + (archived ? '' : ' · bevakade trådar kl. 12 och 21') : null,
+    body: frag(
+      feed.length ? h('div', { class: 'card list' }, (showAllFeed ? feed : feed.slice(0, FEED_PREVIEW)).map((u) => updateRow(u, reports))) : null,
       h('div', { class: 'sec-head' },
-        h('h2', { class: 'kicker' }, feedTitle),
-        archived ? null : h('button', { class: 'linkbtn', type: 'button', onclick: () => doRefresh() }, 'Uppdatera')),
-      feed.length
-        ? h('div', { class: 'card list' }, (showAllFeed ? feed : feed.slice(0, FEED_PREVIEW)).map((u) => updateRow(u, reports)))
-        : h('p', { class: 'small muted' }, selected.length ? 'Inga uppdateringar för filtret.' : 'Inga uppdateringar ännu i dag.'),
-      feed.length > FEED_PREVIEW
-        ? h('button', { class: 'linkbtn', type: 'button', onclick: () => { showAllFeed = !showAllFeed; rerender(); } },
-          showAllFeed ? 'Visa färre' : `Visa alla ${feed.length}`)
-        : null) : null,
+        feed.length > FEED_PREVIEW
+          ? h('button', { class: 'linkbtn', type: 'button', onclick: () => { showAllFeed = !showAllFeed; rerender(); } },
+            showAllFeed ? 'Visa färre' : `Visa alla ${feed.length}`) : h('span'),
+        archived ? null : h('button', { class: 'linkbtn', type: 'button', onclick: () => doRefresh() }, 'Uppdatera'))),
+  }) : null;
+
+  const authRow = archived ? null : authoritiesRow(brief);
+  const coaRow = archived ? null : coursesRow(courses);
+  const assessBox = exParts.length || authRow || coaRow ? infoBox('as', {
+    iconEl: boxIcon(['M5 6h14', 'M5 12h14', 'M5 18h9']),
+    kicker: 'Bedömning och underlag',
+    title: firstSentence(outlookSv(exParts) || (ex && ex.index_line) || 'Hotbedömning, signaler, källor och metod', 110),
+    sub: [exParts.length ? plural(exParts.length, 'avsnitt', 'avsnitt') : null, authRow ? 'myndigheter' : null, coaRow ? 'handlingsalternativ' : null]
+      .filter(Boolean).join(' · '),
+    body: frag(authRow, coaRow, executiveBlock(ex)),
+  }) : null;
+
+  return frag(
+    date ? backLink('#/arkiv', 'Arkiv') : null,
+    h('header', { class: 'page-head' },
+      h('div', null,
+        h('div', { class: 'kicker' }, dateLong(d)),
+        h('h1', { class: 'title-xl' }, archived ? 'Rapport' : 'Hotläget')),
+      h('div', { class: 'head-actions' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': archived ? 'Dela rapporten' : 'Dela dagens läge', title: 'Dela', onclick: () => shareLink(share) }, shareIcon()),
+        date ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
+        isGuest() && !date && !noAccount() ? h('a', { class: 'head-link', href: '/login' }, 'Logga in') : null,
+        admin ? h('a', { class: 'icon-btn', href: '#/admin', 'aria-label': 'Status och administration', title: 'Status och administration' }, gearIcon()) : null)),
+    archived ? null : noticeCards(),
+    archived ? null : noAccountCard(),
+    heroCard(r),
+    archived ? null : newBox(latest, r),
+    top ? h('section', { class: 'ibox ibox-top' },
+      h('div', { class: 'ibox-kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
+      h('p', { class: 'lead' }, top)) : null,
+    eventsBox,
+    liveBox,
+    archived ? null : strikesBox(strikesData),
+    archived ? null : forcesNightBox(forcesData),
+    assessBox,
     admin ? h('div', { class: 'btn-row' },
       h('a', { class: 'btn primary', href: '#/bedom' }, 'Bedöm artiklar'),
       h('a', { class: 'btn', href: '#/mina' }, 'Mina bedömningar')) : null,
-    executiveBlock(r.executive_sv),
-    archived ? null : installCard(),
     archived ? null : pushNudge(),
+    aiLine(),
     archived ? null : siteFooter(),
   );
 }
@@ -1149,10 +1274,6 @@ function aiLine() {
 // Marks the pipeline puts in the data (shown, never computed here).
 const isUnverified = (e) => e.unverified === true;
 const noLinkedSources = (e) => !e.articles.some((a) => a && a.url && hostOf(a.url));
-function fallbackNote(r) {
-  return r && r.generated_by && r.generated_by.fallback_used === true
-    ? h('p', { class: 'mark-note' }, 'Skriven av reservmodell – lägre säkerhet') : null;
-}
 function markTag(text) { return h('span', { class: 'mark-tag' }, text); }
 const hasCorrection = (e) => !!(e && e.correction && typeof e.correction.note_sv === 'string' && e.correction.note_sv.trim());
 
@@ -1196,6 +1317,8 @@ function heroCard(r) {
     h('div', { class: 'scale', role: 'img', 'aria-label': `Skala 0 till 10: i dag ${fmt1(r.threat_index)}${hasF ? `, prognos ${fmt1(r.threat_index_30d)}` : ''}` },
       h('div', { class: 'scale-fill', style: `width:${pct(r.threat_index)}` }),
       hasF ? h('div', { class: 'scale-tick', style: `left:${pct(r.threat_index_30d)}` }) : null),
+    r.generated_by && r.generated_by.fallback_used === true
+      ? h('span', { class: 'hero-chip', title: 'Huvudmodellen var överbelastad; rapporten skrevs av reservmodellen' }, 'Reservmodell i dag – lägre säkerhet') : null,
     h('a', { class: 'hero-help', href: '#/om?s=index' }, 'Vad betyder siffran?'),
     heroMore(r, oi));
 }
@@ -4071,12 +4194,6 @@ function newFeatures() {
   return visibleFeatures().filter((f) => f.added >= since).sort((a, b) => (a.added < b.added ? 1 : -1));
 }
 
-function featuresChip() {
-  const n = firstVisitNow ? 0 : newFeatures().length;
-  return h('button', { class: 'feat-chip', type: 'button', onclick: () => openFeatures(),
-    'aria-label': n ? `Funktioner, ${n} nya` : 'Funktioner', title: 'Funktioner och nyheter' },
-    n ? h('span', { class: 'feat-dot', 'aria-hidden': 'true' }) : null, n ? `${n} nya funktioner` : 'Funktioner');
-}
 
 function openFeatures() {
   openSheet((close) => {
@@ -4490,6 +4607,7 @@ async function init() {
     return;
   }
   document.querySelector('[data-tab="bedom"]').hidden = !isAdmin();
+  document.querySelector('.tab-more').addEventListener('click', openMore);
   if (!isGuest()) reportDevice({ standalone: isStandalone(), platform: platformOf() });
   assessmentsReady = loadAssessments().catch((e) => { console.warn('assessments', e); });
   const side = Promise.all([

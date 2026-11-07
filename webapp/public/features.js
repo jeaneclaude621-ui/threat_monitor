@@ -42,6 +42,8 @@ export const FEATURES = [
     desc: 'Rysslands drönar- och robotanfall natt för natt, 30 nätter bakåt.', keywords: 'drönare robotar anfallskarta ukraina flygvapnet' },
   { id: 'andra-anfall', area: 'styrkor', title: 'Andra anfall i Ryssland och ockuperade områden', href: '#/styrkor', added: '2026-11-04',
     desc: 'Raffinaderier, depåer, fabriker och hamnar som anfallits, senaste veckan.', keywords: 'raffinaderi depå fabrik hamn krim anfall' },
+  { id: 'idag-rutor', area: 'idag', title: 'Ny förstasida och meny överst', href: '#/', added: '2026-11-07',
+    desc: 'Idag är hopfällbara rutor med rubrik: händelser, löpande, nattens anfall i Ukraina och Ryssland, bedömning. Flikarna ligger överst; Arkiv, Ämnen och resten under Mer.', keywords: 'förstasida rutor meny mer arkiv ämnen navigering' },
   { id: 'materiel-lankar', area: 'styrkor', title: 'Materiel med länk på fler baser', href: '#/styrkor', added: '2026-11-07',
     desc: 'Baserna visar förbandens flygplan och fordon, och Wikipedia-genomgångens materiel leder till systemets sida.', keywords: 'materiel flygplan drönare system länk bas' },
   { id: 'firms', area: 'styrkor', title: 'Satellitkarta, bränder (NASA FIRMS)', href: '#/styrkor', added: '2026-11-04',
