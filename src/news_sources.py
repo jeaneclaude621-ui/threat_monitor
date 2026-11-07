@@ -103,11 +103,18 @@ def google_news(query: str, lang: str = "en", days: int = 1) -> list:
     """Google News search results as articles. Never raises."""
     loc = EDITIONS.get(lang, "hl=en-US&gl=US&ceid=US:en")
     url = f"https://news.google.com/rss/search?q={urllib.parse.quote(f'{query} when:{days}d')}&{loc}"
-    try:
-        items = feed_prefilter.parse_feed(_get(url, GOOGLE_HEADERS))
-    except Exception as e:
-        print(f"  ! Google News search failed for {query!r} ({type(e).__name__}: {str(e)[:100]})")
-        return []
+    items = None
+    for wait in (0, 10, 30):
+        # Google News answers 503 or 429 in bursts: wait and ask again (twice).
+        time.sleep(wait)
+        try:
+            items = feed_prefilter.parse_feed(_get(url, GOOGLE_HEADERS))
+            break
+        except Exception as e:
+            code = getattr(e, "code", None)
+            if wait == 30 or not (code == 429 or (isinstance(code, int) and code >= 500)):
+                print(f"  ! Google News search failed for {query!r} ({type(e).__name__}: {str(e)[:100]})")
+                return []
     out = []
     for it in items:
         # Titles end in " - Outlet"; the outlet is the item's <source>.

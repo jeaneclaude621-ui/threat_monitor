@@ -69,7 +69,7 @@ JOBS = {
     "authorities": ["src/authorities.py"],
     "forces": ["src/forces.py"],
     "forces_survey": ["src/forces.py", "survey", "--batches", "18"],
-    "strikes": ["src/strikes.py"],
+    "strikes": ["src/strikes.py", "--with-today"],   # by hand, in the day: this morning's night too
     "forces_images": ["src/forces_db_images.py", "job"],
     "repush": ["src/app_sync.py", "repush"],
     "firms_check": ["src/forces_firms.py", "check"],
@@ -337,6 +337,10 @@ def main() -> int:
         # The forces night failed this morning (Gemini overloaded): try it
         # again now; `forces.py retry` does nothing when it did not.
         _, more = run_and_watch(["src/forces.py", "retry"])
+        warnings = warnings + more
+        # The strike map's nights still missing (Google News refused this
+        # morning, or the Air Force had not reported yet): fill them now.
+        _, more = run_and_watch(["src/strikes.py", "retry"])
         warnings = warnings + more
     if args.job == "daily" and code == 0 and not args.test:
         # The day's shareable image (src/og_image.py), into the code repo so

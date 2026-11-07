@@ -243,14 +243,16 @@ Respond as strict JSON:
   "refs": ["H1"]}}]}}"""
 
 
-def preliminary(kaggle_newest: str, previous: dict, today: date) -> list:
-    """Nights after the dataset's newest, up to yesterday: kept from the
-    previous run when already read, else read now in one light call."""
+def preliminary(kaggle_newest: str, previous: dict, today: date, with_today: bool = False) -> list:
+    """Nights after the dataset's newest, up to yesterday (with_today: up to
+    the night that ended this morning, for the 12:00 and 21:00 runs, when the
+    Air Force's figures are out): kept from the previous run when already
+    read, else read now in one light call."""
     start = date.fromisoformat(kaggle_newest) + timedelta(days=1) if kaggle_newest else today - timedelta(days=3)
     start = max(start, today - timedelta(days=PRELIM_MAX_NIGHTS))
     wanted = []
     d = start
-    while d < today:
+    while d < today or (with_today and d == today):
         wanted.append(d.isoformat())
         d += timedelta(days=1)
     kept = {x["date"]: x for x in (previous or {}).get("days", []) if x.get("preliminary") and x["date"] in wanted}
@@ -329,7 +331,7 @@ def _prelim_night(n: dict, missing: list, refs: dict):
     return {"date": n["date"], "rows": rows, "totals": totals, "preliminary": True, "sources": sources}
 
 
-def run(dry_run: bool = False):
+def run(dry_run: bool = False, with_today: bool = False):
     rows = download()
     if rows is None:
         print("  Strikes: KAGGLE_USERNAME / KAGGLE_KEY not set; skipped")
@@ -352,7 +354,7 @@ def run(dry_run: bool = False):
             previous = None
     newest = data["days"][0]["date"] if data["days"] else None
     try:
-        extra = preliminary(newest, previous, today)
+        extra = preliminary(newest, previous, today, with_today=with_today)
     except Exception as e:
         print(f"  ! Strikes: preliminary nights failed ({type(e).__name__}: {e})")
         extra = []
@@ -377,7 +379,29 @@ def run_safe():
         print(f"  ! Strikes failed ({type(e).__name__}: {e})")
 
 
+def retry_if_due():
+    """`strikes.py retry` (the 12:00 and 21:00 runs): fills the nights still
+    missing up to this morning's (the morning run cannot: the Air Force
+    reports later, and Google News sometimes refuses); otherwise nothing."""
+    today = date.today()
+    try:
+        have = {d["date"] for d in json.load(open(PATH, encoding="utf-8")).get("days", [])}
+    except (OSError, ValueError):
+        have = set()
+    gap = [today - timedelta(days=i) for i in range(0, 3)]
+    if all(d.isoformat() in have for d in gap):
+        return
+    print("  Strikes: nights missing up to this morning; reading them again")
+    run(with_today=True)
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
+    ap.add_argument("cmd", nargs="?", choices=["retry"])
     ap.add_argument("--dry-run", action="store_true")
-    run(dry_run=ap.parse_args().dry_run)
+    ap.add_argument("--with-today", action="store_true")
+    a = ap.parse_args()
+    if a.cmd == "retry":
+        retry_if_due()
+    else:
+        run(dry_run=a.dry_run, with_today=a.with_today)
