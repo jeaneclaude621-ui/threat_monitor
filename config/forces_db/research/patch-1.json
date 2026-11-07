@@ -1,0 +1,581 @@
+{
+ "accessed": "2026-11-07",
+ "bases": {
+  "alakurtti": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Nedlagd som flygbas: helikopterskvadronen upplöstes 2009 och inget flygförband finns kvar (Wikipedia). Orten är garnison för 80:e arktiska brigaden.",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Alakurtti_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%90%D0%BB%D0%B0%D0%BA%D1%83%D1%80%D1%82%D1%82%D0%B8_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    }
+   ]
+  },
+  "andreapol": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Nedlagd: 28:e jaktflygregementet upplöstes troligen 2009 och basen rapporterades stängd eller inaktiv 2019 (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Andreapol_air_base",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "batajsk": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Nedlagd: skolflygregementet lämnade 1993 och inget militärt förband är känt här i dag (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Bataysk_air_base",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%91%D0%B0%D1%82%D0%B0%D0%B9%D1%81%D0%BA_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    }
+   ]
+  },
+  "bobrujsk": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Reservflygfält utan fast flygförband; 83:e ingenjör- och flygfältsregementet håller fältet i beredskap (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%91%D0%BE%D0%B1%D1%80%D1%83%D0%B9%D1%81%D0%BA_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Babruysk_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "dorochovo": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Nedlagd: 611:e jaktflygregementet upplöstes i september 2009 och flygplanen flyttades till Chotilovo (rysk Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%94%D0%BE%D1%80%D0%BE%D1%85%D0%BE%D0%B2%D0%BE_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Dorokhovo_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "chmejmim": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Rysk närvaro minskad sedan Assadregimens fall 2024. Enligt Syriens utrikesministerium (augusti 2026) tar syrisk civil förvaltning över flygplatsen och basen görs om till ett gemensamt utbildningscenter; vilka ryska flygplan som finns kvar är inte känt (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Khmeimim_Air_Base",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "jermolino": {
+   "equipment": [
+    "il-76",
+    "an-26",
+    "an-12"
+   ],
+   "status": {
+    "status_sv": "Rosgvardijas 70:e blandade flygregemente med Il-76, An-26 och An-12; fältet delas med flyg- och rymdstridskrafterna (rysk Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%95%D1%80%D0%BC%D0%BE%D0%BB%D0%B8%D0%BD%D0%BE_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    }
+   ]
+  },
+  "jevpatorija": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Flygfält vid flygverkstaden i Jevpatorija; inget fast flygförband känt (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%95%D0%B2%D0%BF%D0%B0%D1%82%D0%BE%D1%80%D0%B8%D1%8F_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%BF%D0%BE%D1%80%D1%82%29",
+     "outlet": "Wikipedia (ru)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Yevpatoria_Airport",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "karagoz": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Nedlagd som militärbas: allmänflygfält som sedan 2016 är utarrenderat till en flygklubb (rysk Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D1%80%D0%B0%D0%B3%D0%BE%D0%B7_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    }
+   ]
+  },
+  "katja": {
+   "equipment": [
+    "an-26",
+    "an-12",
+    "be-12",
+    "tu-134",
+    "ka-27",
+    "mi-8",
+    "mig-29k"
+   ],
+   "status": {
+    "status_sv": "Svartahavsflottans 318:e blandade flygregemente (An-26, An-12, Be-12, Tu-134) och 25:e helikopterregementet för ubåtsjakt (Ka-27/Ka-29, Mi-8). Ukraina uppgav 2025 träffar på Be-12, An-26, Mi-8 och en MiG-29K som var detacherad hit (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kacha_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_Naval_Aviation",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D1%87%D0%B0_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    }
+   ]
+  },
+  "kilpjavr": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Nedlagd: 9:e gardes jaktflygregementet låg här till 2009; inget förband i dag (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Kilpyavr_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D0%B8%D0%BB%D0%BF%D1%8A%D1%8F%D0%B2%D1%80_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    }
+   ]
+  },
+  "klokovo": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Militärt flygfält. Engelska Wikipedia anger 490:e helikopterregementet (Mi-8/Mi-24) som baserat här, men utan aktuell källa; 110:e transportskvadronen (An-2) flyttades hit 2011 (rysk Wikipedia). Aktuell materiel okänd.",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Klokovo_air_base",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D0%BB%D0%BE%D0%BA%D0%BE%D0%B2%D0%BE_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%BF%D0%BE%D1%80%D1%82%29",
+     "outlet": "Wikipedia (ru)"
+    }
+   ]
+  },
+  "korenovsk": {
+   "equipment": [
+    "mi-28n",
+    "mi-24",
+    "mi-8",
+    "ka-52"
+   ],
+   "status": {
+    "status_sv": "Hemmabas för 55:e gardes helikopterregementet med Mi-28N, Mi-35M, Mi-8AMTSj och Ka-52 (Wikipedia, leveranser 2011–2016). Basen användes vid anfallen mot Ukraina 2022 (ukrainsk Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D0%BE%D1%80%D0%B5%D0%BD%D0%BE%D0%B2%D1%81%D0%BA_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    },
+    {
+     "url": "https://uk.wikipedia.org/wiki/%D0%9A%D0%BE%D1%80%D0%B5%D0%BD%D1%96%D0%B2%D1%81%D1%8C%D0%BA_%28%D0%B0%D0%B5%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (uk)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Korenovsk_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "krasnodar-tsentralnyj": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Delat militärt flygfält vid flygverkstaden 275 ARZ, som reparerar Su-27, Su-30, MiG-29 och L-39; inget fast stridsflygförband känt (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Krasnodar_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://uk.wikipedia.org/wiki/%D0%9A%D1%80%D0%B0%D1%81%D0%BD%D0%BE%D0%B4%D0%B0%D1%80-%D0%A6%D0%B5%D0%BD%D1%82%D1%80%D0%B0%D0%BB%D1%8C%D0%BD%D0%B8%D0%B9_%28%D0%B0%D0%B5%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (uk)"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/1-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D1%81%D0%BC%D0%B5%D1%88%D0%B0%D0%BD%D0%BD%D0%B0%D1%8F_%D0%B0%D0%B2%D0%B8%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F_%D0%B4%D0%B8%D0%B2%D0%B8%D0%B7%D0%B8%D1%8F_%28%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D1%8F%29",
+     "outlet": "Wikipedia (ru)"
+    }
+   ],
+   "description_sv": "Krasnodar-Tsentralnyj är Krasnodars andra flygplats, delad mellan försvarsmakten, inrikesministeriet och DOSAAF, med flygverkstaden 275 ARZ intill. 1:a gardes blandade flygdivisionen har sin stab i Krymsk enligt rysk Wikipedia, och orten är garnison för 39:e järnvägsbrigaden."
+  },
+  "kusjtjjovskaja": {
+   "equipment": [
+    "su-27",
+    "mig-29",
+    "l-39"
+   ],
+   "status": {
+    "status_sv": "195:e skolflygbasen (Krasnodars militära flyghögskola) med Su-27, MiG-29 och L-39 (rysk Wikipedia). Stridsflyg från Belbek omgrupperades hit i augusti 2022 (ukrainsk Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D1%83%D1%89%D1%91%D0%B2%D1%81%D0%BA%D0%B0%D1%8F_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    },
+    {
+     "url": "https://uk.wikipedia.org/wiki/%D0%9A%D1%83%D1%89%D0%B5%D0%B2%D1%81%D1%8C%D0%BA%D0%B0_%28%D0%B0%D0%B5%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (uk)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Kushchyovskaya_Air_Base",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "lipki": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Civilt: räddningsministeriets flyg och DOSAAF sedan 2002; inget militärt förband (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Lipki_Aerodrome",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9B%D0%B8%D0%BF%D0%BA%D0%B8_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    }
+   ]
+  },
+  "malino": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Inte längre militärt: helikoptrarna (Mi-8) flyttades till Tjkalovskij 2011 och fältet förvaltas sedan 2014 av DOSAAF (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Malino_Airfield",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9C%D0%B0%D0%BB%D0%B8%D0%BD%D0%BE_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    }
+   ],
+   "description_sv": "Tidigare militärt helikopterfält i Moskva oblast, sydväst om Malino. Från 1960-talet hade helikoptrar här till uppgift att transportera och vid behov evakuera landets ledning, till sist Mi-8 i flygbas 206. Helikoptrarna flyttades till Tjkalovskij 2011; sedan 2014 förvaltas fältet av DOSAAF och används av flygklubbar."
+  },
+  "pruzjany": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Nedlagd som flygbas: det sista förbandet, 181:a helikopterbasen, upplöstes i november 2015; inget fast förband (rysk Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9F%D1%80%D1%83%D0%B6%D0%B0%D0%BD%D1%8B_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Pruzhany_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "rzjev": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Flygfält som drivs av flygverkstaden 514 ARZ (reparation och provflygning); inget fast flygförband. I garnisonen Rzjev-3 finns staben för 6:e brigaden för flyg- och rymdförsvar (rysk Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A0%D0%B6%D0%B5%D0%B2_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Rzhev_Air_Base",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "siverskij": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Inget fast flygförband sedan 2009, då 67:e bombflygregementet (Su-24M) lämnade; 2016 fanns en del av 333:e radartekniska regementet här (rysk Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%BA%D0%B8%D0%B9_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Siversky_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "tartus": {
+   "equipment": [
+    "gorsjkov",
+    "steregusjtjij"
+   ],
+   "status": {
+    "status_sv": "Ryska flottan lämnade basen i början av 2025 men fartyg använder den som mellanstation. I juni 2026 låg fregatten Admiral Kasatonov, ett förrådsfartyg och patrullbåtar här, och korvetten Stojkij användes regelbundet från början av 2026; ett nytt avtal om basen tecknades i augusti 2026 (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Tartus_naval_base",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "tjernjachovsk": {
+   "equipment": [
+    "su-30sm",
+    "su-24m",
+    "forpost"
+   ],
+   "status": {
+    "status_sv": "Hemmabas för 4:e gardes marina attackflygregementet med Su-30SM och Su-24M; drönare av typen Forpost sedan 2013 (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Chernyakhovsk_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A7%D0%B5%D1%80%D0%BD%D1%8F%D1%85%D0%BE%D0%B2%D1%81%D0%BA_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_Naval_Aviation",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "torosjkovitji": {
+   "equipment": [],
+   "status": {
+    "status_sv": "Nedlagd: flygfältet används inte i dag (rysk Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A2%D0%BE%D1%80%D0%BE%D1%88%D0%BA%D0%BE%D0%B2%D0%B8%D1%87%D0%B8_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    }
+   ]
+  }
+ },
+ "units": {
+  "55-gardes-helikopterregementet": {
+   "equipment": [
+    "mi-28n",
+    "mi-24",
+    "mi-8",
+    "ka-52"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%9A%D0%BE%D1%80%D0%B5%D0%BD%D0%BE%D0%B2%D1%81%D0%BA_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (ru)"
+    },
+    {
+     "url": "https://uk.wikipedia.org/wiki/%D0%9A%D0%BE%D1%80%D0%B5%D0%BD%D1%96%D0%B2%D1%81%D1%8C%D0%BA_%28%D0%B0%D0%B5%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
+     "outlet": "Wikipedia (uk)"
+    }
+   ]
+  },
+  "4-gardes-blandade-flygregementet": {
+   "equipment": [
+    "su-30sm",
+    "su-24m"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Chernyakhovsk_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  }
+ },
+ "systems": {
+  "an-140": {
+   "id": "an-140",
+   "name": "An-140",
+   "name_ru": "Ан-140",
+   "category_sv": "Flygplan",
+   "role_sv": "Lätt transportflygplan",
+   "description_sv": "An-140 är ett tvåmotorigt turbopropflygplan, konstruerat av ukrainska Antonov som efterträdare till An-24. Ryska flyg- och rymdstridskrafterna och marinflyget har ett fåtal som transportflygplan, bland annat i Östersjöflottans transportskvadron i Chrabrovo.",
+   "key_figures": {
+    "Typ": "tvåmotorigt turbopropflygplan",
+    "Passagerare": "upp till 52",
+    "Räckvidd": "cirka 2 100 km med 52 passagerare",
+    "Marschfart": "575 km/h"
+   },
+   "image": null,
+   "aliases": [
+    "An-140-100",
+    "Antonov An-140"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Antonov_An-140",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_Naval_Aviation",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  }
+ },
+ "new_bases": [
+  {
+   "id": "chrabrovo",
+   "name": "Chrabrovo",
+   "name_en": "Khrabrovo Airport",
+   "name_ru": "Храброво",
+   "lat": 54.89,
+   "lon": 20.593,
+   "branch": "flyg",
+   "country": "RU",
+   "military_district": "Leningrads militärdistrikt",
+   "description_sv": "Kaliningrads civila flygplats, 24 kilometer norr om staden, där en del av fältet fortfarande är militärt. Här finns Östersjöflottans 398:e transportskvadron i 132:a blandade flygdivisionen och Rosgvardijas flygavdelning för Kaliningrad.",
+   "equipment": [
+    "an-26",
+    "an-140"
+   ],
+   "units": [],
+   "status": {
+    "status_sv": "Östersjöflottans 398:e transportskvadron med An-140, An-24 och An-26 (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Khrabrovo_Airport",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_Naval_Aviation",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_military_airbases_in_Russia",
+     "outlet": "Wikipedia (en)"
+    }
+   ],
+   "events": []
+  },
+  {
+   "id": "gromovo",
+   "name": "Gromovo",
+   "name_en": "Gromovo (air base)",
+   "name_ru": "Громово",
+   "lat": 60.713,
+   "lon": 30.112,
+   "branch": "flyg",
+   "country": "RU",
+   "military_district": "Leningrads militärdistrikt",
+   "description_sv": "Flygbas vid Gromovo (tidigare Sakkola) på Karelska näset i Leningrad oblast. 180:e gardes jaktflygregementet låg här 1953–2002, från 1988 med MiG-31.",
+   "equipment": [],
+   "units": [],
+   "status": {
+    "status_sv": "Flygbas utan känd materiel: engelska Wikipedia anger att 33:e transportflygregementet använder basen, men regementets huvudbas är Levasjovo och uppgiften saknar aktuell källa.",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Gromovo_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://uk.wikipedia.org/wiki/%D0%93%D1%80%D0%BE%D0%BC%D0%BE%D0%B2%D0%BE_%28%D0%B0%D0%B2%D1%96%D0%B0%D0%B1%D0%B0%D0%B7%D0%B0%29",
+     "outlet": "Wikipedia (uk)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_military_airbases_in_Russia",
+     "outlet": "Wikipedia (en)"
+    }
+   ],
+   "events": []
+  }
+ ]
+}

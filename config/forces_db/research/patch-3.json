@@ -1,0 +1,977 @@
+{
+ "accessed": "2026-11-07",
+ "systems": {
+  "b3-t-90a": {
+   "name": "T-90A",
+   "name_ru": "Т-90А",
+   "category_sv": "Stridsfordon",
+   "role_sv": "Stridsvagn",
+   "description_sv": "T-90A är en rysk stridsvagn som bygger på T-72. Versionen från 2000-talet har ett svetsat torn och en starkare motor än den första T-90. Den har ersatts i produktionen av T-90M.",
+   "key_figures": {
+    "Vikt": "cirka 46,5 ton",
+    "Kanon": "125 mm",
+    "Motor": "1 000 hk",
+    "Besättning": "3"
+   },
+   "aliases": [
+    "T-90",
+    "T-90A"
+   ],
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/T-90",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "b3-t-72b": {
+   "name": "T-72B",
+   "name_ru": "Т-72Б",
+   "category_sv": "Stridsfordon",
+   "role_sv": "Stridsvagn",
+   "description_sv": "T-72B är en sovjetisk version av stridsvagnen T-72 från 1980-talet, med reaktivt pansar och 125 mm kanon. Många har sedan moderniserats till T-72B3. Ryska förband har använt äldre T-72B i stor skala i Ukraina sedan 2022.",
+   "key_figures": {
+    "Kanon": "125 mm",
+    "Räckvidd": "cirka 500 km",
+    "Besättning": "3"
+   },
+   "aliases": [
+    "T-72",
+    "T-72B",
+    "T-72B mod. 1989",
+    "T-72BA"
+   ],
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/T-72",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "b3-t-80bv": {
+   "name": "T-80BV",
+   "name_ru": "Т-80БВ",
+   "category_sv": "Stridsfordon",
+   "role_sv": "Stridsvagn",
+   "description_sv": "T-80BV är en sovjetisk stridsvagn med gasturbinmotor och reaktivt pansar. Den är lättare och snabbare än T-72 men drar mer bränsle. Ryska marininfanteriet och förband i norr har använt T-80BV.",
+   "key_figures": {
+    "Kanon": "125 mm",
+    "Motor": "1 000 hk (gasturbin)",
+    "Räckvidd": "cirka 335 km på väg",
+    "Besättning": "3"
+   },
+   "aliases": [
+    "T-80",
+    "T-80B",
+    "T-80BV"
+   ],
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/T-80",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "b3-tunguska": {
+   "name": "2K22 Tunguska",
+   "name_ru": "2К22 «Тунгуска»",
+   "category_sv": "Luftvärn",
+   "role_sv": "Luftvärnskanon- och robotsystem",
+   "description_sv": "Tunguska är ett bandgående luftvärnssystem med två 30 mm automatkanoner och åtta robotar av typen 9M311. Det skyddar markförband mot flyg, helikoptrar och drönare på kort avstånd. Systemet har en egen radar.",
+   "key_figures": {
+    "Robotar": "8 × 9M311",
+    "Vikt": "cirka 35 ton",
+    "Besättning": "4"
+   },
+   "aliases": [
+    "Tunguska",
+    "2S6M Tunguska",
+    "2K22"
+   ],
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/2K22_Tunguska",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "b3-strela-10": {
+   "name": "9K35 Strela-10",
+   "name_ru": "9К35 «Стрела-10»",
+   "category_sv": "Luftvärn",
+   "role_sv": "Luftvärnsrobotsystem, kort räckvidd",
+   "description_sv": "Strela-10 är ett sovjetiskt luftvärnsrobotsystem på bandvagnen MT-LB, med fyra värmesökande robotar. Det skyddar markförband mot lågtflygande mål. Systemet används fortfarande av ryska och belarusiska förband.",
+   "key_figures": {
+    "Robotar": "4 × 9M333 eller 9M37",
+    "Vikt": "12,3 ton",
+    "Besättning": "3"
+   },
+   "aliases": [
+    "Strela-10",
+    "9K35",
+    "9A34",
+    "9A35"
+   ],
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/9K35_Strela-10",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "b3-2s12-sani": {
+   "name": "2S12 Sani",
+   "name_ru": "2С12 «Сани»",
+   "category_sv": "Artilleri",
+   "role_sv": "Granatkastare 120 mm",
+   "description_sv": "2S12 Sani är ett sovjetiskt granatkastarsystem med den bogserade 120 mm granatkastaren 2B11 och en lastbil som transportfordon. Det finns i ryska motoriserade skytteförband.",
+   "key_figures": {
+    "Kaliber": "120 mm",
+    "Skottvidd": "högst 7,1 km",
+    "Vikt": "cirka 190 kg utan fordon"
+   },
+   "aliases": [
+    "Sani",
+    "2S12",
+    "2B11"
+   ],
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/2S12_Sani",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "b3-2s23": {
+   "name": "2S23 Nona-SVK",
+   "name_ru": "2С23 «Нона-СВК»",
+   "category_sv": "Artilleri",
+   "role_sv": "Självgående kanon-granatkastare",
+   "description_sv": "2S23 Nona-SVK är en självgående 120 mm kanon-granatkastare på ett hjulgående chassi från BTR-80. Den kan skjuta både granater och granatkastargranater och följer med motoriserade skytteförband.",
+   "key_figures": {
+    "Kaliber": "120 mm",
+    "Skottvidd": "8,8 km (12,8 km med räckviddshöjd granat)",
+    "Vikt": "8,7 ton",
+    "Besättning": "4"
+   },
+   "aliases": [
+    "Nona-SVK",
+    "2S23"
+   ],
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/2S23_Nona-SVK",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "b3-bmd-1": {
+   "name": "BMD-1",
+   "name_ru": "БМД-1",
+   "category_sv": "Stridsfordon",
+   "role_sv": "Luftlandsättningsfordon",
+   "description_sv": "BMD-1 är ett sovjetiskt lätt stridsfordon för luftlandsättningstrupperna, infört 1969. Det är byggt av aluminium så att det kan släppas med fallskärm från transportflygplan. Fordonet har en 73 mm kanon och har följts av BMD-2 och BMD-4M.",
+   "key_figures": {
+    "Vikt": "7,5 ton",
+    "Kanon": "73 mm",
+    "Besättning": "2 + 6 soldater"
+   },
+   "aliases": [
+    "BMD-1",
+    "BMD-1R",
+    "BMD-1KSh"
+   ],
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/BMD-1",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "b3-btr-d": {
+   "name": "BTR-D",
+   "name_ru": "БТР-Д",
+   "category_sv": "Stridsfordon",
+   "role_sv": "Bandgående pansarbandvagn för luftlandsättning",
+   "description_sv": "BTR-D är en bandgående pansarbandvagn för luftlandsättningstrupperna, byggd på BMD-1 och tillverkad från 1974. Den kan släppas med fallskärm. Varianter är bland andra pansarvärnsfordonet BTR-RD, luftvärnsfordonet BTR-ZD och den självgående pjäsen 2S9 Nona.",
+   "key_figures": {
+    "Vikt": "8–8,5 ton",
+    "Besättning": "3 + 10 soldater",
+    "Hastighet": "61 km/h"
+   },
+   "aliases": [
+    "BTR-D",
+    "BTR-RD",
+    "BTR-ZD"
+   ],
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/BTR-D",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "b3-btr-80": {
+   "name": "BTR-80",
+   "name_ru": "БТР-80",
+   "category_sv": "Stridsfordon",
+   "role_sv": "Pansarterrängbil",
+   "description_sv": "BTR-80 är en sovjetisk hjulgående pansarterrängbil (8×8) från 1986 med en 14,5 mm kulspruta. Den kan simma och är bas för BTR-82A och flera specialfordon. Den används av både Ryssland och Belarus.",
+   "key_figures": {
+    "Vikt": "13,6 ton",
+    "Beväpning": "14,5 mm kulspruta",
+    "Besättning": "3 + 7 soldater",
+    "Räckvidd": "600 km"
+   },
+   "aliases": [
+    "BTR-80",
+    "BTR-80A"
+   ],
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/BTR-80",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "b3-btr-70": {
+   "name": "BTR-70",
+   "name_ru": "БТР-70",
+   "category_sv": "Stridsfordon",
+   "role_sv": "Pansarterrängbil",
+   "description_sv": "BTR-70 är en sovjetisk hjulgående pansarterrängbil (8×8) från 1972, föregångare till BTR-80. Belarus har moderniserat sina fordon till BTR-70MB1.",
+   "key_figures": {
+    "Vikt": "11,5 ton",
+    "Beväpning": "14,5 mm kulspruta",
+    "Besättning": "3 + 7 soldater"
+   },
+   "aliases": [
+    "BTR-70",
+    "BTR-70MB1"
+   ],
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/BTR-70",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "b3-totjka-u": {
+   "name": "OTR-21 Totjka-U",
+   "name_ru": "ОТР-21 «Точка-У»",
+   "category_sv": "Robot",
+   "role_sv": "Taktisk ballistisk robot",
+   "description_sv": "Totjka-U är en sovjetisk taktisk ballistisk robot på ett hjulgående fordon. I Ryssland har den till stor del ersatts av Iskander, men robotar har enligt uppgifter funnits i lager och använts i kriget mot Ukraina.",
+   "key_figures": {
+    "Räckvidd": "120 km",
+    "Träffsäkerhet": "cirka 95 m",
+    "Hastighet": "1,8 km/s"
+   },
+   "aliases": [
+    "Tochka",
+    "Tochka-U",
+    "Totjka",
+    "Totjka-U",
+    "OTR-21"
+   ],
+   "image": null,
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/OTR-21_Tochka",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  }
+ },
+ "units": {
+  "40-cbrn-skyddsregementet": {
+   "equipment": [
+    "tos-1a"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/40-%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA_%D1%80%D0%B0%D0%B4%D0%B8%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%BE%D0%B9%2C_%D1%85%D0%B8%D0%BC%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B9_%D0%B8_%D0%B1%D0%B8%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B9_%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D1%8B",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "136-gardes-motoriserade-skyttebrigaden": {
+   "equipment": [
+    "b3-t-90a",
+    "bmp-3",
+    "btr-82a",
+    "tigr",
+    "2s3-akatsija",
+    "bm-21-grad",
+    "b3-2s12-sani",
+    "tor-m2",
+    "b3-tunguska",
+    "b3-strela-10"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/136-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/136th_Separate_Guards_Motor_Rifle_Brigade",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "17-gardes-telekrigsbrigaden": {
+   "equipment": [
+    "krasucha-4",
+    "murmansk-bn",
+    "leer-3"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/17-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0_%D1%80%D0%B0%D0%B4%D0%B8%D0%BE%D1%8D%D0%BB%D0%B5%D0%BA%D1%82%D1%80%D0%BE%D0%BD%D0%BD%D0%BE%D0%B9_%D0%B1%D0%BE%D1%80%D1%8C%D0%B1%D1%8B",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "8-robotdivisionen": {
+   "equipment": [
+    "rs-24-jars"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/8-%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B4%D0%B8%D0%B2%D0%B8%D0%B7%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/8th_Rocket_Division",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/RT-2PM_Topol",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "37-gardes-motoriserade-skyttebrigaden": {
+   "equipment": [
+    "t-72b3",
+    "bmp-2",
+    "mt-lb",
+    "b3-btr-80",
+    "tornado-g",
+    "2s3-akatsija",
+    "b3-2s12-sani",
+    "b3-strela-10"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/37-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/37th_Separate_Guards_Motor_Rifle_Brigade",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "55-gardes-motoriserade-skyttebrigaden": {
+   "equipment": [
+    "tigr",
+    "b3-2s23",
+    "orlan-10"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/55-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/55th_Mountain_Motor_Rifle_Brigade",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "7-gardes-luftanfallsdivisionen": {
+   "equipment": [
+    "b3-bmd-1",
+    "bmd-2",
+    "b3-btr-d",
+    "2s9-nona"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/7-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B4%D0%B5%D1%81%D0%B0%D0%BD%D1%82%D0%BD%D0%BE-%D1%88%D1%82%D1%83%D1%80%D0%BC%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B4%D0%B8%D0%B2%D0%B8%D0%B7%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/7th_Guards_Mountain_Air_Assault_Division",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "108-gardes-luftanfallsregementet": {
+   "equipment": [
+    "b3-bmd-1",
+    "bmd-2",
+    "b3-btr-d",
+    "2s9-nona"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/108-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%B4%D0%B5%D1%81%D0%B0%D0%BD%D1%82%D0%BD%D0%BE-%D1%88%D1%82%D1%83%D1%80%D0%BC%D0%BE%D0%B2%D0%BE%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/108th_Guards_Kuban_Cossack_Air_Assault_Regiment",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "247-gardes-luftanfallsregementet": {
+   "equipment": [
+    "bmd-2",
+    "b3-btr-d",
+    "2s9-nona"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/247-%D0%B9_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D0%B4%D0%B5%D1%81%D0%B0%D0%BD%D1%82%D0%BD%D0%BE-%D1%88%D1%82%D1%83%D1%80%D0%BC%D0%BE%D0%B2%D0%BE%D0%B9_%D0%BF%D0%BE%D0%BB%D0%BA",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/247th_Guards_Air_Assault_Regiment",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "30-gardes-motoriserade-skyttebrigaden": {
+   "equipment": [
+    "btr-82a",
+    "d-30",
+    "bm-21-grad"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/30-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/30th_Separate_Guards_Motor_Rifle_Brigade",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "19-motoriserade-skyttedivisionen": {
+   "equipment": [
+    "b3-t-72b",
+    "2s3-akatsija",
+    "btr-82a"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/19-%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B4%D0%B8%D0%B2%D0%B8%D0%B7%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/19th_Motor_Rifle_Division",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "67-luftvarnsrobotbrigaden": {
+   "equipment": [
+    "buk-m2"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/67-%D1%8F_%D0%B7%D0%B5%D0%BD%D0%B8%D1%82%D0%BD%D0%B0%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/58th_Guards_Combined_Arms_Army",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "127-gardes-motoriserade-skyttedivisionen": {
+   "equipment": [
+    "b3-t-72b"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/127-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B4%D0%B8%D0%B2%D0%B8%D0%B7%D0%B8%D1%8F",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/127th_Motor_Rifle_Division_%28Russia%29",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "79-gardes-raketartilleribrigaden": {
+   "equipment": [
+    "tornado-s"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/79-%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D1%80%D0%B5%D0%B0%D0%BA%D1%82%D0%B8%D0%B2%D0%BD%D0%B0%D1%8F_%D0%B0%D1%80%D1%82%D0%B8%D0%BB%D0%BB%D0%B5%D1%80%D0%B8%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/79th_Guards_Rocket_Artillery_Brigade",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "40-gardes-marininfanteribrigaden": {
+   "equipment": [
+    "b3-t-80bv"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/40-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0_%D0%BC%D0%BE%D1%80%D1%81%D0%BA%D0%BE%D0%B9_%D0%BF%D0%B5%D1%85%D0%BE%D1%82%D1%8B",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/40th_Separate_Guards_Naval_Infantry_Brigade",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "103-gardes-luftlandsattningsbrigaden-by": {
+   "equipment": [
+    "b3-btr-70",
+    "b3-btr-80",
+    "d-30"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/103-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%B2%D0%BE%D0%B7%D0%B4%D1%83%D1%88%D0%BD%D0%BE-%D0%B4%D0%B5%D1%81%D0%B0%D0%BD%D1%82%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/103rd_Separate_Guards_Airborne_Brigade",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "64-gardes-motoriserade-skyttebrigaden": {
+   "equipment": [
+    "b3-t-72b"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/64-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/64th_Separate_Guards_Motor_Rifle_Brigade",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    }
+   ]
+  },
+  "39-gardes-motoriserade-skyttebrigaden": {
+   "equipment": [
+    "mt-lb"
+   ],
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/39-%D1%8F_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F_%D0%BC%D0%BE%D1%82%D0%BE%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%BA%D0%BE%D0%B2%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/39th_Separate_Guards_Motor_Rifle_Brigade",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/68th_Guards_Army_Corps_(Russia)",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "fartyg-petropavlovsk-kamtjatskij": {
+   "equipment": [
+    "kilo",
+    "kalibr"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-274",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Improved_Kilo-class_submarine",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "fartyg-volchov": {
+   "equipment": [
+    "kilo",
+    "kalibr"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-603",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Improved_Kilo-class_submarine",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "fartyg-magadan": {
+   "equipment": [
+    "kilo",
+    "kalibr"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-602",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Improved_Kilo-class_submarine",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "fartyg-ufa": {
+   "equipment": [
+    "kilo",
+    "kalibr"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_Ufa",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Improved_Kilo-class_submarine",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "fartyg-mozjajsk": {
+   "equipment": [
+    "kilo",
+    "kalibr"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-608",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Improved_Kilo-class_submarine",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "fartyg-jakutsk": {
+   "equipment": [
+    "kilo",
+    "kalibr"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Improved_Kilo-class_submarine",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "fartyg-komsomolsk-na-amure": {
+   "equipment": [
+    "kilo"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_submarine_B-187",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  }
+ },
+ "bases": {
+  "toropets-107-arsenalen": {
+   "equipment": [
+    "iskander-m",
+    "kn-23",
+    "b3-totjka-u",
+    "fab-umpk",
+    "s-300"
+   ],
+   "status": {
+    "status_sv": "skadad vid anfallet 18 sep 2024; enligt källorna lagrades där Iskander, Totjka-U, nordkoreanska KN-23, glidbomber och S-300-robotar",
+    "as_of": "2026-11",
+    "note": "Innehållet gäller tiden före anfallet i september 2024 och bygger på Euronews, NBC och ukrainska uppgifter som Wikipedia återger."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Toropets_depot_explosions",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_arsenals_of_the_Russian_Armed_Forces",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "tarchankut": {
+   "equipment": [
+    "s-400",
+    "s-300"
+   ],
+   "status": {
+    "status_sv": "luftvärnsposition med S-400 och S-300 enligt källorna; ett S-400-system förstördes i aug 2023",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia (Slaget om Krim); vad som står där i dag är inte känt."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Battle_of_Crimea_(2022–present)",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "fokino": {
+   "equipment": [
+    "ropucha"
+   ],
+   "description_sv": "Stillahavsflottans fartygsbas i Fokino i Primorje, med kajer och service för örlogsfartyg. Enligt ryska Wikipedia ligger 100:e landstigningsfartygsbrigaden här (vid Strelokviken) med landstigningsfartyg av Ropucha-klass, bland andra Osljabja, Admiral Nevelskoj och Peresvet. Före detta ubåtsbasen hanterar också reaktordelar från avvecklade atomubåtar.",
+   "status": {
+    "status_sv": "i bruk enligt källorna; 100:e landstigningsfartygsbrigaden baseras här",
+    "as_of": "2026-11",
+    "note": "Bygger på öppna källor; förband och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/Фокино_(пункт_базирования)",
+     "outlet": "Wikipedia (ru)"
+    }
+   ]
+  },
+  "njonoksa": {
+   "status": {
+    "status_sv": "provskjutningsfält, ingen fast materiel; marinens robotar provskjuts här, och olyckan 2019 kopplas till kärnkraftsdrivna kryssningsroboten Burevestnik",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia; fältet har inga egna stridande förband enligt källan."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/State_Central_Navy_Testing_Range",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "polarnaja-zvezda": {
+   "status": {
+    "status_sv": "i bruk; enligt källan finns radarposter och stridsledningsplatser för flyget på ön, men inga namngivna vapensystem",
+    "as_of": "2026-11",
+    "note": "Bygger på ryska Wikipedia."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/Полярная_звезда_(военная_база)",
+     "outlet": "Wikipedia (ru)"
+    }
+   ]
+  },
+  "barsovo-51-arsenalen": {
+   "status": {
+    "status_sv": "ammunitionsarsenal i bruk; enligt källan kan den lagra 105 300 ton ammunition, men vilka vapensystem som lagras anges inte",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedias lista över de ryska väpnade styrkornas arsenaler."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_arsenals_of_the_Russian_Armed_Forces",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "karatjev-67-arsenalen": {
+   "status": {
+    "status_sv": "ammunitionsarsenal; två förråd förstördes i okt 2024 enligt källan; vilka vapensystem som lagras anges inte",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedias lista över de ryska väpnade styrkornas arsenaler."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_arsenals_of_the_Russian_Armed_Forces",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "kotovo-13-arsenalen": {
+   "status": {
+    "status_sv": "ammunitionsarsenal i bruk; vilka vapensystem som lagras anges inte i källan",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedias lista över de ryska väpnade styrkornas arsenaler."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_arsenals_of_the_Russian_Armed_Forces",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "oktjabrskij-23-arsenalen": {
+   "status": {
+    "status_sv": "ammunitionsarsenal; anfallen i sep 2024; vilka vapensystem som lagras anges inte i källan",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedias lista över de ryska väpnade styrkornas arsenaler."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_arsenals_of_the_Russian_Armed_Forces",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "tichoretsk-719-arsenalen": {
+   "status": {
+    "status_sv": "artilleriammunitionsbas; anfallen i sep 2024; vilka vapensystem som lagras anges inte i källan",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedias lista över de ryska väpnade styrkornas arsenaler."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_arsenals_of_the_Russian_Armed_Forces",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  },
+  "kotluban-arsenalen": {
+   "status": {
+    "status_sv": "ammunitionsarsenal; anfallen i feb 2026; vilka vapensystem som lagras anges inte i källan",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedias lista över de ryska väpnade styrkornas arsenaler."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_arsenals_of_the_Russian_Armed_Forces",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  }
+ }
+}
