@@ -1,0 +1,51 @@
+# The Telegram channel log (src/telegram_log.py): every hour the public
+# channels' posts into the run state (data/telegram/), and once a night the
+# per-channel figures (data/telegram/stats.json). Nothing here feeds the
+# report or the index. Its own concurrency group; run_job.py replays its
+# commit if another job pushes the state at the same time.
+name: Telegram log
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "collect: the hourly run; stats: the figures now; check: which channels answer (saves nothing)"
+        type: choice
+        options: [collect, stats, check]
+        default: check
+
+concurrency:
+  group: telegram
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install --quiet -r requirements.txt
+
+      - name: Fetch the run state
+        env:
+          STATE_DEPLOY_KEY: ${{ secrets.STATE_DEPLOY_KEY }}
+        run: bash schedule/fetch_state.sh
+
+      - name: Run
+        env:
+          DISPATCH_JOB: ${{ inputs.job }}
+        run: |
+          set -o pipefail
+          case "${DISPATCH_JOB:-collect}" in
+            stats) python schedule/run_job.py telegram_stats ;;
+            check) python schedule/run_job.py telegram_check ;;
+            *)     python schedule/run_job.py telegram ;;
+          esac

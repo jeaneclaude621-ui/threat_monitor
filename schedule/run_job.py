@@ -76,8 +76,11 @@ JOBS = {
     "forces_places": ["src/forces.py", "places", "--debug"],
     "precision_sample": ["src/precision.py", "sample"],
     "og_image": ["src/og_image.py"],
+    "telegram": ["src/telegram_log.py"],                 # hourly (telegram.yml): the channel log
+    "telegram_stats": ["src/telegram_log.py", "stats"],  # the per-channel figures now
+    "telegram_check": ["src/telegram_log.py", "check"],  # which channels answer, saving nothing
 }
-QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check", "forces_places", "precision_sample", "og_image"}   # forces: a manual extra run; the nightly one runs inside daily
+QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check", "forces_places", "precision_sample", "og_image", "telegram", "telegram_stats", "telegram_check"}   # forces: a manual extra run; the nightly one runs inside daily
 HOST = "cloud"
 
 # Jobs whose output belongs in the code repo, not the state repo: the weekly
