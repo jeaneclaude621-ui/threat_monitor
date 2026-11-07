@@ -361,6 +361,11 @@ expect('logging in uses the link', db.invites.find((x) => x.id === inviteId).sta
 db.invites.push({ id: '11111111-1111-1111-1111-111111111111', email: invitee, role: 'reader', requested_at: '2020-01-01T00:00:00Z', requested_by: 'x', status: 'link' });
 r = await jget('/api/invite/11111111-1111-1111-1111-111111111111');
 expect('an old link has expired', r.body.valid, false);
+const asker = 'asks.for.access@example.org';
+r = await as(asker, '/api/access-request', { method: 'POST' });
+r = await as('owner@example.org', `/api/admin/access-requests/${r.body.id}`, { method: 'POST', body: { decision: 'approve', invite: true } });
+expect('approving with invite: a reader', r.body.user && r.body.user.role, 'reader');
+expect('approving with invite: a link to pass on', r.body.user && r.body.user.invite_status, 'link');
 
 // --- Push in batches of 40 --------------------------------------------------------
 {

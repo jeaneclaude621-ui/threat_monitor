@@ -3824,7 +3824,9 @@ async function adminMutate(method, path, payload, okText) {
 }
 
 async function adminUsers() {
-  const [usersBody, tracks] = await Promise.all([adminGet('/api/admin/users'), trackRecords().catch(() => ({}))]);
+  const [usersBody, tracks, reqBody] = await Promise.all([adminGet('/api/admin/users'), trackRecords().catch(() => ({})),
+    adminGet('/api/admin/access-requests?status=requested').catch(() => [])]);
+  const requests = rowsOf(reqBody, 'requests');
   const users = rowsOf(usersBody, 'users');
   const me = store.me && store.me.email;
   const isOwnerRow = (u) => u.is_owner === true || u.owner === true || (store.me && store.me.is_owner && u.email === me);
@@ -3904,10 +3906,42 @@ async function adminUsers() {
   };
 
   return frag(
+    accessRequestsSection(requests),
     h('section', { class: 'section' },
       h('h2', { class: 'kicker' }, `Användare · ${users.filter((u) => u.active !== false && u.active !== 0).length} aktiva`),
       h('div', { class: 'ulist' }, users.map(card))),
     addForm);
+}
+
+// Version 3.32: people who logged in without an account and asked for one
+// ("Vill du hjälpa till att bedöma källor?"). Approving makes them a reader
+// and shows the invitation link; denying keeps them a guest.
+function accessRequestsSection(requests) {
+  if (!requests.length) return null;
+  const decide = async (r, decision) => {
+    let res = null;
+    try {
+      res = await adminSend('POST', `/api/admin/access-requests/${r.id}`, { decision, invite: decision === 'approve' });
+      adminMsg.text = decision === 'approve' ? `${r.email} är nu läsare.` : `Förfrågan från ${r.email} avslogs.`;
+      adminMsg.error = false;
+    } catch (e) {
+      if (e instanceof AuthError) throw e;
+      adminMsg.text = e instanceof OfflineError ? 'Ingen anslutning – inget ändrades.' : `Inget ändrades: ${e.message}`;
+      adminMsg.error = true;
+    }
+    await route({ keepScroll: true });
+    const u = res && res.user;
+    if (u && u.invite_id) showInviteLink(u.email, u.invite_id, u.role);
+  };
+  return h('section', { class: 'section' },
+    h('h2', { class: 'kicker amber' }, `Åtkomstförfrågningar · ${requests.length}`),
+    h('p', { class: 'small muted' }, 'De har loggat in med sin adress och bett om ett konto. Godkänn gör dem till läsare och ger dig en inbjudningslänk att skicka.'),
+    h('div', { class: 'ulist' }, requests.map((r) => h('div', { class: 'ucard' },
+      h('div', { class: 'ucard-top' }, h('b', { class: 'uemail' }, r.email)),
+      h('p', { class: 'small muted' }, `Frågade ${ago(r.ts)}`),
+      h('div', { class: 'btn-row' },
+        h('button', { class: 'btn primary', type: 'button', onclick: () => decide(r, 'approve') }, 'Godkänn som läsare'),
+        h('button', { class: 'btn', type: 'button', onclick: () => decide(r, 'deny') }, 'Avslå'))))));
 }
 
 // Version 3.31: invitations are links the admin shares; no mail.

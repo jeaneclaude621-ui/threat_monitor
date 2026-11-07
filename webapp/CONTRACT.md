@@ -935,3 +935,10 @@ App only (webapp/public); no new endpoints.
   one: copy, or share through the phone's share sheet with a ready message.
 - `invites.yml` has no schedule any more (it ran every five minutes, about
   half of all Actions time); it can still be run by hand.
+
+# Version 3.32 (7 Nov 2026) - access requests on the admin page
+
+- Admin → Användare lists the open access requests
+  (`GET /api/admin/access-requests?status=requested`) above the users, each
+  with "Godkänn som läsare" (`decision: 'approve', invite: true`: a reader
+  account and an invitation link, shown at once to pass on) and "Avslå".
