@@ -862,3 +862,17 @@ App only (webapp/public); no new endpoints.
   third model instead of the main one, and the authorities brief runs on the
   third model with the light one as reserve (as before when the key has no
   third model).
+
+# Version 3.27 (7 Nov 2026) - every base's equipment leads somewhere
+
+- `/api/forces`: a base's `equipment` and `system_ids` include the
+  equipment of the units garrisoned there (units.json `garrison`), after
+  the base's own.
+- `systems.json`: `aliases` per system (other spellings: Yak-130, Yars,
+  Oniks, Su-35 ...), and new cards for An-12, An-72/74, An-30, An-148,
+  Tu-134, L-39 and S-70 Ochotnik and for FAB glide bombs (UMPK).
+- App: matching drops makers' names ("Sukhoi Su-34" -> Su-34) and uses the
+  aliases; the weekly survey's equipment is shown as chips linking to the
+  system cards. Service worker bumped.
+- `config/forces_db/research/todo-*.json`: the bases with no known
+  equipment, the basis for the research pass.

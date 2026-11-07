@@ -2308,7 +2308,8 @@ async function loadForceCatalogue() {
   const unitMap = new Map((units.units || []).map((x) => [x.id, x]));
   const sysByName = new Map();
   for (const x of systems.values()) {
-    for (const k of [x.id, x.name, x.name.split(' ')[0], ...x.name.split(' / ')]) if (!sysByName.has(fnorm(k))) sysByName.set(fnorm(k), x.id);
+    // Version 3.27: the other spellings too (Yak-130, Yars, Oniks, Su-35 ...).
+    for (const k of [x.id, x.name, x.name.split(' ')[0], ...x.name.split(' / '), ...(x.aliases || [])]) if (!sysByName.has(fnorm(k))) sysByName.set(fnorm(k), x.id);
   }
   const unitByName = new Map([...unitMap.values()].map((u) => [fnorm(u.name_sv), u.id]));
   const children = new Map();
@@ -2317,8 +2318,10 @@ async function loadForceCatalogue() {
   return forceCatalogue;
 }
 // A display string ("Su-34", "Borej-klass", "Iskander") to a system id, or null.
+// Makers' names before a model ("Sukhoi Su-34", "Mil Mi-8") say nothing the model does not.
+const MAKERS = /^(sukhoi|mikoyan(?:-gurevich)?|mig|mil|kamov|antonov|ilyushin|iljusjin|tupolev|yakovlev|jakovlev|beriev|aero|irkut|almaz-antey)\s+/i;
 function systemFor(cat, text, ids = []) {
-  const t = fnorm(text);
+  const t = fnorm(String(text || '').replace(MAKERS, ''));
   if (cat.sysByName.has(t)) return cat.sysByName.get(t);
   const hit = ids.find((id) => { const n = fnorm(cat.systems.get(id)?.name); return n && (n.startsWith(t) || t.startsWith(n.split(/[^a-z0-9а-я]/)[0] || n)); });
   if (hit) return hit;
@@ -2404,13 +2407,30 @@ async function viewForceUnit(id) {
 }
 
 // The weekly Wikipedia survey of a base (src/forces_survey.py).
+// The survey's equipment as chips: a link to the system's card when the
+// database has it, else plain text (Version 3.27).
+function surveyChips(list) {
+  const cat = forceCatalogue;
+  const seen = new Set();
+  return list.map((t) => {
+    const sid = cat ? systemFor(cat, t) : null;
+    if (sid) {
+      if (seen.has(sid)) return null;
+      seen.add(sid);
+      return sysChip(cat, sid);
+    }
+    return h('span', { class: 'chip chip-plain' }, t);
+  });
+}
+
 function surveyBlock(sv) {
   if (!sv || sv.none || !(sv.summary_sv || (sv.units || []).length || (sv.equipment || []).length)) return null;
   return h('div', { class: 'fsurvey' },
     h('h3', { class: 'fsub' }, 'Om basen'),
     sv.summary_sv ? h('p', { class: 'body-sm' }, sv.summary_sv) : null,
     (sv.units || []).length ? h('p', { class: 'body-sm' }, h('b', null, 'Förband enligt Wikipedia: '), sv.units.join(', ')) : null,
-    (sv.equipment || []).length ? h('p', { class: 'body-sm' }, h('b', null, 'Materiel enligt Wikipedia: '), sv.equipment.join(', ')) : null,
+    (sv.equipment || []).length ? h('div', null, h('p', { class: 'body-sm' }, h('b', null, 'Materiel enligt Wikipedia:')),
+      h('div', { class: 'chips' }, surveyChips(sv.equipment))) : null,
     h('p', { class: 'small muted' }, `Veckosökning ${dateShort(sv.date)}`, sv.as_of ? `, uppgifterna avser ${sv.as_of}` : '', '. ',
       sv.source ? externalButton(sv.source.url, { outlet: sv.source.outlet }, sv.source.outlet) : null));
 }

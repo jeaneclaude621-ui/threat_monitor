@@ -1,0 +1,1042 @@
+{
+ "note": "Baser utan känd materiel 7 nov 2026; underlag för research. id = appens id (Wikidata Q-id eller grunddatabasens id); db_id = posten i config/forces_db/bases.json, null om basen bara finns i Wikidata.",
+ "bases": [
+  {
+   "id": "abakan",
+   "db_id": "abakan",
+   "name": "Abakan",
+   "name_ru": "Абакан",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 53.7167,
+   "lon": 91.4167,
+   "units": [
+    "5:e järnvägsbrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Abakan är en stad i Ryssland där en luftanfallsbrigad tidigare var baserad fram till 1990-talet. Artikeln nämner inga nuvarande militära förband eller händelser efter 2022."
+  },
+  {
+   "id": "alkino-2",
+   "db_id": "alkino-2",
+   "name": "Alkino-2",
+   "name_ru": "Алкино-2",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 54.655,
+   "lon": 55.5964,
+   "units": [
+    "12:e gardes ingenjörbrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "archonskaja",
+   "db_id": "archonskaja",
+   "name": "Archonskaja",
+   "name_ru": "Архонская",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 43.1073,
+   "lon": 44.5115,
+   "units": [
+    "40:e CBRN-skyddsregementet"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "barano-orenburgskoje",
+   "db_id": "barano-orenburgskoje",
+   "name": "Barano-Orenburgskoje",
+   "name_ru": "Барано-Оренбургское",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 44.3704,
+   "lon": 131.4571,
+   "units": [
+    "872:a självgående artilleriregementet"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "barsovo-51-arsenalen",
+   "db_id": "barsovo-51-arsenalen",
+   "name": "Barsovo (51:a arsenalen)",
+   "name_ru": "51-й арсенал ГРАУ (Барсово)",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 56.17,
+   "lon": 38.62,
+   "units": [],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "bikin",
+   "db_id": "bikin",
+   "name": "Bikin",
+   "name_ru": "Бикин",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 46.8167,
+   "lon": 134.25,
+   "units": [
+    "57:e gardes motoriserade skyttebrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "brest",
+   "db_id": "brest",
+   "name": "Brest",
+   "name_ru": "Брест",
+   "branch": "armé",
+   "country": "BY",
+   "lat": 52.0847,
+   "lon": 23.6569,
+   "units": [
+    "111:e gardes artilleribrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Artikeln behandlar det historiska fredsfördraget i Brest-Litovsk från 1918 och innehåller ingen information om en militärbas. Inga uppgifter om en bas roll eller användning sedan 2022 nämns."
+  },
+  {
+   "id": "bujnaksk",
+   "db_id": "bujnaksk",
+   "name": "Bujnaksk",
+   "name_ru": "Буйнакск",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 42.8167,
+   "lon": 47.1167,
+   "units": [
+    "136:e gardes motoriserade skyttebrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "chabarovsk",
+   "db_id": "chabarovsk",
+   "name": "Chabarovsk",
+   "name_ru": "Хабаровск",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 48.4833,
+   "lon": 135.0667,
+   "units": [
+    "17:e gardes telekrigsbrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "fokino",
+   "db_id": "fokino",
+   "name": "Fokino",
+   "name_ru": "Фокино",
+   "branch": "marin",
+   "country": "RU",
+   "lat": 42.9667,
+   "lon": 132.4,
+   "units": [],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "grodno",
+   "db_id": "grodno",
+   "name": "Grodno",
+   "name_ru": "Гродно",
+   "branch": "armé",
+   "country": "BY",
+   "lat": 53.6667,
+   "lon": 23.8167,
+   "units": [
+    "6:e gardes mekaniserade brigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Artikeln beskriver staden Grodnos historiska utveckling i Belarus. Den innehåller ingen information om någon militärbas."
+  },
+  {
+   "id": "isjim",
+   "db_id": "isjim",
+   "name": "Isjim",
+   "name_ru": "Ишим",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 56.1167,
+   "lon": 69.5,
+   "units": [
+    "40:e gardes ingenjörregementet"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "jevpatorija-marin",
+   "db_id": "jevpatorija-marin",
+   "name": "Jevpatorija (marinbas)",
+   "name_ru": "Евпатория",
+   "branch": "marin",
+   "country": "UA",
+   "lat": 45.2,
+   "lon": 33.3583,
+   "units": [
+    "68:e marina ingenjörregementet"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "jurja",
+   "db_id": "jurja",
+   "name": "Jurja",
+   "name_ru": "Юрья",
+   "branch": "robot",
+   "country": "RU",
+   "lat": 59.0333,
+   "lon": 49.2833,
+   "units": [
+    "8:e robotdivisionen"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "juzjno-sachalinsk",
+   "db_id": "juzjno-sachalinsk",
+   "name": "Juzjno-Sachalinsk",
+   "name_ru": "Южно-Сахалинск",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 46.95,
+   "lon": 142.7333,
+   "units": [
+    "39:e gardes motoriserade skyttebrigaden",
+    "68:e gardes armékåren"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "kalinovskaja",
+   "db_id": "kalinovskaja",
+   "name": "Kalinovskaja",
+   "name_ru": "Калиновская",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 43.5708,
+   "lon": 45.5181,
+   "units": [
+    "71:a gardes motoriserade skytteregementet"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "kamen-rybolov",
+   "db_id": "kamen-rybolov",
+   "name": "Kamen-Rybolov",
+   "name_ru": "Камень-Рыболов",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 44.7401,
+   "lon": 132.0422,
+   "units": [
+    "60:e gardes motoriserade skyttebrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "tarchankut",
+   "db_id": "tarchankut",
+   "name": "Kap Tarchankut (luftvärnsplats)",
+   "name_ru": "Тарханкут",
+   "branch": "luftvärn",
+   "country": "UA",
+   "lat": 45.35,
+   "lon": 32.55,
+   "units": [],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "karatjev-67-arsenalen",
+   "db_id": "karatjev-67-arsenalen",
+   "name": "Karatjev (67:e arsenalen)",
+   "name_ru": "67-й арсенал ГРАУ (Карачев)",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 53.13,
+   "lon": 34.96,
+   "units": [],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "kjachta",
+   "db_id": "kjachta",
+   "name": "Kjachta",
+   "name_ru": "Кяхта",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 50.35,
+   "lon": 106.45,
+   "units": [
+    "24:e gardes specialförbandsbrigaden (Spetsnaz)",
+    "37:e gardes motoriserade skyttebrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "knjaze-volkonskoje",
+   "db_id": "knjaze-volkonskoje",
+   "name": "Knjaze-Volkonskoje",
+   "name_ru": "Князе-Волконское",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 48.4667,
+   "lon": 135.4667,
+   "units": [
+    "64:e gardes motoriserade skyttebrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "kotluban-arsenalen",
+   "db_id": "kotluban-arsenalen",
+   "name": "Kotluban (GRAU-arsenal)",
+   "name_ru": "Арсенал ГРАУ (Котлубань)",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 49.04,
+   "lon": 44.12,
+   "units": [],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "kotovo-13-arsenalen",
+   "db_id": "kotovo-13-arsenalen",
+   "name": "Kotovo (13:e arsenalen)",
+   "name_ru": "13-й арсенал ГРАУ (Котово)",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 58.36,
+   "lon": 33.35,
+   "units": [],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "krasnyj-bor",
+   "db_id": "krasnyj-bor",
+   "name": "Krasnyj Bor",
+   "name_ru": "Красный Бор",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 54.7908,
+   "lon": 31.9183,
+   "units": [
+    "29:e järnvägsbrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "kyzyl",
+   "db_id": "kyzyl",
+   "name": "Kyzyl",
+   "name_ru": "Кызыл",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 51.7,
+   "lon": 94.3667,
+   "units": [
+    "55:e gardes motoriserade skyttebrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Kyzyls flygplats i Tuva fungerar som bas för ett oberoende sammansatt transportflygregemente underställt 14:e armén för flyg och luftförsvar. Flygplatsen har rustats upp för att hantera utökad flygtrafik."
+  },
+  {
+   "id": "lesozavodsk",
+   "db_id": "lesozavodsk",
+   "name": "Lesozavodsk",
+   "name_ru": "Лесозаводск",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 45.4667,
+   "lon": 133.4,
+   "units": [
+    "16:e gardes CBRN-skyddsbrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Lesozavodsk är en ort i Primorje kraj där en tidigare division omvandlades till en motoriserad skyttebrigad och senare till en förvaringsbas. Inga aktiva förband nämns som baserade där nu."
+  },
+  {
+   "id": "lugansk",
+   "db_id": "lugansk",
+   "name": "Lugansk",
+   "name_ru": "Луганск",
+   "branch": "armé",
+   "country": "UA",
+   "lat": 48.5833,
+   "lon": 39.3333,
+   "units": [
+    "123:e gardes motoriserade skyttebrigaden",
+    "3:e gardes armén",
+    "6:e gardes motoriserade skyttebrigaden",
+    "7:e gardes motoriserade skyttebrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "marina-gorka",
+   "db_id": "marina-gorka",
+   "name": "Marina Gorka",
+   "name_ru": "Марьина Горка",
+   "branch": "armé",
+   "country": "BY",
+   "lat": 53.5167,
+   "lon": 28.1417,
+   "units": [
+    "5:e specialförbandsbrigaden (Spetsnaz)"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "minsk",
+   "db_id": "minsk",
+   "name": "Minsk",
+   "name_ru": "Минск",
+   "branch": "armé",
+   "country": "BY",
+   "lat": 53.9022,
+   "lon": 27.5619,
+   "units": [
+    "120:e gardes mekaniserade brigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Artikeln handlar om Minskavtalen som syftade till att lösa konflikten i Donbass. Den innehåller ingen information om militärbaser."
+  },
+  {
+   "id": "molkino",
+   "db_id": "molkino",
+   "name": "Molkino",
+   "name_ru": "Молькино",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 44.804,
+   "lon": 39.215,
+   "units": [
+    "10:e gardes specialförbandsbrigaden (Spetsnaz)"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "nachabino",
+   "db_id": "nachabino",
+   "name": "Nachabino",
+   "name_ru": "Нахабино",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 55.8467,
+   "lon": 37.1753,
+   "units": [
+    "45:e gardes ingenjörbrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "nizjnij-novgorod",
+   "db_id": "nizjnij-novgorod",
+   "name": "Nizjnij Novgorod",
+   "name_ru": "Нижний Новгород",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 56.3269,
+   "lon": 44.0075,
+   "units": [
+    "96:e underrättelsebrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "Q66897063",
+   "db_id": "njonoksa",
+   "name": "Njonoksa (marinens provskjutningsfält)",
+   "name_ru": "Государственный центральный морской полигон (Нёнокса)",
+   "branch": "marin",
+   "country": "RU",
+   "lat": 64.6458,
+   "lon": 39.2095,
+   "units": [],
+   "wikidata": "https://www.wikidata.org/wiki/Q66897063",
+   "survey_summary_sv": "State Central Navy Testing Range vid Nyonoksa är den ryska marinens huvudsakliga provplats för robotar, etablerad år 1954. Området har använts för omfattande robot- och vapentester sedan kalla kriget. Artikeln nämner ingen specifik militär användning eller förflyttning sedan 2022."
+  },
+  {
+   "id": "novorossijsk-fallskarm",
+   "db_id": "novorossijsk-fallskarm",
+   "name": "Novorossijsk",
+   "name_ru": "Новороссийск",
+   "branch": "fallskärm",
+   "country": "RU",
+   "lat": 44.7167,
+   "lon": 37.7667,
+   "units": [
+    "7:e gardes luftanfallsdivisionen",
+    "108:e gardes luftanfallsregementet"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "novosibirsk",
+   "db_id": "novosibirsk",
+   "name": "Novosibirsk",
+   "name_ru": "Новосибирск",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 55.0167,
+   "lon": 82.9167,
+   "units": [
+    "41:a gardes armén"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Artikeln handlar om staden Novosibirsk och dess utveckling till ett stort transport- och industricentrum. Den nämner ingen specifik militärbas."
+  },
+  {
+   "id": "odintsovo",
+   "db_id": "odintsovo",
+   "name": "Odintsovo",
+   "name_ru": "Одинцово",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 55.6733,
+   "lon": 37.2733,
+   "units": [
+    "1:a gardes stridsvagnsarmén",
+    "20:e gardes CBRN-skyddsregementet"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "oktjabrskij-23-arsenalen",
+   "db_id": "oktjabrskij-23-arsenalen",
+   "name": "Oktjabrskij (23:e arsenalen)",
+   "name_ru": "23-й арсенал ГРАУ",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 56.38,
+   "lon": 31.64,
+   "units": [],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "omsk-robot",
+   "db_id": "omsk-robot",
+   "name": "Omsk",
+   "name_ru": "Омск",
+   "branch": "robot",
+   "country": "RU",
+   "lat": 55,
+   "lon": 73.4,
+   "units": [
+    "33:e gardes robotarmén"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Artikeln behandlar stadens allmänna historia och innehåller ingen information om en aktuell militärbas."
+  },
+  {
+   "id": "petropavlovsk-kamtjatskij-marin",
+   "db_id": "petropavlovsk-kamtjatskij-marin",
+   "name": "Petropavlovsk-Kamtjatskij",
+   "name_ru": "Петропавловск-Камчатский",
+   "branch": "marin",
+   "country": "RU",
+   "lat": 53.0167,
+   "lon": 158.65,
+   "units": [
+    "40:e gardes marininfanteribrigaden",
+    "Komsomolsk-na-Amure",
+    "Petropavlovsk-Kamtjatskij",
+    "Volchov",
+    "Magadan",
+    "Ufa",
+    "Mozjajsk",
+    "Jakutsk"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "Q60852293",
+   "db_id": "polarnaja-zvezda",
+   "name": "Poljarnaja zvezda (Wrangelön)",
+   "name_ru": "Полярная звезда",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 70.9853,
+   "lon": -178.4558,
+   "units": [],
+   "wikidata": "https://www.wikidata.org/wiki/Q60852293",
+   "survey_summary_sv": "Poljarnaja zvezda är en rysk militär bas på Wrangelön i Arktis som öppnades 2014. Byggnaderna är stjärnformade för att minimera utetid i sträng kyla, och på platsen finns radarlarmposter samt flygledningsresurser."
+  },
+  {
+   "id": "prochladnyj",
+   "db_id": "prochladnyj",
+   "name": "Prochladnyj",
+   "name_ru": "Прохладный",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 43.7501,
+   "lon": 44.0333,
+   "units": [
+    "31:a gardes ingenjörregementet"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "pskov",
+   "db_id": "pskov",
+   "name": "Pskov",
+   "name_ru": "Псков",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 57.8167,
+   "lon": 28.3333,
+   "units": [
+    "2:a gardes specialförbandsbrigaden (Spetsnaz)"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Artikeln behandlar Pskovrepublikens historiska ursprung och innehåller ingen information om en modern militärbas."
+  },
+  {
+   "id": "rosjtjinskij",
+   "db_id": "rosjtjinskij",
+   "name": "Rosjtjinskij",
+   "name_ru": "Рощинский",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 53.0511,
+   "lon": 50.4967,
+   "units": [
+    "589:e gardes motoriserade skytteregementet",
+    "15:e gardes motoriserade skyttebrigaden",
+    "30:e gardes motoriserade skyttebrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "rybnoje",
+   "db_id": "rybnoje",
+   "name": "Rybnoje",
+   "name_ru": "Рыбное",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 54.7333,
+   "lon": 39.5167,
+   "units": [
+    "34:e järnvägsbrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "rzjev-luftvarn",
+   "db_id": "rzjev-luftvarn",
+   "name": "Rzjev (luftvärnsförband)",
+   "name_ru": "Ржев",
+   "branch": "luftvärn",
+   "country": "RU",
+   "lat": 56.2656,
+   "lon": 34.3275,
+   "units": [
+    "32:a luftvärnsdivisionen"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "senezj",
+   "db_id": "senezj",
+   "name": "Senezj (Solnetjnogorsk)",
+   "name_ru": "Сенеж",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 56.1851,
+   "lon": 36.9776,
+   "units": [
+    "Specialoperationsstyrkorna (KSSO)"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "sergejevka",
+   "db_id": "sergejevka",
+   "name": "Sergejevka",
+   "name_ru": "Сергеевка",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 44.3328,
+   "lon": 131.6603,
+   "units": [
+    "127:e gardes motoriserade skyttedivisionen",
+    "218:e gardes stridsvagnsregementet"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "sjali",
+   "db_id": "sjali",
+   "name": "Sjali",
+   "name_ru": "Шали",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 43.145,
+   "lon": 45.9038,
+   "units": [
+    "42:a gardes motoriserade skyttedivisionen",
+    "70:e gardes motoriserade skytteregementet"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "smolensk",
+   "db_id": "smolensk",
+   "name": "Smolensk",
+   "name_ru": "Смоленск",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 54.7828,
+   "lon": 32.0453,
+   "units": [
+    "144:e gardes motoriserade skyttedivisionen"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Smolensk Nord är en tidigare militär flygbas som numera fungerar som civil flygplats och inrymmer en flygplansfabrik. De militära flygförbanden som tidigare fanns baserade där har avvecklats."
+  },
+  {
+   "id": "stavropol",
+   "db_id": "stavropol",
+   "name": "Stavropol",
+   "name_ru": "Ставрополь",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 45.0333,
+   "lon": 41.9667,
+   "units": [
+    "25:e gardes specialförbandsregementet",
+    "247:e gardes luftanfallsregementet",
+    "49:e armén"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Artikeln beskriver staden Stavropol och innehåller ingen information om en aktuell militärbas."
+  },
+  {
+   "id": "svobodnyj",
+   "db_id": "svobodnyj",
+   "name": "Svobodnyj",
+   "name_ru": "Свободный",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 51.3833,
+   "lon": 128.1333,
+   "units": [
+    "50:e järnvägsbrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "tichoretsk-719-arsenalen",
+   "db_id": "tichoretsk-719-arsenalen",
+   "name": "Tichoretsk (719:e ammunitionsbasen)",
+   "name_ru": "719-я база боеприпасов (Тихорецк)",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 45.88,
+   "lon": 40.05,
+   "units": [],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "tjita",
+   "db_id": "tjita",
+   "name": "Tjita",
+   "name_ru": "Чита",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 52.0333,
+   "lon": 113.5,
+   "units": [
+    "29:e gardes armén"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "toljatti",
+   "db_id": "toljatti",
+   "name": "Toljatti",
+   "name_ru": "Тольятти",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 53.5167,
+   "lon": 49.4167,
+   "units": [
+    "3:e gardes specialförbandsbrigaden (Spetsnaz)"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "toropets-107-arsenalen",
+   "db_id": "toropets-107-arsenalen",
+   "name": "Toropets (107:e arsenalen)",
+   "name_ru": "107-й арсенал ГРАУ (Торопец)",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 56.523,
+   "lon": 31.611,
+   "units": [],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "tver",
+   "db_id": "tver",
+   "name": "Tver",
+   "name_ru": "Тверь",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 56.8578,
+   "lon": 35.9219,
+   "units": [
+    "79:e gardes raketartilleribrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Tver är en rysk stad belägen vid floderna Volga och Tvertsas sammanflöde, nordväst om Moskva. Staden har en lång historia med anor från 1100-talet som ett mäktigt medeltida furstendöme. Artikeln nämner ingen militärbas eller dess roll sedan 2022."
+  },
+  {
+   "id": "uljanovsk-fallskarm",
+   "db_id": "uljanovsk-fallskarm",
+   "name": "Uljanovsk",
+   "name_ru": "Ульяновск",
+   "branch": "fallskärm",
+   "country": "RU",
+   "lat": 54.3167,
+   "lon": 48.3667,
+   "units": [
+    "104:e gardes luftanfallsdivisionen",
+    "345:e luftanfallsregementet"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "vitebsk",
+   "db_id": "vitebsk",
+   "name": "Vitebsk",
+   "name_ru": "Витебск",
+   "branch": "fallskärm",
+   "country": "BY",
+   "lat": 55.1833,
+   "lon": 30.1667,
+   "units": [
+    "103:e gardes luftlandsättningsbrigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "vladikavkaz",
+   "db_id": "vladikavkaz",
+   "name": "Vladikavkaz",
+   "name_ru": "Владикавказ",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 43.0167,
+   "lon": 44.6833,
+   "units": [
+    "67:e luftvärnsrobotbrigaden",
+    "19:e motoriserade skyttedivisionen",
+    "58:e gardes armén"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Vladikavkaz är huvudstad i republiken Nordossetien-Alania i Ryssland, belägen vid Terekfloden vid foten av Kaukasus. Staden grundades ursprungligen som en rysk fästning och är ett viktigt industri- och transportcentrum. Artikeln nämner inga militärbaser eller specifik militär användning sedan 2022."
+  },
+  {
+   "id": "volgograd",
+   "db_id": "volgograd",
+   "name": "Volgograd",
+   "name_ru": "Волгоград",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 48.7117,
+   "lon": 44.5139,
+   "units": [
+    "20:e gardes motoriserade skyttedivisionen",
+    "242:a gardes motoriserade skytteregementet",
+    "255:e gardes motoriserade skytteregementet",
+    "358:e gardes luftvärnsrobotregementet",
+    "944:e gardes självgående artilleriregementet"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": "Volgograd traktorfabrik är en tung industrianläggning som historiskt har tillverkat militära fordon och stridsvagnar men numera till största delen är nedlagd eller förfallen."
+  },
+  {
+   "id": "zaslonava",
+   "db_id": "zaslonava",
+   "name": "Zaslonava",
+   "name_ru": "Заслоново",
+   "branch": "armé",
+   "country": "BY",
+   "lat": 54.8925,
+   "lon": 28.9164,
+   "units": [
+    "19:e gardes mekaniserade brigaden"
+   ],
+   "wikidata": null,
+   "survey_summary_sv": null
+  },
+  {
+   "id": "Q4156540",
+   "db_id": null,
+   "name": "9 channel",
+   "name_ru": "Девятый канал (Россия)",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 45.026,
+   "lon": 39.002,
+   "units": [],
+   "wikidata": "https://www.wikidata.org/wiki/Q4156540",
+   "survey_summary_sv": "Кубань 24 är en regional tv-kanal i Krasnodar kraj som sänder nyheter och program dygnet runt. Kanalens inslag om ukrainska barn har uppmärksammats i internationella rapporter angående det ryska anfallet mot Ukraina."
+  },
+  {
+   "id": "Q4243543",
+   "db_id": null,
+   "name": "GTRK Kuban",
+   "name_ru": "Кубань (телерадиокомпания, территориальное отделение)",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 43.575,
+   "lon": 39.731,
+   "units": [],
+   "wikidata": "https://www.wikidata.org/wiki/Q4243543",
+   "survey_summary_sv": "GTRK Sotji är ett regionalt dotterbolag till det ryska statliga tv- och radiobolaget VGTRK som producerar nyheter och program i Sotji. Verksamheten har genomgått flera omorganiseringar, bland annat i enlighet med ett regeringsbeslut i slutet av 2022."
+  },
+  {
+   "id": "Q63433634",
+   "db_id": null,
+   "name": "Gatchinskaya Sluzhba Novostey",
+   "name_ru": "Гатчина-ИНФО",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 59.569,
+   "lon": 30.123,
+   "units": [],
+   "wikidata": "https://www.wikidata.org/wiki/Q63433634",
+   "survey_summary_sv": null
+  },
+  {
+   "id": "Q5681816",
+   "db_id": null,
+   "name": "Hatsavita Mountain Warfare Training Centre",
+   "name_ru": null,
+   "branch": "armé",
+   "country": "RU",
+   "lat": 44.197,
+   "lon": 41.027,
+   "units": [],
+   "wikidata": "https://www.wikidata.org/wiki/Q5681816",
+   "survey_summary_sv": "Hatsavita är ett träningscenter för bergskrigföring som tillhör Rysslands nationalgarde i Krasnodar kraj. Centret grundades för att öka effektiviteten hos specialförband i Kaukasusbergen."
+  },
+  {
+   "id": "Q18524259",
+   "db_id": null,
+   "name": "Morozova Palace",
+   "name_ru": "Особняк Зинаиды Морозовой",
+   "branch": "marin",
+   "country": "RU",
+   "lat": 55.761,
+   "lon": 37.592,
+   "units": [],
+   "wikidata": "https://www.wikidata.org/wiki/Q18524259",
+   "survey_summary_sv": "Morozovpalatset är en historisk byggnad i nygotisk stil belägen i centrala Moskva. Byggnaden har sedan 1938 fungerat som representationshus för det ryska utrikesministeriet."
+  },
+  {
+   "id": "Q4308079",
+   "db_id": null,
+   "name": "Murman",
+   "name_ru": "Мурман",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 68.949,
+   "lon": 33.119,
+   "units": [],
+   "wikidata": "https://www.wikidata.org/wiki/Q4308079",
+   "survey_summary_sv": "Murman är en regional statlig TV- och radiostation i Murmansk oblast. Den är en filial till det ryska bolaget VGTRK och sänder regionala nyheter och program."
+  },
+  {
+   "id": "Q4409379",
+   "db_id": null,
+   "name": "NVK Sakha",
+   "name_ru": "НВК Саха",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 62.027,
+   "lon": 129.723,
+   "units": [],
+   "wikidata": "https://www.wikidata.org/wiki/Q4409379",
+   "survey_summary_sv": "NVK Sakha är det största mediebolaget i den ryska republiken Sakha (Jakutien). Bolaget producerar TV-kanaler, nyheter på flera språk samt film och animation."
+  },
+  {
+   "id": "Q16683710",
+   "db_id": null,
+   "name": "Smirnov's house (Tverskoy Boulevard)",
+   "name_ru": "Особняк П. П. Смирнова",
+   "branch": "marin",
+   "country": "RU",
+   "lat": 55.761,
+   "lon": 37.602,
+   "units": [],
+   "wikidata": "https://www.wikidata.org/wiki/Q16683710",
+   "survey_summary_sv": "Detta objekt är ett historiskt kulturarv och jugendpalats (Osmirnovs hus) i Moskva och inte en militär bas."
+  },
+  {
+   "id": "Q4452536",
+   "db_id": null,
+   "name": "Tatarstan — Yaña Ğasır",
+   "name_ru": "Татарстан — Новый век",
+   "branch": "armé",
+   "country": "RU",
+   "lat": 55.829,
+   "lon": 49.077,
+   "units": [],
+   "wikidata": "https://www.wikidata.org/wiki/Q4452536",
+   "survey_summary_sv": "Tatarstan — Yaña Ğasır är en regional tatarisk mediakoncern och tevebolag, inte en militär bas. Artikeln innehåller ingen information om militär verksamhet."
+  }
+ ]
+}

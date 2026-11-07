@@ -948,3 +948,4 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 .fold[open] > summary .chev { transform: rotate(180deg); }
 .fold-body { padding: 0 14px 14px; }
 @media (prefers-reduced-motion: reduce) { .fold > summary .chev { transition: none; } }
+.chip-plain { cursor: default; opacity: .8; }

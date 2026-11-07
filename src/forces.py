@@ -162,11 +162,26 @@ def _display(db_base: dict, db: dict) -> tuple:
         u = db["units"].get(uid)
         if u and u["name_sv"] not in units:
             units.append(u["name_sv"])
-    for sid in db_base.get("equipment") or []:
+    # Version 3.27: the equipment of the units garrisoned here counts too
+    # (a regiment's Su-34s are the base's Su-34s), after the base's own.
+    sids = list(db_base.get("equipment") or [])
+    for u in db["units"].values():
+        if db_base["id"] in (u.get("garrison") or []):
+            sids += [e for e in u.get("equipment") or [] if e not in sids]
+    for sid in sids:
         x = db["systems"].get(sid)
         if x and not any(_fold(x["name"]).startswith(_fold(e)) or _fold(e).startswith(_fold(x["name"].split(" ")[0])) for e in equipment):
             equipment.append(x["name"])
     return [u[:200] for u in units[:60]], [e[:200] for e in equipment[:60]]
+
+
+def _system_ids(db_base: dict, db: dict) -> list:
+    """The base's own system ids, then those of the units garrisoned there."""
+    out = list(db_base.get("equipment") or [])
+    for u in db["units"].values():
+        if db_base["id"] in (u.get("garrison") or []):
+            out += [e for e in u.get("equipment") or [] if e not in out]
+    return out
 
 
 def apply_db(bases: list, db: dict = None) -> list:
@@ -187,7 +202,7 @@ def apply_db(bases: list, db: dict = None) -> list:
                  "description_sv": d.get("description_sv"), "status_sv": (d.get("status") or {}).get("status_sv"),
                  "status_as_of": (d.get("status") or {}).get("as_of"), "image": d.get("image"), "sources": d.get("sources") or [],
                  "units": units, "equipment": equipment, "unit_ids": list(d.get("units") or []),
-                 "system_ids": list(d.get("equipment") or []), "events": list(d.get("events") or [])}
+                 "system_ids": _system_ids(d, db), "events": list(d.get("events") or [])}
         if hit is not None:
             if hit.get("curated"):
                 extra["name"] = hit["name"]
