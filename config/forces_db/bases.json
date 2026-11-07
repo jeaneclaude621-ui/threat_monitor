@@ -13895,6 +13895,83 @@
     }
    ],
    "events": []
+  },
+  {
+   "id": "chrabrovo",
+   "name": "Chrabrovo",
+   "name_en": "Khrabrovo Airport",
+   "name_ru": "Храброво",
+   "lat": 54.89,
+   "lon": 20.593,
+   "branch": "flyg",
+   "country": "RU",
+   "military_district": "Leningrads militärdistrikt",
+   "description_sv": "Kaliningrads civila flygplats, 24 kilometer norr om staden, där en del av fältet fortfarande är militärt. Här finns Östersjöflottans 398:e transportskvadron i 132:a blandade flygdivisionen och Rosgvardijas flygavdelning för Kaliningrad.",
+   "equipment": [
+    "an-26",
+    "an-140"
+   ],
+   "units": [],
+   "status": {
+    "status_sv": "Östersjöflottans 398:e transportskvadron med An-140, An-24 och An-26 (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Khrabrovo_Airport",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_Naval_Aviation",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_military_airbases_in_Russia",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
+    }
+   ],
+   "events": []
+  },
+  {
+   "id": "gromovo",
+   "name": "Gromovo",
+   "name_en": "Gromovo (air base)",
+   "name_ru": "Громово",
+   "lat": 60.713,
+   "lon": 30.112,
+   "branch": "flyg",
+   "country": "RU",
+   "military_district": "Leningrads militärdistrikt",
+   "description_sv": "Flygbas vid Gromovo (tidigare Sakkola) på Karelska näset i Leningrad oblast. 180:e gardes jaktflygregementet låg här 1953–2002, från 1988 med MiG-31.",
+   "equipment": [],
+   "units": [],
+   "status": {
+    "status_sv": "Flygbas utan känd materiel: engelska Wikipedia anger att 33:e transportflygregementet använder basen, men regementets huvudbas är Levasjovo och uppgiften saknar aktuell källa.",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Gromovo_%28air_base%29",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://uk.wikipedia.org/wiki/%D0%93%D1%80%D0%BE%D0%BC%D0%BE%D0%B2%D0%BE_%28%D0%B0%D0%B2%D1%96%D0%B0%D0%B1%D0%B0%D0%B7%D0%B0%29",
+     "outlet": "Wikipedia (uk)",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_military_airbases_in_Russia",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
+    }
+   ],
+   "events": []
   }
  ]
 }

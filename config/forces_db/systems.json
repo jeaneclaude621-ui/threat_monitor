@@ -4118,6 +4118,36 @@
      "accessed": "2026-11-07"
     }
    ]
+  },
+  {
+   "id": "an-140",
+   "name": "An-140",
+   "name_ru": "Ан-140",
+   "category_sv": "Flygplan",
+   "role_sv": "Lätt transportflygplan",
+   "description_sv": "An-140 är ett tvåmotorigt turbopropflygplan, konstruerat av ukrainska Antonov som efterträdare till An-24. Ryska flyg- och rymdstridskrafterna och marinflyget har ett fåtal som transportflygplan, bland annat i Östersjöflottans transportskvadron i Chrabrovo.",
+   "key_figures": {
+    "Typ": "tvåmotorigt turbopropflygplan",
+    "Passagerare": "upp till 52",
+    "Räckvidd": "cirka 2 100 km med 52 passagerare",
+    "Marschfart": "575 km/h"
+   },
+   "aliases": [
+    "An-140-100",
+    "Antonov An-140"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Antonov_An-140",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_Naval_Aviation",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
+    }
+   ]
   }
  ]
 }

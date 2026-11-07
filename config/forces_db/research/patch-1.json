@@ -474,6 +474,108 @@
    ]
   }
  },
- "systems": {},
- "new_bases": []
+ "systems": {
+  "an-140": {
+   "id": "an-140",
+   "name": "An-140",
+   "name_ru": "Ан-140",
+   "category_sv": "Flygplan",
+   "role_sv": "Lätt transportflygplan",
+   "description_sv": "An-140 är ett tvåmotorigt turbopropflygplan, konstruerat av ukrainska Antonov som efterträdare till An-24. Ryska flyg- och rymdstridskrafterna och marinflyget har ett fåtal som transportflygplan, bland annat i Östersjöflottans transportskvadron i Chrabrovo.",
+   "key_figures": {
+    "Typ": "tvåmotorigt turbopropflygplan",
+    "Passagerare": "upp till 52",
+    "Räckvidd": "cirka 2 100 km med 52 passagerare",
+    "Marschfart": "575 km/h"
+   },
+   "image": null,
+   "aliases": [
+    "An-140-100",
+    "Antonov An-140"
+   ],
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Antonov_An-140",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_Naval_Aviation",
+     "outlet": "Wikipedia (en)"
+    }
+   ]
+  }
+ },
+ "new_bases": [
+  {
+   "id": "chrabrovo",
+   "name": "Chrabrovo",
+   "name_en": "Khrabrovo Airport",
+   "name_ru": "Храброво",
+   "lat": 54.89,
+   "lon": 20.593,
+   "branch": "flyg",
+   "country": "RU",
+   "military_district": "Leningrads militärdistrikt",
+   "description_sv": "Kaliningrads civila flygplats, 24 kilometer norr om staden, där en del av fältet fortfarande är militärt. Här finns Östersjöflottans 398:e transportskvadron i 132:a blandade flygdivisionen och Rosgvardijas flygavdelning för Kaliningrad.",
+   "equipment": [
+    "an-26",
+    "an-140"
+   ],
+   "units": [],
+   "status": {
+    "status_sv": "Östersjöflottans 398:e transportskvadron med An-140, An-24 och An-26 (Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Khrabrovo_Airport",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Russian_Naval_Aviation",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_military_airbases_in_Russia",
+     "outlet": "Wikipedia (en)"
+    }
+   ],
+   "events": []
+  },
+  {
+   "id": "gromovo",
+   "name": "Gromovo",
+   "name_en": "Gromovo (air base)",
+   "name_ru": "Громово",
+   "lat": 60.713,
+   "lon": 30.112,
+   "branch": "flyg",
+   "country": "RU",
+   "military_district": "Leningrads militärdistrikt",
+   "description_sv": "Flygbas vid Gromovo (tidigare Sakkola) på Karelska näset i Leningrad oblast. 180:e gardes jaktflygregementet låg här 1953–2002, från 1988 med MiG-31.",
+   "equipment": [],
+   "units": [],
+   "status": {
+    "status_sv": "Flygbas utan känd materiel: engelska Wikipedia anger att 33:e transportflygregementet använder basen, men regementets huvudbas är Levasjovo och uppgiften saknar aktuell källa.",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Gromovo_%28air_base%29",
+     "outlet": "Wikipedia (en)"
+    },
+    {
+     "url": "https://uk.wikipedia.org/wiki/%D0%93%D1%80%D0%BE%D0%BC%D0%BE%D0%B2%D0%BE_%28%D0%B0%D0%B2%D1%96%D0%B0%D0%B1%D0%B0%D0%B7%D0%B0%29",
+     "outlet": "Wikipedia (uk)"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/List_of_military_airbases_in_Russia",
+     "outlet": "Wikipedia (en)"
+    }
+   ],
+   "events": []
+  }
+ ]
 }
