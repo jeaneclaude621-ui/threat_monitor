@@ -634,7 +634,11 @@
    "garrison": [
     "vitebsk"
    ],
-   "equipment": [],
+   "equipment": [
+    "b3-btr-70",
+    "b3-btr-80",
+    "d-30"
+   ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
    "description_sv": "Belarus luftlandsättningsbrigad i Vitsebsk, en del av specialoperationsstyrkorna; arvtagare till den sovjetiska 103:e luftlandsättningsdivisionen.",
@@ -912,7 +916,12 @@
    "garrison": [
     "novorossijsk-fallskarm"
    ],
-   "equipment": [],
+   "equipment": [
+    "b3-bmd-1",
+    "bmd-2",
+    "b3-btr-d",
+    "2s9-nona"
+   ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
    "description_sv": "Luftanfallsregemente (Kubankosackerna) i 7:e gardes luftanfallsdivisionen, förlagt i Novorossijsk. Det har stridit i Tjetjenien och Abchazien och i Ukraina sedan 2022.",
@@ -1839,7 +1848,9 @@
    "garrison": [
     "sergejevka"
    ],
-   "equipment": [],
+   "equipment": [
+    "b3-t-72b"
+   ],
    "status_sv": "i strid i Zaporizjzja- och Huljajpole-riktningen enligt ISW (20 okt 2026)",
    "as_of": "2026-10-20",
    "description_sv": "Motoriserad skyttedivision i 5:e armén, bildad 2018 ur 59:e och 70:e brigaderna och förlagd i Sergejevka i Primorje. Den strider i Zaporizjzja oblast och Huljajpole-riktningen enligt ISW (okt 2026).",
@@ -2079,7 +2090,18 @@
    "garrison": [
     "bujnaksk"
    ],
-   "equipment": [],
+   "equipment": [
+    "b3-t-90a",
+    "bmp-3",
+    "btr-82a",
+    "tigr",
+    "2s3-akatsija",
+    "bm-21-grad",
+    "b3-2s12-sani",
+    "tor-m2",
+    "b3-tunguska",
+    "b3-strela-10"
+   ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
    "description_sv": "Motoriserad skyttebrigad i 58:e armén, bildad 1993 i Bujnaksk i Dagestan. Den har stridit i Ukraina sedan 2022.",
@@ -3057,7 +3079,11 @@
    "garrison": [
     "chabarovsk"
    ],
-   "equipment": [],
+   "equipment": [
+    "krasucha-4",
+    "murmansk-bn",
+    "leer-3"
+   ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
    "description_sv": "Telekrigsbrigad i Östra militärdistriktet, förlagd i Chabarovsk.",
@@ -3324,7 +3350,11 @@
    "garrison": [
     "vladikavkaz"
    ],
-   "equipment": [],
+   "equipment": [
+    "b3-t-72b",
+    "2s3-akatsija",
+    "btr-82a"
+   ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
    "description_sv": "Motoriserad skyttedivision i 58:e armén, förlagd i Vladikavkaz i Nordossetien. Den har stridit i Ukraina sedan 2022.",
@@ -4484,7 +4514,11 @@
    "garrison": [
     "stavropol"
    ],
-   "equipment": [],
+   "equipment": [
+    "bmd-2",
+    "b3-btr-d",
+    "2s9-nona"
+   ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
    "description_sv": "Luftanfallsregemente (Kaukasuskosackerna) i 7:e gardes luftanfallsdivisionen, förlagt i Stavropol; bildat 1973 som 21:a luftanfallsbrigaden. Det har stridit i Ukraina sedan 2022.",
@@ -5638,7 +5672,11 @@
    "garrison": [
     "rosjtjinskij"
    ],
-   "equipment": [],
+   "equipment": [
+    "btr-82a",
+    "d-30",
+    "bm-21-grad"
+   ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
    "description_sv": "Motoriserad skyttebrigad i 2:a gardes armén, bildad 2016 och förlagd i Rosjtjinskij i Samara oblast. Den har stridit i Ukraina sedan 2022.",
@@ -6746,7 +6784,16 @@
    "garrison": [
     "kjachta"
    ],
-   "equipment": [],
+   "equipment": [
+    "t-72b3",
+    "bmp-2",
+    "mt-lb",
+    "b3-btr-80",
+    "tornado-g",
+    "2s3-akatsija",
+    "b3-2s12-sani",
+    "b3-strela-10"
+   ],
    "status_sv": "i strid i Huljajpole-riktningen enligt ISW (22 okt 2026)",
    "as_of": "2026-10-22",
    "description_sv": "Motoriserad skyttebrigad (Donkosackerna) i 36:e armén, förlagd i Kjachta i Burjatien. Den stred i Donbas 2014–2015 och har stridit i Ukraina sedan 2022; i oktober 2026 tillskrevs den erövringen av Myrivka i Huljajpole-riktningen.",
@@ -6987,7 +7034,9 @@
    "garrison": [
     "juzjno-sachalinsk"
    ],
-   "equipment": [],
+   "equipment": [
+    "mt-lb"
+   ],
    "status_sv": "i strid i Zaporizjzja oblast under 68:e armékåren enligt ISW (26 okt 2026)",
    "as_of": "2026-10-26",
    "description_sv": "Motoriserad skyttebrigad i 68:e armékåren, förlagd i Juzjno-Sachalinsk. Den strider i Zaporizjzja oblast; i oktober 2026 tillskrevs den erövringen av Obsjtje enligt ISW.",
@@ -7007,6 +7056,11 @@
      "url": "https://www.criticalthreats.org/analysis/russian-offensive-campaign-assessment-october-26-2026",
      "outlet": "ISW / Critical Threats",
      "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/68th_Guards_Army_Corps_(Russia)",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -7248,7 +7302,9 @@
    "garrison": [
     "archonskaja"
    ],
-   "equipment": [],
+   "equipment": [
+    "tos-1a"
+   ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
    "description_sv": "CBRN-skyddsregemente i 58:e armén, förlagt i Archonskaja i Nordossetien.",
@@ -7298,7 +7354,9 @@
    "garrison": [
     "petropavlovsk-kamtjatskij-marin"
    ],
-   "equipment": [],
+   "equipment": [
+    "b3-t-80bv"
+   ],
    "status_sv": "försvarar i Oleksandrivka-riktningen sedan mars 2026 enligt ISW (25 okt 2026)",
    "as_of": "2026-10-25",
    "description_sv": "Stillahavsflottans marininfanteribrigad i Petropavlovsk-Kamtjatskij, under Nordöstra gruppen av trupper och styrkor (Kamtjatka). Enligt ISW har den försvarat i Oleksandrivka-riktningen sedan mars 2026, efter att tidigare ha stridit vid Dobropillja.",
@@ -8819,7 +8877,11 @@
    "garrison": [
     "kyzyl"
    ],
-   "equipment": [],
+   "equipment": [
+    "tigr",
+    "b3-2s23",
+    "orlan-10"
+   ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
    "description_sv": "Bergsbrigad i 41:a armén, förlagd i Kyzyl i Tuva. Den har stridit i Ukraina sedan 2022.",
@@ -9507,7 +9569,9 @@
    "garrison": [
     "knjaze-volkonskoje"
    ],
-   "equipment": [],
+   "equipment": [
+    "b3-t-72b"
+   ],
    "status_sv": "samlas i Huljajpole-riktningen enligt ISW (21 okt 2026)",
    "as_of": "2026-10-21",
    "description_sv": "Motoriserad skyttebrigad i 35:e armén, förlagd i Knjaze-Volkonskoje vid Chabarovsk. I augusti 2026 angreps brigadchefens bil av ukrainska drönare; brigaden samlas i Huljajpole-riktningen enligt ISW (okt 2026).",
@@ -9542,7 +9606,9 @@
    "garrison": [
     "vladikavkaz"
    ],
-   "equipment": [],
+   "equipment": [
+    "buk-m2"
+   ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
    "description_sv": "Luftvärnsrobotbrigad i 58:e armén, förlagd i Vladikavkaz.",
@@ -9552,6 +9618,11 @@
      "url": "https://ru.wikipedia.org/wiki/67-%D1%8F_%D0%B7%D0%B5%D0%BD%D0%B8%D1%82%D0%BD%D0%B0%D1%8F_%D1%80%D0%B0%D0%BA%D0%B5%D1%82%D0%BD%D0%B0%D1%8F_%D0%B1%D1%80%D0%B8%D0%B3%D0%B0%D0%B4%D0%B0",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/58th_Guards_Combined_Arms_Army",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -9780,7 +9851,12 @@
    "garrison": [
     "novorossijsk-fallskarm"
    ],
-   "equipment": [],
+   "equipment": [
+    "b3-bmd-1",
+    "bmd-2",
+    "b3-btr-d",
+    "2s9-nona"
+   ],
    "status_sv": "i strid i Ukraina sedan 2022 enligt källan",
    "as_of": "2026-11",
    "description_sv": "Luftlandsättningstruppernas bergsdivision med stab i Novorossijsk. Den har stridit i Ukraina sedan 2022.",
@@ -10332,7 +10408,9 @@
    "garrison": [
     "tver"
    ],
-   "equipment": [],
+   "equipment": [
+    "tornado-s"
+   ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
    "description_sv": "Raketartilleribrigad med BM-27 Uragan, förlagd i Tver.",
@@ -10424,7 +10502,9 @@
    "garrison": [
     "jurja"
    ],
-   "equipment": [],
+   "equipment": [
+    "rs-24-jars"
+   ],
    "status_sv": "aktiv enligt källan",
    "as_of": "2026-11",
    "description_sv": "Robotdivision i 31:a robotarmén i den slutna orten Pervomajskij vid Jurja i Kirov oblast, bildad 1961, med mobila interkontinentala robotar av Topol-familjen.",
@@ -10439,6 +10519,11 @@
      "url": "https://en.wikipedia.org/wiki/8th_Rocket_Division",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/RT-2PM_Topol",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -12313,7 +12398,9 @@
    "garrison": [
     "petropavlovsk-kamtjatskij-marin"
    ],
-   "equipment": [],
+   "equipment": [
+    "kilo"
+   ],
    "class": "kilo",
    "status_sv": "i tjänst; kan tjänstgöra till 2030",
    "as_of": "2026",
@@ -12505,7 +12592,10 @@
    "garrison": [
     "petropavlovsk-kamtjatskij-marin"
    ],
-   "equipment": [],
+   "equipment": [
+    "kilo",
+    "kalibr"
+   ],
    "class": "kilo",
    "status_sv": "i tjänst (2026)",
    "as_of": "2026",
@@ -12521,6 +12611,11 @@
      "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Improved_Kilo-class_submarine",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
     }
    ],
    "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
@@ -12537,7 +12632,10 @@
    "garrison": [
     "petropavlovsk-kamtjatskij-marin"
    ],
-   "equipment": [],
+   "equipment": [
+    "kilo",
+    "kalibr"
+   ],
    "class": "kilo",
    "status_sv": "i tjänst, kom till Stilla havet i november 2021",
    "as_of": "2021",
@@ -12553,6 +12651,11 @@
      "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Improved_Kilo-class_submarine",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
     }
    ],
    "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
@@ -12569,7 +12672,10 @@
    "garrison": [
     "petropavlovsk-kamtjatskij-marin"
    ],
-   "equipment": [],
+   "equipment": [
+    "kilo",
+    "kalibr"
+   ],
    "class": "kilo",
    "status_sv": "i tjänst, kom till Stilla havet i oktober 2022",
    "as_of": "2022",
@@ -12585,6 +12691,11 @@
      "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Improved_Kilo-class_submarine",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
     }
    ],
    "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
@@ -12601,7 +12712,10 @@
    "garrison": [
     "petropavlovsk-kamtjatskij-marin"
    ],
-   "equipment": [],
+   "equipment": [
+    "kilo",
+    "kalibr"
+   ],
    "class": "kilo",
    "status_sv": "i tjänst (2026)",
    "as_of": "2026",
@@ -12617,6 +12731,11 @@
      "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Improved_Kilo-class_submarine",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
     }
    ],
    "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
@@ -12633,7 +12752,10 @@
    "garrison": [
     "petropavlovsk-kamtjatskij-marin"
    ],
-   "equipment": [],
+   "equipment": [
+    "kilo",
+    "kalibr"
+   ],
    "class": "kilo",
    "status_sv": "i tjänst; i Östersjön sedan mitten av 2025",
    "as_of": "2025",
@@ -12649,6 +12771,11 @@
      "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Improved_Kilo-class_submarine",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
     }
    ],
    "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
@@ -12665,7 +12792,10 @@
    "garrison": [
     "petropavlovsk-kamtjatskij-marin"
    ],
-   "equipment": [],
+   "equipment": [
+    "kilo",
+    "kalibr"
+   ],
    "class": "kilo",
    "status_sv": "i tjänst; i Östersjön sedan juni 2025",
    "as_of": "2025",
@@ -12681,6 +12811,11 @@
      "url": "https://en.wikipedia.org/wiki/List_of_active_Russian_Navy_ships",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Improved_Kilo-class_submarine",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
     }
    ],
    "garrison_note_sv": "Wikipedias fartygslista anger bara flottan; hemmabasen här är flottans huvudbas för fartygstypen."
