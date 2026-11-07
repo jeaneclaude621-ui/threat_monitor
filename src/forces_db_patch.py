@@ -10,6 +10,8 @@ The patch is JSON:
      "new_units": [{...full unit...}],
      "new_bases": [{...full base...}],
      "systems": {"<id>": {...}}}
+A "systems" entry whose id is not yet in systems.json, and which has a "name",
+is a new system card and is added whole.
 Fields replace the old ones (null removes one), except `sources`, which are added (no
 duplicate urls) and get the patch's `accessed` date when they lack one.
 A new unit's garrison bases get the unit id in their `units` list.
@@ -48,7 +50,12 @@ def main(path):
     index = {n: {r["id"]: r for r in files[n][n]} for n in files}
     for n in ("bases", "units", "systems"):
         for rid, fields in (patch.get(n) or {}).items():
-            if rid not in index[n]:
+            if rid not in index[n] and n == "systems" and fields.get("name"):
+                card = {"id": rid, **{k: v for k, v in fields.items() if k != "sources"}}
+                card.setdefault("image", None)
+                files[n][n].append(card)
+                index[n][rid] = card
+            elif rid not in index[n]:
                 sys.exit(f"{n}: unknown id {rid}")
             merge(index[n][rid], fields, accessed)
     for b in patch.get("new_bases") or []:

@@ -420,11 +420,16 @@
    "military_district": "Centrala militärdistriktet",
    "description_sv": "Liten militär flygbas i Saratov oblast, i folkmun kallad Sennaja, där 395:e självständiga provflygdivisionen ur 929:e flygprovcentret har An-26, An-72 och helikoptrar. Den betjänar skjutfältet Sjichany för CBRN-skyddstrupperna.",
    "units": [],
-   "equipment": [],
+   "equipment": [
+    "an-26",
+    "an-72",
+    "mi-8",
+    "mi-24"
+   ],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "I bruk: 395:e självständiga provflygdivisionen (929:e flygprovcentret) med An-26, An-72, Mi-8 och Mi-24 enligt ryska Wikipedia (läget 2014).",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -437,6 +442,11 @@
      "url": "https://en.wikipedia.org/wiki/Bagay-Baranovka_air_base",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -924,9 +934,9 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "Sportflygfält (ROSTO) utan känt militärt förband; 337:e helikopterregementet lämnade 2009 (Wikipedia).",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -934,6 +944,11 @@
      "url": "https://ru.wikipedia.org/wiki/%D0%91%D0%B5%D1%80%D0%B4%D1%81%D0%BA-%D1%86%D0%B5%D0%BD%D1%82%D1%80%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -1127,7 +1142,7 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "nedlagd",
+    "status_sv": "Nedlagd som militär bas: sportflygfält för Samara oblasts flygklubb sedan 2000, sista helikopterdivisionen upplöstes 2010 (Wikipedia).",
     "as_of": "2026-11",
     "note": "Basen är nedlagd eller används inte längre militärt enligt Wikipedia."
    },
@@ -1470,11 +1485,13 @@
    "military_district": "Moskvas militärdistrikt",
    "description_sv": "Militär flygbas fyra kilometer söder om Buturlinovka i Voronezj oblast, med plats för ett tiotal stridsflygplan. Ukraina anföll basen med drönare i maj 2023.",
    "units": [],
-   "equipment": [],
+   "equipment": [
+    "su-34"
+   ],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "I bruk: Su-34 ur 277:e bombflygregementet ombaserades hit från Belarus i april 2022 enligt engelska Wikipedia; basens eget regemente (899:e, Su-25) upplöstes 2009.",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [
     {
@@ -1501,6 +1518,11 @@
      "url": "https://en.wikipedia.org/wiki/Buturlinovka_%28air_base%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -1638,9 +1660,9 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "Malpåsat skolflygfält sedan 1993, flygfält med samlokaliserad användning sedan 2011; inget känt fast förband (ryska Wikipedia).",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -1648,6 +1670,11 @@
      "url": "https://ru.wikipedia.org/wiki/%D0%A5%D0%BE%D0%BB%D0%BE%D0%B4%D0%BD%D0%BE%D0%B3%D0%BE%D1%80%D1%81%D0%BA%D0%B8%D0%B9_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -2641,7 +2668,7 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "nedlagd",
+    "status_sv": "Nedlagd: 18:e gardes attackflygregementet upplöstes här 2009 och återbildades 2013 i Tjernigovka; 2017 byggdes en radarkupol mitt på taxibanan (Wikipedia).",
     "as_of": "2026-11",
     "note": "Basen är nedlagd eller används inte längre militärt enligt Wikipedia."
    },
@@ -2656,6 +2683,11 @@
      "url": "https://en.wikipedia.org/wiki/Galenki_%28air_base%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -3243,7 +3275,7 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "nedlagd",
+    "status_sv": "Nedlagd: robotstyrkornas 84:e helikopterdivision (Mi-8) upplöstes 2011; bara en kommendantur finns kvar (ryska Wikipedia).",
     "as_of": "2026-11",
     "note": "Basen är nedlagd eller används inte längre militärt enligt Wikipedia."
    },
@@ -3253,6 +3285,11 @@
      "url": "https://ru.wikipedia.org/wiki/%D0%AF%D1%81%D0%BD%D1%8B%D0%B9_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -3859,11 +3896,13 @@
    "military_district": "Östra militärdistriktet",
    "description_sv": "Kamennyj Rutjej (Mongochto) 29 kilometer norr om Sovetskaja Gavan är Rysslands största militära flygfält i Fjärran Östern, med 63 skyddade uppställningsplatser. Det var tidigare bas för marinens fjärrflyg (143:e marinflygdivisionen med Tu-16 och Tu-22M) och används i dag av marinflyget.",
    "units": [],
-   "equipment": [],
+   "equipment": [
+    "tu-142"
+   ],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "I bruk: en ubåtsjaktdivision (Tu-142) ur Stillahavsflottans 7062:a flygbas enligt engelska Wikipedia; Tu-22M3 har förts över till fjärrflyget i Belaja.",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -3876,6 +3915,11 @@
      "url": "https://en.wikipedia.org/wiki/Kamenny_Ruchey",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -4031,11 +4075,15 @@
    "military_district": "Södra militärdistriktet",
    "description_sv": "Flygfält vid Znamensk i Astrachan oblast som betjänar provområdet Kapustin Jar (grundat 1946). Här finns 35:e självständiga blandade flygdivisionen med Mi-8, An-26 och An-72.",
    "units": [],
-   "equipment": [],
+   "equipment": [
+    "mi-8",
+    "an-26",
+    "an-72"
+   ],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "I bruk: 35:e självständiga blandade flygdivisionen med Mi-8, An-26 och An-72 enligt Wikipedia.",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -4048,6 +4096,11 @@
      "url": "https://en.wikipedia.org/wiki/Kapustin_Yar_%28air_base%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -5399,7 +5452,7 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "nedlagd",
+    "status_sv": "Ingen militär verksamhet känd: på satellitbilder 2023 står bara några små propellerflygplan här (ryska Wikipedia).",
     "as_of": "2026-11",
     "note": "Basen är nedlagd eller används inte längre militärt enligt Wikipedia."
    },
@@ -6434,9 +6487,9 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "Stängt flygfält enligt ryska Wikipedias lista över militära flygfält; inget känt förband.",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Basen är nedlagd eller används inte längre militärt enligt Wikipedia."
    },
    "events": [],
    "sources": [
@@ -6444,6 +6497,11 @@
      "url": "https://ru.wikipedia.org/wiki/%D0%9D%D0%B5%D1%80%D1%87%D0%B8%D0%BD%D1%81%D0%BA_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%29",
      "outlet": "Wikipedia (ru)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -6459,11 +6517,15 @@
    "military_district": "Östra militärdistriktet",
    "description_sv": "Marinflygbas i Partizanskij-distriktet i Primorje, 37 kilometer nordost om Nachodka. Här finns 289:e självständiga blandade ubåtsjaktregementet i Stillahavsflottans marinflyg.",
    "units": [],
-   "equipment": [],
+   "equipment": [
+    "il-38",
+    "ka-27",
+    "mi-8"
+   ],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "I bruk: Stillahavsflottans marinflyg med Il-38, Ka-27 och Mi-8 (289:e blandade ubåtsjaktregementet i 7062:a flygbasen) enligt Wikipedia.",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -6476,6 +6538,11 @@
      "url": "https://en.wikipedia.org/wiki/Nikolayevka_%28air_base%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -6525,9 +6592,9 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "Drivs av DOSAAF med försvarsmakten som medanvändare; inget känt fast militärt flygförband (ryska Wikipedia).",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -7019,9 +7086,9 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "Flygfält med samlokaliserad användning (försvarsmakten, Roskosmos); inget fast förband känt sedan 64:e jaktflygregementet upplöstes 1998 (Wikipedia).",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -7034,6 +7101,11 @@
      "url": "https://en.wikipedia.org/wiki/Omsk-Severnyy_%28air_base%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -7353,9 +7425,9 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "Bara en flygkommendantur sedan januari 2014, då 17:e blandade flygdivisionen flyttades till Levasjovo (Wikipedia).",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -7368,6 +7440,11 @@
      "url": "https://en.wikipedia.org/wiki/Plestsy_Airport",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ],
    "image": {
@@ -7547,7 +7624,7 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "nedlagd",
+    "status_sv": "Nedlagd och malpåsad sedan 308:e jaktflygregementet upplöstes 1994 (Wikipedia).",
     "as_of": "2026-11",
     "note": "Basen är nedlagd eller används inte längre militärt enligt Wikipedia."
    },
@@ -7562,6 +7639,11 @@
      "url": "https://en.wikipedia.org/wiki/Postovaya_%28air_base%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -8039,11 +8121,13 @@
    "military_district": "Centrala militärdistriktet",
    "description_sv": "Skolflygbas sex kilometer nordväst om Rtisjtjevo i Saratov oblast, med 666:e skolflygregementet (L-410) i 786:e utbildningscentret.",
    "units": [],
-   "equipment": [],
+   "equipment": [
+    "b2-l-410"
+   ],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "I bruk: skolflygbas för Balasjovs flygutbildningscenter, där kadetter flyger L-410UVP-E (ryska Wikipedia).",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -8056,6 +8140,11 @@
      "url": "https://en.wikipedia.org/wiki/Rtishchevo_Air_Base",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ],
    "image": {
@@ -8268,11 +8357,16 @@
    "military_district": "Centrala militärdistriktet",
    "description_sv": "Skolflygbas (Sokol) väster om Saratov för helikopterutbildning: 339:e skolflygbasen i flygvapenakademins filial i Syzran med Ansat, Ka-226, Mi-2 och Mi-8.",
    "units": [],
-   "equipment": [],
+   "equipment": [
+    "b2-ansat",
+    "b2-ka-226",
+    "b2-mi-2",
+    "mi-8"
+   ],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "I bruk: 339:e skolflygbasen (helikopterutbildning för flygakademins filial i Syzran) med Ansat-U, Ka-226, Mi-2 och Mi-8 enligt ryska Wikipedia.",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -8285,6 +8379,11 @@
      "url": "https://en.wikipedia.org/wiki/Saratov_West_Air_Base",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -8373,7 +8472,7 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "nedlagd",
+    "status_sv": "Nedlagd: den sista jaktflygdivisionen (MiG-31) lämnade i september 2010; används inte enligt Wikipedia.",
     "as_of": "2026-11",
     "note": "Basen är nedlagd eller används inte längre militärt enligt Wikipedia."
    },
@@ -8388,6 +8487,11 @@
      "url": "https://en.wikipedia.org/wiki/Savatiya_%28air_base%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -9403,9 +9507,9 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "Reservflygfält utan fast förband: sedan 2002 hålls det i drift av en flygkommendantur (ryska Wikipedia).",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -9807,7 +9911,7 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "nedlagd",
+    "status_sv": "Nedlagd sedan kalla krigets slut; statsflyget använde i stället flygplatsen i Tikši till 2013 (Wikipedia).",
     "as_of": "2026-11",
     "note": "Basen är nedlagd eller används inte längre militärt enligt Wikipedia."
    },
@@ -9933,9 +10037,9 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "Inget känt flygförband: 118:e helikopterdivisionen upplöstes 2009 och personal och materiel fördes till Trojtsk; flygplansreserven avvecklades 2007 (Wikipedia).",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -9948,6 +10052,11 @@
      "url": "https://en.wikipedia.org/wiki/Chebenki_%28air_base%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -11038,9 +11147,9 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "Används av civilflyget och FSB:s flyg enligt ryska Wikipedias lista; inget känt förband ur försvarsmakten.",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia och öppna källor; enheter och materiel kan ha flyttats sedan källan skrevs."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "events": [],
    "sources": [
@@ -11053,6 +11162,11 @@
      "url": "https://en.wikipedia.org/wiki/Vorkuta_Sovetsky_%28air_base%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ]
   },
@@ -13567,11 +13681,13 @@
    "military_district": "Södra militärdistriktet",
    "description_sv": "Flygbas vid Kotelnikovo i Volgograd oblast där 704:e skolflygregementet finns, en del av flygvapnets pilotutbildning.",
    "units": [],
-   "equipment": [],
+   "equipment": [
+    "l-39"
+   ],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "I bruk: skolflygbas (704:e skolflygregementet, sedan 2010 213:e skolflygbasen) med L-39 enligt Wikipedia.",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "sources": [
     {
@@ -13583,6 +13699,11 @@
      "url": "https://www.wikidata.org/wiki/Q116029341",
      "outlet": "Wikidata",
      "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ],
    "events": []
@@ -13601,9 +13722,9 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "I bruk: en flyggrupp ur 17:e gardes arméflygbrigaden (helikoptrar) enligt engelska Wikipedia; vilka helikoptertyper som står här framgår inte.",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "sources": [
     {
@@ -13615,6 +13736,11 @@
      "url": "https://www.wikidata.org/wiki/Q115803479",
      "outlet": "Wikidata",
      "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ],
    "events": []
@@ -13667,9 +13793,9 @@
    "units": [],
    "equipment": [],
    "status": {
-    "status_sv": "i bruk enligt källorna",
+    "status_sv": "Inget känt fast förband sedan 530:e jaktflygregementet (MiG-31) upplöstes 1 december 2009 (engelska Wikipedia).",
     "as_of": "2026-11",
-    "note": "Bygger på Wikipedia; nuvarande förband framgår inte av källan."
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
    },
    "sources": [
     {
@@ -13681,6 +13807,16 @@
      "url": "https://www.wikidata.org/wiki/Q838717",
      "outlet": "Wikidata",
      "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Chuguyevka_%28air_base%29",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
     }
    ],
    "events": []
@@ -13829,6 +13965,127 @@
      "url": "https://www.wikidata.org/wiki/Q60852293",
      "outlet": "Wikidata",
      "accessed": "2026-11-02"
+    }
+   ],
+   "events": []
+  },
+  {
+   "id": "kljutji",
+   "name": "Kljutji",
+   "name_en": "Klyuchi Air Base",
+   "name_ru": "Ключи (аэродром)",
+   "lat": 56.31,
+   "lon": 160.805,
+   "branch": "flyg",
+   "country": "RU",
+   "military_district": "Östra militärdistriktet",
+   "description_sv": "Flygbas tre kilometer sydväst om Kljutji på Kamtjatka, byggd för att betjäna robotprovområdet Kura 130 kilometer längre nordost. Här finns en blandad flygdivision ur 35:e självständiga blandade transportflygregementet (Chabarovsk) med An-26 och Mi-8.",
+   "equipment": [
+    "an-26",
+    "mi-8"
+   ],
+   "units": [],
+   "status": {
+    "status_sv": "I bruk: blandad flygdivision ur 35:e transportflygregementet med An-26 och Mi-8 enligt Wikipedia (läget 2015).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Klyuchi_%28air_base%29",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://www.wikidata.org/wiki/Q2926050",
+     "outlet": "Wikidata",
+     "accessed": "2026-11-07"
+    }
+   ],
+   "events": []
+  },
+  {
+   "id": "uljanovsk-vostotjnyj",
+   "name": "Uljanovsk-Vostotjnyj",
+   "name_en": "Ulyanovsk Vostochny Airport",
+   "name_ru": "Ульяновск-Восточный",
+   "lat": 54.401,
+   "lon": 48.803,
+   "branch": "flyg",
+   "country": "RU",
+   "military_district": "Centrala militärdistriktet",
+   "description_sv": "Flygplats 28 kilometer nordost om Uljanovsk med en av världens längsta och bredaste rullbanor (5 000 × 105 meter). Sedan 1 december 2017 finns här det återbildade 235:e militära transportflygregementet i 18:e transportflygdivisionen, med Il-76MD och Il-76MD-90A.",
+   "equipment": [
+    "il-76"
+   ],
+   "units": [],
+   "status": {
+    "status_sv": "I bruk: 235:e militära transportflygregementet (Il-76MD, Il-76MD-90A), återbildat 2017, enligt ryska Wikipedia.",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Ulyanovsk_Vostochny_Airport",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A3%D0%BB%D1%8C%D1%8F%D0%BD%D0%BE%D0%B2%D1%81%D0%BA-%D0%92%D0%BE%D1%81%D1%82%D0%BE%D1%87%D0%BD%D1%8B%D0%B9_%28%D0%B0%D1%8D%D1%80%D0%BE%D0%BF%D0%BE%D1%80%D1%82%29",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://www.wikidata.org/wiki/Q2545194",
+     "outlet": "Wikidata",
+     "accessed": "2026-11-07"
+    }
+   ],
+   "events": []
+  },
+  {
+   "id": "ashuluk",
+   "name": "Ashuluk",
+   "name_en": "Ashuluk Airfield",
+   "name_ru": "Ашулук (аэродром)",
+   "lat": 47.422,
+   "lon": 47.926,
+   "branch": "luftvärn",
+   "country": "RU",
+   "military_district": "Södra militärdistriktet",
+   "description_sv": "Flygfält vid luftvärnets skjutfält Ashuluk i Astrachan oblast, vid gränsen mot Kazakstan. Fältet hör till 185:e centret för stridsträning och stridsanvändning i flyg- och rymdstyrkorna, där luftvärnsrobotar provas och luftvärnsförband övar skarpskjutning mot målrobotar. I januari 2024 förde USA upp skjutfältet på sin sanktionslista i samband med Nordkoreas leveranser av ballistiska robotar till Ryssland.",
+   "equipment": [],
+   "units": [],
+   "status": {
+    "status_sv": "Övnings- och provskjutningsfält för luftvärnet (185:e stridsträningscentret); flygfältet används för målflygplan och -robotar, inget fast flygförband känt (ryska Wikipedia).",
+    "as_of": "2026-11",
+    "note": "Bygger på Wikipedia; enheter och materiel kan ha flyttats sedan källan skrevs."
+   },
+   "sources": [
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%90%D1%88%D1%83%D0%BB%D1%83%D0%BA_%28%D0%BF%D0%BE%D0%BB%D0%B8%D0%B3%D0%BE%D0%BD%29",
+     "outlet": "Wikipedia (ru)",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B2%D0%BE%D0%B5%D0%BD%D0%BD%D1%8B%D1%85_%D0%B0%D1%8D%D1%80%D0%BE%D0%B4%D1%80%D0%BE%D0%BC%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8",
+     "outlet": "Wikipedia (ru), lista över militära flygfält",
+     "accessed": "2026-11-07"
+    },
+    {
+     "url": "https://www.wikidata.org/wiki/Q4073571",
+     "outlet": "Wikidata",
+     "accessed": "2026-11-07"
     }
    ],
    "events": []
