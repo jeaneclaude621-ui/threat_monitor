@@ -1,14 +1,11 @@
-# Mails the app invitations queued on the admin page (src/app_mail.py
-# send-invites), every five minutes. Its own concurrency group, so a long daily
-# report never holds it up or gets cancelled by it; run_job.py replays its
-# commit if the two push the state at the same time.
+# Version 3.31: invitations are links the admin passes on themselves (the
+# admin page shows them); nothing is mailed and this job has no schedule.
+# Kept to run by hand, should an old mail invitation ever need sending
+# (src/app_mail.py send-invites).
 name: Invitations
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch:
-
 concurrency:
   group: invites
   cancel-in-progress: false

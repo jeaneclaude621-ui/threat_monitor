@@ -109,7 +109,7 @@ history.replaceState = (...args) => {
 
 const ROUTE_LABEL = { '': 'Idag', rapport: 'Rapporten', handelse: 'Händelsen', arkiv: 'Arkiv', amnen: 'Ämnen', karta: 'Karta',
   narrativ: 'Narrativ', trender: 'Narrativ', myndigheter: 'Myndigheter', handlingsalternativ: 'Handlingsalternativ',
-  styrkor: 'Styrkor', bedom: 'Bedöm', mina: 'Mina bedömningar', kalla: 'Källan', admin: 'Administration', om: 'Om', rattelser: 'Rättelser' };
+  styrkor: 'Styrkor', valkommen: 'Inbjudan', bedom: 'Bedöm', mina: 'Mina bedömningar', kalla: 'Källan', admin: 'Administration', om: 'Om', rattelser: 'Rättelser' };
 function labelOf(hash) {
   const first = hash.replace(/^#\/?/, '').split(/[/?]/)[0];
   if (first === 'styrkor' && /[?&](sys|unit)=/.test(hash)) return 'Förbandet';
@@ -280,6 +280,7 @@ async function route({ keepScroll = false } = {}) {
     case 'kalla': view = () => viewSource(rest.join('/')); break;
     case 'admin': tab = ''; view = () => viewAdmin(q); break;
     case 'om': tab = ''; view = () => viewAbout(); break;
+    case 'valkommen': tab = ''; view = () => viewWelcome(q); break;
     case 'rattelser': tab = ''; view = () => viewCorrections(); break;
     default: view = () => viewReport(null, q);
   }
@@ -3840,16 +3841,16 @@ async function adminUsers() {
       ev.preventDefault();
       const v = email.value.trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { adminMsg.text = 'Skriv en giltig e-postadress.'; adminMsg.error = true; route({ keepScroll: true }); return; }
-      adminMutate('POST', '/api/admin/users', { email: v, role: role.value, invite: invite.checked },
-        `${v} har lagts till som ${ROLE_SV[role.value].toLowerCase()}.${invite.checked ? ' En inbjudan med länk och inloggning mejlas inom några minuter.' : ''}`);
+      adminInvite('POST', '/api/admin/users', { email: v, role: role.value, invite: invite.checked },
+        `${v} har lagts till som ${ROLE_SV[role.value].toLowerCase()}.`);
     },
   },
   h('h2', { class: 'kicker' }, 'Lägg till användare'),
   h('label', { class: 'search-label', for: 'nu-email' }, 'E-postadress'), email,
   h('label', { class: 'search-label', for: 'nu-role' }, 'Roll'), role,
-  h('div', { class: 'check-row' }, invite, h('label', { for: 'nu-invite' }, 'Mejla en inbjudan med länk och hur man loggar in')),
+  h('div', { class: 'check-row' }, invite, h('label', { for: 'nu-invite' }, 'Skapa en inbjudningslänk att skicka själv')),
   h('button', { class: 'btn primary', type: 'submit' }, 'Lägg till'),
-  h('p', { class: 'small muted' }, 'Personen loggar in med en engångskod till adressen. Inget lösenord. Inbjudan skickas från Macen, så den måste vara igång.'));
+  h('p', { class: 'small muted' }, 'Du får en länk att skicka med SMS, Signal eller eget mejl. Personen loggar in med en engångskod till adressen – inget lösenord, och länken ensam ger ingen åtkomst.'));
 
   const card = (u) => {
     const active = u.active !== false && u.active !== 0;
@@ -3876,10 +3877,12 @@ async function adminUsers() {
       h('div', { class: 'btn-row' },
         active
           ? frag(
-            u.last_seen ? null : h('button', {
-              class: 'btn', type: 'button', disabled: u.invite_status === 'pending',
-              onclick: () => adminMutate('POST', `${target}/invite`, {}, `En inbjudan till ${u.email} mejlas inom några minuter.`),
-            }, u.invite_status ? 'Skicka inbjudan igen' : 'Skicka inbjudan'),
+            u.last_seen ? null : inviteOpen(u)
+              ? h('button', { class: 'btn', type: 'button', onclick: () => showInviteLink(u.email, u.invite_id, u.role) }, 'Visa inbjudningslänken')
+              : h('button', {
+                class: 'btn', type: 'button',
+                onclick: () => adminInvite('POST', `${target}/invite`, {}, `Ny inbjudningslänk till ${u.email}.`),
+              }, u.invite_status ? 'Ny inbjudningslänk' : 'Skapa inbjudningslänk'),
             h('button', {
               class: 'btn', type: 'button', disabled: !!lockReason,
               onclick: () => {
@@ -3907,15 +3910,86 @@ async function adminUsers() {
     addForm);
 }
 
+// Version 3.31: invitations are links the admin shares; no mail.
+const INVITE_DAYS = 7;
+const inviteExpired = (u) => !u.invite_requested_at || Date.now() > Date.parse(u.invite_requested_at) + INVITE_DAYS * 86400000;
+const inviteOpen = (u) => (u.invite_status === 'link' || u.invite_status === 'opened') && !inviteExpired(u) && !!u.invite_id;
 function inviteLine(u) {
   const st = u.invite_status;
   if (!st || st === 'cancelled') {
-    return u.last_seen ? null : h('p', { class: 'small muted invite-line' }, 'Ingen inbjudan skickad från appen.');
+    return u.last_seen ? null : h('p', { class: 'small muted invite-line' }, 'Ingen inbjudningslänk skapad.');
   }
-  const text = st === 'sent' ? `Inbjudan mejlad ${whenFmt(u.invite_sent_at)}`
-    : st === 'pending' ? `Inbjudan väntar på att Macen skickar den (begärd ${ago(u.invite_requested_at)})${u.invite_error ? ` · senaste försöket misslyckades: ${u.invite_error}` : ''}`
-      : `Inbjudan kunde inte skickas: ${u.invite_error || 'okänt fel'}`;
-  return h('p', { class: `small muted invite-line${st === 'failed' ? ' warn' : ''}` }, text);
+  const text = st === 'used' ? `Inbjudan använd – inloggad ${whenFmt(u.invite_sent_at)}`
+    : (st === 'link' || st === 'opened') && inviteExpired(u) ? `Inbjudningslänken gick ut (skapad ${ago(u.invite_requested_at)})`
+      : st === 'link' ? `Inbjudningslänk skapad ${ago(u.invite_requested_at)} – inte öppnad än`
+        : st === 'opened' ? `Inbjudningslänken öppnad – inte inloggad än (skapad ${ago(u.invite_requested_at)})`
+          : st === 'sent' ? `Inbjudan mejlad ${whenFmt(u.invite_sent_at)}`
+            : st === 'pending' ? 'Gammal mejlinbjudan som aldrig skickades – skapa en länk i stället'
+              : `Inbjudan kunde inte skickas: ${u.invite_error || 'okänt fel'}`;
+  return h('p', { class: `small muted invite-line${st === 'failed' || st === 'pending' ? ' warn' : ''}` }, text);
+}
+
+// Adds a user or makes a new link, then shows the link to pass on.
+async function adminInvite(method, path, payload, okText) {
+  let row = null;
+  try {
+    row = await adminSend(method, path, payload);
+    adminMsg.text = okText; adminMsg.error = false;
+  } catch (e) {
+    if (e instanceof AuthError) throw e;
+    adminMsg.text = e instanceof OfflineError ? 'Ingen anslutning – ändringen gjordes inte.' : `Ändringen gjordes inte: ${e.message}`;
+    adminMsg.error = true;
+  }
+  await route({ keepScroll: true });
+  if (row && row.invite_id && (row.invite_status === 'link' || row.invite_status === 'opened')) showInviteLink(row.email, row.invite_id, row.role);
+}
+
+function showInviteLink(email, id, role) {
+  const link = `${location.origin}/#/valkommen?i=${id}`;
+  const text = `Hej! Jag har bjudit in dig till Hotmonitor${role === 'admin' ? ' som administratör' : ''}. Öppna länken och logga in med din e-post (${email}) – du får en engångskod: ${link}`;
+  openSheet((close) => {
+    const status = h('p', { class: 'small muted', role: 'status', 'aria-live': 'polite' });
+    const copy = async (what, label) => {
+      try { await navigator.clipboard.writeText(what); status.textContent = `${label} kopierad.`; } catch { status.textContent = 'Kunde inte kopiera – markera texten och kopiera själv.'; }
+    };
+    return frag(
+      h('h2', { class: 'title-m' }, 'Inbjudningslänk'),
+      h('p', { class: 'small' }, `Till ${email}. Gäller i ${INVITE_DAYS} dagar. Skicka den själv – länken ensam ger ingen åtkomst; inloggningen kräver en engångskod till adressen.`),
+      h('input', { class: 'share-url', type: 'text', readonly: true, value: link, onfocus: (ev) => ev.target.select() }),
+      h('div', { class: 'btn-row' },
+        navigator.share ? h('button', { class: 'btn primary', type: 'button',
+          onclick: () => navigator.share({ title: 'Inbjudan till Hotmonitor', text }).catch(() => {}) }, 'Dela') : null,
+        h('button', { class: 'btn', type: 'button', onclick: () => copy(text, 'Meddelandet') }, 'Kopiera meddelande'),
+        h('button', { class: 'btn', type: 'button', onclick: () => copy(link, 'Länken') }, 'Kopiera länk')),
+      status,
+      h('div', { class: 'sheet-actions' }, h('button', { class: 'btn', type: 'button', onclick: close }, 'Stäng')));
+  }, { label: 'Inbjudningslänk' });
+}
+
+// The page an invitation link opens.
+async function viewWelcome(q) {
+  const id = q.get('i') || '';
+  let inv = null;
+  try {
+    const res = await fetch(`/api/invite/${encodeURIComponent(id)}`, { cache: 'no-store', credentials: 'same-origin' });
+    inv = await res.json().catch(() => null);
+  } catch { inv = null; }
+  const head = h('header', { class: 'page-head' }, h('div', null, h('div', { class: 'kicker' }, 'Inbjudan'), h('h1', { class: 'title-xl' }, 'Välkommen till Hotmonitor')));
+  const about = h('p', { class: 'body-sm' }, 'Hotmonitor sammanställer varje dag öppna uppgifter om ryska hybridhot mot Nato, EU och Ukraina: händelser, källor, styrkor och anfall. Ett privat projekt, ingen myndighet.');
+  if (!inv || !inv.role) {
+    return frag(head, about, h('div', { class: 'notice', role: 'note' }, 'Länken gäller inte längre. Be den som bjöd in dig om en ny – eller läs som gäst.'),
+      h('a', { class: 'btn', href: '#/' }, 'Till Hotläget'));
+  }
+  const loggedIn = store.me && store.me.email;
+  return frag(head, about,
+    h('section', { class: 'card card-pad' },
+      h('p', null, `Du är inbjuden som `, h('b', null, (ROLE_SV[inv.role] || inv.role).toLowerCase()), ` med adressen ${inv.email_hint}.`),
+      inv.used || loggedIn ? h('p', { class: 'small muted' }, 'Inbjudan är redan använd – du är inloggad.')
+        : !inv.valid ? h('p', { class: 'small warn' }, 'Länken har gått ut. Be om en ny.')
+          : h('p', { class: 'small muted' }, `Logga in med den adressen. Du får en engångskod i mejlen – inget lösenord. Länken gäller till ${dateShort(inv.expires.slice(0, 10))}.`),
+      loggedIn ? h('a', { class: 'btn primary', href: '#/' }, 'Till Hotläget')
+        : inv.valid ? h('a', { class: 'btn primary', href: '/login' }, 'Logga in') : null),
+    loggedIn ? null : h('a', { class: 'linkbtn', href: '#/' }, 'Läs som gäst i stället'));
 }
 
 const SOURCE_KIND_SV = { rss: 'RSS-flöde', article: 'Artikel' };
@@ -4727,7 +4801,7 @@ async function init() {
   installPullToRefresh();
   updateChrome();
   route();
-  if (!introSeen() && currentRoute !== 'admin') setTimeout(() => { if (!document.querySelector('dialog[open]')) openIntro(); }, 600);
+  if (!introSeen() && currentRoute !== 'admin' && currentRoute !== 'valkommen') setTimeout(() => { if (!document.querySelector('dialog[open]')) openIntro(); }, 600);
   await Promise.all([side, assessmentsReady]);
   store.refreshedAt = new Date().toISOString();
   lastRefresh = Date.now();

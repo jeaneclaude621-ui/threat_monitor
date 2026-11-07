@@ -24,7 +24,7 @@ expect('empty value dropped', guestKey('/api/trends', '?side='), '/api/trends');
 class MockD1 {
   constructor() {
     this.reports = new Map(); this.meta = new Map(); this.users = new Map();
-    this.requests = []; this.subs = []; this.audit = []; this.reads = 0;
+    this.requests = []; this.subs = []; this.audit = []; this.reads = 0; this.invites = [];
   }
   prepare(sql) {
     const db = this;
@@ -37,7 +37,15 @@ class MockD1 {
         if (/FROM meta WHERE key = '(\w+)'/.test(sql)) { const k = sql.match(/key = '(\w+)'/)[1]; return db.meta.has(k) ? { value: db.meta.get(k) } : null; }
         if (/^SELECT COUNT\(\*\) AS n FROM users/.test(sql)) return { n: db.users.size };
         if (/FROM users WHERE email = \?/.test(sql)) { const u = db.users.get(args[0]); return u ? { email: args[0], ...u } : null; }
-        if (/WHERE u\.email = \?/.test(sql)) { const u = db.users.get(args[0]); return u ? { email: args[0], role: u.role, active: u.active } : null; }
+        if (/WHERE u\.email = \?/.test(sql)) {
+          const u = db.users.get(args[0]);
+          const i = db.invites.filter((x) => x.email === args[0]).at(-1) || {};
+          return u ? { email: args[0], role: u.role, active: u.active, invite_id: i.id || null, invite_status: i.status || null, invite_requested_at: i.requested_at || null } : null;
+        }
+        if (/FROM invites i LEFT JOIN users u ON u\.email = i\.email WHERE i\.id = \?/.test(sql)) {
+          const i = db.invites.find((x) => x.id === args[0]);
+          return i ? { ...i, active: (db.users.get(i.email) || {}).active ?? null } : null;
+        }
         if (/FROM access_requests WHERE email = \? ORDER BY/.test(sql)) return db.requests.filter((r) => r.email === args[0]).at(-1) || null;
         if (/COUNT\(\*\) AS n FROM access_requests WHERE email/.test(sql)) return { n: db.requests.filter((r) => r.email === args[0] && r.ts > args[1]).length };
         if (/FROM access_requests WHERE email = \? AND status = 'requested'/.test(sql)) return db.requests.find((r) => r.email === args[0] && r.status === 'requested') || null;
@@ -55,6 +63,10 @@ class MockD1 {
         else if (/^DELETE FROM meta WHERE key = '(\w+)'/.test(sql)) db.meta.delete(sql.match(/key = '(\w+)'/)[1]);
         else if (/^INSERT INTO users/.test(sql)) db.users.set(args[0], { role: args[1], active: 1, last_seen: null, prev_visit: null });
         else if (/^INSERT OR IGNORE INTO users/.test(sql) && !db.users.has(args[0])) db.users.set(args[0], { role: args[1], active: 1 });
+        else if (/^INSERT INTO invites/.test(sql)) db.invites.push({ id: args[0], email: args[1], role: args[2], requested_at: args[3], requested_by: args[4], status: 'link' });
+        else if (/^UPDATE invites SET status = 'cancelled' WHERE email = \?/.test(sql)) db.invites.filter((x) => x.email === args[0] && ['pending', 'link', 'opened'].includes(x.status)).forEach((x) => { x.status = 'cancelled'; });
+        else if (/^UPDATE invites SET status = 'opened' WHERE id = \?/.test(sql)) db.invites.filter((x) => x.id === args[0] && x.status === 'link').forEach((x) => { x.status = 'opened'; });
+        else if (/^UPDATE invites SET status = 'used'/.test(sql)) db.invites.filter((x) => x.email === args[1] && ['link', 'opened'].includes(x.status)).forEach((x) => { x.status = 'used'; });
         else if (/^INSERT INTO access_requests/.test(sql)) db.requests.push({ id: args[0], email: args[1], ts: args[2], status: 'requested', decided_at: null, decided_by: null });
         else if (/^UPDATE access_requests SET status/.test(sql)) { const r = db.requests.find((x) => x.id === args[3]); if (r) Object.assign(r, { status: args[0], decided_at: args[1], decided_by: args[2] }); }
         else if (/^DELETE FROM push_subscriptions WHERE endpoint = \? AND email IS NULL/.test(sql)) {
@@ -326,6 +338,29 @@ await as(other, '/api/access-request', { method: 'POST' });
 db.requests.filter((x) => x.email === other).forEach((x) => { x.status = 'denied'; });
 r = await as(other, '/api/access-request', { method: 'POST' });
 expect('at most three requests a day', r.status, 429);
+
+// --- Invitation links (Version 3.31) --------------------------------------------
+const invitee = 'new.reader@example.com';
+const jget = async (path) => { const res = await get(path); return { status: res.status, body: await res.json().catch(() => null) }; };
+r = await as('owner@example.org', '/api/admin/users', { method: 'POST', body: { email: invitee, role: 'reader' } });
+expect('add user with an invitation link', r.status, 201);
+const inviteId = r.body.invite_id;
+expect('the new user row carries the link id', /^[0-9a-f-]{36}$/.test(inviteId || ''), true);
+expect('the invitation is a link, not mail', r.body.invite_status, 'link');
+r = await jget(`/api/invite/${inviteId}`);
+expect('anyone with the link sees it', r.status, 200);
+expect('it names the role', r.body.role, 'reader');
+expect('the address only as a hint', r.body.email_hint, 'ne••••••@example.com');
+expect('not who sent it', JSON.stringify(r.body).includes('owner@'), false);
+expect('opening marks it opened', db.invites.find((x) => x.id === inviteId).status, 'opened');
+r = await jget('/api/invite/00000000-0000-0000-0000-000000000000');
+expect('an unknown link is 404', r.status, 404);
+r = await as(invitee, '/api/me');
+expect('the invitee logs in as reader', r.body.role, 'reader');
+expect('logging in uses the link', db.invites.find((x) => x.id === inviteId).status, 'used');
+db.invites.push({ id: '11111111-1111-1111-1111-111111111111', email: invitee, role: 'reader', requested_at: '2020-01-01T00:00:00Z', requested_by: 'x', status: 'link' });
+r = await jget('/api/invite/11111111-1111-1111-1111-111111111111');
+expect('an old link has expired', r.body.valid, false);
 
 // --- Push in batches of 40 --------------------------------------------------------
 {

@@ -918,3 +918,20 @@ App only (webapp/public); no new endpoints.
   token may lack D1 Edit; migrations/0016_channels.sql is the same.
 - Narrativ gets a third segment, "Kanaler" (`#/narrativ?s=kanaler`): a
   fold-out box per channel, sortable by each indicator, and who forwards whom.
+
+# Version 3.31 (7 Nov 2026) - invitations as links, no mail
+
+- An invitation is a link the admin passes on: `/#/valkommen?i=<invite id>`.
+  `queueInvite` stores it with status `link` and starts no job; the user
+  rows (`/api/admin/users`) carry `invite_id`. Statuses: `link` (made),
+  `opened` (the link was opened), `used` (the person logged in: `/api/me`
+  marks their open link), `cancelled`; `pending`/`sent`/`failed` are the old
+  mail ones, and the admin views turn any left `pending` into `link`.
+- `GET /api/invite/<id>`, for anyone holding the link: `{valid, reason,
+  role, email_hint, used, expires}` - the address only as a hint, never who
+  sent it. Good for 7 days. It grants nothing: logging in still takes the
+  one-time code Access mails to that address.
+- The admin page shows the link after adding a person or asking for a new
+  one: copy, or share through the phone's share sheet with a ready message.
+- `invites.yml` has no schedule any more (it ran every five minutes, about
+  half of all Actions time); it can still be run by hand.

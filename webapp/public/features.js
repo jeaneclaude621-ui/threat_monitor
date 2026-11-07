@@ -42,6 +42,8 @@ export const FEATURES = [
     desc: 'Rysslands drönar- och robotanfall natt för natt, 30 nätter bakåt.', keywords: 'drönare robotar anfallskarta ukraina flygvapnet' },
   { id: 'andra-anfall', area: 'styrkor', title: 'Andra anfall i Ryssland och ockuperade områden', href: '#/styrkor', added: '2026-11-04',
     desc: 'Raffinaderier, depåer, fabriker och hamnar som anfallits, senaste veckan.', keywords: 'raffinaderi depå fabrik hamn krim anfall' },
+  { id: 'inbjudningslank', area: 'admin', title: 'Inbjudan som länk', href: '#/admin', added: '2026-11-07',
+    desc: 'Lägg till en person och skicka länken själv med SMS, Signal eller eget mejl. Personen loggar in med engångskod; i Admin syns om länken öppnats och använts.', keywords: 'inbjudan länk bjuda in användare dela' },
   { id: 'kanaler', area: 'narrativ', title: 'Telegramkanaler bedömda', href: '#/narrativ?s=kanaler', added: '2026-11-07',
     desc: 'Varje bevakad kanal: när den postar, vem den vidarebefordrar, kopierad text, visningar, och om den var först och hade rätt om anfall. Betyg för botlikhet, förstahand och träffsäkerhet.', keywords: 'telegram kanal bot konto analys förstahand träffsäkerhet' },
   { id: 'idag-rutor', area: 'idag', title: 'Ny förstasida och meny överst', href: '#/', added: '2026-11-07',

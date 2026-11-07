@@ -185,6 +185,12 @@ async function route(req) {
     if (method !== 'GET' && method !== 'HEAD') throw new HttpError(405, 'method not allowed');
     return publicLatest(req);
   }
+  // Version 3.31: an invitation link, for anyone holding it (logged in or not).
+  const inv = path.match(/^\/api\/invite\/([0-9a-f-]{36})$/);
+  if (inv) {
+    if (method !== 'GET' && method !== 'HEAD') throw new HttpError(405, 'method not allowed');
+    return openInvite(env, inv[1]);
+  }
   // Version 3.17: with PUBLIC_READ on, anyone may read the public views as a
   // guest, without logging in. Everything else still needs a login.
   const guestOk = env.PUBLIC_READ === '1' && (method === 'GET' || method === 'HEAD') && isPublicPath(path);
@@ -235,6 +241,9 @@ async function dispatch(req, path, method, who) {
     allow(method, 'GET');
     if (guest) return json({ email: null, role: 'guest', is_owner: false, alarm: null, refresh: null });
     requireUser(who);
+    // Version 3.31: logging in uses the person's open invitation link.
+    await env.DB.prepare("UPDATE invites SET status = 'used', sent_at = ? WHERE email = ? AND status IN ('link', 'opened')")
+      .bind(new Date().toISOString(), who.email).run().catch(() => {});
     return json({
       email: who.email, role: who.role, is_owner: who.is_owner,
       alarm: await getAlarm(env), refresh: await getRefresh(env),
@@ -1352,12 +1361,14 @@ async function markRead(request, env, who) {
 // Admin
 // ---------------------------------------------------------------------------
 async function listUsers(env) {
+  // Version 3.31: mail invitations never sent become links to pass on.
+  await env.DB.prepare("UPDATE invites SET status = 'link' WHERE status = 'pending'").run();
   const { results } = await env.DB.prepare(
     `SELECT u.email, u.role, u.active, u.created_at, u.created_by, u.last_seen,
             u.installed_at, u.platform,
             (SELECT COUNT(*) FROM assessments a WHERE a.operator = u.email) AS assessments,
             (SELECT COUNT(*) FROM push_subscriptions p WHERE p.email = u.email) AS push_devices,
-            i.status AS invite_status, i.requested_at AS invite_requested_at,
+            i.id AS invite_id, i.status AS invite_status, i.requested_at AS invite_requested_at,
             i.sent_at AS invite_sent_at, i.error AS invite_error
      FROM users u
      LEFT JOIN invites i ON i.id = (SELECT id FROM invites WHERE email = u.email ORDER BY requested_at DESC LIMIT 1)
@@ -1503,18 +1514,14 @@ async function decideAccessRequest(request, env, actor, id) {
 /** One open invite per person: an older pending one is replaced. */
 async function queueInvite(env, actor, email, role) {
   const now = new Date().toISOString();
-  await env.DB.prepare("UPDATE invites SET status = 'cancelled' WHERE email = ? AND status = 'pending'").bind(email).run();
+  await env.DB.prepare("UPDATE invites SET status = 'cancelled' WHERE email = ? AND status IN ('pending', 'link', 'opened')").bind(email).run();
   const id = crypto.randomUUID();
   await env.DB.prepare(
-    "INSERT INTO invites (id, email, role, requested_at, requested_by, status) VALUES (?, ?, ?, ?, ?, 'pending')"
+    "INSERT INTO invites (id, email, role, requested_at, requested_by, status) VALUES (?, ?, ?, ?, ?, 'link')"
   ).bind(id, email, role, now, actor.email).run();
   await audit(env, actor.email, 'invite', email, { role });
-  // Mail it now rather than at the invitation job's next scheduled run.
-  try {
-    await dispatchWorkflow(env, 'invites.yml', {});
-  } catch (err) {
-    console.error('could not start the invitation job', err.message);
-  }
+  // Version 3.31: no mail. The admin shares the link (/#/valkommen?i=<id>)
+  // themselves; the invitation job and its schedule are gone.
   return id;
 }
 
@@ -1525,6 +1532,29 @@ async function resendInvite(env, actor, email) {
   const role = email === ownerEmail(env) ? 'admin' : row.role;
   await queueInvite(env, actor, email, role);
   return json(await userRow(env, email), 201);
+}
+
+// Version 3.31: what an invitation link shows - the role, a hint of the
+// address (never the whole of it, nor who sent it) and whether it is still
+// good. Opening it marks it opened; it grants nothing by itself: logging in
+// still takes the one-time code mailed by Access to that address.
+const INVITE_DAYS = 7;
+function maskEmail(email) {
+  const [user, domain] = String(email).split('@');
+  return `${user.slice(0, 2)}${'•'.repeat(Math.max(1, Math.min(6, user.length - 2)))}@${domain}`;
+}
+async function openInvite(env, id) {
+  const row = await env.DB.prepare(
+    'SELECT i.status, i.role, i.email, i.requested_at, u.active FROM invites i LEFT JOIN users u ON u.email = i.email WHERE i.id = ?'
+  ).bind(id).first();
+  if (!row || row.status === 'cancelled' || !row.active) return json({ valid: false, reason: 'not_found' }, 404);
+  const expires = new Date(Date.parse(row.requested_at) + INVITE_DAYS * 86400000).toISOString();
+  const expired = Date.now() > Date.parse(expires) && row.status !== 'used';
+  if (row.status === 'link' && !expired) {
+    await env.DB.prepare("UPDATE invites SET status = 'opened' WHERE id = ? AND status = 'link'").bind(id).run();
+  }
+  return json({ valid: !expired, reason: expired ? 'expired' : null, role: row.role, email_hint: maskEmail(row.email),
+    used: row.status === 'used', expires });
 }
 
 /** For the Mac: invites still to send, for people who are still active. */
@@ -1609,7 +1639,7 @@ async function changeUser(env, actor, target, change) {
   await env.DB.prepare('UPDATE users SET role = ?, active = ? WHERE email = ?')
     .bind(role, active ? 1 : 0, target).run();
   if (!active) {
-    await env.DB.prepare("UPDATE invites SET status = 'cancelled' WHERE email = ? AND status = 'pending'").bind(target).run();
+    await env.DB.prepare("UPDATE invites SET status = 'cancelled' WHERE email = ? AND status IN ('pending', 'link', 'opened')").bind(target).run();
   }
   const action = !active ? 'deactivate' : (!row.active ? 'reactivate' : 'role');
   await audit(env, actor.email, action, target,
@@ -1620,7 +1650,7 @@ async function changeUser(env, actor, target, change) {
 async function userRow(env, email) {
   const r = await env.DB.prepare(
     `SELECT u.email, u.role, u.active, u.created_at, u.created_by, u.last_seen,
-            i.status AS invite_status, i.requested_at AS invite_requested_at,
+            i.id AS invite_id, i.status AS invite_status, i.requested_at AS invite_requested_at,
             i.sent_at AS invite_sent_at, i.error AS invite_error
      FROM users u
      LEFT JOIN invites i ON i.id = (SELECT id FROM invites WHERE email = u.email ORDER BY requested_at DESC LIMIT 1)
@@ -1666,6 +1696,7 @@ async function status(env) {
   const pull = await env.DB.prepare("SELECT value FROM meta WHERE key = 'last_machine_pull_at'").first();
   const subs = await env.DB.prepare('SELECT COUNT(*) AS n FROM push_subscriptions').first();
   const lastPush = await env.DB.prepare("SELECT value FROM meta WHERE key = 'last_push'").first();
+  await env.DB.prepare("UPDATE invites SET status = 'link' WHERE status = 'pending'").run();
   const invites = await env.DB.prepare("SELECT COUNT(*) AS n FROM invites WHERE status = 'pending'").first();
   const invitePull = await env.DB.prepare("SELECT value FROM meta WHERE key = 'last_invite_pull_at'").first();
   return json({
