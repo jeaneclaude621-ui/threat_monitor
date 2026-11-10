@@ -107,22 +107,10 @@ NATO_NOT_NEWS = re.compile(r"^(Home|Remarks|Monthly Archives|Archive|Search)\b|P
 # A media source named in Latin script: Google News's English edition also
 # carries Russian sites (1 Nov: "Военное дело").
 LATIN_NAME = re.compile(r"^[^\u0400-\u04FF\u0600-\u06FF]*$")
-# A date in an article's address: old stories come back with a new date
-# (LSM's June and September articles on 31 Oct, a 2022 TV4 clip).
-URL_DATES = [re.compile(r"(?<!\d)(?P<d>\d{2})\.(?P<m>\d{2})\.(?P<y>20\d{2})(?!\d)"),
-             re.compile(r"/(?P<y>20\d{2})/(?P<m>\d{1,2})/(?P<d>\d{1,2})(?:/|$)"),
-             re.compile(r"(?<!\d)(?P<y>20\d{2})-(?P<m>\d{2})-(?P<d>\d{2})(?!\d)")]
-
-
-def url_date(url: str):
-    for rx in URL_DATES:
-        m = rx.search(url or "")
-        if m:
-            try:
-                return datetime(int(m["y"]), int(m["m"]), int(m["d"]))
-            except ValueError:
-                pass
-    return None
+# A date in an article's address or on its page (news_sources.article_date):
+# old stories come back with a new date (LSM's June and September articles on
+# 31 Oct, a 2022 TV4 clip, a 2017 TV4 article on 5 Nov).
+url_date = news_sources.url_date
 
 
 NATO_TOPICS = ["Generalsekreteraren", "Militära kommandon", "Östersjön och östflanken", "Ukraina", "EU och partner", "Övrigt"]
@@ -266,15 +254,16 @@ Respond as strict JSON:
         cited = [refs[r] for r in it.get("refs") or [] if isinstance(r, str) and r in refs]
         if not cited or not isinstance(it.get("text_sv"), str):
             return None
-        # Drop it when every source's address dates it before the window.
+        # Drop it when every source is dated before the window, by its
+        # address or by its own page: Google News shows old stories as new.
         dates = []
         for _, a in cited:
             link = a.get("link") or ""
             if "news.google.com/rss/articles/" in link:
                 link = a["link"] = news_sources.decode_google_link(link) or link
-            dates.append(url_date(link))
+            dates.append(news_sources.article_date(link))
         if all(d and d < now - timedelta(days=WINDOW_DAYS + 1) for d in dates):
-            print(f"  Left out an old story: {cited[0][1].get('title', '')[:80]}")
+            print(f"  Left out an old story ({min(dates):%Y-%m-%d}): {cited[0][1].get('title', '')[:80]}")
             return None
         newest = max(a["published"] for _, a in cited)
         media = sorted({_outlet(a) for _, a in cited if not a["own"]})

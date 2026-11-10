@@ -146,9 +146,27 @@ class OldNewsNewDate(unittest.TestCase):
         pool = news_sources.Pool().add(pool_items(self.case["pool_items"]))
         self.assertEqual(pool.since(datetime(2026, 11, 4)).items, [])
 
-    def test_published_comes_from_the_article_not_the_model(self):
-        art = enrich(self.case)[0]["articles"][0]
-        self.assertEqual(art.get("published"), "2025-03-01")
+    def test_an_old_article_is_no_source_for_the_day(self):
+        # Since 10 Nov 2026: an article dated (by its link) more than two
+        # weeks before the report is left out, and the event with no other
+        # source is marked unverified - before, it stood with its old date.
+        ev = enrich(self.case)[0]
+        self.assertEqual(ev["articles"], [])
+        self.assertTrue(ev.get("unverified"))
+
+    def test_object_id_in_the_link_dates_it(self):
+        self.assertEqual(news_sources.url_date(
+            "https://www.tv4.se/artikel/58c639b8fca38f67930001d5/sapo-bekraftar-utlandskt-spionage").date().isoformat(),
+            "2017-03-13")
+        self.assertIsNone(news_sources.url_date("https://www.tv4.se/klipp/va/0f63c04661e02342e029/sapo-varnar"))
+
+    def test_page_date_read_from_the_page(self):
+        page = (b'<html><head><meta property="article:published_time" content="2017-03-13T07:18:00+01:00">'
+                b'</head><body><time datetime="2026-11-05">x</time></body></html>')
+        resp = mock.MagicMock()
+        resp.__enter__.return_value.read.return_value = page
+        with mock.patch.object(news_sources.urllib.request, "urlopen", return_value=resp):
+            self.assertEqual(news_sources.page_date("https://example.se/a-1").date().isoformat(), "2017-03-13")
 
 
 class LiteModelShortened(unittest.TestCase):

@@ -226,7 +226,15 @@ URL_DATES = [re.compile(r"(?<!\d)(?P<d>\d{2})\.(?P<m>\d{2})\.(?P<y>20\d{2})(?!\d
              re.compile(r"(?<!\d)(?P<y>20\d{2})-(?P<m>\d{2})-(?P<d>\d{2})(?!\d)")]
 
 
+# An id with its creation time in it: a 24-hex object id as a path segment
+# (TV4: /artikel/58c639b8fca38f67930001d5/... is 13 Mar 2017, shown by
+# Google News as new on 5 Nov 2026).
+OBJECT_ID = re.compile(r"/([0-9a-f]{24})(?:/|$|\?)")
+
+
 def url_date(url: str):
+    """The date a link carries (14.03.2026, /2026/03/14/, 2026-03-14, or a
+    time-stamped object id), else None."""
     for rx in URL_DATES:
         m = rx.search(url or "")
         if m:
@@ -234,7 +242,68 @@ def url_date(url: str):
                 return datetime(int(m["y"]), int(m["m"]), int(m["d"]))
             except ValueError:
                 pass
+    m = OBJECT_ID.search(url or "")
+    if m:
+        try:
+            when = datetime.fromtimestamp(int(m.group(1)[:8], 16), timezone.utc).replace(tzinfo=None)
+        except (ValueError, OverflowError, OSError):
+            return None
+        if datetime(2009, 1, 1) <= when <= datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=1):
+            return when
     return None
+
+
+# The page's own publication date: Open Graph, schema.org (JSON-LD or
+# itemprop), Dublin Core, or the first <time datetime>. Old stories that
+# Google News shows with a new date keep their first date here.
+PAGE_DATES = [
+    re.compile(r'<meta[^>]+(?:property|name)=["\'](?:article:published_time|og:published_time|pubdate|publishdate|date|dc\.date|dcterms\.created)["\'][^>]+content=["\']([^"\']+)', re.I),
+    re.compile(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:property|name)=["\'](?:article:published_time|og:published_time|pubdate|date)["\']', re.I),
+    re.compile(r'"datePublished"\s*:\s*"([^"]+)"'),
+    re.compile(r'itemprop=["\']datePublished["\'][^>]+(?:content|datetime)=["\']([^"\']+)', re.I),
+    re.compile(r'<time[^>]+datetime=["\']([^"\']+)', re.I),
+]
+
+
+def _parse_day(text: str):
+    m = re.match(r"\s*(20\d{2}|19\d{2})-(\d{2})-(\d{2})", text or "")
+    if not m:
+        return None
+    try:
+        return datetime(int(m[1]), int(m[2]), int(m[3]))
+    except ValueError:
+        return None
+
+
+_page_dates = {}
+
+
+def page_date(url: str, timeout: int = 8):
+    """The publication date on the article's own page, or None when it
+    cannot be read (the page refuses, or names no date). Cached per run."""
+    if not url or not url.startswith("http") or "news.google.com" in url:
+        return None
+    if url in _page_dates:
+        return _page_dates[url]
+    day = None
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; threat-monitor/1)"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            page = resp.read(400_000).decode("utf-8", "replace")
+        for rx in PAGE_DATES:
+            m = rx.search(page)
+            if m and (day := _parse_day(m.group(1))):
+                break
+    except Exception:
+        day = None
+    _page_dates[url] = day
+    return day
+
+
+def article_date(url: str):
+    """The earliest date the link or its page gives: an old story stays old."""
+    days = [d for d in (url_date(url), page_date(url)) if d]
+    return min(days) if days else None
 
 
 # --------------------------------------------------------------------------

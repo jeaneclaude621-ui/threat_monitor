@@ -9,6 +9,8 @@ an event with none of those is marked "unverified".
 """
 import hashlib
 import re
+
+OLD_STORY_DAYS = 14   # an article older than this before the report is not a source for it
 from urllib.parse import urlsplit, urlunsplit
 
 TOPICS = ["Drönare", "Sabotage", "IT-hot", "Skuggflotta", "Sanktioner",
@@ -294,7 +296,8 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
     None means: no link check possible (backfill of reports from before
     refs), so the articles are the outlets the model read off the old
     sources line, without links - and every such event is unverified."""
-    from news_sources import decode_google_link
+    from news_sources import decode_google_link, url_date, page_date
+    from datetime import date as date_cls, timedelta
     import blocklist
     known = {_norm_url(r["url"]): r for r in (search_results or []) if r.get("url")}
     by_ref = {r["ref"]: r for r in (search_results or []) if r.get("ref") and r.get("url")}
@@ -337,6 +340,15 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
                 dropped += 1
                 continue
             url = decode_google_link(match["url"])
+            # An old story Google News shows as new (a 2017 TV4 article on
+            # 5 Nov 2026): dated by its link, or for Google News items by its
+            # own page, more than OLD_STORY_DAYS before the report - not a
+            # source for the day's event.
+            old = url_date(url) or (page_date(url) if match.get("via") == "google" else None)
+            if old and old.date() < (date_cls.fromisoformat(report_date) - timedelta(days=OLD_STORY_DAYS)):
+                print(f"  Left out an old article ({old:%Y-%m-%d}): {url[:90]}")
+                dropped += 1
+                continue
             item = {
                 "id": article_id(report_date, i, outlet, url),
                 "outlet": outlet,
