@@ -1005,3 +1005,11 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 .cs-pill.good.hi { background: var(--pos-strong-bg); color: var(--pos-strong-fg); }
 .cs-pill.good.mid { background: var(--pos-bg); color: var(--pos-fg); }
 .cs-pill.good.lo { background: var(--chip); color: var(--ink); }
+
+/* ---- version 3.33: the courses of action as a small link on Idag ---- */
+.coa-link { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 44px; padding: 4px 4px;
+  font-size: 13px; color: var(--link); text-decoration: none; }
+.coa-link-label { font-weight: 600; }
+.coa-link-vals { color: var(--muted); }
+.coa-link-new { font-size: 11px; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: .04em; }
+.coa-link .chev { margin-left: auto; color: var(--muted); }

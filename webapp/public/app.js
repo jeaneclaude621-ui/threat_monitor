@@ -1125,7 +1125,7 @@ async function viewReport(date, q) {
   }) : null;
 
   const authRow = archived ? null : authoritiesRow(brief);
-  const coaRow = archived ? null : coursesRow(courses);
+  const coaRow = null;   // Version 3.33: a small link under the index instead
   const assessBox = exParts.length || authRow || coaRow ? infoBox('as', {
     iconEl: boxIcon(['M5 6h14', 'M5 12h14', 'M5 18h9']),
     kicker: 'Bedömning och underlag',
@@ -1149,6 +1149,7 @@ async function viewReport(date, q) {
     archived ? null : noticeCards(),
     archived ? null : noAccountCard(),
     heroCard(r),
+    archived ? null : coursesLink(courses),
     archived ? null : newBox(latest, r),
     top ? h('section', { class: 'ibox ibox-top' },
       h('div', { class: 'ibox-kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
@@ -2083,6 +2084,18 @@ function coaLegend(c) {
   return h('div', { class: 'coa-legend' },
     kinds.map((k) => h('span', null, h('i', { class: `coa-line ${k}` }), COA_ARROW_SV[k])),
     syms.map((sname) => h('span', null, h('b', { class: `coa-dot ${sname}` }, COA_SYMBOLS[sname]), COA_SYMBOL_SV[sname])));
+}
+
+// Version 3.33: a small link on Idag, under the index: each course's
+// likelihood in a word, a tap to the page.
+function coursesLink(a) {
+  if (!a || !Array.isArray(a.courses) || !a.courses.length) return null;
+  const moved = a.courses.some((c) => c.previous_likelihood && c.previous_likelihood !== c.likelihood);
+  return h('a', { class: 'coa-link', href: '#/handlingsalternativ' },
+    h('span', { class: 'coa-link-label' }, 'Handlingsalternativ'),
+    h('span', { class: 'coa-link-vals' }, a.courses.map((c) => `${c.label} ${c.likelihood}`).join(' · ')),
+    moved ? h('span', { class: 'coa-link-new' }, 'ändrat') : null,
+    chevRight());
 }
 
 function coursesRow(a) {

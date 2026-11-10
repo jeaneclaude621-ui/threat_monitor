@@ -942,3 +942,10 @@ App only (webapp/public); no new endpoints.
   (`GET /api/admin/access-requests?status=requested`) above the users, each
   with "Godkänn som läsare" (`decision: 'approve', invite: true`: a reader
   account and an invitation link, shown at once to pass on) and "Avslå".
+
+# Version 3.33 (10 Nov 2026) - courses of action as a small link on Idag
+
+- Under the index on Idag, a small link "Handlingsalternativ" with each
+  course's likelihood in a word (and "ändrat" when one moved since
+  yesterday), to `#/handlingsalternativ`. The row left the "Bedömning och
+  underlag" box.
