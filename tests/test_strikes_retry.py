@@ -56,3 +56,13 @@ def test_google_news_gives_up_on_404(monkeypatch):
 def test_places_with_cyrillic_lookalike_and_orenburg():
     assert strikes.places("Zakarpattia оblast", strikes.TARGET)[0][0]["lat"] == 48.4
     assert strikes.places("Orenburg oblast", strikes.LAUNCH)[0][0]["lon"] == 55.1
+
+
+def test_a_headline_night_without_launch_places_is_read_again(monkeypatch, capsys):
+    monkeypatch.setattr("common.lite_model", lambda: "m")
+    monkeypatch.setattr(strikes, "headlines", lambda days: {})
+    old = {"days": [{"date": "2026-11-06", "preliminary": True, "rows": [{"from": [], "to": [{"name": "Kyiv"}]}]},
+                    {"date": "2026-11-05", "preliminary": True, "launch_tried": True, "rows": [{"from": [], "to": []}]}]}
+    strikes.preliminary("2026-11-04", old, date(2026, 11, 7))
+    out = capsys.readouterr().out
+    assert "2026-11-06" in out and "2026-11-05" not in out

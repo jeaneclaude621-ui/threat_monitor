@@ -64,7 +64,9 @@ LAUNCH = {
     "saky": (45.09, 33.6), "chauda": (45.0, 35.83), "vologda oblast": (59.9, 40.0), "dzhankoi": (45.7, 34.42), "donetsk oblast": (48.0, 37.8), "luhansk oblast": (48.6, 39.3),
     "zaporizhzhia oblast": (47.3, 35.5), "kherson oblast": (46.6, 33.4), "mozdok": (43.79, 44.6),
     "murmansk oblast": (68.5, 33.0), "olenya": (68.15, 33.46), "shaykovka": (54.23, 34.37),
-    "soltsy": (58.14, 30.33), "orenburg oblast": (51.8, 55.1), "orenburg": (51.77, 55.1), "belarus": (53.7, 27.9), "kaliningrad": (54.7, 20.5),
+    "soltsy": (58.14, 30.33), "orel": (52.97, 36.07), "prymorsko-akhtarsk": (46.04, 38.17), "donetsk": (48.0, 37.8),
+    "luhansk": (48.57, 39.31), "mariupol": (47.1, 37.55), "smolensk": (54.78, 32.05), "kaluga": (54.53, 36.27),
+    "lipetsk": (52.61, 39.6), "tambov": (52.72, 41.45), "voronezh oblast": (50.9, 40.0), "millerovo": (48.95, 40.3), "orenburg oblast": (51.8, 55.1), "orenburg": (51.77, 55.1), "belarus": (53.7, 27.9), "kaliningrad": (54.7, 20.5),
 }
 # Target regions in Ukraine, lat/lon (oblast centres).
 TARGET = {
@@ -229,13 +231,17 @@ def headlines(days: int) -> dict:
 
 
 PRELIM_PROMPT = """Below are news headlines, grouped by the date they were published, about
-Russia's overnight air attacks on Ukraine. Each morning Ukraine's Air Force
-reports how many drones and missiles Russia launched in the night and how
-many were shot down; headlines quote those figures.
+Russia's overnight air attacks on Ukraine, some with the opening text of the
+article. Each morning Ukraine's Air Force reports how many drones and
+missiles Russia launched in the night, from where, and how many were shot
+down; the news quotes it.
 
 For each date listed, give the Air Force's figures for the night ending that
-morning, ONLY if a headline states them. Never estimate or add up figures
-from different nights. Omit a date with no such figures.
+morning, ONLY if a headline or article text states them. Never estimate or
+add up figures from different nights. Omit a date with no such figures.
+The launch places are the areas the Air Force names ("from the directions of
+Kursk, Oryol, Millerovo, Primorsko-Akhtarsk, Chauda ..."): give them, in
+English, only when the text names them.
 
 {blocks}
 
@@ -247,6 +253,23 @@ Respond as strict JSON:
   "launch_places": ["places launched from, if named"],
   "targets": ["Ukrainian regions or cities named as hit or targeted"],
   "refs": ["H1"]}}]}}"""
+
+
+ARTICLE_TEXTS = 3          # articles a night whose opening text the model reads
+ARTICLE_TEXT_CHARS = 900
+
+
+def _article_text(link: str) -> str:
+    """The opening text of a news article (Google News link decoded), or ''."""
+    import news_sources
+    try:
+        url = news_sources.decode_google_link(link) if link else ""
+        if not url or "news.google.com" in url:
+            return ""
+        item = news_sources.fetch_article({"url": url})
+        return re.sub(r"\s+", " ", item.get("summary") or "").strip()[:ARTICLE_TEXT_CHARS]
+    except Exception:
+        return ""
 
 
 def preliminary(kaggle_newest: str, previous: dict, today: date, with_today: bool = False) -> list:
@@ -261,7 +284,11 @@ def preliminary(kaggle_newest: str, previous: dict, today: date, with_today: boo
     while d < today or (with_today and d == today):
         wanted.append(d.isoformat())
         d += timedelta(days=1)
-    kept = {x["date"]: x for x in (previous or {}).get("days", []) if x.get("preliminary") and x["date"] in wanted}
+    # A night read before Version 3.34 from headlines alone, without launch
+    # places, is read once more with the articles' text (launch_tried).
+    kept = {x["date"]: x for x in (previous or {}).get("days", [])
+            if x.get("preliminary") and x["date"] in wanted
+            and (x.get("launch_tried") or any(r.get("from") for r in x.get("rows", [])))}
     missing = [w for w in wanted if w not in kept]
     if not missing:
         return [kept[w] for w in wanted if w in kept]
@@ -277,10 +304,18 @@ def preliminary(kaggle_newest: str, previous: dict, today: date, with_today: boo
         if not items:
             continue
         lines = [f"Date {w}:"]
+        texts = 0
         for a in items:
             ref = f"H{len(refs) + 1}"
             refs[ref] = {"url": a.get("link"), "outlet": a.get("source")}
             lines.append(f"[{ref}] {a.get('source') or '?'}: {a['title']}")
+            # The opening text of the first articles with figures in the
+            # headline: the Air Force's launch areas are there, not in titles.
+            if texts < ARTICLE_TEXTS and re.search(r"\d{2,}", a.get("title") or ""):
+                body = _article_text(a.get("link"))
+                if body:
+                    lines.append(f"    text: {body}")
+                    texts += 1
         blocks.append("\n".join(lines))
     if not blocks:
         print(f"  Strikes: no headlines for {', '.join(missing)}")
@@ -288,7 +323,7 @@ def preliminary(kaggle_newest: str, previous: dict, today: date, with_today: boo
     try:
         # The light model only: this must not take the reports' calls.
         result = ask_model_json(PRELIM_PROMPT.format(blocks="\n\n".join(blocks)), max_tokens=2500,
-                                system="You extract figures from news headlines. Strict JSON only.",
+                                system="You extract figures from news headlines and article text. Strict JSON only.",
                                 model=model, fallback=model)
     except Exception as e:
         print(f"  ! Strikes: preliminary nights failed ({str(e)[:160]})")
@@ -334,7 +369,7 @@ def _prelim_night(n: dict, missing: list, refs: dict):
     sources = [refs[r] for r in n.get("refs") or [] if isinstance(r, str) and r in refs and refs[r].get("url")][:4]
     if not sources:
         return None
-    return {"date": n["date"], "rows": rows, "totals": totals, "preliminary": True, "sources": sources}
+    return {"date": n["date"], "rows": rows, "totals": totals, "preliminary": True, "sources": sources, "launch_tried": True}
 
 
 def run(dry_run: bool = False, with_today: bool = False):

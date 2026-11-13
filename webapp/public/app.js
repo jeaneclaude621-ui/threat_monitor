@@ -3254,6 +3254,7 @@ async function viewStrikes() {
   const kinds = h('div', { class: 'chips' });
   const totals = h('div', { class: 'stotals' });
   const prelim = h('div');
+  let assumedFrom = null;   // the night whose launch areas were borrowed (Version 3.34)
   const list = h('div');
   const weapons = h('div');
 
@@ -3276,6 +3277,18 @@ async function viewStrikes() {
       const k = byKind[r.kind] ||= { from: new Map(), to: new Map() };
       for (const a of r.from) k.from.set(a.name, a);
       for (const b of r.to) k.to.set(b.name, b);
+    }
+    // Version 3.34: a night with no launch area at all for a weapon kind
+    // (the preliminary nights from news, 8-12 Nov) draws its trails from the
+    // launch areas of the latest night that has them, as assumed (dashed),
+    // and says so under the map - rather than drawing nothing.
+    assumedFrom = null;
+    for (const [k, v] of Object.entries(byKind)) {
+      if (v.from.size) continue;
+      const src = data.days.find((d) => d !== day && d.date < day.date && d.rows.some((x) => x.kind === k && x.from.length));
+      if (!src) continue;
+      for (const x of src.rows) if (x.kind === k) for (const a of x.from) v.from.set(a.name, a);
+      assumedFrom = src.date;
     }
     rows.forEach((r, i) => {
       const inferred = !r.from.length || !r.to.length;
@@ -3318,7 +3331,8 @@ async function viewStrikes() {
     // A night the dataset does not cover yet (it is updated about weekly):
     // read from news headlines quoting the Air Force, totals only.
     prelim.replaceChildren(day.preliminary ? h('p', { class: 'notice' },
-      'Preliminär natt (*): siffrorna kommer ur nyhetsrubriker som citerar ukrainska flygvapnet och ersätts av den fullständiga rapporten när Kaggle-datasetet uppdateras. Startplatser och mål saknas ofta. ',
+      'Preliminär natt (*): siffrorna kommer ur nyheter som citerar ukrainska flygvapnet och ersätts av den fullständiga rapporten när Kaggle-datasetet uppdateras. ',
+      assumedFrom ? h('b', null, `Startplatserna nämndes inte – de streckade spåren utgår från de senast kända startområdena (${dateShort(assumedFrom)}) och är antagna. `) : null,
       ...(day.sources || []).slice(0, 4).map((src, i) => frag(i ? ', ' : 'Källor: ', externalButton(src.url, { outlet: src.outlet }, src.outlet || 'källa'))))
       : '');
     kinds.replaceChildren(...Object.entries(STRIKE_KIND).filter(([k]) => day.totals[k]).map(([k, [label, colour]]) =>

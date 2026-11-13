@@ -949,3 +949,14 @@ App only (webapp/public); no new endpoints.
   course's likelihood in a word (and "ändrat" when one moved since
   yesterday), to `#/handlingsalternativ`. The row left the "Bedömning och
   underlag" box.
+
+# Version 3.34 (13 Nov 2026) - strike trails on the preliminary nights
+
+- src/strikes.py: a preliminary night (after the Kaggle dataset's newest)
+  is read from the headlines and the opening text of up to three articles
+  with figures, so the Air Force's launch areas come along; a night read
+  before from headlines alone, with no launch place, is read once more
+  (`launch_tried` marks a night read this way).
+- The strike map: a night with no launch area for a weapon kind draws its
+  trails, dashed, from the launch areas of the latest night that has them,
+  and the preliminary note says they are assumed and from which night.
