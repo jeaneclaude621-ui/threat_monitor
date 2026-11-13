@@ -286,9 +286,9 @@ def preliminary(kaggle_newest: str, previous: dict, today: date, with_today: boo
         d += timedelta(days=1)
     # A night read before Version 3.34 from headlines alone, without launch
     # places, is read once more with the articles' text (launch_tried).
-    kept = {x["date"]: x for x in (previous or {}).get("days", [])
-            if x.get("preliminary") and x["date"] in wanted
-            and (x.get("launch_tried") or any(r.get("from") for r in x.get("rows", [])))}
+    earlier = {x["date"]: x for x in (previous or {}).get("days", []) if x.get("preliminary") and x["date"] in wanted}
+    kept = {d: x for d, x in earlier.items()
+            if x.get("launch_tried") or any(r.get("from") for r in x.get("rows", []))}
     missing = [w for w in wanted if w not in kept]
     if not missing:
         return [kept[w] for w in wanted if w in kept]
@@ -296,7 +296,7 @@ def preliminary(kaggle_newest: str, previous: dict, today: date, with_today: boo
     model = lite_model()
     if not model:
         print("  Strikes: no light model; nights after the dataset stay empty")
-        return list(kept.values())
+        return list({**earlier, **kept}.values())
     news = headlines(days=(today - date.fromisoformat(missing[0])).days + 2)
     refs, blocks = {}, []
     for w in missing:
@@ -319,7 +319,7 @@ def preliminary(kaggle_newest: str, previous: dict, today: date, with_today: boo
         blocks.append("\n".join(lines))
     if not blocks:
         print(f"  Strikes: no headlines for {', '.join(missing)}")
-        return list(kept.values())
+        return list({**earlier, **kept}.values())
     try:
         # The light model only: this must not take the reports' calls.
         result = ask_model_json(PRELIM_PROMPT.format(blocks="\n\n".join(blocks)), max_tokens=2500,
@@ -327,11 +327,15 @@ def preliminary(kaggle_newest: str, previous: dict, today: date, with_today: boo
                                 model=model, fallback=model)
     except Exception as e:
         print(f"  ! Strikes: preliminary nights failed ({str(e)[:160]})")
-        return list(kept.values())
+        return list({**earlier, **kept}.values())
     for n in (result.get("nights") or []) if isinstance(result, dict) else []:
         night = _prelim_night(n, missing, refs)
         if night:
             kept[night["date"]] = night
+    # A night read again that gives nothing this time keeps what it had.
+    for w, x in earlier.items():
+        if w not in kept:
+            kept[w] = {**x, "launch_tried": True}
     got = [w for w in wanted if w in kept]
     print(f"  Strikes: preliminary nights from headlines: {', '.join(got) or 'none'}")
     return [kept[w] for w in got]

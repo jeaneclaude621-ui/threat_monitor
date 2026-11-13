@@ -66,3 +66,11 @@ def test_a_headline_night_without_launch_places_is_read_again(monkeypatch, capsy
     strikes.preliminary("2026-11-04", old, date(2026, 11, 7))
     out = capsys.readouterr().out
     assert "2026-11-06" in out and "2026-11-05" not in out
+
+
+def test_a_night_read_again_without_result_is_kept(monkeypatch):
+    monkeypatch.setattr("common.lite_model", lambda: "m")
+    monkeypatch.setattr(strikes, "headlines", lambda days: {})
+    night = {"date": "2026-11-06", "preliminary": True, "rows": [{"from": [], "to": [{"name": "Kyiv"}]}]}
+    got = strikes.preliminary("2026-11-04", {"days": [night]}, date(2026, 11, 7))
+    assert [n["date"] for n in got] == ["2026-11-06"]
