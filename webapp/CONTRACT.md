@@ -960,3 +960,13 @@ App only (webapp/public); no new endpoints.
 - The strike map: a night with no launch area for a weapon kind draws its
   trails, dashed, from the launch areas of the latest night that has them,
   and the preliminary note says they are assumed and from which night.
+
+# Version 3.35 (13 Nov 2026) - weapon cards that add up
+
+- The strike map's weapon cards: one per weapon line of the night (lines
+  with the same weapons added together), with the line's figure once and
+  the types it names beside it - not one card per type, which counted a
+  line naming four types four times (7 Nov: 16 for 4).
+- src/strikes.py: a line with more shot down than launched (3 Nov: 81 and
+  139) keeps its launched figure without the shot-down one; the night's
+  total then carries `destroyed_partial` and the app says "minst".

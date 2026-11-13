@@ -175,9 +175,16 @@ def build(rows: list, today: date) -> dict:
         unknown.update(u1 + u2)
         unspecified = not target or all(t["name"].lower() == "ukraine" for t in target)
         model = (r.get("model") or "").strip()
+        launched, destroyed = _num(r.get("launched")), _num(r.get("destroyed"))
+        # The dataset now and then has more shot down than launched on a line
+        # (3 Nov: 81 launched, 139 destroyed): the shot-down figure is then
+        # left out rather than shown, and said so in the log.
+        if launched is not None and destroyed is not None and destroyed > launched:
+            print(f"  Strikes: {end} {model[:40]}: {destroyed} destroyed of {launched} launched - destroyed left out")
+            destroyed = None
         nights.setdefault(end, []).append({
-            "model": model[:120], "kind": kind_of(model), "launched": _num(r.get("launched")),
-            "destroyed": _num(r.get("destroyed")), "carrier": (r.get("carrier") or "").strip()[:120] or None,
+            "model": model[:120], "kind": kind_of(model), "launched": launched,
+            "destroyed": destroyed, "carrier": (r.get("carrier") or "").strip()[:120] or None,
             "launch_place": (r.get("launch_place") or "").strip()[:300], "target": (r.get("target") or "").strip()[:300],
             "target_main": main[:300] or None, "unspecified": unspecified, "systems": system_ids(model),
             "hits": _num(r.get("num_hit_location")), "fragments": _num(r.get("num_fall_fragment_location")),
@@ -192,6 +199,8 @@ def build(rows: list, today: date) -> dict:
             t = totals.setdefault(row["kind"], {"launched": 0, "destroyed": 0})
             t["launched"] += row["launched"] or 0
             t["destroyed"] += row["destroyed"] or 0
+            if row["destroyed"] is None and row["launched"]:
+                t["destroyed_partial"] = True   # a line without its shot-down figure: "at least"
         days.append({"date": d, "rows": nights[d][:60], "totals": totals})
     return {"generated_at": datetime.now().astimezone().isoformat(timespec="seconds"), "date": today.isoformat(),
             "source": {"url": SOURCE_URL, "outlet": "Kaggle: Massive Missile Attacks on Ukraine (ukrainska flygvapnets rapporter)"},

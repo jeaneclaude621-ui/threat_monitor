@@ -1000,13 +1000,14 @@ function strikesBox(data) {
   const totals = Object.entries(day.totals || {});
   const launched = totals.reduce((n, [, t]) => n + (Number(t.launched) || 0), 0);
   const destroyed = totals.reduce((n, [, t]) => n + (Number(t.destroyed) || 0), 0);
+  const partial = totals.some(([, t]) => t.destroyed_partial);
   if (!launched) return null;
   const today = new Date().toLocaleDateString('sv-SE');
   return infoBox('ua', {
     iconCls: 'blue', iconEl: boxIcon(['M3 20L20 4', 'M14 4h6v6']),
     kicker: day.date === today ? 'Anfall mot Ukraina i natt' : `Anfall mot Ukraina, natten till ${dateShort(day.date)}`,
     title: totals.map(([k, t]) => `${t.launched} ${KIND_PLURAL[k] || k}`).join(', '),
-    sub: [`${destroyed} av ${launched} nedskjutna`, 'Ukrainas flygvapen', day.preliminary ? 'preliminärt' : null].filter(Boolean).join(' · '),
+    sub: [partial ? `minst ${destroyed} av ${launched} nedskjutna` : `${destroyed} av ${launched} nedskjutna`, 'Ukrainas flygvapen', day.preliminary ? 'preliminärt' : null].filter(Boolean).join(' · '),
     body: frag(
       (day.rows || []).filter((r) => !r.hidden).map((r) => h('div', { class: 'wrow' },
         h('span', null, r.model), h('span', null, `${r.launched} avfyrade${r.destroyed != null ? ` · ${r.destroyed} ned` : ''}`))),
@@ -3207,23 +3208,47 @@ async function loadSystems() {
   return systemsCat;
 }
 
-function weaponCard(id, sys, rows) {
-  const launched = rows.reduce((n, r) => n + (r.launched || 0), 0);
-  const name = sys?.name || rows[0]?.model || id;
-  const img = sys?.image?.file ? (sys.image.file.startsWith('/') ? sys.image.file : `/forces/img/${sys.image.file}`) : null;
-  const figures = Object.entries(sys?.key_figures || {});
+// Version 3.35: one card per weapon line of the Air Force's report, not
+// per weapon type: a line often names several types with one figure
+// ("S-400 and Iskander-M/KN-23 and 3M22 Zircon: 4"), and counting it under
+// each type made 16 out of 4. Lines with the same weapons in a night (two
+// waves) are added together; the figure shows once, the types beside it.
+function weaponGroups(rows) {
+  const groups = new Map();
+  for (const r of rows) {
+    const ids = r.systems || [];
+    const key = ids.length ? ids.slice().sort().join('+') : `model:${r.model}`;
+    const g = groups.get(key) || { ids, model: r.model, kind: r.kind, launched: 0, destroyed: 0, destroyedKnown: true };
+    g.launched += r.launched || 0;
+    if (r.destroyed == null) g.destroyedKnown = false; else g.destroyed += r.destroyed;
+    groups.set(key, g);
+  }
+  return [...groups.values()].sort((a, b) => b.launched - a.launched);
+}
+
+function weaponCard(g, systems) {
+  const syss = g.ids.map((id) => systems.get(id)).filter(Boolean);
+  const name = syss.length ? syss.map((x) => x.name).join(' · ') : (g.model === 'Unknown UAV' ? 'Okänd drönare' : g.model);
+  const withImg = syss.find((x) => x.image && x.image.file);
+  const img = withImg ? (withImg.image.file.startsWith('/') ? withImg.image.file : `/forces/img/${withImg.image.file}`) : null;
   const more = h('div', { class: 'swmore', hidden: true },
-    sys?.description_sv ? h('p', { class: 'body-sm' }, sys.description_sv) : h('p', { class: 'small muted' }, 'Ingen beskrivning än.'),
-    figures.length ? h('dl', { class: 'swfig' }, figures.flatMap(([k, v]) => [h('dt', null, k), h('dd', null, v)])) : null,
-    sys?.image ? h('p', { class: 'small muted' }, `Bild: ${latin(sys.image.author) || 'okänd'}, ${sys.image.license || ''}. `,
-      sys.image.source_url ? externalButton(sys.image.source_url, { outlet: 'Wikimedia Commons' }, 'Commons') : null) : null);
+    syss.length > 1 ? h('p', { class: 'small muted' }, 'Rapporten anger ett antal för typerna tillsammans; fördelningen mellan dem anges inte.') : null,
+    syss.length ? syss.map((x) => h('div', null,
+      syss.length > 1 ? h('h4', { class: 'fsub' }, x.name) : null,
+      x.description_sv ? h('p', { class: 'body-sm' }, x.description_sv) : h('p', { class: 'small muted' }, 'Ingen beskrivning än.'),
+      Object.keys(x.key_figures || {}).length ? h('dl', { class: 'swfig' }, Object.entries(x.key_figures).flatMap(([k, v]) => [h('dt', null, k), h('dd', null, v)])) : null,
+      x.image ? h('p', { class: 'small muted' }, `Bild: ${latin(x.image.author) || 'okänd'}, ${x.image.license || ''}. `,
+        x.image.source_url ? externalButton(x.image.source_url, { outlet: 'Wikimedia Commons' }, 'Commons') : null) : null))
+      : h('p', { class: 'small muted' }, 'Typen anges inte i rapporten.'));
   const toggle = () => { more.hidden = !more.hidden; };
+  const figure = `${g.launched} avfyrade${g.destroyedKnown ? ` · ${g.destroyed} nedskjutna` : ''}`;
   return h('div', { class: 'swcard card', role: 'button', tabindex: '0', onclick: toggle, onkeydown: (ev) => { if (ev.key === 'Enter') toggle(); } },
-    img ? zoomableImg({ src: img, alt: name, loading: 'lazy' }, sys?.image ? `${name} · Bild: ${latin(sys.image.author) || 'okänd'} · ${sys.image.license || ''}` : name) : h('div', { class: 'swnoimg' }, name.slice(0, 2)),
+    img ? zoomableImg({ src: img, alt: withImg.name, loading: 'lazy' }, `${withImg.name} · Bild: ${latin(withImg.image.author) || 'okänd'} · ${withImg.image.license || ''}`)
+      : h('div', { class: 'swnoimg' }, name.slice(0, 2)),
     h('div', { class: 'swbody' },
       h('div', { class: 'row-title' }, name),
-      h('div', { class: 'small muted' }, [sys?.category_sv, launched ? `${launched} avfyrade` : null].filter(Boolean).join(' · ')),
-      figures.slice(0, 2).map(([k, v]) => h('div', { class: 'small' }, h('b', null, `${k}: `), v)),
+      h('div', { class: 'small' }, h('b', null, figure)),
+      h('div', { class: 'small muted' }, [syss.length === 1 ? syss[0].category_sv : (STRIKE_KIND[g.kind] || [])[0], syss.length > 1 ? `${syss.length} typer, ett antal` : null].filter(Boolean).join(' · ')),
       more));
 }
 
@@ -3341,10 +3366,10 @@ async function viewStrikes() {
     totals.replaceChildren(...Object.entries(day.totals).map(([k, t]) => h('div', { class: 'stotal' },
       h('div', { class: 'stotal-n', style: `color:${(STRIKE_KIND[k] || STRIKE_KIND['övrigt'])[1]}` }, String(t.launched)),
       h('div', { class: 'small' }, (STRIKE_KIND[k] || STRIKE_KIND['övrigt'])[0]),
-      h('div', { class: 'small muted' }, t.launched ? `${t.destroyed} nedskjutna (${Math.round(100 * t.destroyed / t.launched)} %)` : ''))));
-    const ids = [...new Set(rows.flatMap((r) => r.systems || []))];
-    weapons.replaceChildren(ids.length ? h('section', null, h('h2', { class: 'fsub' }, 'Vapnen den här natten'),
-      h('div', { class: 'swgrid' }, ids.map((id) => weaponCard(id, systems.get(id), rows.filter((r) => (r.systems || []).includes(id)))))) : '');
+      h('div', { class: 'small muted' }, t.launched ? (t.destroyed_partial ? `minst ${t.destroyed} nedskjutna` : `${t.destroyed} nedskjutna (${Math.round(100 * t.destroyed / t.launched)} %)`) : ''))));
+    const groups = weaponGroups(rows);
+    weapons.replaceChildren(groups.length ? h('section', null, h('h2', { class: 'fsub' }, 'Vapnen den här natten'),
+      h('div', { class: 'swgrid' }, groups.map((g) => weaponCard(g, systems)))) : '');
     list.replaceChildren(h('div', { class: 'card list' }, rows.map((r) => h('div', { class: 'row' },
       h('b', { class: 'fdot', style: `background:${(STRIKE_KIND[r.kind] || STRIKE_KIND['övrigt'])[1]}` }),
       h('span', { class: 'row-main' },

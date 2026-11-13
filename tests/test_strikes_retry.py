@@ -74,3 +74,14 @@ def test_a_night_read_again_without_result_is_kept(monkeypatch):
     night = {"date": "2026-11-06", "preliminary": True, "rows": [{"from": [], "to": [{"name": "Kyiv"}]}]}
     got = strikes.preliminary("2026-11-04", {"days": [night]}, date(2026, 11, 7))
     assert [n["date"] for n in got] == ["2026-11-06"]
+
+
+def test_more_shot_down_than_launched_is_left_out():
+    rows = [{"time_end": "2026-11-03 09:00", "model": "Shahed-136/131", "launched": "81", "destroyed": "139",
+             "launch_place": "", "target": "Ukraine"},
+            {"time_end": "2026-11-03 09:00", "model": "Shahed-136/131", "launched": "289", "destroyed": "257",
+             "launch_place": "", "target": "Ukraine"}]
+    day = strikes.build(rows, date(2026, 11, 4))["days"][0]
+    assert [r["destroyed"] for r in day["rows"]] == [None, 257]
+    t = day["totals"]["drönare"]
+    assert t["launched"] == 370 and t["destroyed"] == 257 and t["destroyed_partial"] is True
