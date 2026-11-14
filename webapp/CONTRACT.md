@@ -1040,3 +1040,26 @@ square-root steps (`--heat-1`..`--heat-4`).
 - **No API change:** the reports are loaded as before.
 
 Service worker hm-v3.56.
+
+## Version 3.41: points on the heat map
+
+The Karta view now has two modes: Länder (countries) and Platser (points,
+`m=p`).
+
+**How a place is found.** A place comes from the event's own text, read in
+the browser: `title`, `title_sv`, `summary_sv`, `detail` and `known_sv`.
+- Each name is looked up in `forces/places.json`: Natural Earth's
+  populated places, built by `webapp/scripts/build_places.py`.
+- Only towns in one of the event's countries count.
+- A capital counts only after "in/at/on/against/i/mot/vid ..." or before
+  "region/oblast/flygplats ...".
+- A shorter name inside a longer match in the same text is dropped.
+- `pl` in the route is the chosen place.
+
+**Period controls.** The period has two slider handles, `from` and `to`.
+The date fields follow the slider, and the slider follows the date fields.
+
+**Map controls.** The map zooms: pinch, double tap, or the + and −
+buttons.
+
+Service worker hm-v3.57.

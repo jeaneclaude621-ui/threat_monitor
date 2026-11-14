@@ -1059,3 +1059,22 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 .heat-legend i:nth-of-type(4) { background: var(--heat-4); }
 @media (prefers-color-scheme: dark) { .hcount.on-dark { fill: #0F1526; } }
 .hrow { width: 100%; text-align: left; font: inherit; color: var(--ink); background: var(--card); border: 0; border-bottom: 1px solid var(--line-2); cursor: pointer; }
+
+/* ---- version 3.41: points, zoom and a two-handled period slider ---- */
+.hmap-wrap { position: relative; }
+.hmap.fmap { height: min(62vh, 540px); background: var(--card); }
+.hmap.pmode .hland.h1, .hmap.pmode .hland.h2, .hmap.pmode .hland.h3, .hmap.pmode .hland.h4 { fill-opacity: .35; }
+.hdot { stroke: var(--card); stroke-width: 1; vector-effect: non-scaling-stroke; cursor: pointer; fill-opacity: .9; }
+.hdot.h1 { fill: var(--heat-2); } .hdot.h2 { fill: var(--heat-3); } .hdot.h3, .hdot.h4 { fill: var(--heat-4); }
+.hdot.hsel { stroke: var(--ink); stroke-width: 2.5; }
+.hdot:focus { outline: none; stroke: var(--ink); stroke-width: 2.5; }
+.hrange { position: relative; flex: 1; height: 32px; }
+.hr-track, .hr-fill { position: absolute; top: 50%; height: 6px; margin-top: -3px; border-radius: 3px; }
+.hr-track { left: 0; right: 0; background: var(--line); }
+.hr-fill { background: var(--amber); }
+.hr { position: absolute; left: 0; top: 0; width: 100%; height: 32px; margin: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+.hr::-webkit-slider-runnable-track { background: none; border: 0; height: 32px; }
+.hr::-moz-range-track { background: none; border: 0; }
+.hr::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 26px; height: 26px; margin-top: 3px; border-radius: 50%; background: var(--card); border: 3px solid var(--amber); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.hr::-moz-range-thumb { pointer-events: auto; width: 20px; height: 20px; border-radius: 50%; background: var(--card); border: 3px solid var(--amber); cursor: pointer; }
+.hr:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--ink); outline-offset: 2px; }

@@ -130,13 +130,20 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
 
 ## Förslag som väntar på beslut
 
-### Värmekarta, steg 2: punkter i stället för länder
-Steg 1 (länder) är klart, se Klart 14 nov. Steg 2 kräver en plats per
-händelse. Den kan tas fram med samma ortsuppslag som `strikes.py`
-använder, eller med ett `place`-fält som modellen fyller i vid
-morgonsvepet.
+Inga just nu.
 
 ## Klart
+
+- 2026-11-14: Värmekarta, steg 2 (Version 3.41).
+  - **Platser:** vyn "Platser" ritar en punkt per ort. Orten hittas i
+    händelsens egen text med Natural Earths ortslista
+    (`webapp/public/forces/places.json`, byggd av
+    `webapp/scripts/build_places.py`). En huvudstad räknas bara när texten
+    säger "i/mot/vid".
+  - **Utan ort:** ungefär hälften av händelserna har ingen ort och syns
+    bara i landvyn.
+  - **Kartan:** zoom och ett reglage med två handtag. Datumfälten följer
+    reglaget och tvärtom.
 
 - 2026-11-14: Värmekarta, steg 1 (Version 3.40). Fliken Karta är en riktig
   Europakarta där länderna färgas efter antal händelser, med från- och
