@@ -1004,7 +1004,7 @@ function strikesBox(data) {
   if (!launched) return null;
   const today = new Date().toLocaleDateString('sv-SE');
   return infoBox('ua', {
-    iconCls: 'blue', iconEl: boxIcon(['M3 20L20 4', 'M14 4h6v6']),
+    iconCls: 'blue', iconEl: droneIcon('drone-ic'),
     kicker: day.date === today ? 'Anfall mot Ukraina i natt' : `Anfall mot Ukraina, natten till ${dateShort(day.date)}`,
     title: totals.map(([k, t]) => `${t.launched} ${KIND_PLURAL[k] || k}`).join(', '),
     sub: [partial ? `minst ${destroyed} av ${launched} nedskjutna` : `${destroyed} av ${launched} nedskjutna`, 'Ukrainas flygvapen', day.preliminary ? 'preliminärt' : null].filter(Boolean).join(' · '),
@@ -2042,8 +2042,8 @@ const COA_TILES = {
 // Version 3.39: a drone is a flying wing seen from above (nose up, a fin
 // at each wing tip), not an airliner; centred on 0,0, about 12 wide.
 const DRONE_PATH = 'M0 -6.6L0.9 -4.6V-1.4L6.6 3.1V5.6H5.6V4.6L1.3 4.2L0 5.6L-1.3 4.2L-5.6 4.6V5.6H-6.6V3.1L-0.9 -1.4V-4.6Z';
-function droneIcon() {
-  const svg = svgEl('svg', { viewBox: '-7 -7 14 14', width: 12, height: 12, 'aria-hidden': 'true' });
+function droneIcon(cls) {
+  const svg = svgEl('svg', { viewBox: '-7 -7 14 14', width: 12, height: 12, 'aria-hidden': 'true', ...(cls ? { class: cls } : {}) });
   svg.appendChild(svgEl('path', { d: DRONE_PATH, fill: 'currentColor' }));
   return svg;
 }

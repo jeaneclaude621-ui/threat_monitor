@@ -1036,3 +1036,4 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 .idx-notes details summary { color: var(--muted); }
 .coa-drone { fill: #fff; }
 .coa-dot svg { display: block; }
+.ibox-icon svg.drone-ic { width: 22px; height: 22px; fill: currentColor; stroke: none; }

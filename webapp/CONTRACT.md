@@ -1021,3 +1021,5 @@ Other changes:
 - The boxes are tighter.
 - On the courses map, a drone is a flying wing seen from above. Service
   worker hm-v3.54.
+- Version 3.39 also: the Ukraine strikes box on Idag uses the same
+  flying-wing drone as its icon (hm-v3.55).
