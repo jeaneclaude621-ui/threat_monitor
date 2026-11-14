@@ -34,7 +34,6 @@ on:
 # forces_images commits photos to this repo with the workflow token.
 permissions:
   contents: write
-  models: read   # GitHub Models as a reserve (Version 3.37)
 
 concurrency:
   group: run-state
@@ -62,10 +61,10 @@ jobs:
       - name: Run
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          # Reserve models after Gemini's (Version 3.37): Mistral when its key is set,
-          # then GitHub Models with this workflow's own token (permissions: models: read).
+          # Reserve model after Gemini's (Version 3.37): Mistral when its key is set.
+          # GitHub Models is off since 14 Nov 2026 (it answered no JSON); to try it
+          # again, add GITHUB_MODELS_TOKEN: secrets.GITHUB_TOKEN and permissions models: read.
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
-          GITHUB_MODELS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           FORCES_SURVEY_MODEL: ${{ vars.FORCES_SURVEY_MODEL }}
           FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}   # NASA FIRMS (src/forces_firms.py); unset: the check is skipped
