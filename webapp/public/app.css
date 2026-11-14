@@ -25,7 +25,7 @@
   --neg-bg: #F1E2D0; --neg-fg: #6B3A0F;
   --neg-strong-bg: #A2561A; --neg-strong-fg: #FFFFFF;
   --skip-bg: #E9E3D8; --skip-fg: #15203B;
-  --heat-0: #EFEBE3; --heat-1: #F1E2D0; --heat-2: #D9964F; --heat-3: #A2561A;
+  --heat-0: #EFEBE3; --heat-1: #F3E3CF; --heat-2: #E2AE72; --heat-3: #C46F28; --heat-4: #8A3E0E;
   --serif: Newsreader, Georgia, 'Times New Roman', serif;
   --sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
   --tabbar-h: 64px;
@@ -56,7 +56,7 @@
     --neg-bg: #4A3220; --neg-fg: #F6D9B8;
     --neg-strong-bg: #F0B775; --neg-strong-fg: #0F1526;
     --skip-bg: #253052; --skip-fg: #E8EAF0;
-    --heat-0: #1B2440; --heat-1: #4A3220; --heat-2: #9A6230; --heat-3: #F0B775;
+    --heat-0: #1B2440; --heat-1: #4A3220; --heat-2: #7E5128; --heat-3: #C07D3A; --heat-4: #F0B775;
     color-scheme: dark;
   }
 }
@@ -1037,3 +1037,25 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 .coa-drone { fill: #fff; }
 .coa-dot svg { display: block; }
 .ibox-icon svg.drone-ic { width: 22px; height: 22px; fill: currentColor; stroke: none; }
+
+/* ---- version 3.40: the heat map of events (Karta) ---- */
+.hmap-wrap { padding: 0; overflow: hidden; }
+.hmap { display: block; width: 100%; height: auto; background: var(--card); touch-action: manipulation; }
+.hland { fill: var(--heat-0); stroke: var(--line); stroke-width: .5; vector-effect: non-scaling-stroke; }
+.hland-x { cursor: pointer; }
+.hland-x:focus { outline: none; stroke: var(--ink); stroke-width: 1.5; }
+.hland.h1 { fill: var(--heat-1); } .hland.h2 { fill: var(--heat-2); } .hland.h3 { fill: var(--heat-3); } .hland.h4 { fill: var(--heat-4); }
+.hland.hsel { stroke: var(--ink); stroke-width: 2; }
+.hcount { font: 700 9px var(--sans); text-anchor: middle; dominant-baseline: middle; fill: var(--ink); pointer-events: none; paint-order: stroke; stroke: var(--heat-0); stroke-width: 2px; stroke-opacity: .6; }
+.hcount.on-dark { fill: #fff; stroke: none; }
+.hmap-foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 8px 12px; border-top: 1px solid var(--line-2); }
+.hdates { display: flex; gap: 10px; }
+.hdates label { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.hdates input { font: inherit; font-size: 15px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 44px; }
+.hslide { display: flex; align-items: center; gap: 8px; }
+.hslider { flex: 1; accent-color: var(--amber); min-height: 32px; }
+.hlist-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.hlist-head .linkbtn { margin-left: auto; }
+.heat-legend i:nth-of-type(4) { background: var(--heat-4); }
+@media (prefers-color-scheme: dark) { .hcount.on-dark { fill: #0F1526; } }
+.hrow { width: 100%; text-align: left; font: inherit; color: var(--ink); background: var(--card); border: 0; border-bottom: 1px solid var(--line-2); cursor: pointer; }

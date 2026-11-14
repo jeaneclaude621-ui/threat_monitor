@@ -3427,81 +3427,195 @@ async function viewStrikes() {
 }
 
 // ---------------------------------------------------------------- Karta
+// Version 3.40: a heat map of the logged events on a real map of Europe.
+// A country is coloured by how many events named it in the chosen period
+// (from-to, or moved with the slider); a tap lists its events, each a link
+// to the event and its articles. Events name countries (ISO alpha-2), not
+// places, so this is step 1: countries, not points.
+const A2_NUM = {
+  NO: '578', SE: '752', FI: '246', DK: '208', EE: '233', LV: '428', LT: '440', PL: '616', DE: '276', BY: '112',
+  UA: '804', RU: '643', SK: '703', RO: '642', MD: '498', GB: '826', FR: '250', BE: '056', NL: '528', IS: '352',
+  BG: '100', HU: '348', CZ: '203', AT: '040', IT: '380', ES: '724', TR: '792', GE: '268', AM: '051', AZ: '031',
+  GR: '300', PT: '620', IE: '372', CH: '756', HR: '191', RS: '688', SI: '705', GL: '304', BA: '070', ME: '499',
+  MK: '807', AL: '008', LU: '442', CY: '196', MT: '470', KZ: '398',
+};
+const NUM_A2 = Object.fromEntries(Object.entries(A2_NUM).map(([a, n]) => [n, a]));
+Object.assign(COUNTRY, { BA: 'Bosnien och Hercegovina', ME: 'Montenegro', MK: 'Nordmakedonien', AL: 'Albanien', LU: 'Luxemburg', CY: 'Cypern', MT: 'Malta' });
+const HEAT_VIEW = { x: FX(-12), y: FY(71.5), w: FX(46) - FX(-12), h: FY(34) - FY(71.5) };
+const mapUi = { from: null, to: null, sel: null };
+
 async function viewMap(q) {
-  const period = ['7', '30', 'all'].includes(q.get('p')) ? q.get('p') : '7';
-  const index = await loadIndex();
+  const [index, land] = await Promise.all([loadIndex(),
+    forcesLand || fetch('/forces/countries.json').then((r) => (r.ok ? r.json() : null)).catch(() => null)]);
+  if (land) forcesLand = land;
   ensureScope(index);
   if (!index.length) return emptyState('Inga rapporter ännu.');
-  const reports = period === 'all' ? await loadAllReports()
-    : await loadReportsRange(addDays(index[0].date, -(Number(period) - 1)), index[0].date);
+  const reports = await loadAllReports();
   if (!reports.length) return emptyState('Inga rapporter ännu.');
-  const ref = reports[0].date;
-  const cutoff = period === 'all' ? '' : addDays(ref, -(Number(period) - 1));
-  const byCountry = new Map();
-  for (const r of reports) {
-    if (cutoff && r.date < cutoff) continue;
-    for (const e of r.events) {
-      for (const c of new Set(e.countries)) {
-        if (!byCountry.has(c)) byCountry.set(c, []);
-        byCountry.get(c).push({ r, e });
+  const first = reports.at(-1).date; const last = reports[0].date;
+  const days = Math.round((Date.parse(last) - Date.parse(first)) / 864e5);
+  const clampD = (d) => (d < first ? first : d > last ? last : d);
+  const isD = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || '');
+  // Old links: ?p=7|30|all&c=XX.
+  const p = q.get('p');
+  let from = isD(q.get('from')) ? q.get('from') : p === 'all' ? first : p === '30' ? addDays(last, -29) : mapUi.from || addDays(last, -29);
+  let to = isD(q.get('to')) ? q.get('to') : (p ? last : mapUi.to || last);
+  from = clampD(from); to = clampD(to); if (from > to) [from, to] = [to, from];
+  let sel = q.get('c') || mapUi.sel;
+
+  const svg = svgEl('svg', { class: 'hmap', role: 'img', 'aria-label': 'Karta över Europa, länder färgade efter antal händelser',
+    viewBox: `${HEAT_VIEW.x} ${HEAT_VIEW.y} ${HEAT_VIEW.w} ${HEAT_VIEW.h}` });
+  const paths = new Map();   // alpha-2 -> [path]
+  const labels = svgEl('g', { class: 'hmap-labels' });
+  if (land) {
+    for (const c of land.countries) {
+      const a2 = NUM_A2[c.id];
+      let best = null; let bestN = 0;
+      const d = c.rings.map((r) => {
+        if (r.length > bestN) { bestN = r.length; best = r; }
+        return `M${r.map(([lon, lat]) => `${FX(lon).toFixed(1)} ${FY(lat).toFixed(1)}`).join('L')}Z`;
+      }).join('');
+      const el = svgEl('path', { d, class: 'hland' });
+      if (a2) {
+        el.classList.add('hland-x');
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('role', 'button');
+        el.addEventListener('click', () => pick(a2));
+        el.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(a2); } });
+        if (!paths.has(a2)) paths.set(a2, []);
+        paths.get(a2).push(el);
+        if (best) {
+          // Russia's label in its European part, not in Siberia.
+          const pts = a2 === 'RU' ? best.filter(([lon]) => lon < 45) : best;
+          const xs = pts.map(([lon]) => lon); const ys = pts.map(([, lat]) => lat);
+          let cx = (Math.min(...xs) + Math.max(...xs)) / 2; let cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+          if (a2 === 'RU') { cx = 38; cy = 56; } else if (a2 === 'NO') { cx = 9; cy = 61; } else if (a2 === 'SE') { cx = 15; cy = 62.5; }
+          else if (a2 === 'FI') { cx = 26; cy = 63; } else if (a2 === 'GB') { cx = -1.8; cy = 53; } else if (a2 === 'HR') { cx = 15.6; cy = 45.6; }
+          else if (a2 === 'GL') { cx = -40; cy = 72; }
+          const t = svgEl('text', { x: FX(cx).toFixed(1), y: FY(cy).toFixed(1), class: 'hcount' });
+          t.dataset.c = a2;
+          labels.appendChild(t);
+        }
+      }
+      svg.appendChild(el);
+    }
+    svg.appendChild(labels);
+  }
+
+  const kicker = h('div', { class: 'kicker' });
+  const fromIn = h('input', { type: 'date', min: first, max: last, value: from, 'aria-label': 'Från datum' });
+  const toIn = h('input', { type: 'date', min: first, max: last, value: to, 'aria-label': 'Till datum' });
+  const slider = h('input', { type: 'range', class: 'hslider', min: 0, max: days, step: 1, 'aria-label': 'Flytta perioden' });
+  const presets = h('div', { class: 'seg' });
+  const outside = h('div', { class: 'chips' });
+  const list = h('section', { class: 'section' });
+  const total = h('span', { class: 'small muted' });
+
+  let byCountry = new Map();
+  function compute() {
+    byCountry = new Map();
+    let n = 0;
+    for (const r of reports) {
+      if (r.date < from || r.date > to) continue;
+      for (const e of r.events) {
+        n += 1;
+        for (const c of new Set(e.countries)) {
+          if (!byCountry.has(c)) byCountry.set(c, []);
+          byCountry.get(c).push({ r, e });
+        }
       }
     }
+    return n;
   }
   const count = (c) => (byCountry.get(c) || []).length;
-  // Heat is relative to the busiest country, so a long period does not
-  // turn every tile the darkest shade.
-  const maxCount = Math.max(1, ...[...byCountry.keys()].map(count));
-  const heat = (n) => (n ? Math.max(1, Math.ceil((3 * n) / maxCount)) : 0);
-  let sel = q.get('c');
-  if (!sel) {
-    sel = [...MAP_CODES].sort((a, b) => count(b) - count(a))[0];
+
+  function draw() {
+    const n = compute();
+    mapUi.from = from; mapUi.to = to; mapUi.sel = sel;
+    history.replaceState(null, '', `#/karta?from=${from}&to=${to}${sel ? `&c=${encodeURIComponent(sel)}` : ''}`);
+    const span = Math.round((Date.parse(to) - Date.parse(from)) / 864e5) + 1;
+    kicker.textContent = `${dateShort(from)} – ${dateShort(to)} · ${plural(span, 'dag', 'dagar')}`;
+    total.textContent = plural(n, 'händelse', 'händelser');
+    fromIn.value = from; toIn.value = to;
+    slider.value = String(Math.round((Date.parse(to) - Date.parse(first)) / 864e5));
+    const max = Math.max(1, ...[...byCountry.keys()].map(count));
+    // Square-root steps, so one very busy country does not wash out the rest.
+    const level = (k) => (k ? Math.min(4, Math.max(1, Math.ceil(4 * Math.sqrt(k / max)))) : 0);
+    for (const [a2, els] of paths) {
+      const k = count(a2);
+      for (const el of els) {
+        el.setAttribute('class', `hland hland-x h${level(k)}${a2 === sel ? ' hsel' : ''}`);
+        el.setAttribute('aria-label', `${countryName(a2)}, ${plural(k, 'händelse', 'händelser')}`);
+      }
+    }
+    for (const t of labels.children) { const k = count(t.dataset.c); t.textContent = k ? String(k) : ''; t.setAttribute('class', `hcount${level(k) >= 3 ? ' on-dark' : ''}`); }
+    const span7 = from === addDays(to, -6); const span30 = from === addDays(to, -29); const all = from === first && to === last;
+    presets.replaceChildren(...[['7', '7 dagar', span7 && !all], ['30', '30 dagar', span30 && !all], ['all', 'Allt', all]].map(([k, label, on]) =>
+      h('button', { type: 'button', 'aria-pressed': String(!!on), onclick: () => {
+        if (k === 'all') { from = first; to = last; } else { to = last; from = clampD(addDays(last, -(Number(k) - 1))); }
+        draw();
+      } }, label)));
+    const offMap = [...byCountry.keys()].filter((c) => !paths.has(c)).sort((a, b) => count(b) - count(a));
+    outside.replaceChildren(...(offMap.length ? [h('span', { class: 'small muted', style: 'align-self:center' }, 'Utanför kartan:'),
+      ...offMap.map((c) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(c === sel), onclick: () => pick(c) }, `${countryName(c)} ${count(c)}`))] : []));
+    drawList();
   }
-  const go = (p, c) => { history.replaceState(null, '', `#/karta?p=${p}&c=${encodeURIComponent(c)}`); route({ keepScroll: true }); };
 
-  const tiles = MAP_LAYOUT.map((code) => {
-    if (!code) return h('div', { 'aria-hidden': 'true' });
-    const n = count(code);
-    return h('button', {
-      class: `tile${n ? ` h${heat(n)}` : ''}`, type: 'button', 'aria-pressed': String(code === sel),
-      'aria-label': `${countryName(code)}, ${plural(n, 'händelse', 'händelser')}`,
-      onclick: () => go(period, code),
-    }, code, n ? h('span', { class: 'count', 'aria-hidden': 'true' }, String(n)) : null);
-  });
-  const outside = [...byCountry.keys()].filter((c) => !MAP_CODES.has(c)).sort((a, b) => count(b) - count(a));
-  const selEvents = (byCountry.get(sel) || []).sort((a, b) => (a.r.date < b.r.date ? 1 : -1));
-
-  return frag(
-    h('header', { class: 'page-head' },
-      h('div', null,
-        h('div', { class: 'kicker' }, period === 'all' ? 'Alla rapporter' : `Senaste ${period} dagarna`),
-        h('h1', { class: 'title-xl' }, 'Karta')),
-      h('div', { class: 'heat-legend', 'aria-hidden': 'true' },
-        'Få',
-        h('i', { style: 'background:var(--heat-1)' }),
-        h('i', { style: 'background:var(--heat-2)' }),
-        h('i', { style: 'background:var(--heat-3)' }),
-        'Många')),
-    h('div', { class: 'seg', role: 'group', 'aria-label': 'Period' },
-      [['7', '7 dagar'], ['30', '30 dagar'], ['all', 'Allt']].map(([k, label]) => h('button', {
-        type: 'button', 'aria-pressed': String(k === period), onclick: () => go(k, sel),
-      }, label))),
-    h('section', { class: 'card card-pad', 'aria-label': 'Schematisk karta, en ruta per land' },
-      h('div', { class: 'map' }, tiles),
-      h('p', { class: 'small muted', style: 'margin-top:6px' }, 'Schematisk – varje ruta är ett land i ungefärligt läge. Tryck på ett land.'),
-      outside.length ? h('div', { class: 'chips', style: 'margin-top:4px' },
-        h('span', { class: 'small muted', style: 'align-self:center' }, 'Utanför kartan:'),
-        outside.map((c) => h('button', { class: 'chip', type: 'button', 'aria-pressed': String(c === sel), onclick: () => go(period, c) }, `${countryName(c)} ${count(c)}`))) : null),
-    h('section', { class: 'section' },
-      h('div', { style: 'display:flex;justify-content:space-between;align-items:baseline' },
+  function drawList() {
+    if (!sel) {
+      const top = [...byCountry.keys()].sort((a, b) => count(b) - count(a)).slice(0, 8);
+      list.replaceChildren(h('h2', { class: 'title-m' }, 'Flest händelser'),
+        top.length ? h('div', { class: 'card list' }, top.map((c) => h('button', { class: 'row hrow', type: 'button', onclick: () => pick(c) },
+          h('span', { class: 'row-main' }, h('span', { class: 'row-title' }, countryName(c))),
+          h('span', { class: 'nbadge' }, String(count(c))), chevRight()))) : h('p', { class: 'muted' }, 'Inga händelser i perioden.'),
+        h('p', { class: 'small muted' }, 'Tryck på ett land på kartan för att se dess händelser.'));
+      return;
+    }
+    const evs = (byCountry.get(sel) || []).slice().sort((a, b) => (a.r.date < b.r.date ? 1 : -1));
+    list.replaceChildren(
+      h('div', { class: 'hlist-head' },
         h('h2', { class: 'title-m' }, countryName(sel)),
-        h('span', { class: 'small muted' }, selEvents.length ? plural(selEvents.length, 'händelse', 'händelser') : 'Inga händelser')),
-      selEvents.length ? h('div', { class: 'card list' }, selEvents.map(({ r, e }) => h('a', { class: 'row', href: eventHref(r.date, e.id) },
-        h('span', { class: 'small muted', style: 'width:46px;flex-shrink:0;font-weight:600' }, dateShort(r.date)),
-        h('span', { class: 'row-main' },
-          h('span', { class: 'row-title' }, e.title_sv || e.title),
-          e.topics.length ? h('span', { class: 'row-sub' }, e.topics.join(' · ')) : null),
-        stateBadge(eventState(r.date, e)),
-        chevRight()))) : null));
+        h('span', { class: 'small muted' }, evs.length ? plural(evs.length, 'händelse', 'händelser') : 'Inga händelser'),
+        h('button', { class: 'linkbtn', type: 'button', onclick: () => pick(null) }, 'Alla länder')),
+      evs.length ? h('div', { class: 'card list' }, evs.map(({ r, e }) => {
+        const srcs = linkedArticles(e).length;
+        return h('a', { class: 'row', href: eventHref(r.date, e.id) },
+          h('span', { class: 'small muted', style: 'width:46px;flex-shrink:0;font-weight:600' }, dateShort(r.date)),
+          h('span', { class: 'row-main' },
+            h('span', { class: 'row-title' }, e.title_sv || e.title),
+            h('span', { class: 'row-sub' }, [e.topics.join(' · '), srcs ? plural(srcs, 'artikel', 'artiklar') : null].filter(Boolean).join(' · '))),
+          stateBadge(eventState(r.date, e)),
+          chevRight());
+      })) : h('p', { class: 'muted' }, 'Inga händelser för landet i perioden.'));
+  }
+
+  function pick(c) { sel = c; draw(); if (c) list.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  fromIn.addEventListener('change', () => { if (isD(fromIn.value)) { from = clampD(fromIn.value); if (from > to) to = from; draw(); } });
+  toIn.addEventListener('change', () => { if (isD(toIn.value)) { to = clampD(toIn.value); if (to < from) from = to; draw(); } });
+  // The slider moves the period, keeping its length; its value is the end date.
+  slider.addEventListener('input', () => {
+    const len = Math.round((Date.parse(to) - Date.parse(from)) / 864e5);
+    let end = addDays(first, Number(slider.value));
+    if (addDays(end, -len) < first) end = addDays(first, len);
+    to = clampD(end); from = clampD(addDays(to, -len));
+    draw();
+  });
+
+  const node = frag(
+    h('header', { class: 'page-head' },
+      h('div', null, kicker, h('h1', { class: 'title-xl' }, 'Karta')),
+      h('div', { class: 'heat-legend', 'aria-hidden': 'true' }, 'Få',
+        h('i', { style: 'background:var(--heat-1)' }), h('i', { style: 'background:var(--heat-2)' }),
+        h('i', { style: 'background:var(--heat-3)' }), h('i', { style: 'background:var(--heat-4)' }), 'Många')),
+    presets,
+    h('div', { class: 'hdates' }, h('label', null, 'Från', fromIn), h('label', null, 'Till', toIn)),
+    h('div', { class: 'hslide' }, h('span', { class: 'small muted' }, dateShort(first)), slider, h('span', { class: 'small muted' }, dateShort(last))),
+    h('section', { class: 'card hmap-wrap', 'aria-label': 'Värmekarta' }, land ? svg : h('p', { class: 'muted card-pad' }, 'Kartan kunde inte laddas.'),
+      h('div', { class: 'hmap-foot' }, total, h('span', { class: 'small muted' }, 'Färgen visar hur många händelser som nämner landet.'))),
+    outside,
+    list);
+  draw();
+  return node;
 }
 
 // ---------------------------------------------------------------- Bedöm

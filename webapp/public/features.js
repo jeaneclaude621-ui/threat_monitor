@@ -64,9 +64,8 @@ export const FEATURES = [
     desc: 'Alla tidigare dagars rapporter.', keywords: 'tidigare dagar historik rapport' },
   { id: 'amnen', area: 'arkiv', title: 'Ämnen och sök', href: '#/amnen', added: '2026-10-01',
     desc: 'Sök i alla händelser och följ ämnen och länder över tid.', keywords: 'sök ämne land filter' },
-  { id: 'karta', area: 'arkiv', title: 'Karta över händelser', href: '#/karta', added: '2026-10-01',
-    desc: 'Händelserna per land, senaste 7 eller 30 dagarna.', keywords: 'karta land europa' },
-
+  { id: 'karta', area: 'arkiv', title: 'Värmekarta över händelser', href: '#/karta', added: '2026-11-14',
+    desc: 'Europakarta där länderna färgas efter antal händelser. Välj från och till, eller dra i reglaget; tryck på ett land för dess händelser och artiklar.', keywords: 'karta värmekarta heatmap länder europa datum period' },
   // Bedöm
   { id: 'bedom', area: 'bedom', title: 'Bedöm källor', href: '#/bedom', added: '2026-10-01', admin: true,
     desc: 'Svep för att bedöma nyheternas trovärdighet; påverkar hotindex.', keywords: 'bedömning svep trovärdighet' },

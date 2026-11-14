@@ -1023,3 +1023,20 @@ Other changes:
   worker hm-v3.54.
 - Version 3.39 also: the Ukraine strikes box on Idag uses the same
   flying-wing drone as its icon (hm-v3.55).
+
+## Version 3.40: the heat map of events (Karta)
+
+`#/karta` draws Europe from `forces/countries.json`. Each country is
+coloured by how many events in the chosen period name it, in four
+square-root steps (`--heat-1`..`--heat-4`).
+- **Period:** `from` and `to` are ISO dates in the route. There are quick
+  choices for 7 days, 30 days and everything. A slider moves the period
+  and keeps its length.
+- **Country:** `c` is an ISO alpha-2 code. A tap lists the country's
+  events, each linking to its event page, where the articles are.
+- **Off the map:** countries outside the map (USA, EU, Kina ...) are
+  chips.
+- **Old links:** `?p=7|30|all` still work.
+- **No API change:** the reports are loaded as before.
+
+Service worker hm-v3.56.

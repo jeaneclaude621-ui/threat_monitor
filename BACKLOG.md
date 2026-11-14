@@ -130,22 +130,18 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
 
 ## Förslag som väntar på beslut
 
-### Värmekarta över händelser i Europa (önskemål 14 nov)
-En karta som visar var oroligheterna har inträffat, byggd på alla
-loggade händelser (`reports/*_report_data.json` i state-repot, sedan
-19 sep).
-- **Datum:** välj från–till-datum, och dra i ett reglage för att flytta
-  perioden.
-- **Underlaget i dag:** varje händelse har `countries` (landkoder) men
-  inga koordinater.
-  - Steg 1 kan vara en karta med länder färgade efter antal och vikt
-    (`score`).
-  - En riktig värmekarta med punkter kräver en plats per händelse. Den
-    kan tas fram med samma ortsuppslag som `strikes.py` använder, eller
-    med ett `place`-fält som modellen fyller i vid morgonsvepet.
-- **Var:** en ny vy under Mer, eller en del av fliken Narrativ.
+### Värmekarta, steg 2: punkter i stället för länder
+Steg 1 (länder) är klart, se Klart 14 nov. Steg 2 kräver en plats per
+händelse. Den kan tas fram med samma ortsuppslag som `strikes.py`
+använder, eller med ett `place`-fält som modellen fyller i vid
+morgonsvepet.
 
 ## Klart
+
+- 2026-11-14: Värmekarta, steg 1 (Version 3.40). Fliken Karta är en riktig
+  Europakarta där länderna färgas efter antal händelser, med från- och
+  till-datum, snabbval och ett reglage som flyttar perioden. Ett tryck på ett
+  land listar dess händelser med länk till händelsen och dess artiklar.
 
 - 2026-11-05: Nattloggarna kontrollerade. ISW läste bedömningen 2 nov
   (6 förband) natten till 4 nov och bedömningen 4 nov (4 förband) 5 nov.
