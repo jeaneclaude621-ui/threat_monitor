@@ -1,7 +1,16 @@
 """
 Reserve models outside Gemini (Version 3.37), after Gemini's own three
-(main, light, third) are spent or overloaded: Mistral, when MISTRAL_API_KEY
-is set, then GitHub Models when GITHUB_MODELS_TOKEN is set (off in the
+(main, light, third) are spent or overloaded.
+
+Version 3.38: first Cloudflare Workers AI through the app's own Worker
+(POST /api/ai/chat with the service token the jobs already have:
+HOTMONITOR_URL and CF_ACCESS_CLIENT_*). Free up to 10,000 Neurons a day; the
+Worker stops below that (AI_DAILY_NEURONS) and answers 429, and the chain
+goes on. Llama 3.3 70B there takes about 24,000 tokens, so
+CLOUDFLARE_MAX_INPUT_TOKENS keeps a larger prompt from being sent.
+
+Then Mistral, when MISTRAL_API_KEY is set (its API has no free plan for
+private accounts since autumn 2026), then GitHub Models when GITHUB_MODELS_TOKEN is set (off in the
 workflows since 14 Nov 2026: models.github.ai answered plain "OK", no JSON). Both speak the
 OpenAI chat-completions format. A model is named "mistral:<id>" or
 "github:<id>" wherever common.ask_model takes a model name.
@@ -22,6 +31,8 @@ MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions"
 GITHUB_URL = "https://models.github.ai/inference/chat/completions"
 MISTRAL_MODEL = os.environ.get("MISTRAL_MODEL") or "mistral-large-latest"
 GITHUB_MODEL = os.environ.get("GITHUB_MODEL") or "openai/gpt-4.1-mini"
+CLOUDFLARE_MODEL = os.environ.get("CLOUDFLARE_AI_MODEL") or "llama-3.3-70b"   # a label; the Worker picks the model
+CLOUDFLARE_MAX_INPUT_TOKENS = int(os.environ.get("CLOUDFLARE_MAX_INPUT_TOKENS") or 20000)
 GITHUB_MAX_INPUT_TOKENS = int(os.environ.get("GITHUB_MAX_INPUT_TOKENS") or 7000)
 CHARS_PER_TOKEN = 3.5          # a rough estimate for mixed English and Swedish
 TIMEOUT = 300
@@ -32,7 +43,16 @@ class ProviderUnavailable(Exception):
     """Not configured, over its limits, too large a prompt, or down."""
 
 
+def _cloudflare():
+    """(url, client id, secret) for the app's Worker, or None."""
+    url = (os.environ.get("HOTMONITOR_URL") or "").rstrip("/")
+    cid, secret = os.environ.get("CF_ACCESS_CLIENT_ID"), os.environ.get("CF_ACCESS_CLIENT_SECRET")
+    return (url, cid, secret) if url and cid and secret else None
+
+
 def _key(provider: str):
+    if provider == "cloudflare":
+        return _cloudflare()
     if provider == "mistral":
         return os.environ.get("MISTRAL_API_KEY")
     if provider == "github":
@@ -45,6 +65,8 @@ def _key(provider: str):
 def configured() -> list:
     """The reserve model names this run can use, in order of the chain."""
     out = []
+    if _key("cloudflare") and os.environ.get("CLOUDFLARE_AI", "1") != "0":
+        out.append(f"cloudflare:{CLOUDFLARE_MODEL}")
     if _key("mistral"):
         out.append(f"mistral:{MISTRAL_MODEL}")
     if _key("github"):
@@ -53,7 +75,7 @@ def configured() -> list:
 
 
 def is_external(name: str) -> bool:
-    return bool(name) and (name.startswith("mistral:") or name.startswith("github:"))
+    return bool(name) and name.split(":", 1)[0] in ("cloudflare", "mistral", "github") and ":" in name
 
 
 def estimate_tokens(*texts) -> int:
@@ -67,6 +89,8 @@ def ask(name: str, prompt: str, system: str = None, max_tokens: int = 2000, want
     key = _key(provider)
     if not key:
         raise ProviderUnavailable(f"{provider}: no key")
+    if provider == "cloudflare":
+        return _ask_cloudflare(name, prompt, system, max_tokens, want_json)
     if provider == "github":
         need = estimate_tokens(prompt, system)
         if need > GITHUB_MAX_INPUT_TOKENS:
@@ -108,18 +132,52 @@ def ask(name: str, prompt: str, system: str = None, max_tokens: int = 2000, want
     raise ProviderUnavailable(f"{provider}: no answer")
 
 
+def _ask_cloudflare(name, prompt, system, max_tokens, want_json):
+    import httpx
+    need = estimate_tokens(prompt, system)
+    if need > CLOUDFLARE_MAX_INPUT_TOKENS:
+        raise ProviderUnavailable(f"cloudflare: prompt about {need} tokens, over {CLOUDFLARE_MAX_INPUT_TOKENS}")
+    url, cid, secret = _cloudflare()
+    messages = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": prompt}]
+    body = {"messages": messages, "max_tokens": min(max_tokens, 4000), "json": bool(want_json)}
+    headers = {"CF-Access-Client-Id": cid, "CF-Access-Client-Secret": secret,
+               "Content-Type": "application/json", "User-Agent": "hotmonitor-mac/1"}
+    for attempt in range(RETRIES + 1):
+        try:
+            r = httpx.post(url + "/api/ai/chat", headers=headers, json=body, timeout=TIMEOUT)
+        except httpx.TransportError as e:
+            if attempt == RETRIES:
+                raise ProviderUnavailable(f"cloudflare: {type(e).__name__}: {e}") from e
+            time.sleep(10 * (attempt + 1))
+            continue
+        if r.status_code == 200:
+            try:
+                data = r.json()
+            except ValueError:
+                raise ProviderUnavailable(f"cloudflare 200 but not JSON: {r.text[:200]!r}")
+            info = {"neurons": data.get("neurons"), "neurons_today": data.get("neurons_today"),
+                    "cap": data.get("cap"), "model": data.get("model")}
+            return data.get("text") or "", info
+        if attempt < RETRIES and r.status_code >= 500 and r.status_code != 502:
+            time.sleep(15 * (attempt + 1))
+            continue
+        raise ProviderUnavailable(f"cloudflare {r.status_code}: {r.text[:200]}")
+    raise ProviderUnavailable("cloudflare: no answer")
+
+
 def check():
     """One tiny call to each configured reserve model; prints the answer and
     the rate-limit headers, saving nothing."""
     names = configured()
     if not names:
-        print("  No reserve model configured (MISTRAL_API_KEY, GITHUB_MODELS_TOKEN)")
+        print("  No reserve model configured (HOTMONITOR_URL + CF_ACCESS_CLIENT_*, MISTRAL_API_KEY, GITHUB_MODELS_TOKEN)")
     for name in names:
         t = time.time()
         try:
             text, headers = ask(name, 'Svara med JSON {"ok": true, "sprak": "svenska"} och inget annat.',
                                 max_tokens=50, want_json=True)
-            limits = {k: v for k, v in headers.items() if "ratelimit" in k.lower() or k.lower() == "retry-after"}
+            limits = {k: v for k, v in headers.items() if "ratelimit" in k.lower() or k.lower() == "retry-after"
+                      or k in ("neurons", "neurons_today", "cap", "model")}
             print(f"  {name}: {time.time() - t:.1f}s  {text.strip()[:80]}")
             print(f"    limits: {json.dumps(limits) if limits else '(none reported)'}")
         except Exception as e:

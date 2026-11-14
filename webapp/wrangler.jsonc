@@ -16,6 +16,10 @@
     "run_worker_first": ["/", "/api/*", "/login", "/h/*", "/d/*", "/feed.xml", "/sitemap.xml", "/robots.txt"],
     "not_found_handling": "single-page-application"
   },
+  // Version 3.38: Workers AI, the reserve model after Gemini's (POST
+  // /api/ai/chat, service token only; free 10,000 Neurons a day, capped
+  // below it in worker.js).
+  "ai": { "binding": "AI" },
   "d1_databases": [
     {
       "binding": "DB",

@@ -991,3 +991,18 @@ times in 17 days, and the reserve model's days came out 1.0 lower):
   `band_conditions_met`, `next_band_partial`, `band_standing_conditions`;
   a manual review is `index_review` {date, from, to, note_sv}, shown under
   the index.
+
+## Version 3.38: Workers AI as the reserve model
+
+`POST /api/ai/chat` (service token only) runs Workers AI (binding `AI`,
+model `AI_MODEL`, default `@cf/meta/llama-3.3-70b-instruct-fp8-fast`).
+- **Body:** `{messages: [{role, content}], max_tokens, json}`, at most 20
+  messages and 4000 output tokens.
+- **Answer:** `{text, model, usage, neurons, neurons_today, cap}`.
+- **Daily cap:** the free allocation is 10,000 Neurons a day (UTC). The
+  table `ai_usage` (made at runtime) counts them. A call that could pass
+  `AI_DAILY_NEURONS` (default 9000) gets 429 before it is run.
+- **Errors:** a model error gives 502.
+- **Caller:** `src/model_providers.py` calls it as `cloudflare:<label>`,
+  first after Gemini's three models. GitHub Models was switched off on
+  14 Nov 2026.

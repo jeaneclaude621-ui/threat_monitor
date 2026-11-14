@@ -130,7 +130,20 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
 
 ## Förslag som väntar på beslut
 
-Inga just nu.
+### Värmekarta över händelser i Europa (önskemål 14 nov)
+En karta som visar var oroligheterna har inträffat, byggd på alla
+loggade händelser (`reports/*_report_data.json` i state-repot, sedan
+19 sep).
+- **Datum:** välj från–till-datum, och dra i ett reglage för att flytta
+  perioden.
+- **Underlaget i dag:** varje händelse har `countries` (landkoder) men
+  inga koordinater.
+  - Steg 1 kan vara en karta med länder färgade efter antal och vikt
+    (`score`).
+  - En riktig värmekarta med punkter kräver en plats per händelse. Den
+    kan tas fram med samma ortsuppslag som `strikes.py` använder, eller
+    med ett `place`-fält som modellen fyller i vid morgonsvepet.
+- **Var:** en ny vy under Mer, eller en del av fliken Narrativ.
 
 ## Klart
 

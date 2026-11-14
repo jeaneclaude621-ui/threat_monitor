@@ -8,3 +8,5 @@ import pytest
 def _no_reserve_keys(monkeypatch):
     for k in ("MISTRAL_API_KEY", "GITHUB_MODELS_TOKEN", "GITHUB_TOKEN"):
         monkeypatch.delenv(k, raising=False)
+    # Workers AI goes through the app's Worker (Version 3.38): off in tests.
+    monkeypatch.setenv("CLOUDFLARE_AI", "0")

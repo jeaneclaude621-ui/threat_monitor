@@ -432,6 +432,12 @@ async function dispatch(req, path, method, who) {
     return ingestAuthorities(request, env);
   }
 
+  if (path === '/api/ai/chat') {
+    allow(method, 'POST');
+    requireMachine(who);
+    return aiChat(request, env);
+  }
+
   if (path === '/api/ingest/trends') {
     allow(method, 'PUT');
     requireMachine(who);
@@ -1986,6 +1992,64 @@ async function ingestChannels(request, env) {
     env.DB.prepare("DELETE FROM channel_stats WHERE date < date('now', '-60 days')"),
   ]);
   return json({ ok: true });
+}
+
+// Version 3.38: Workers AI as the reserve model after Gemini's three, for the
+// scheduled jobs only (src/model_providers.py, "cloudflare:<model>"). The
+// free allocation is 10,000 Neurons a day (UTC); AI_DAILY_NEURONS keeps the
+// use under it, so a Workers Paid plan is never billed for this either. The
+// table is made here, like channel_stats.
+const AI_MODEL_DEFAULT = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+const AI_DAILY_NEURONS_DEFAULT = 9000;
+// Neurons per million tokens (Workers AI pricing), input and output.
+const AI_RATES = {
+  '@cf/meta/llama-3.3-70b-instruct-fp8-fast': [26668, 204805],
+};
+const AI_USAGE_TABLE = 'CREATE TABLE IF NOT EXISTS ai_usage (date TEXT PRIMARY KEY, neurons REAL NOT NULL, calls INTEGER NOT NULL)';
+function aiNeurons(model, input, output) {
+  const [i, o] = AI_RATES[model] || [100000, 400000];
+  return (input * i + output * o) / 1e6;
+}
+async function aiChat(request, env) {
+  if (!env.AI) throw new HttpError(503, 'Workers AI is not bound');
+  const b = await readJson(request);
+  if (!b || !Array.isArray(b.messages) || !b.messages.length || b.messages.length > 20) throw new HttpError(400, 'messages: 1 to 20');
+  for (const m of b.messages) {
+    if (!m || !['system', 'user', 'assistant'].includes(m.role) || typeof m.content !== 'string') throw new HttpError(400, 'each message needs a role and content');
+  }
+  const model = env.AI_MODEL || AI_MODEL_DEFAULT;
+  const cap = Number(env.AI_DAILY_NEURONS) || AI_DAILY_NEURONS_DEFAULT;
+  const maxTokens = Math.max(1, Math.min(Number(b.max_tokens) || 2000, 4000));
+  const chars = b.messages.reduce((n, m) => n + m.content.length, 0);
+  const estIn = Math.ceil(chars / 3.5);
+  const today = new Date().toISOString().slice(0, 10);
+  await env.DB.prepare(AI_USAGE_TABLE).run();
+  const row = await env.DB.prepare('SELECT neurons, calls FROM ai_usage WHERE date = ?').bind(today).first();
+  const used = row ? row.neurons : 0;
+  const worst = aiNeurons(model, estIn, maxTokens);
+  if (used + worst > cap) {
+    return json({ error: 'daily Workers AI allowance would be passed', neurons_today: Math.round(used), cap }, 429);
+  }
+  const input = { messages: b.messages, max_tokens: maxTokens, temperature: 0.2 };
+  if (b.json) input.response_format = { type: 'json_object' };
+  let out;
+  try {
+    out = await env.AI.run(model, input);
+  } catch (e) {
+    // A model without JSON mode: ask again without it (the prompt asks for JSON).
+    if (input.response_format) {
+      delete input.response_format;
+      try { out = await env.AI.run(model, input); } catch (e2) { e = e2; out = null; }
+    }
+    if (!out) return json({ error: `Workers AI: ${String(e && e.message || e).slice(0, 300)}` }, 502);
+  }
+  let text = out && out.response;
+  if (text && typeof text === 'object') text = JSON.stringify(text);
+  text = typeof text === 'string' ? text : '';
+  const u = (out && out.usage) || {};
+  const cost = aiNeurons(model, u.prompt_tokens || estIn, u.completion_tokens || Math.ceil(text.length / 3.5));
+  await env.DB.prepare('INSERT INTO ai_usage (date, neurons, calls) VALUES (?, ?, 1) ON CONFLICT(date) DO UPDATE SET neurons = neurons + excluded.neurons, calls = calls + 1').bind(today, cost).run();
+  return json({ text, model, usage: u, neurons: Math.round(cost), neurons_today: Math.round(used + cost), cap });
 }
 
 async function ingestForces(request, env) {

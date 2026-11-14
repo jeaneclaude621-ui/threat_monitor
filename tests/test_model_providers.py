@@ -49,3 +49,47 @@ def test_chain_without_reserves_raises():
         assert False
     except common.NoModelAvailable as e:
         assert "gemini spent" in str(e)
+
+
+def _cf_env(monkeypatch):
+    monkeypatch.setenv("CLOUDFLARE_AI", "1")
+    monkeypatch.setenv("HOTMONITOR_URL", "https://app.example")
+    monkeypatch.setenv("CF_ACCESS_CLIENT_ID", "id")
+    monkeypatch.setenv("CF_ACCESS_CLIENT_SECRET", "s")
+
+
+def test_cloudflare_comes_first(monkeypatch):
+    """Version 3.38: Workers AI through the app's Worker before Mistral."""
+    _cf_env(monkeypatch)
+    monkeypatch.setenv("MISTRAL_API_KEY", "x")
+    assert [n.split(":")[0] for n in P.configured()] == ["cloudflare", "mistral"]
+    assert P.is_external(P.configured()[0])
+
+
+def test_cloudflare_refuses_a_large_prompt(monkeypatch):
+    _cf_env(monkeypatch)
+    try:
+        P.ask("cloudflare:llama-3.3-70b", "x" * 200_000)
+        assert False, "should refuse"
+    except P.ProviderUnavailable as e:
+        assert "cloudflare" in str(e)
+
+
+def test_cloudflare_answer_and_over_allowance(monkeypatch):
+    _cf_env(monkeypatch)
+    import httpx
+    ok = httpx.Response(200, json={"text": '{"ok": true}', "neurons": 12, "neurons_today": 40, "cap": 9000, "model": "m"},
+                        request=httpx.Request("POST", "https://app.example/api/ai/chat"))
+    with mock.patch("httpx.post", return_value=ok) as post:
+        text, info = P.ask("cloudflare:llama-3.3-70b", "hej", want_json=True)
+    assert text == '{"ok": true}' and info["neurons_today"] == 40
+    assert post.call_args.args[0] == "https://app.example/api/ai/chat"
+    assert post.call_args.kwargs["json"]["json"] is True
+    full = httpx.Response(429, json={"error": "daily Workers AI allowance would be passed"},
+                          request=httpx.Request("POST", "https://app.example/api/ai/chat"))
+    with mock.patch("httpx.post", return_value=full):
+        try:
+            P.ask("cloudflare:llama-3.3-70b", "hej")
+            assert False, "should refuse"
+        except P.ProviderUnavailable as e:
+            assert "429" in str(e)
