@@ -79,14 +79,18 @@ def ask(name: str, prompt: str, system: str = None, max_tokens: int = 2000, want
         body["response_format"] = {"type": "json_object"}
     for attempt in range(RETRIES + 1):
         try:
-            r = httpx.post(url, headers=headers, json=body, timeout=TIMEOUT)
+            r = httpx.post(url, headers=headers, json=body, timeout=TIMEOUT, follow_redirects=False)
         except httpx.TransportError as e:
             if attempt == RETRIES:
                 raise ProviderUnavailable(f"{provider}: {type(e).__name__}: {e}") from e
             time.sleep(10 * (attempt + 1))
             continue
         if r.status_code == 200:
-            data = r.json()
+            try:
+                data = r.json()
+            except ValueError:
+                raise ProviderUnavailable(f"{provider} 200 but not JSON ({r.headers.get('content-type')}, "
+                                          f"{len(r.content)} bytes, url {r.url}): {r.text[:300]!r}")
             choice = (data.get("choices") or [{}])[0]
             if choice.get("finish_reason") == "length":
                 print(f"  ! {name} hit max_tokens={max_tokens} - output is truncated")
