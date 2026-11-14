@@ -718,19 +718,24 @@ Respond as strict JSON:
         # rather than losing the whole morning report.
         ladder = [(RESERVE_SWEEP_ARTICLES, RESERVE_SWEEP_EVENTS)] + RESERVE_SWEEP_SMALLER
         third = common.third_model()
+        import model_providers
+        # The reserve models in order: Gemini's light and third models, then
+        # Mistral and GitHub Models (Version 3.37; GitHub Models refuses a
+        # prompt this size and is passed over).
+        candidates = [m for m in [reserve, third] if m and m != common.MODEL] + model_providers.configured()
         for i, (n_articles, n_events) in enumerate(ladder):
             try:
-                try:
-                    result = ask_model_json(build(n_articles, n_events), system=SYSTEM,
-                                            max_tokens=22000, model=reserve, fallback=False)
-                except common.NoModelAvailable as e:
-                    # The reserve model overloaded or spent too: the third model (Version 3.25).
-                    if not third or third in (reserve, common.MODEL):
-                        raise
-                    print(f"  ! {reserve} unavailable for the sweep ({str(e)[:120]}); the sweep runs on {third} (third model)")
-                    reserve = third
-                    result = ask_model_json(build(n_articles, n_events), system=SYSTEM,
-                                            max_tokens=22000, model=reserve, fallback=False)
+                while True:
+                    try:
+                        result = ask_model_json(build(n_articles, n_events), system=SYSTEM,
+                                                max_tokens=22000, model=reserve, fallback=False)
+                        break
+                    except common.NoModelAvailable as e:
+                        later = candidates[candidates.index(reserve) + 1:] if reserve in candidates else []
+                        if not later:
+                            raise
+                        print(f"  ! {reserve} unavailable for the sweep ({str(e)[:120]}); the sweep runs on {later[0]}")
+                        reserve = later[0]
                 break
             except ValueError as e:
                 if i == len(ladder) - 1:

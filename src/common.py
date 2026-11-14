@@ -284,8 +284,32 @@ def main_model_failed(since: int = 0) -> bool:
     return any(c["fallback"] and c["requested"] == MODEL for c in MODEL_CALLS[since:])
 
 
+def _ask_external(name, prompt, system, max_tokens, want_json, requested):
+    """A call on a reserve model outside Gemini (model_providers), recorded
+    like the others. Raises model_providers.ProviderUnavailable."""
+    import model_providers
+    text, _ = model_providers.ask(name, prompt, system=system, max_tokens=max_tokens, want_json=want_json)
+    MODEL_CALLS.append({"model": name, "requested": requested, "fallback": name != requested})
+    return text.strip()
+
+
+def _external_chain(prompt, system, max_tokens, want_json, requested, why):
+    """After Gemini's own models (Version 3.37): Mistral, then GitHub Models,
+    as configured. Raises NoModelAvailable when none answers."""
+    import model_providers
+    tried = [why]
+    for ext in model_providers.configured():
+        print(f"  ! Gemini unavailable; this call runs on {ext} (reserve outside Gemini)")
+        try:
+            return _ask_external(ext, prompt, system, max_tokens, want_json, requested)
+        except model_providers.ProviderUnavailable as e:
+            print(f"  ! {ext} unavailable ({str(e)[:160]})")
+            tried.append(f"{ext}: {str(e)[:160]}")
+    raise NoModelAvailable("; ".join(tried))
+
+
 def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, model: str = None,
-              fallback: str = None) -> str:
+              fallback: str = None, want_json: bool = False) -> str:
     """Send a prompt to Gemini and return the text of the response. The
     model does not search (the free tier has no search grounding): the
     articles it should read go in the prompt (news_sources.py).
@@ -294,6 +318,12 @@ def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, model: st
     overloaded moves the call to the light model, which has its own quota,
     so a report is written rather than lost. `fallback` names another model
     for that (MODEL lets a light-model call fall back to the main one)."""
+    import model_providers
+    if model_providers.is_external(model):
+        try:
+            return _ask_external(model, prompt, system, max_tokens, want_json, model)
+        except model_providers.ProviderUnavailable as e:
+            raise NoModelAvailable(str(e)) from e
     from google.genai import types
     config = types.GenerateContentConfig(
         system_instruction=system,
@@ -319,12 +349,14 @@ def ask_model(prompt: str, system: str = None, max_tokens: int = 2000, model: st
             # Both spent or overloaded: the third model, with a quota of its own.
             third = third_model()
             if not third or third in (name, fallback):
-                raise NoModelAvailable(f"{name}: {str(e)[:200]}; {fallback}: {e2}") from e2
+                return _external_chain(prompt, system, max_tokens, want_json, name,
+                                       f"{name}: {str(e)[:200]}; {fallback}: {str(e2)[:200]}")
             print(f"  ! {fallback} unavailable too ({str(e2)[:120]}); this call runs on {third} (third model)")
             try:
                 response = _generate_with_retry(get_client(), prompt, config, third)
             except Exception as e3:
-                raise NoModelAvailable(f"{name}: {str(e)[:200]}; {fallback}: {str(e2)[:200]}; {third}: {str(e3)[:200]}") from e3
+                return _external_chain(prompt, system, max_tokens, want_json, name,
+                                       f"{name}: {str(e)[:200]}; {fallback}: {str(e2)[:200]}; {third}: {str(e3)[:200]}")
             used = third
     MODEL_CALLS.append({"model": used, "requested": name, "fallback": used != name})
 
@@ -377,7 +409,7 @@ def ask_model_json(prompt: str, system: str = None, max_tokens: int = 2000, mode
     that wrote it, never another one: one answer is written by one model
     (a recovery on another model would mix two models' work and hide which
     one wrote the result)."""
-    raw = ask_model(prompt, system=system, max_tokens=max_tokens, model=model, fallback=fallback)
+    raw = ask_model(prompt, system=system, max_tokens=max_tokens, model=model, fallback=fallback, want_json=True)
     answered = MODEL_CALLS[-1]["model"] if MODEL_CALLS else (model or MODEL)
     try:
         return extract_json(raw)
@@ -392,7 +424,7 @@ Your previous answer was cut off or was not valid JSON. Here it is:
 </previous_answer>
 
 Using ONLY the information in that previous answer, respond with the strict JSON object requested above and nothing else."""
-        raw2 = ask_model(recovery_prompt, system=system, max_tokens=max_tokens, model=answered, fallback=False)
+        raw2 = ask_model(recovery_prompt, system=system, max_tokens=max_tokens, model=answered, fallback=False, want_json=True)
         return extract_json(raw2)
 
 

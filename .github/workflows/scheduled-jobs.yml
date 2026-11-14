@@ -20,7 +20,7 @@ on:
       job:
         description: Job to run
         type: choice
-        options: [hourly, daily, forces, forces_survey, strikes, forces_images, repush, firms_check, forces_places, precision_sample, og_image]   # forces: the forces map alone (it also runs after daily); forces_images: the weekly photo job; repush: send the saved report and maps to the app again, no model calls; firms_check: is FIRMS_MAP_KEY valid (no state change); forces_places: place the last nights' other strikes again and print where (saves nothing)
+        options: [hourly, daily, forces, forces_survey, strikes, forces_images, repush, firms_check, forces_places, precision_sample, og_image, models_check]   # models_check: one tiny call to Mistral and GitHub Models (Version 3.37); forces: the forces map alone (it also runs after daily); forces_images: the weekly photo job; repush: send the saved report and maps to the app again, no model calls; firms_check: is FIRMS_MAP_KEY valid (no state change); forces_places: place the last nights' other strikes again and print where (saves nothing)
       test:
         description: "Test run: mail to the sender only, no app upload, nothing saved"
         type: boolean
@@ -34,6 +34,7 @@ on:
 # forces_images commits photos to this repo with the workflow token.
 permissions:
   contents: write
+  models: read   # GitHub Models as a reserve (Version 3.37)
 
 concurrency:
   group: run-state
@@ -61,6 +62,10 @@ jobs:
       - name: Run
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Reserve models after Gemini's (Version 3.37): Mistral when its key is set,
+          # then GitHub Models with this workflow's own token (permissions: models: read).
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          GITHUB_MODELS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           FORCES_SURVEY_MODEL: ${{ vars.FORCES_SURVEY_MODEL }}
           FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}   # NASA FIRMS (src/forces_firms.py); unset: the check is skipped
