@@ -1006,3 +1006,18 @@ model `AI_MODEL`, default `@cf/meta/llama-3.3-70b-instruct-fp8-fast`).
 - **Caller:** `src/model_providers.py` calls it as `cloudflare:<label>`,
   first after Gemini's three models. GitHub Models was switched off on
   14 Nov 2026.
+
+## Version 3.39: a tighter Idag
+
+Under the index, Idag now shows only the figures. The following are under
+"Om indexet" at the end of the Bedömning box:
+- the reserve-model chip;
+- the review note;
+- the code's checks and the forecast record;
+- "Vad betyder siffran?".
+
+Other changes:
+- The courses of action are a card of their own under the index.
+- The boxes are tighter.
+- On the courses map, a drone is a flying wing seen from above. Service
+  worker hm-v3.54.

@@ -1097,7 +1097,6 @@ async function viewReport(date, q) {
     sub: [best ? `Högsta trovärdighet ${fmtScore(best)}` : null, fresh ? `${fresh} nya` : null,
       selected.length ? `Filter: ${selected.map(facetLabel).join(' + ')}` : null].filter(Boolean).join(' · '),
     body: frag(
-      h('p', { class: 'hint' }, 'Siffran vid varje händelse är trovärdighet: hur väl uppgiften är bekräftad av källorna (1–10), inte hur allvarlig den är.'),
       // Into the Narrativ tab's Russian side, which still asks first.
       archived ? null : h('a', { class: 'ru-link', href: '#/narrativ?s=ru' },
         h('span', { class: 'ru-label' }, 'Rysk sida'), ' Visa det ryska narrativet', chevRight()),
@@ -1115,7 +1114,7 @@ async function viewReport(date, q) {
     kicker: updTime ? `${feedTitle} · senast ${updTime}` : feedTitle,
     title: lastUpd ? (lastUpd.title_sv || firstSentence(lastUpd.summary_sv, 90) || 'Uppdatering')
       : selected.length ? 'Inga uppdateringar för filtret' : 'Inga uppdateringar ännu i dag',
-    sub: feed.length ? plural(feed.length, 'uppdatering', 'uppdateringar') + (archived ? '' : ' · bevakade trådar kl. 12 och 21') : null,
+    sub: feed.length ? plural(feed.length, 'uppdatering', 'uppdateringar') : null,
     body: frag(
       feed.length ? h('div', { class: 'card list' }, (showAllFeed ? feed : feed.slice(0, FEED_PREVIEW)).map((u) => updateRow(u, reports))) : null,
       h('div', { class: 'sec-head' },
@@ -1127,14 +1126,14 @@ async function viewReport(date, q) {
 
   const authRow = archived ? null : authoritiesRow(brief);
   const coaRow = null;   // Version 3.33: a small link under the index instead
-  const assessBox = exParts.length || authRow || coaRow ? infoBox('as', {
+  const assessBox = infoBox('as', {
     iconEl: boxIcon(['M5 6h14', 'M5 12h14', 'M5 18h9']),
-    kicker: 'Bedömning och underlag',
+    kicker: 'Bedömning',
     title: firstSentence(outlookSv(exParts) || (ex && ex.index_line) || 'Hotbedömning, signaler, källor och metod', 110),
     sub: [exParts.length ? plural(exParts.length, 'avsnitt', 'avsnitt') : null, authRow ? 'myndigheter' : null, coaRow ? 'handlingsalternativ' : null]
       .filter(Boolean).join(' · '),
-    body: frag(authRow, coaRow, executiveBlock(ex)),
-  }) : null;
+    body: frag(authRow, coaRow, executiveBlock(ex), indexNotes(r)),
+  });
 
   return frag(
     date ? backLink('#/arkiv', 'Arkiv') : null,
@@ -1304,7 +1303,6 @@ function correctionBox(e) {
 }
 
 function heroCard(r) {
-  const oi = r.operator_influence;
   const hasF = r.threat_index_30d != null;
   const pct = (v) => `${Math.max(0, Math.min(100, Number(v) * 10))}%`;
   return h('section', { class: 'hero', 'aria-label': 'Hotindex' },
@@ -1320,22 +1318,32 @@ function heroCard(r) {
     h('div', { class: 'scale', role: 'img', 'aria-label': `Skala 0 till 10: i dag ${fmt1(r.threat_index)}${hasF ? `, prognos ${fmt1(r.threat_index_30d)}` : ''}` },
       h('div', { class: 'scale-fill', style: `width:${pct(r.threat_index)}` }),
       hasF ? h('div', { class: 'scale-tick', style: `left:${pct(r.threat_index_30d)}` }) : null),
-    // Version 3.36: a reserve-model day's index is held near the last
-    // main-model day's and marked preliminary until the 12/21 rescore.
+    // Version 3.39: the figures only. How the index came about (reserve
+    // model, review, the code's checks, the forecast's record) is under
+    // "Om indexet" in the assessment box (indexNotes).
+  );
+}
+
+// Version 3.39: what used to sit under the figures, for the assessment box.
+function indexNotes(r) {
+  const oi = r.operator_influence;
+  const notes = [
     r.index_preliminary
-      ? h('span', { class: 'hero-chip', title: `Reservmodellen skrev svepet och gav ${fmt1(r.index_preliminary.model_index)}; indexet hålls nära bedömningen ${dateShort(r.index_preliminary.held_from)} och räknas om kl. 12 eller 21` },
-        'Preliminärt – reservmodell, räknas om')
-      : r.generated_by && r.generated_by.fallback_used === true
-        ? h('span', { class: 'hero-chip', title: 'Huvudmodellen var överbelastad; delar av rapporten skrevs av reservmodellen' }, 'Delvis reservmodell – lägre säkerhet') : null,
+      ? h('div', { class: 'hero-note' }, h('strong', null, 'Preliminärt: '),
+        `Reservmodellen skrev svepet och gav ${fmt1(r.index_preliminary.model_index)}; indexet hålls nära bedömningen ${dateShort(r.index_preliminary.held_from)} och räknas om kl. 12 eller 21.`)
+      : null,
     r.index_review && r.index_review.note_sv
-      ? h('p', { class: 'hero-note' }, h('strong', null, `Granskat ${dateShort(r.index_review.date)}: `), r.index_review.note_sv) : null,
-    h('a', { class: 'hero-help', href: '#/om?s=index' }, 'Vad betyder siffran?'),
-    heroMore(r, oi));
+      ? h('div', { class: 'hero-note' }, h('strong', null, `Granskat ${dateShort(r.index_review.date)}: `), r.index_review.note_sv) : null,
+    ...(heroMore(r, oi, true) || []),
+    h('a', { class: 'small', href: '#/om?s=index' }, 'Vad betyder siffran?'),
+  ].filter(Boolean);
+  return h('details', { class: 'card idx-notes' }, h('summary', null, h('span', { class: 'acc-h' }, 'Om indexet'), chevRight()),
+    h('div', { class: 'idx-notes-body' }, notes));
 }
 
 // Operator influence, the code's checks and the forecast's track record:
 // folded away under the figures, open on a tap.
-function heroMore(r, oi) {
+function heroMore(r, oi, list = false) {
   const notes = [
     oi && Number(oi.index_delta)
       ? h('div', { class: 'hero-note' },
@@ -1349,6 +1357,7 @@ function heroMore(r, oi) {
     checksNote(r),
     forecastNote(r),
   ].filter(Boolean);
+  if (list) return notes;
   if (!notes.length) return null;
   return h('details', { class: 'hero-more' }, h('summary', null, 'Kontroller och prognos'), ...notes);
 }
@@ -2030,6 +2039,14 @@ const COA_TILES = {
   BLACK: [3, 6, 2, 1, 'Svarta havet', 'sea'],
 };
 // Map symbols, drawn as text in a small circle.
+// Version 3.39: a drone is a flying wing seen from above (nose up, a fin
+// at each wing tip), not an airliner; centred on 0,0, about 12 wide.
+const DRONE_PATH = 'M0 -6.6L0.9 -4.6V-1.4L6.6 3.1V5.6H5.6V4.6L1.3 4.2L0 5.6L-1.3 4.2L-5.6 4.6V5.6H-6.6V3.1L-0.9 -1.4V-4.6Z';
+function droneIcon() {
+  const svg = svgEl('svg', { viewBox: '-7 -7 14 14', width: 12, height: 12, 'aria-hidden': 'true' });
+  svg.appendChild(svgEl('path', { d: DRONE_PATH, fill: 'currentColor' }));
+  return svg;
+}
 const COA_SYMBOLS = { military: '▲', naval: '⚓', drone: '✈', sabotage: '✕', info: '!', proxy: '◆', nuclear: '☢', cable: '≈' };
 const COA_SYMBOL_SV = {
   military: 'Militär styrka', naval: 'Örlogs- eller fartygsrörelse', drone: 'Drönare', sabotage: 'Sabotage',
@@ -2081,7 +2098,8 @@ function coaMap(c) {
     const [cx, cy] = centre(code); const n = used[code] = (used[code] || 0) + 1;
     const x = cx + (n - 1) * 20 - 6; const y = cy + 8;
     svg.appendChild(svgEl('circle', { cx: x, cy: y, r: 9, class: `coa-sym ${sym}` }));
-    svg.appendChild(svgEl('text', { x, y: y + 4, class: 'coa-sym-t' }, COA_SYMBOLS[sym]));
+    if (sym === 'drone') svg.appendChild(svgEl('path', { d: DRONE_PATH, class: 'coa-drone', transform: `translate(${x} ${y}) scale(1.15)` }));
+    else svg.appendChild(svgEl('text', { x, y: y + 4, class: 'coa-sym-t' }, COA_SYMBOLS[sym]));
   }
   return svg;
 }
@@ -2091,7 +2109,7 @@ function coaLegend(c) {
   const syms = [...new Set(c.marks.map((m) => m[1]))];
   return h('div', { class: 'coa-legend' },
     kinds.map((k) => h('span', null, h('i', { class: `coa-line ${k}` }), COA_ARROW_SV[k])),
-    syms.map((sname) => h('span', null, h('b', { class: `coa-dot ${sname}` }, COA_SYMBOLS[sname]), COA_SYMBOL_SV[sname])));
+    syms.map((sname) => h('span', null, h('b', { class: `coa-dot ${sname}` }, sname === 'drone' ? droneIcon() : COA_SYMBOLS[sname]), COA_SYMBOL_SV[sname])));
 }
 
 // Version 3.33: a small link on Idag, under the index: each course's
@@ -2099,10 +2117,13 @@ function coaLegend(c) {
 function coursesLink(a) {
   if (!a || !Array.isArray(a.courses) || !a.courses.length) return null;
   const moved = a.courses.some((c) => c.previous_likelihood && c.previous_likelihood !== c.likelihood);
+  // Version 3.39: a card of its own, each course on a line, so it is seen.
   return h('a', { class: 'coa-link', href: '#/handlingsalternativ' },
-    h('span', { class: 'coa-link-label' }, 'Handlingsalternativ'),
-    h('span', { class: 'coa-link-vals' }, a.courses.map((c) => `${c.label} ${c.likelihood}`).join(' · ')),
-    moved ? h('span', { class: 'coa-link-new' }, 'ändrat') : null,
+    h('span', { class: 'coa-link-main' },
+      h('span', { class: 'coa-link-label' }, 'Rysslands handlingsalternativ',
+        moved ? h('span', { class: 'coa-link-new' }, 'ändrat') : null),
+      h('span', { class: 'coa-link-vals' }, a.courses.map((c) => h('span', { class: 'coa-link-val' },
+        c.label, ' ', h('b', null, c.likelihood))))),
     chevRight());
 }
 
