@@ -79,14 +79,14 @@ def test_cloudflare_answer_and_over_allowance(monkeypatch):
     _cf_env(monkeypatch)
     import httpx
     ok = httpx.Response(200, json={"text": '{"ok": true}', "neurons": 12, "neurons_today": 40, "cap": 9000, "model": "m"},
-                        request=httpx.Request("POST", "https://app.example/api/ai/chat"))
+                        request=httpx.Request("POST", "https://app.example/api/ingest/ai"))
     with mock.patch("httpx.post", return_value=ok) as post:
         text, info = P.ask("cloudflare:llama-3.3-70b", "hej", want_json=True)
     assert text == '{"ok": true}' and info["neurons_today"] == 40
-    assert post.call_args.args[0] == "https://app.example/api/ai/chat"
+    assert post.call_args.args[0] == "https://app.example/api/ingest/ai"
     assert post.call_args.kwargs["json"]["json"] is True
     full = httpx.Response(429, json={"error": "daily Workers AI allowance would be passed"},
-                          request=httpx.Request("POST", "https://app.example/api/ai/chat"))
+                          request=httpx.Request("POST", "https://app.example/api/ingest/ai"))
     with mock.patch("httpx.post", return_value=full):
         try:
             P.ask("cloudflare:llama-3.3-70b", "hej")

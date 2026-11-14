@@ -432,7 +432,7 @@ async function dispatch(req, path, method, who) {
     return ingestAuthorities(request, env);
   }
 
-  if (path === '/api/ai/chat') {
+  if (path === '/api/ingest/ai') {
     allow(method, 'POST');
     requireMachine(who);
     return aiChat(request, env);

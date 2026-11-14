@@ -994,7 +994,7 @@ times in 17 days, and the reserve model's days came out 1.0 lower):
 
 ## Version 3.38: Workers AI as the reserve model
 
-`POST /api/ai/chat` (service token only) runs Workers AI (binding `AI`,
+`POST /api/ingest/ai` (service token only) runs Workers AI (binding `AI`,
 model `AI_MODEL`, default `@cf/meta/llama-3.3-70b-instruct-fp8-fast`).
 - **Body:** `{messages: [{role, content}], max_tokens, json}`, at most 20
   messages and 4000 output tokens.

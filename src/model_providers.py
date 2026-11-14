@@ -3,7 +3,7 @@ Reserve models outside Gemini (Version 3.37), after Gemini's own three
 (main, light, third) are spent or overloaded.
 
 Version 3.38: first Cloudflare Workers AI through the app's own Worker
-(POST /api/ai/chat with the service token the jobs already have:
+(POST /api/ingest/ai with the service token the jobs already have:
 HOTMONITOR_URL and CF_ACCESS_CLIENT_*). Free up to 10,000 Neurons a day; the
 Worker stops below that (AI_DAILY_NEURONS) and answers 429, and the chain
 goes on. Llama 3.3 70B there takes about 24,000 tokens, so
@@ -144,7 +144,7 @@ def _ask_cloudflare(name, prompt, system, max_tokens, want_json):
                "Content-Type": "application/json", "User-Agent": "hotmonitor-mac/1"}
     for attempt in range(RETRIES + 1):
         try:
-            r = httpx.post(url + "/api/ai/chat", headers=headers, json=body, timeout=TIMEOUT)
+            r = httpx.post(url + "/api/ingest/ai", headers=headers, json=body, timeout=TIMEOUT)
         except httpx.TransportError as e:
             if attempt == RETRIES:
                 raise ProviderUnavailable(f"cloudflare: {type(e).__name__}: {e}") from e
