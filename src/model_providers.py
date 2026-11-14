@@ -19,12 +19,13 @@ import time
 
 MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions"
 GITHUB_URL = "https://models.github.ai/inference/chat/completions"
+GITHUB_LEGACY_URL = "https://models.inference.ai.azure.com/chat/completions"
 MISTRAL_MODEL = os.environ.get("MISTRAL_MODEL") or "mistral-large-latest"
 GITHUB_MODEL = os.environ.get("GITHUB_MODEL") or "openai/gpt-4.1-mini"
 GITHUB_MAX_INPUT_TOKENS = int(os.environ.get("GITHUB_MAX_INPUT_TOKENS") or 7000)
 CHARS_PER_TOKEN = 3.5          # a rough estimate for mixed English and Swedish
 TIMEOUT = 300
-RETRIES = 2                    # on 5xx, and on 429 with a short Retry-After
+RETRIES = 3                    # on 5xx, on 429 with a short Retry-After, and the GitHub endpoint switch
 
 
 class ProviderUnavailable(Exception):
@@ -72,6 +73,7 @@ def ask(name: str, prompt: str, system: str = None, max_tokens: int = 2000, want
     url = MISTRAL_URL if provider == "mistral" else GITHUB_URL
     headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "Accept": "application/json"}
     if provider == "github":
+        headers["Accept"] = "application/vnd.github+json"
         headers["X-GitHub-Api-Version"] = "2022-11-28"
     messages = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": prompt}]
     body = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": 0.2}
@@ -89,6 +91,16 @@ def ask(name: str, prompt: str, system: str = None, max_tokens: int = 2000, want
             try:
                 data = r.json()
             except ValueError:
+                # 14 Nov 2026: models.github.ai answered "OK" as text/plain.
+                # The older Azure-hosted endpoint takes the model id without
+                # its publisher prefix.
+                if provider == "github" and url == GITHUB_URL:
+                    url = GITHUB_LEGACY_URL
+                    body["model"] = model.split("/", 1)[-1]
+                    headers.pop("X-GitHub-Api-Version", None)
+                    headers["Accept"] = "application/json"
+                    print(f"  ! {name}: not JSON from {GITHUB_URL}; trying {GITHUB_LEGACY_URL}")
+                    continue
                 raise ProviderUnavailable(f"{provider} 200 but not JSON ({r.headers.get('content-type')}, "
                                           f"{len(r.content)} bytes, url {r.url}): {r.text[:300]!r}")
             choice = (data.get("choices") or [{}])[0]
