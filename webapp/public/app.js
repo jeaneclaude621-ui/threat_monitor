@@ -1320,8 +1320,15 @@ function heroCard(r) {
     h('div', { class: 'scale', role: 'img', 'aria-label': `Skala 0 till 10: i dag ${fmt1(r.threat_index)}${hasF ? `, prognos ${fmt1(r.threat_index_30d)}` : ''}` },
       h('div', { class: 'scale-fill', style: `width:${pct(r.threat_index)}` }),
       hasF ? h('div', { class: 'scale-tick', style: `left:${pct(r.threat_index_30d)}` }) : null),
-    r.generated_by && r.generated_by.fallback_used === true
-      ? h('span', { class: 'hero-chip', title: 'Huvudmodellen var överbelastad; rapporten skrevs av reservmodellen' }, 'Reservmodell i dag – lägre säkerhet') : null,
+    // Version 3.36: a reserve-model day's index is held near the last
+    // main-model day's and marked preliminary until the 12/21 rescore.
+    r.index_preliminary
+      ? h('span', { class: 'hero-chip', title: `Reservmodellen skrev svepet och gav ${fmt1(r.index_preliminary.model_index)}; indexet hålls nära bedömningen ${dateShort(r.index_preliminary.held_from)} och räknas om kl. 12 eller 21` },
+        'Preliminärt – reservmodell, räknas om')
+      : r.generated_by && r.generated_by.fallback_used === true
+        ? h('span', { class: 'hero-chip', title: 'Huvudmodellen var överbelastad; delar av rapporten skrevs av reservmodellen' }, 'Delvis reservmodell – lägre säkerhet') : null,
+    r.index_review && r.index_review.note_sv
+      ? h('p', { class: 'hero-note' }, h('strong', null, `Granskat ${dateShort(r.index_review.date)}: `), r.index_review.note_sv) : null,
     h('a', { class: 'hero-help', href: '#/om?s=index' }, 'Vad betyder siffran?'),
     heroMore(r, oi));
 }

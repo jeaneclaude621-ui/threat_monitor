@@ -345,6 +345,10 @@ def main() -> int:
         # morning, or the Air Force had not reported yet): fill them now.
         _, more = run_and_watch(["src/strikes.py", "retry"])
         warnings = warnings + more
+        # Today's index held as preliminary (the reserve model wrote the
+        # morning sweep): scored again on the main model if it answers now.
+        _, more = run_and_watch(["src/daily_report.py", "--rescore"])
+        warnings = warnings + more
     if args.job == "daily" and code == 0 and not args.test:
         # The day's shareable image (src/og_image.py), into the code repo so
         # the next deploy (deploy.yml runs after this workflow) serves it.

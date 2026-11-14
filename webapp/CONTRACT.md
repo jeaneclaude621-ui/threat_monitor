@@ -970,3 +970,24 @@ App only (webapp/public); no new endpoints.
 - src/strikes.py: a line with more shot down than launched (3 Nov: 81 and
   139) keeps its launched figure without the shot-down one; the night's
   total then carries `destroyed_partial` and the app says "minst".
+
+# Version 3.36 (14 Nov 2026) - a steadier threat index
+
+After an independent review (the index moved 0.6 a day, changed band 8
+times in 17 days, and the reserve model's days came out 1.0 lower):
+- A reserve-model sweep may not move the band: both indices are held within
+  0.3 of the last main-model day's (last 7 days), in its band, and the
+  report carries `index_preliminary` {held_from, model_index, model_band};
+  the 12:00 and 21:00 runs score it again on the main model
+  (`daily_report.py --rescore`, one call), which clears it.
+- The last 7 days' events about NATO/EU scored 7 or more are offered to the
+  model each day as band evidence, and count as standing conditions when
+  it names none.
+- A band of 7 or more must name a condition of its own kind (Article 4, a
+  kinetic incident on NATO soil, fatalities ...), or it drops a band.
+- At most one event about the war inside Ukraine only; the others go to
+  `also_reported`.
+- Reports keep what the band rests on: `band_evidence`,
+  `band_conditions_met`, `next_band_partial`, `band_standing_conditions`;
+  a manual review is `index_review` {date, from, to, note_sv}, shown under
+  the index.

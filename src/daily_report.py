@@ -12,6 +12,7 @@ Usage:
 """
 import argparse
 import json
+import re
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -346,6 +347,142 @@ def apply_index_rules(result, events, known_event_ids=None):
     return result
 
 
+# --------------------------------------------------------------------------
+# Version 3.36 (the independent review of 14 Nov 2026): the index moved 0.6
+# a day on average and changed band 8 times in 17 days, and the reserve
+# model's days came out 1.0 lower than the main model's (5.05 against 6.02).
+# --------------------------------------------------------------------------
+EVIDENCE_WINDOW_DAYS = 7      # band evidence carried by code this many days
+RESERVE_HOLD = 0.3            # a reserve-model day stays this close to the last main-model day
+UKRAINE_ONLY = {"RU", "UA", "BY", "KP"}   # an event about the war inside Ukraine only
+UKRAINE_ONLY_MAX = 1          # of the day's events; the rest go to also_reported
+# A band of 7 or more needs its own kind of condition named, not only more
+# of the band below (4 Nov: a Polish border operation and Norwegian
+# reinforcements were scored band 7).
+BAND_CONDITION_WORDS = {
+    7: re.compile(r"article\s*4|artikel\s*4|kinetic|kinetisk|struck|impact|crash|explo|shot down on|downed on|"
+                  r"fell on|landed on|on nato (soil|territory)", re.I),
+    8: re.compile(r"fatal|killed|dead|death|casualt|exchange of fire|fired on|d\u00f6d", re.I),
+    9: re.compile(r"article\s*5|artikel\s*5|sustained|exchange", re.I),
+    10: re.compile(r"\bwar\b|krig", re.I),
+}
+
+
+def is_ukraine_only(ev) -> bool:
+    c = set(ev.get("countries") or [])
+    return bool(c) and c <= UKRAINE_ONLY
+
+
+def evidence_events(reports, days: int = EVIDENCE_WINDOW_DAYS) -> list:
+    """[{id, date, title, score}] of the last `days` days' events that can
+    hold a band up: credibility MIN_BAND_SCORE or more (before the
+    operator), and about NATO/EU, not the war inside Ukraine only. Kept by
+    code and offered to the model as standing conditions each day."""
+    since = (date.today() - timedelta(days=days)).isoformat()
+    out = []
+    for d, r in reports:
+        if d < since:
+            continue
+        for e in r.get("events", []):
+            if e.get("id") and (_model_score(e) or 0) >= MIN_BAND_SCORE and not is_ukraine_only(e):
+                out.append({"id": e["id"], "date": d, "title": e.get("title") or e.get("title_sv") or "",
+                            "score": _model_score(e)})
+    return out
+
+
+def last_main_day(reports, days: int = EVIDENCE_WINDOW_DAYS):
+    """(date, index, band, index_30d, band_30d) of the newest report in the
+    last `days` days whose sweep ran on the main model, or None."""
+    since = (date.today() - timedelta(days=days)).isoformat()
+    for d, r in sorted(reports, key=lambda x: x[0], reverse=True):
+        sweep = ((r.get("generated_by") or {}).get("sweep") or {})
+        if d < since or sweep.get("reserve") or r.get("index_preliminary"):
+            continue
+        if r.get("threat_index") is not None and r.get("index_band"):
+            return d, r["threat_index"], r["index_band"], r.get("threat_index_30d"), r.get("index_band_30d")
+    return None
+
+
+def check_band_condition(result) -> list:
+    """A band of 7 or more must name a condition of its own kind in
+    band_conditions_met (BAND_CONDITION_WORDS); else it drops a band at a
+    time until one is named, its placement capped. Returns the checks."""
+    checks = []
+    for idx_key, band_key in (("threat_index", "index_band"), ("threat_index_30d", "index_band_30d")):
+        band, idx = result.get(band_key), result.get(idx_key)
+        named = " ".join(str(c) for c in (result.get("band_conditions_met") or []) + (result.get("next_band_partial") or [])
+                         if c) if band_key == "index_band" else " ".join(
+            str(c) for c in (result.get("next_band_partial_30d") or []) + [result.get("threat_index_30d_justification") or ""])
+        if not band or idx is None:
+            continue
+        start = band
+        while band >= 7 and band in BAND_CONDITION_WORDS and not BAND_CONDITION_WORDS[band].search(named):
+            band -= 1
+        if band != start:
+            result[band_key] = band
+            result[idx_key] = round(min(idx, band + PLACEMENT_CAP), 1)
+            label = "Index" if idx_key == "threat_index" else "30-dagarsindex"
+            checks.append(f"{label}: band {start} sänkt till {band}: inget villkor av band {start}:s slag "
+                          f"(t.ex. artikel 4 eller en kinetisk incident på Nato-mark) angavs.")
+            print(f"  ! {band_key} {start} names no condition of its own kind - lowered to {band}")
+    return checks
+
+
+def hold_reserve_day(result, reports) -> list:
+    """A reserve-model day may not move the band: both indices stay within
+    RESERVE_HOLD of the last main-model day's, in its band, and the day is
+    marked preliminary - the 12:00 and 21:00 runs score it again on the
+    main model (rescore_today). Returns the checks."""
+    main = last_main_day(reports)
+    if not main:
+        return []
+    d, idx0, band0, idx30, band30 = main
+    checks, before = [], {"threat_index": result.get("threat_index"), "index_band": result.get("index_band"),
+                          "threat_index_30d": result.get("threat_index_30d"), "index_band_30d": result.get("index_band_30d")}
+    for idx_key, band_key, ref, ref_band in (("threat_index", "index_band", idx0, band0),
+                                             ("threat_index_30d", "index_band_30d", idx30, band30)):
+        idx = result.get(idx_key)
+        if idx is None or ref is None or not ref_band:
+            continue
+        lo, hi = max(ref - RESERVE_HOLD, ref_band - 0.5), min(ref + RESERVE_HOLD, ref_band + 0.5)
+        held = round(min(max(idx, lo), hi), 1)
+        if held != idx or result.get(band_key) != ref_band:
+            result[idx_key], result[band_key] = held, ref_band
+    if any(result.get(k) != v for k, v in before.items()):
+        checks.append(f"Reservmodellen skrev svepet: index hålls nära senaste bedömning av huvudmodellen "
+                      f"({_sv(idx0)}, band {band0}, {d}) och räknas om kl. 12 eller 21. Reservmodellen gav "
+                      f"{_sv(before['threat_index'])} (band {before['index_band']}).")
+        print(f"  ! Reserve-model day: index {before['threat_index']} held to {result['threat_index']} "
+              f"(band {result['index_band']}, from {d}); preliminary")
+    result["index_preliminary"] = {"held_from": d, "model_index": before["threat_index"],
+                                   "model_band": before["index_band"]}
+    return checks
+
+
+def limit_ukraine_only(result) -> int:
+    """At most UKRAINE_ONLY_MAX events about the war inside Ukraine only
+    (the method: it does not move the index); the others go to
+    also_reported, and band_evidence is renumbered. Returns how many moved."""
+    events = result.get("events") or []
+    ua = sorted((i for i, e in enumerate(events) if is_ukraine_only(e)),
+                key=lambda i: -(_model_score(events[i]) or 0))
+    drop = set(ua[UKRAINE_ONLY_MAX:])
+    if not drop:
+        return 0
+    keep = [i for i in range(len(events)) if i not in drop]
+    renum = {old + 1: new + 1 for new, old in enumerate(keep)}
+    result["band_evidence"] = [renum[n] for n in result.get("band_evidence") or [] if isinstance(n, int) and n in renum]
+    for i in sorted(drop):
+        e = events[i]
+        result.setdefault("also_reported", []).append({
+            "title_sv": e.get("title_sv") or e.get("title") or "",
+            "refs": [{k: a[k] for k in ("id", "outlet", "title", "url", "tier", "published") if k in a}
+                     for a in e.get("articles") or [] if a.get("url")]})
+    result["events"] = [events[i] for i in keep]
+    print(f"  {len(drop)} event(s) about the war inside Ukraine only moved to also_reported")
+    return len(drop)
+
+
 EDGE_STREAK = 3
 
 
@@ -452,6 +589,10 @@ def run_broad_sweep(state, hourly_entries, pool, contradicted=(), forecast_accur
                                               for a in e.get("articles", []) if a.get("title"))
         for d, r in recent for e in r.get("events", [])) or "(none)"
     known_ids = known_event_ids()
+    week = load_recent_reports(EVIDENCE_WINDOW_DAYS)
+    evidence = evidence_events(week)
+    evidence_desc = "\n".join(f"- {e['date']} [{e['id']}] (credibility {e['score']}): {e['title']}"
+                              for e in evidence) or "(none)"
     recent_ids = {e.get("id") for _, r in recent for e in r.get("events", [])}
     older_desc = "\n".join(f"- [{i}] {t}" for i, t in sorted(known_ids.items()) if i not in recent_ids) or "(none)"
     threads_desc = "\n".join(f"- {t['id']}: {t['label']}" for t in state["watchlist"])
@@ -517,10 +658,21 @@ Earlier events (ids, up to {STANDING_WINDOW_DAYS} days back) a standing conditio
 name; contradicted ones are left out:
 {older_desc}
 
+Band evidence of the last {EVIDENCE_WINDOW_DAYS} days, kept by code: earlier events about
+NATO/EU scored {MIN_BAND_SCORE} or more. A condition one of them established (an
+interception, an attributed sabotage, a force posture change) still holds
+unless today's reporting shows it ended: list each that still holds in
+"band_standing_conditions" with its event_id. Do not let the band fall only
+because today's list happens to lack such an event:
+{evidence_desc}
+
 Produce:
 1. Up to {n_events} of the most important events from the last 24h, each scored
    for credibility per the tiers above, with the corroborating outlets named.
    {count_rule}
+   At most {UKRAINE_ONLY_MAX} event may be about the war inside Ukraine only (strikes
+   between Russia and Ukraine with no NATO/EU party): it does not move the
+   index, and the strike map shows it. Put the others in "also_reported".
    {SWEEP_EVENT_FIELDS}
    Watchlist threads (for "thread_id"):
 {threads_desc}
@@ -599,8 +751,17 @@ Respond as strict JSON:
     result["also_reported"] = verify_also_reported(result.get("also_reported"), date.today().isoformat(),
                                                    common.LAST_SEARCH_RESULTS, result.get("events", []))
     trace = operator_weight.apply_to_events(result.get("events", []))
+    # Version 3.36: the week's band evidence counts as standing conditions
+    # even when the model names none (the reserve model never does).
+    if not result.get("band_standing_conditions") and evidence:
+        result["band_standing_conditions"] = [{"condition": e["title"], "established": e["date"],
+                                               "event_id": e["id"], "by": "code"} for e in evidence]
     apply_index_rules(result, result.get("events", []), set(known_ids))
+    result["index_checks"] = result.get("index_checks", []) + check_band_condition(result)
+    if result.get("sweep_reduced"):
+        result["index_checks"] += hold_reserve_day(result, week)
     result["operator_influence"] = operator_weight.apply_to_index(result, trace)
+    limit_ukraine_only(result)
     idx = result.get("threat_index")
     if prior is not None and idx is not None and abs(idx - prior) >= 1.5:
         print(f"  ! Threat index moved {prior} -> {idx} in one day - check the justification")
@@ -898,7 +1059,8 @@ def run_daily_report():
     state["threat_index_history"].append({"date": today.isoformat(), "value": sweep["threat_index"],
                                           "value_30d": sweep.get("threat_index_30d"),
                                           "band": sweep.get("index_band"),
-                                          "band_30d": sweep.get("index_band_30d")})
+                                          "band_30d": sweep.get("index_band_30d"),
+                                          "preliminary": bool(sweep.get("index_preliminary"))})
     state["threat_index_history"] = state["threat_index_history"][-180:]
     warn_band_edge(state["threat_index_history"])
 
@@ -911,6 +1073,12 @@ def run_daily_report():
         "threat_reading": sweep.get("threat_index_justification", ""),
         "index_band": sweep.get("index_band"),
         "index_checks": sweep.get("index_checks", []),
+        # Version 3.36: what the band rests on, kept for review.
+        "band_evidence": sweep.get("band_evidence", []),
+        "band_conditions_met": sweep.get("band_conditions_met", []),
+        "next_band_partial": sweep.get("next_band_partial", []),
+        "band_standing_conditions": sweep.get("band_standing_conditions", []),
+        "index_preliminary": sweep.get("index_preliminary"),
         "threat_index_30d": sweep.get("threat_index_30d"),
         "index_band_30d": sweep.get("index_band_30d"),
         "forecast_accuracy": forecast_accuracy,
@@ -972,12 +1140,94 @@ def run_daily_report():
     print("Daily report done.\n")
 
 
+def rescore_today() -> bool:
+    """Version 3.36, for the 12:00 and 21:00 runs: today's index, held as
+    preliminary because the reserve model wrote the morning sweep, scored
+    again on the main model - one call, today's events as they stand, the
+    same rules. Does nothing when the index is not preliminary or the main
+    model is still unavailable. Returns whether it changed the report."""
+    today = date.today().isoformat()
+    path = OUTPUT_DIR / f"{today}_report_data.json"
+    if not path.exists():
+        return False
+    report = json.loads(path.read_text(encoding="utf-8"))
+    if not report.get("index_preliminary"):
+        return False
+    state = load_state()
+    m = state["methodology"]
+    events = report.get("events", [])
+    evidence = evidence_events(load_recent_reports(EVIDENCE_WINDOW_DAYS))
+    events_desc = "\n".join(
+        f"{i}. [{e.get('id')}] credibility {_model_score(e)} | {', '.join(e.get('countries') or [])} | "
+        f"{e.get('title') or e.get('title_sv')}: {e.get('detail') or e.get('summary_sv') or ''}"
+        for i, e in enumerate(events, start=1)) or "(none)"
+    evidence_desc = "\n".join(f"- {e['date']} [{e['id']}] (credibility {e['score']}): {e['title']}"
+                              for e in evidence) or "(none)"
+    prompt = f"""Today's events, already scored for credibility, numbered for "band_evidence":
+{events_desc}
+
+Band evidence of the last {EVIDENCE_WINDOW_DAYS} days, kept by code (still holding unless
+today's reporting shows it ended; name each that holds in "band_standing_conditions"):
+{evidence_desc}
+
+{index_instructions(m)}
+Respond as strict JSON with exactly these fields:
+{{
+{INDEX_JSON_FIELDS.rstrip(',')}
+}}"""
+    try:
+        result = ask_model_json(prompt, system=SYSTEM, max_tokens=6000, model=common.MODEL, fallback=False)
+    except common.NoModelAvailable as e:
+        print(f"  Index still preliminary: the main model is unavailable ({str(e)[:120]})")
+        return False
+    if not result.get("band_standing_conditions") and evidence:
+        result["band_standing_conditions"] = [{"condition": e["title"], "established": e["date"],
+                                               "event_id": e["id"], "by": "code"} for e in evidence]
+    enforce_bands(result)
+    apply_index_rules(result, events, set(known_event_ids()))
+    checks = result.get("index_checks", []) + check_band_condition(result)
+    delta = ((report.get("operator_influence") or {}).get("index_delta")) or 0
+    if delta and result.get("index_band") and result.get("threat_index") is not None:
+        b = result["index_band"]
+        result["threat_index"] = round(min(max(result["threat_index"] + delta, b - 0.5), b + 0.5), 1)
+    was = report.get("threat_index")
+    report.update({
+        "threat_index": result.get("threat_index"), "index_band": result.get("index_band"),
+        "threat_index_30d": result.get("threat_index_30d"), "index_band_30d": result.get("index_band_30d"),
+        "threat_reading": result.get("threat_index_justification", report.get("threat_reading", "")),
+        "threat_reading_30d": result.get("threat_index_30d_justification", report.get("threat_reading_30d", "")),
+        "forecast_drivers": result.get("forecast_drivers") or report.get("forecast_drivers", []),
+        "band_evidence": result.get("band_evidence", []), "band_conditions_met": result.get("band_conditions_met", []),
+        "next_band_partial": result.get("next_band_partial", []),
+        "band_standing_conditions": result.get("band_standing_conditions", []),
+        "index_checks": [f"Omräknat {datetime.now():%H:%M} med huvudmodellen: morgonens index var preliminärt "
+                         f"({_sv(was)}, hållet nära senaste huvudmodellsdag)."] + checks,
+        "index_preliminary": None,
+    })
+    report.setdefault("generated_by", {})["index_rescored"] = {"at": datetime.now().isoformat(timespec="minutes"),
+                                                               "model": common.MODEL}
+    path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    hist = state.get("threat_index_history", [])
+    for h in hist:
+        if h.get("date") == today:
+            h.update({"value": report["threat_index"], "value_30d": report.get("threat_index_30d"),
+                      "band": report.get("index_band"), "band_30d": report.get("index_band_30d"), "preliminary": False})
+    save_state(state)
+    print(f"  Index rescored on the main model: {was} -> {report['threat_index']} (band {report['index_band']})")
+    from app_sync import push_report
+    push_report(report)
+    return True
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--resolve", choices=["accept", "deny"], help="Resolve the pending methodology proposal instead of running the report.")
+    parser.add_argument("--rescore", action="store_true", help="Score today's preliminary index again on the main model.")
     args = parser.parse_args()
 
     if args.resolve:
         resolve_proposal(load_state(), args.resolve)
+    elif args.rescore:
+        rescore_today()
     else:
         run_daily_report()
