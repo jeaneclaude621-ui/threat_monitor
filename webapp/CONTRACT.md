@@ -1063,3 +1063,23 @@ The date fields follow the slider, and the slider follows the date fields.
 buttons.
 
 Service worker hm-v3.57.
+
+## Version 3.42: the guest counter
+
+The Worker counts guests: people who read without an account.
+- **Visitor code:** a SHA-256 of the day's random salt, the IP and the
+  User-Agent, cut to 20 hex.
+- **Salt:** `meta` key `guest_salt:<day>`, made new each UTC day, with
+  the old one deleted. Nothing can be traced back or followed across days.
+- **Table:** `guest_visits` (day, vid, first_ts, hits, sections), made at
+  runtime. `sections` is a bit set of the parts read: start, idag,
+  rapporter, styrkor, narrativ, myndigheter, handlingsalternativ.
+- **Not counted:** bots.
+- **Retention:** rows are deleted after 60 days.
+- **Status:** `/api/admin/status` gets `guests` {today, last7, days[14],
+  sections (7 days)}, shown on Status under "Gäster utan konto".
+
+`app_sync.py repush` also re-uploads reports with an `index_review` from
+the last week.
+
+Service worker hm-v3.58.

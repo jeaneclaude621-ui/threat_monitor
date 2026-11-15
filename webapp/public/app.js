@@ -4681,7 +4681,33 @@ async function adminStatus() {
         statTile('Händelser', String(c.events ?? '–')),
         statTile('Bedömningar', String(c.assessments ?? '–')),
         statTile('Användare', String(c.users ?? '–')))),
+    guestsSection(s.guests),
     releaseNotesSection());
+}
+
+// Version 3.42: guests who read without an account, counted without cookies
+// or addresses (a code that changes every day; worker.js recordGuest).
+function guestsSection(g) {
+  if (!g) return null;
+  const days = Array.isArray(g.days) ? g.days.slice().reverse() : [];
+  const max = Math.max(1, ...days.map((d) => d.guests));
+  const labels = g.labels || {};
+  const secs = Object.entries(g.sections || {}).filter(([k]) => k !== 'start').sort((a, b) => b[1] - a[1]);
+  return h('section', { class: 'section' },
+    h('h2', { class: 'kicker' }, 'Gäster utan konto'),
+    h('section', { class: 'stat-grid' },
+      statTile('I dag', String(g.today ?? 0)),
+      statTile('Senaste 7 dagarna', String(g.last7 ?? 0))),
+    days.length ? h('div', { class: 'card card-pad' },
+      h('div', { class: 'gbars', role: 'img', 'aria-label': `Gäster per dag: ${days.map((d) => `${dateShort(d.day)} ${d.guests}`).join(', ')}` },
+        days.map((d) => h('div', { class: 'gbar' },
+          h('span', { class: 'gbar-n' }, String(d.guests)),
+          h('i', { style: `height:${Math.max(4, Math.round((56 * d.guests) / max))}px` }),
+          h('span', { class: 'gbar-d' }, d.day.slice(8, 10))))),
+      secs.some(([, n]) => n) ? h('p', { class: 'small', style: 'margin-top:10px' }, h('b', null, 'Läste senaste 7 dagarna: '),
+        secs.filter(([, n]) => n).map(([k, n]) => `${labels[k] || k} ${n}`).join(' · ')) : null)
+      : h('p', { class: 'small muted' }, 'Inga gäster räknade ännu.'),
+    h('p', { class: 'small muted' }, 'En gäst är en webbläsare per dygn. Inga kakor och inga adresser sparas: koden byts varje dygn, så samma person räknas en gång per dag och kan inte följas mellan dagar. Sökmotorer och robotar räknas inte.'));
 }
 
 async function adminAudit() {

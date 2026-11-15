@@ -183,6 +183,7 @@ async function route(req) {
   // Version 3.23: one small, long-cached package for guests (K3, step one).
   if (path === '/api/public/latest' && env.PUBLIC_READ === '1') {
     if (method !== 'GET' && method !== 'HEAD') throw new HttpError(405, 'method not allowed');
+    if (id.kind === 'invalid') countGuest(req, path);
     return publicLatest(req);
   }
   // Version 3.31: an invitation link, for anyone holding it (logged in or not).
@@ -675,8 +676,98 @@ function edgeCache() {
 }
 const edgeCacheUrl = (origin, key) => `${origin}/__guest-cache${key}`;
 
+// ---------------------------------------------------------------------------
+// Version 3.42: the guest counter. How many different guests read the app a
+// day, and which parts. No cookie and no address is kept: a visitor is a
+// SHA-256 of the day's random salt, the IP and the browser, and the salt is
+// made new every day (UTC) and the old one deleted, so a code cannot be
+// traced back, nor followed from one day to the next. Rows go after 60 days.
+const GUEST_VISITS_TABLE = `CREATE TABLE IF NOT EXISTS guest_visits (
+  day TEXT NOT NULL, vid TEXT NOT NULL, first_ts TEXT NOT NULL, hits INTEGER NOT NULL,
+  sections INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, vid))`;
+const GUEST_SECTIONS = [
+  ['start', (p) => p === '/api/me' || p === '/api/public/latest'],
+  ['idag', (p) => p === '/api/reports' || p === '/api/updates' || p === '/api/notices'],
+  ['rapporter', (p) => p.startsWith('/api/reports/')],
+  ['styrkor', (p) => p === '/api/strikes' || p === '/api/forces'],
+  ['narrativ', (p) => p === '/api/trends' || p === '/api/channels'],
+  ['myndigheter', (p) => p === '/api/authorities'],
+  ['handlingsalternativ', (p) => p === '/api/courses'],
+];
+const GUEST_SECTION_SV = { start: 'Öppnade appen', idag: 'Idag', rapporter: 'Rapporter och händelser', styrkor: 'Styrkor',
+  narrativ: 'Narrativ', myndigheter: 'Myndigheter', handlingsalternativ: 'Handlingsalternativ' };
+const BOT_UA = /bot|crawl|spider|slurp|preview|facebookexternalhit|curl|wget|python|httpx|go-http|headless|lighthouse|monitor/i;
+let guestSalt = null;   // per isolate: {day, salt}
+const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+
+async function daySalt(env, day) {
+  if (guestSalt && guestSalt.day === day) return guestSalt.salt;
+  const key = `guest_salt:${day}`;
+  let row = await env.DB.prepare('SELECT value FROM meta WHERE key = ?').bind(key).first();
+  if (!row) {
+    const salt = hex(crypto.getRandomValues(new Uint8Array(16)));
+    await env.DB.batch([
+      env.DB.prepare('INSERT OR IGNORE INTO meta (key, value) VALUES (?, ?)').bind(key, salt),
+      env.DB.prepare("DELETE FROM meta WHERE key LIKE 'guest_salt:%' AND key <> ?").bind(key),
+    ]);
+    row = await env.DB.prepare('SELECT value FROM meta WHERE key = ?').bind(key).first();
+  }
+  guestSalt = { day, salt: row.value };
+  return guestSalt.salt;
+}
+
+async function recordGuest(env, request, path) {
+  const ua = request.headers.get('User-Agent') || '';
+  if (!ua || BOT_UA.test(ua)) return;
+  const ix = GUEST_SECTIONS.findIndex(([, test]) => test(path));
+  if (ix < 0) return;
+  const now = new Date();
+  const day = now.toISOString().slice(0, 10);
+  const ip = request.headers.get('CF-Connecting-IP') || '';
+  const salt = await daySalt(env, day);
+  const vid = hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${salt}|${ip}|${ua}`))).slice(0, 20);
+  const batch = [
+    env.DB.prepare(GUEST_VISITS_TABLE),
+    env.DB.prepare(`INSERT INTO guest_visits (day, vid, first_ts, hits, sections) VALUES (?, ?, ?, 1, ?)
+      ON CONFLICT(day, vid) DO UPDATE SET hits = hits + 1, sections = sections | excluded.sections`)
+      .bind(day, vid, now.toISOString(), 1 << ix),
+  ];
+  if (now.getUTCMinutes() === 0) batch.push(env.DB.prepare("DELETE FROM guest_visits WHERE day < date('now', '-60 days')"));
+  await env.DB.batch(batch);
+}
+
+function countGuest(req, path) {
+  if (req.request.method !== 'GET') return;
+  const p = recordGuest(req.env, req.request, path).catch((e) => console.error('guest count failed', e && e.message));
+  if (req.ctx && req.ctx.waitUntil) req.ctx.waitUntil(p);
+}
+
+/** For Status: different guests a day (the last 14 days) and the parts they read (7 days). */
+async function guestStats(env) {
+  try {
+    const days = await env.DB.prepare(
+      `SELECT day, COUNT(*) AS guests, SUM(hits) AS hits FROM guest_visits
+       WHERE day >= date('now', '-13 days') GROUP BY day ORDER BY day DESC`).all();
+    const week = await env.DB.prepare(
+      `SELECT sections FROM guest_visits WHERE day >= date('now', '-6 days')`).all();
+    const sections = Object.fromEntries(GUEST_SECTIONS.map(([k]) => [k, 0]));
+    for (const r of week.results || []) GUEST_SECTIONS.forEach(([k], i) => { if (r.sections & (1 << i)) sections[k] += 1; });
+    const list = days.results || [];
+    const today = new Date().toISOString().slice(0, 10);
+    return {
+      today: (list.find((d) => d.day === today) || {}).guests || 0,
+      last7: list.filter((d) => d.day >= new Date(Date.now() - 6 * 864e5).toISOString().slice(0, 10)).reduce((n, d) => n + d.guests, 0),
+      days: list, sections, labels: GUEST_SECTION_SV,
+    };
+  } catch (e) {
+    if (/no such table/i.test(String(e && e.message))) return { today: 0, last7: 0, days: [], sections: {}, labels: GUEST_SECTION_SV };
+    throw e;
+  }
+}
+
 /** A guest's read: the same answer as a user's, without names, cached a minute. */
 async function guestRead(req, path) {
+  countGuest(req, path);
   const key = guestKey(path, req.url.search);
   const now = Date.now();
   const hit = guestCache.get(key);
@@ -1716,6 +1807,7 @@ async function status(env) {
     last_machine_pull_at: pull ? pull.value : null,
     counts: { reports: reports.n, events: reports.events, assessments: assessments.n, users: users.n },
     service_token_expires: env.SERVICE_TOKEN_EXPIRES || null,
+    guests: await guestStats(env),
     runs: await runsStatus(env, Date.now(), invites.n, invitePull ? invitePull.value : null),
   });
 }

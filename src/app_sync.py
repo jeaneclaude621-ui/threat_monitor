@@ -281,14 +281,16 @@ if __name__ == "__main__":
         reports = sorted(OUTPUT_DIR.glob("*_report_data.json"))
         if reports:
             push_report(json.load(open(reports[-1], encoding="utf-8")))
-        # Older reports with a correction made in the last week (one set
-        # by hand, as on 10 Nov for 5 Nov's old LSM article) go up again too.
+        # Older reports with a correction or an index review made in the
+        # last week (set by hand, as on 10 Nov for 5 Nov's old LSM article,
+        # or on 15 Nov for 4 and 7 Nov's index) go up again too.
         from datetime import date as _date, timedelta as _td
         week_ago = (_date.today() - _td(days=7)).isoformat()
         for p in reports[-30:-1]:
             rep = json.load(open(p, encoding="utf-8"))
-            if any((e.get("correction") or {}).get("date", "") >= week_ago for e in rep.get("events", [])):
-                print(f"  Re-uploading {rep.get('date')}: it has a recent correction")
+            reviewed = (rep.get("index_review") or {}).get("date", "") >= week_ago
+            if reviewed or any((e.get("correction") or {}).get("date", "") >= week_ago for e in rep.get("events", [])):
+                print(f"  Re-uploading {rep.get('date')}: it has a recent {'index review' if reviewed else 'correction'}")
                 push_report(rep)
         import courses, forces, strikes
         c = courses.load()
