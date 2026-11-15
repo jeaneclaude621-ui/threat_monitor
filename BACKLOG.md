@@ -73,9 +73,7 @@ Användaren vill använda molnkrediterna. Starta därför långa jobb som en ege
 session på claude.ai/code, och skriv instruktionen till en fil i grenen.
 
 **Kvar att göra:**
-1. Nästa bildjobb körs onsdag 11 nov. Granska loggen och bilderna
-   efteråt; ta bort bilder som inte visar en bas, ett flygplan eller ett
-   fartyg, och deras `image` i `bases.json`.
+1. Granska bildjobbets logg efter varje onsdagskörning (11 nov: inga nya bilder).
 2. Valfritt: frontlinjen som kartlager, om DeepStateMap ger skriftligt
    tillstånd att återpublicera geometrin (steg 5 i
    `config/forces_db/TREDJE_OMGANGEN.md`).
@@ -98,26 +96,19 @@ manuellt efter kl. 09 dagen före en natt, för då kan 04-körningen få slut
 på kvoten (det hände 2 nov). Flash-lite har en egen kvot och används av
 veckosökningen och som reserv.
 
-### Telegram-filtret: kontrollera effekten
-*Lagt till 2026-11-02.* Den 2 nov rörde ungefär 11–15 av de 40 senaste
-ryska posterna inte Nato, Europa eller grannländerna. Exempel: fältpräster i
-Luhansk, Vernadskij, Kozlov, bäverbygge i Novosibirsk, hockey-VM och Hegseth.
-Det översättningsanrop som redan körs varje dag markerar nu ryska inlägg med
-`on_topic` (`src/trends.py`). Inlägg utanför ämnet sparas med
-`off_topic`, men skickas inte till appen och räknas inte in i
-dagssammanfattningen. Redan inlagda poster i D1 försvinner när de blir för
-gamla.
-
-Kolla om ett par dagar:
-`npx wrangler d1 execute hotmonitor --remote --command "SELECT place, title_sv FROM trends WHERE side='ru' ORDER BY last_seen DESC LIMIT 40"`
-Om mer än en av fem fortfarande är utanför ämnet: kräv också två träffar
-på `RU_TOPIC`.
-
 ### Håll koll på trådbevakningens klassning
-*Lagt till 2026-10-31. Kontrollerat 2026-11-02.* De senaste körningarna gav
+*Lagt till 2026-10-31. Kontrollerat 2026-11-02 och 2026-11-15.* De senaste körningarna gav
 2, 5 respektive 2 av 6 trådar som "ny utveckling". Ingen ändring behövs än.
 Om det går tillbaka till nästan alla trådar varje gång, skärp instruktionen i
 `src/hourly_monitor.py`.
+
+### Ge deploynyckeln behörigheten D1 Edit
+*Lagt till 2026-11-15.* GitHub-hemligheten `CLOUDFLARE_API_TOKEN` saknar
+D1 Edit. Därför hoppas steget "Database migrations" i `deploy.yml` tyst
+över, och 0014 och 0015 fick köras för hand 15 nov.
+- **Fixa:** lägg till Account → D1 → Edit på nyckeln i Cloudflares
+  kontrollpanel (My Profile → API Tokens).
+- **Annars:** kör nya migrationer för hand.
 
 ### Förnya GitHub-token för Workern innan den går ut
 *Lagt till 2026-10-31.*
@@ -133,6 +124,22 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
 Inga just nu.
 
 ## Klart
+
+- 2026-11-15: Kontroller och granskning.
+  - **Index granskat:** 4 nov 7,0 → 6,4 (band 7 → 6) och 7 nov 4,3 → 6,0
+    (band 4 → 6), med `index_review` som den 14 nov.
+  - **Telegram-filtret:** 0 av de 40 senaste ryska posterna rör inrikes
+    småsaker. Ingen skärpning behövs.
+  - **Trådbevakningen:** 0–3 av 6 trådar som ny utveckling 11–14 nov. Ingen
+    ändring behövs.
+  - **Bildjobbet 11 nov:** gav inga nya bilder. De fyra från 4 nov
+    (plesetsk, pusjkin, severomorsk-3, sokol) visar alla flygbaser och får
+    vara kvar.
+  - **Databasen:** migrationerna 0014 (åtkomstförfrågningar) och 0015
+    (gästnotiser) hade aldrig körts. Deploynyckeln saknar D1 Edit, så
+    steget hoppades tyst över. De kördes för hand 15 nov. Kommande
+    migrationer måste också köras för hand tills nyckeln får D1 Edit.
+  - **Gästräknare på Status** (Version 3.42).
 
 - 2026-11-14: Värmekarta, steg 2 (Version 3.41).
   - **Platser:** vyn "Platser" ritar en punkt per ort. Orten hittas i
