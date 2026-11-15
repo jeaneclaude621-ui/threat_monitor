@@ -5,6 +5,43 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 
 ## Att följa upp
 
+### Läget 15 nov (läs först nästa gång)
+*Sparat 2026-11-15 när sessionen stängdes.*
+
+**I produktion (hm-v3.58):**
+- **Idag:** bara nyheterna under indexet. Metoden (reservmodell,
+  granskning, kontroller, prognos) ligger under "Om indexet" i rutan
+  Bedömning. Handlingsalternativen är ett eget kort, och
+  drönarikonen är en vingdrönare.
+- **Karta:** värmekarta med lägena Länder och Platser.
+  - Period väljs med datum, ett reglage med två handtag och snabbval.
+  - Kartan går att zooma.
+  - Ett tryck på ett land eller en punkt listar dess händelser och
+    artiklar.
+  - Orterna hittas i händelsetexten med `forces/places.json`; ungefär
+    hälften av händelserna saknar ort.
+- **Reservmodeller efter Geminis tre:**
+  - Cloudflare Workers AI (Llama 3.3 70B) via `/api/ingest/ai`, med tak
+    9 000 Neurons/dygn, så det kostar inget.
+  - GitHub Models är avstängt.
+  - Mistral har ingen gratisplan.
+  - Omräkningen kl. 12/21 använder bara Geminis huvudmodell, med avsikt.
+- **Status:** gästräknare (Version 3.42), utan kakor och utan adresser.
+- **Index:** 4, 7 och 14 nov granskade för hand (`index_review`).
+
+**Nästa steg:**
+1. **Användaren:** ge `CLOUDFLARE_API_TOKEN` behörigheten D1 Edit. Se
+   punkten nedan.
+2. **Gästräknaren:** titta på Status efter några dagar. Den hade inga
+   besök ännu vid deploy 15 nov 07:41.
+3. **15 nov:** rapporten var preliminär (6,2, reservmodell). Kontrollera
+   att omräkningen kl. 12/21 gick, i `hourly_run_cloud.log`.
+4. **Åtkomstförfrågningar och gästnotiser:** prova att de fungerar nu när
+   0014 och 0015 har körts.
+5. **Värmekartan, möjliga förbättringar:**
+   - ett `place`-fält från morgonsvepet, så att fler händelser får en ort;
+   - bättre hantering av huvudstäder.
+
 ### Styrkor: läget 5 nov (läs först)
 *Uppdaterat 2026-11-05.*
 
