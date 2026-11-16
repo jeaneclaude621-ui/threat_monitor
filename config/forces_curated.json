@@ -776,11 +776,11 @@
    "lon": 19.97,
    "branch": "flyg",
    "units": [
-    "4:e gardes marinattackflygregementet"
+    "25:e kustrobotbrigaden"
    ],
    "equipment": [
-    "Su-30SM",
-    "Su-24M"
+    "Bastion-P",
+    "Bal"
    ],
    "events": []
   },
@@ -1385,11 +1385,11 @@
    "lon": 28.64,
    "branch": "robot",
    "units": [
-    "465:e robotbrigaden"
+    "465:e robotbrigaden",
+    "51:a gardes artilleribrigaden"
    ],
    "equipment": [
-    "Iskander-M",
-    "Polonez"
+    "Iskander-M"
    ],
    "events": []
   }
