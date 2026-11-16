@@ -18,6 +18,8 @@ export const AREAS = [
 
 export const FEATURES = [
   // Idag
+  { id: 'bjud-in', area: 'idag', title: 'Bjud in en vän', href: '#/', action: 'invite', added: '2026-11-16',
+    desc: 'Knappen Bjud in på Idag och i Mer: ett färdigt meddelande med länken, att skicka med SMS, WhatsApp, mejl eller telefonens delningsmeny. Mottagaren behöver inget konto.', keywords: 'bjud in tipsa vän dela inbjudan rekommendera' },
   { id: 'hotlaget', area: 'idag', title: 'Hotläget i dag', href: '#/', added: '2026-10-01',
     desc: 'Dagens hotindex, det viktigaste och dygnets händelser med källor.', keywords: 'hotindex index rapport morgonrapport' },
   { id: 'lopande', area: 'idag', title: 'Löpande uppdateringar', href: '#/', added: '2026-11-03',

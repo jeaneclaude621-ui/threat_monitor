@@ -180,6 +180,70 @@ function shareIcon() {
 function shareButton(info, label = 'Dela') {
   return h('button', { class: 'share-btn', type: 'button', onclick: () => shareLink(info) }, shareIcon(), label);
 }
+// ---- Version 3.43: invite a friend. Anyone may read Hotmonitor without an
+// account, so an invitation is the app's link with a ready message: shared
+// through the phone's own sheet, or SMS, WhatsApp, mail or a copy. The
+// Worker counts how often the sheet is used and how many arrive by such a
+// link (GET /api/hit, nothing about who).
+const INVITE_PARAM = 'inbjudan';
+function hit(kind) { fetch(`/api/hit?e=${encodeURIComponent(kind)}`, { credentials: 'same-origin', keepalive: true }).catch(() => {}); }
+function inviteIcon(cls = '') {
+  return icon(['M15 19v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 3 17.5V19', 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z', 'M19 8v6', 'M16 11h6'], cls, '0 0 24 24');
+}
+function inviteButton(label = 'Bjud in', cls = 'invite-btn') {
+  return h('button', { class: cls, type: 'button', onclick: openInviteFriend }, inviteIcon(), label);
+}
+function openInviteFriend() {
+  hit('invite_open');
+  const url = `${location.origin}/?v=${INVITE_PARAM}`;
+  const latest = store.index && store.index[0];
+  const idx = latest && latest.threat_index != null ? ` Dagens hotindex: ${String(latest.threat_index).replace('.', ',')} av 10.` : '';
+  const defaultText = `Jag följer Hotmonitor – en daglig sammanställning av ryska hybridhot mot Sverige och Europa, med källor.${idx} Gratis och utan konto:`;
+  openSheet((close) => {
+    const msg = h('textarea', { class: 'invite-msg', rows: 4, 'aria-label': 'Meddelandet' }, defaultText);
+    const full = () => `${msg.value.trim()} ${url}`;
+    const sent = (how) => { hit(`invite_${how}`); announce('Tack för att du tipsar!'); };
+    const go = (how, href) => () => { sent(how); window.open(href, '_blank', 'noopener'); };
+    const copyBtn = h('button', { class: 'btn', type: 'button', onclick: async () => {
+      try { await navigator.clipboard.writeText(full()); copyBtn.textContent = 'Kopierat ✓'; sent('copy'); } catch { msg.select(); }
+    } }, 'Kopiera');
+    return frag(
+      h('div', { class: 'invite-head' }, h('span', { class: 'invite-badge', 'aria-hidden': 'true' }, inviteIcon()),
+        h('div', null, h('h2', { class: 'title-m' }, 'Bjud in en vän'),
+          h('p', { class: 'small muted' }, 'Hotmonitor är gratis och kräver inget konto. Skicka länken till någon som borde följa hotläget.'))),
+      msg,
+      h('p', { class: 'small muted invite-url' }, url),
+      navigator.share ? h('button', { class: 'btn primary invite-share', type: 'button', onclick: () => {
+        navigator.share({ title: 'Hotmonitor', text: msg.value.trim(), url }).then(() => sent('share')).catch(() => {});
+      } }, inviteIcon(), 'Skicka inbjudan') : null,
+      h('div', { class: 'invite-grid' },
+        h('button', { class: 'btn', type: 'button', onclick: go('sms', `sms:?&body=${encodeURIComponent(full())}`) }, 'SMS'),
+        h('button', { class: 'btn', type: 'button', onclick: go('whatsapp', `https://wa.me/?text=${encodeURIComponent(full())}`) }, 'WhatsApp'),
+        h('button', { class: 'btn', type: 'button', onclick: go('mail', `mailto:?subject=${encodeURIComponent('Tips: Hotmonitor')}&body=${encodeURIComponent(full())}`) }, 'Mejl'),
+        copyBtn),
+      h('div', { class: 'sheet-actions' }, h('button', { class: 'btn', type: 'button', onclick: close }, 'Stäng')));
+  }, { label: 'Bjud in en vän' });
+}
+// A card on Idag, now and then: not on the first visit, and away for two
+// weeks once closed or used.
+const INVITE_NUDGE_KEY = 'hm.inviteNudge';
+function inviteNudge() {
+  let st = {};
+  try { st = JSON.parse(localStorage.getItem(INVITE_NUDGE_KEY) || '{}'); } catch { /* private mode */ }
+  const now = Date.now();
+  if (!st.first) { st.first = now; try { localStorage.setItem(INVITE_NUDGE_KEY, JSON.stringify(st)); } catch { /* */ } }
+  if (now - st.first < 2 * 864e5 || (st.hidden && now - st.hidden < 14 * 864e5)) return null;
+  const hide = () => { st.hidden = Date.now(); try { localStorage.setItem(INVITE_NUDGE_KEY, JSON.stringify(st)); } catch { /* */ } card.remove(); };
+  const card = h('section', { class: 'card card-pad invite-card', 'aria-labelledby': 'inv-title' },
+    h('div', { class: 'invite-head' }, h('span', { class: 'invite-badge', 'aria-hidden': 'true' }, inviteIcon()),
+      h('div', null, h('h2', { class: 'invite-card-title', id: 'inv-title' }, 'Känner du någon som borde följa hotläget?'),
+        h('p', { class: 'small muted' }, 'Tipsa en vän eller kollega. Det är gratis och kräver inget konto.'))),
+    h('div', { class: 'btn-row' },
+      h('button', { class: 'btn primary', type: 'button', onclick: () => { hide(); openInviteFriend(); } }, 'Bjud in'),
+      h('button', { class: 'btn', type: 'button', onclick: hide }, 'Inte nu')));
+  return card;
+}
+
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 function scoreClass(s) { const n = Number(s); return n >= 8 ? 'score' : n >= 5 ? 'score mid' : 'score low'; }
 function verdictPill(value, pending) {
@@ -240,6 +304,7 @@ function openMore() {
       h('button', { class: 'more-row', type: 'button', onclick }, h('span', null, label), note ? h('span', { class: 'more-note' }, note) : null));
     return frag(
       h('h2', { class: 'title-m' }, 'Mer'),
+      h('button', { class: 'btn primary invite-more', type: 'button', onclick: act(openInviteFriend) }, inviteIcon(), 'Bjud in en vän – gratis, inget konto'),
       h('ul', { class: 'more-list' },
         row('Arkiv', unreadArchive ? `${unreadArchive} olästa` : 'Tidigare dagar', go('#/arkiv')),
         row('Ämnen', 'Sök och följ', go('#/amnen')),
@@ -1142,6 +1207,7 @@ async function viewReport(date, q) {
         h('div', { class: 'kicker' }, dateLong(d)),
         h('h1', { class: 'title-xl' }, archived ? 'Rapport' : 'Hotläget')),
       h('div', { class: 'head-actions' },
+        date ? null : inviteButton(),
         h('button', { class: 'icon-btn', type: 'button', 'aria-label': archived ? 'Dela rapporten' : 'Dela dagens läge', title: 'Dela', onclick: () => shareLink(share) }, shareIcon()),
         date ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Notiser och hemskärm', title: 'Notiser och hemskärm', onclick: openSettings }, bellIcon()),
         isGuest() && !date && !noAccount() ? h('a', { class: 'head-link', href: '/login' }, 'Logga in') : null,
@@ -1163,6 +1229,7 @@ async function viewReport(date, q) {
       h('a', { class: 'btn primary', href: '#/bedom' }, 'Bedöm artiklar'),
       h('a', { class: 'btn', href: '#/mina' }, 'Mina bedömningar')) : null,
     archived ? null : pushNudge(),
+    archived ? null : inviteNudge(),
     aiLine(),
     archived ? null : siteFooter(),
   );
@@ -4682,7 +4749,24 @@ async function adminStatus() {
         statTile('Bedömningar', String(c.assessments ?? '–')),
         statTile('Användare', String(c.users ?? '–')))),
     guestsSection(s.guests),
+    inviteStatsSection(s.invites_shared),
     releaseNotesSection());
+}
+
+// Version 3.43: how "Bjud in" is used.
+function inviteStatsSection(st) {
+  const HOW = { share: 'delningsmenyn', sms: 'SMS', whatsapp: 'WhatsApp', mail: 'mejl', copy: 'kopierat' };
+  const z = st || { opened: { d7: 0, d30: 0 }, sent: { d7: 0, d30: 0 }, arrived: { d7: 0, d30: 0 }, by: {} };
+  const by = Object.entries(z.by || {}).filter(([, n]) => n).sort((a, b) => b[1] - a[1]);
+  return h('section', { class: 'section' },
+    h('h2', { class: 'kicker' }, 'Bjud in en vän'),
+    h('section', { class: 'stat-grid' },
+      statTile('Öppnat, 7 dagar', String(z.opened.d7)),
+      statTile('Skickat, 7 dagar', String(z.sent.d7)),
+      statTile('Kom via inbjudan, 7 dagar', String(z.arrived.d7)),
+      statTile('Skickat, 30 dagar', String(z.sent.d30))),
+    by.length ? h('p', { class: 'small muted' }, `Sätt, 30 dagar: ${by.map(([k, n]) => `${HOW[k] || k} ${n}`).join(' · ')}`) : null,
+    h('p', { class: 'small muted' }, 'Bara antal per dag sparas, inget om vem. "Skickat" räknar tryck på SMS, WhatsApp, mejl, kopiera eller delningsmenyn.'));
 }
 
 // Version 3.42: guests who read without an account, counted without cookies
@@ -4729,7 +4813,7 @@ async function adminAudit() {
 // ---------------------------------------------------------------- functions menu (Version 3.19)
 // A small chip beside "Hotläget": what is new the last NEW_DAYS days, and
 // every function in order, searchable letter by letter (features.js).
-const FEATURE_ACTIONS = { settings: () => openSettings(), install: () => openInstall(), features: () => openFeatures(), intro: () => openIntro() };
+const FEATURE_ACTIONS = { settings: () => openSettings(), install: () => openInstall(), features: () => openFeatures(), intro: () => openIntro(), invite: () => openInviteFriend() };
 
 function visibleFeatures() {
   return FEATURES.filter((f) => (!f.admin || isAdmin()) && (!f.user || !isGuest()));
@@ -5151,6 +5235,11 @@ async function init() {
   } catch (e) {
     document.getElementById('view').replaceChildren(errorView(e));
     return;
+  }
+  // Version 3.43: arrived by a friend's invitation link: counted once, then the parameter goes.
+  if (new URLSearchParams(location.search).get('v') === INVITE_PARAM) {
+    hit('invite_arrived');
+    history.replaceState(null, '', `/${location.hash}`);
   }
   document.querySelector('[data-tab="bedom"]').hidden = !isAdmin();
   document.querySelector('.tab-more').addEventListener('click', openMore);

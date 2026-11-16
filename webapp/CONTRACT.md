@@ -1083,3 +1083,23 @@ The Worker counts guests: people who read without an account.
 the last week.
 
 Service worker hm-v3.58.
+
+## Version 3.43: invite a friend
+
+Anyone may read the app without an account, so an invitation is the app's
+link with a ready message.
+- **Where:** "Bjud in" in the Idag header; a card on Idag, not in the
+  first two days and gone for 14 days once closed; first in "Mer".
+- **The sheet:** an editable message with today's index, and the link
+  `/?v=inbjudan`. It sends through the phone's share sheet, SMS, WhatsApp
+  or mail, or copies the text.
+- **Counting:** `GET /api/hit?e=<kind>` (anyone, 204, bots skipped) counts
+  per day in `hit_counts` (made at runtime), nothing about who. The kinds:
+  - `invite_open`;
+  - `invite_share`, `invite_sms`, `invite_whatsapp`, `invite_mail`,
+    `invite_copy`;
+  - `invite_arrived`, counted once when the app starts with `?v=inbjudan`.
+- **Status:** `/api/admin/status` gets `invites_shared`, shown on Status
+  under "Bjud in en vän".
+
+Service worker hm-v3.59.

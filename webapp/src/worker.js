@@ -186,6 +186,16 @@ async function route(req) {
     if (id.kind === 'invalid') countGuest(req, path);
     return publicLatest(req);
   }
+  // Version 3.43: the invite-a-friend counter, for anyone (nothing about who).
+  if (path === '/api/hit') {
+    if (method !== 'GET') throw new HttpError(405, 'method not allowed');
+    const kind = url.searchParams.get('e') || '';
+    if (HIT_KINDS.has(kind) && !BOT_UA.test(request.headers.get('User-Agent') || '')) {
+      const p = recordHit(env, kind).catch((e) => console.error('hit failed', e && e.message));
+      if (req.ctx && req.ctx.waitUntil) req.ctx.waitUntil(p); else await p;
+    }
+    return new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store' } });
+  }
   // Version 3.31: an invitation link, for anyone holding it (logged in or not).
   const inv = path.match(/^\/api\/invite\/([0-9a-f-]{36})$/);
   if (inv) {
@@ -740,6 +750,35 @@ function countGuest(req, path) {
   if (req.request.method !== 'GET') return;
   const p = recordGuest(req.env, req.request, path).catch((e) => console.error('guest count failed', e && e.message));
   if (req.ctx && req.ctx.waitUntil) req.ctx.waitUntil(p);
+}
+
+// Version 3.43: how often "Bjud in" is opened and used, and how many arrive
+// by such a link: a count a day per kind, no more.
+const HIT_KINDS = new Set(['invite_open', 'invite_share', 'invite_sms', 'invite_whatsapp', 'invite_mail', 'invite_copy', 'invite_arrived']);
+const HITS_TABLE = 'CREATE TABLE IF NOT EXISTS hit_counts (day TEXT NOT NULL, kind TEXT NOT NULL, n INTEGER NOT NULL, PRIMARY KEY (day, kind))';
+async function recordHit(env, kind) {
+  const day = new Date().toISOString().slice(0, 10);
+  await env.DB.batch([
+    env.DB.prepare(HITS_TABLE),
+    env.DB.prepare('INSERT INTO hit_counts (day, kind, n) VALUES (?, ?, 1) ON CONFLICT(day, kind) DO UPDATE SET n = n + 1').bind(day, kind),
+  ]);
+}
+async function inviteStats(env) {
+  try {
+    const rows = await env.DB.prepare(
+      `SELECT kind, SUM(CASE WHEN day >= date('now', '-6 days') THEN n ELSE 0 END) AS d7, SUM(n) AS d30
+       FROM hit_counts WHERE day >= date('now', '-29 days') GROUP BY kind`).all();
+    const out = { opened: { d7: 0, d30: 0 }, sent: { d7: 0, d30: 0 }, arrived: { d7: 0, d30: 0 }, by: {} };
+    for (const r of rows.results || []) {
+      const k = r.kind === 'invite_open' ? 'opened' : r.kind === 'invite_arrived' ? 'arrived' : 'sent';
+      out[k].d7 += r.d7; out[k].d30 += r.d30;
+      if (k === 'sent') out.by[r.kind.replace('invite_', '')] = r.d30;
+    }
+    return out;
+  } catch (e) {
+    if (/no such table/i.test(String(e && e.message))) return null;
+    throw e;
+  }
 }
 
 /** For Status: different guests a day (the last 14 days) and the parts they read (7 days). */
@@ -1808,6 +1847,7 @@ async function status(env) {
     counts: { reports: reports.n, events: reports.events, assessments: assessments.n, users: users.n },
     service_token_expires: env.SERVICE_TOKEN_EXPIRES || null,
     guests: await guestStats(env),
+    invites_shared: await inviteStats(env),
     runs: await runsStatus(env, Date.now(), invites.n, invitePull ? invitePull.value : null),
   });
 }

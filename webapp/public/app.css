@@ -1084,3 +1084,21 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 .gbar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
 .gbar i { display: block; width: 100%; max-width: 22px; background: var(--amber); border-radius: 3px 3px 0 0; }
 .gbar-n, .gbar-d { font-size: 10px; color: var(--muted); }
+
+/* ---- version 3.43: invite a friend ---- */
+.invite-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 18px;
+  border: 0; background: var(--amber); color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.invite-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.invite-head { display: flex; gap: 12px; align-items: flex-start; }
+.invite-head .title-m { margin: 0; }
+.invite-badge { flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--amber-soft); color: var(--amber); display: flex; align-items: center; justify-content: center; }
+.invite-badge svg, .invite-share svg, .invite-more svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.invite-msg { width: 100%; box-sizing: border-box; font: inherit; font-size: 15px; line-height: 1.4; color: var(--ink); background: var(--card);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; resize: vertical; }
+.invite-url { margin: -4px 0 0; word-break: break-all; }
+.invite-share, .invite-more { width: 100%; display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 48px; font-size: 16px; }
+.invite-more { margin-bottom: 8px; }
+.invite-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.invite-card { border-left: 4px solid var(--amber); display: flex; flex-direction: column; gap: 10px; }
+.invite-card-title { font-size: 16px; font-weight: 700; margin: 0; }
+@media (prefers-color-scheme: dark) { .invite-btn { color: #0F1526; } }
