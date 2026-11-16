@@ -79,9 +79,10 @@ JOBS = {
     "telegram": ["src/telegram_log.py"],                 # hourly (telegram.yml): the channel log
     "telegram_stats": ["src/telegram_log.py", "stats"],  # the per-channel figures now
     "telegram_check": ["src/telegram_log.py", "check"],  # which channels answer, saving nothing
-    "models_check": ["src/model_providers.py", "check"],  # the reserve models outside Gemini, one tiny call each
+    "models_check": ["src/model_providers.py", "check"],
+    "guest_check": ["src/guest_check.py"],  # read the app as a guest: do guests reach it, are they counted  # the reserve models outside Gemini, one tiny call each
 }
-QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check", "forces_places", "precision_sample", "og_image", "telegram", "telegram_stats", "telegram_check", "models_check"}   # forces: a manual extra run; the nightly one runs inside daily
+QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check", "forces_places", "precision_sample", "og_image", "telegram", "telegram_stats", "telegram_check", "models_check", "guest_check"}   # forces: a manual extra run; the nightly one runs inside daily
 HOST = "cloud"
 
 # Jobs whose output belongs in the code repo, not the state repo: the weekly
