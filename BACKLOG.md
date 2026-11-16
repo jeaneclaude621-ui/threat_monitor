@@ -5,42 +5,36 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 
 ## Att följa upp
 
-### Läget 15 nov (läs först nästa gång)
-*Sparat 2026-11-15 när sessionen stängdes.*
+### Läget 16 nov (läs först nästa gång)
+*Uppdaterat 2026-11-16.*
 
-**I produktion (hm-v3.58):**
-- **Idag:** bara nyheterna under indexet. Metoden (reservmodell,
-  granskning, kontroller, prognos) ligger under "Om indexet" i rutan
-  Bedömning. Handlingsalternativen är ett eget kort, och
-  drönarikonen är en vingdrönare.
-- **Karta:** värmekarta med lägena Länder och Platser.
-  - Period väljs med datum, ett reglage med två handtag och snabbval.
-  - Kartan går att zooma.
-  - Ett tryck på ett land eller en punkt listar dess händelser och
-    artiklar.
-  - Orterna hittas i händelsetexten med `forces/places.json`; ungefär
-    hälften av händelserna saknar ort.
-- **Reservmodeller efter Geminis tre:**
-  - Cloudflare Workers AI (Llama 3.3 70B) via `/api/ingest/ai`, med tak
-    9 000 Neurons/dygn, så det kostar inget.
-  - GitHub Models är avstängt.
-  - Mistral har ingen gratisplan.
-  - Omräkningen kl. 12/21 använder bara Geminis huvudmodell, med avsikt.
-- **Status:** gästräknare (Version 3.42), utan kakor och utan adresser.
-- **Index:** 4, 7 och 14 nov granskade för hand (`index_review`).
+**I produktion (hm-v3.59):**
+- **Bjud in en vän** (Version 3.43). Knappen finns på Idag, i Mer och som
+  ett kort på Idag ibland. Den ger ett färdigt meddelande med länken
+  `/?v=inbjudan`, att skicka med delningsmenyn, SMS, WhatsApp, mejl eller
+  kopiering. Status visar hur ofta knappen öppnas och används, och hur
+  många som kommer via en inbjudan.
+- **Gästräknare** på Status (Version 3.42). Jobbet `guest_check` läser
+  appen som gäst från Actions. Gäster når appen; 0 riktiga gäster
+  15–16 nov.
+- **Kartans punkter** (Version 3.44): morgonsvepet ger nu varje händelse
+  `places` (ort och land). Kartan använder dem före textmatchningen.
+  Gäller rapporter från 17 nov.
+- **Idag:**
+  - bara nyheter under indexet;
+  - värmekarta med länder och platser;
+  - Cloudflare Workers AI som reserv efter Gemini.
+- **Omräkningen 15 nov gick:** 6,2 → 6,2 med huvudmodellen kl. 12:13.
 
 **Nästa steg:**
 1. **Användaren:** ge `CLOUDFLARE_API_TOKEN` behörigheten D1 Edit. Se
    punkten nedan.
-2. **Gästräknaren:** titta på Status efter några dagar. Den hade inga
-   besök ännu vid deploy 15 nov 07:41.
-3. **15 nov:** rapporten var preliminär (6,2, reservmodell). Kontrollera
-   att omräkningen kl. 12/21 gick, i `hourly_run_cloud.log`.
-4. **Åtkomstförfrågningar och gästnotiser:** prova att de fungerar nu när
-   0014 och 0015 har körts.
-5. **Värmekartan, möjliga förbättringar:**
-   - ett `place`-fält från morgonsvepet, så att fler händelser får en ort;
-   - bättre hantering av huvudstäder.
+2. **Efter 17 nov:** se att svepets `places` kommer med och att fler
+   händelser får punkter på kartan.
+3. **Efter en vecka:** titta på Status, under "Gäster utan konto" och
+   "Bjud in en vän".
+4. **Åtkomstförfrågningar och gästnotiser:** prova i appen. Tabellerna
+   finns nu, men inga förfrågningar har kommit än.
 
 ### Styrkor: läget 5 nov (läs först)
 *Uppdaterat 2026-11-05.*
