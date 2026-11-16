@@ -339,13 +339,12 @@
    "branch": "robot",
    "country": "BY",
    "military_district": "Belarus",
-   "description_sv": "Garnison i Asipovitjy i Mogiljov oblast för Belarus 51:a gardes artilleribrigaden. Brigaden har det ryska ballistiska robotsystemet Iskander-M, som Belarus fick 2022, och den belarusiska raketartillerin Polonez.",
+   "description_sv": "Garnison vid Asipovitjy i Mogiljov oblast. Här finns Belarus 51:a gardes artilleribrigaden och, vid militärbasen Juzjnyj strax intill, 465:e robotbrigaden – Belarus enda ballistiska robotbrigad, med Totjka-U och det ryska systemet Iskander, som Belarus fick 2022.",
    "units": [
     "51-gardes-artilleribrigaden-by"
    ],
    "equipment": [
-    "iskander-m",
-    "polonez"
+    "iskander-m"
    ],
    "status": {
     "status_sv": "i bruk enligt källorna",
@@ -358,6 +357,16 @@
      "url": "https://www.openstreetmap.org/?mlat=53.3&mlon=28.64#map=13/53.3/28.64",
      "outlet": "OpenStreetMap (position)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/465th_Missile_Brigade",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-16"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/51st_Guards_Artillery_Brigade",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-16"
     }
    ],
    "curated_index": 82,
@@ -1265,7 +1274,7 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Centrala militärdistriktet",
-   "description_sv": "Flygbasen vid Bolsjoje Savino, Perms flygplats, är delad mellan civilflyg och flygvapnet. MiG-31 från luftförsvaret har varit baserade här.",
+   "description_sv": "Flygbasen vid Bolsjoje Savino, Perms flygplats, delas mellan civilflyg och flygvapnet. 764:e jaktflygregementet med MiG-31 har sin bas här.",
    "units": [],
    "equipment": [
     "mig-31"
@@ -1281,6 +1290,11 @@
      "url": "https://www.openstreetmap.org/?mlat=57.91&mlon=56.02#map=13/57.91/56.02",
      "outlet": "OpenStreetMap (position)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/764th_Fighter_Aviation_Regiment",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-16"
     }
    ],
    "curated_index": 42,
@@ -2012,14 +2026,11 @@
    "branch": "flyg",
    "country": "RU",
    "military_district": "Leningrads militärdistrikt",
-   "description_sv": "Marinflygbas vid Donskoje i Kaliningrad oblast för Östersjöflottans flyg med Su-30SM och Su-24M; orten är också garnison för 25:e kustrobotbrigaden.",
+   "description_sv": "Flygbas vid Donskoje längst västerut i Kaliningrad oblast, hem för 72:a gardes flygbasen. Banan är till stor del borta; plattorna används av helikoptrar. Orten är också garnison för 25:e kustrobotbrigaden. Östersjöflottans Su-30SM och Su-24M finns i Tjernjachovsk, inte här.",
    "units": [
     "25-kustrobotbrigaden"
    ],
-   "equipment": [
-    "su-30sm",
-    "su-24m"
-   ],
+   "equipment": [],
    "status": {
     "status_sv": "i bruk enligt källorna",
     "as_of": "2026-11",
@@ -2031,6 +2042,11 @@
      "url": "https://www.openstreetmap.org/?mlat=54.94&mlon=19.97#map=13/54.94/19.97",
      "outlet": "OpenStreetMap (position)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Donskoye_(air_base)",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-16"
     }
    ],
    "curated_index": 43,
@@ -3896,6 +3912,11 @@
      "url": "https://www.openstreetmap.org/?mlat=60.6&mlon=29.0#map=13/60.6/29.0",
      "outlet": "OpenStreetMap (position)",
      "accessed": "2026-11-01"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/69th_Guards_Motor_Rifle_Division",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-16"
     }
    ],
    "curated_index": 66,
@@ -4161,6 +4182,11 @@
      "url": "https://en.wikipedia.org/wiki/Oreshnik_%28missile%29",
      "outlet": "Wikipedia (en)",
      "accessed": "2026-11-02"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Kapustin_Yar",
+     "outlet": "Wikipedia (en)",
+     "accessed": "2026-11-16"
     }
    ],
    "curated_index": 79,

@@ -113,9 +113,6 @@ session på claude.ai/code, och skriv instruktionen till en fil i grenen.
 - Materiel kopplas till förband när artikeln nämner den i nutid; äldre
   materiel kan ha slunkit med.
 - Militärdistrikten bygger på tolkningen av reformen 2024.
-- Fem baser har bara OpenStreetMap som källa: asipovitjy-belarus,
-  bolsjoje-savino-perm, donskoje-kaliningrad, kamenka-viborg och
-  kapustin-jar-2.
 - Fartygens hemmabas är flottans huvudbas när Wikipedias lista bara anger
   flotta.
 
@@ -155,6 +152,15 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
 Inga just nu.
 
 ## Klart
+
+- 2026-11-16: De fem baserna med bara OpenStreetMap som källa har nu också
+  Wikipedia (en).
+  - **Donskoje:** rättad. Su-30SM och Su-24M finns i Tjernjachovsk.
+    Donskoje är 72:a gardes flygbas med helikoptrar.
+  - **Asipovitjy:** rättad. Iskander hör till 465:e robotbrigaden vid basen
+    Juzjnyj, inte till 51:a artilleribrigaden. Polonez är struket som
+    ej belagt.
+  - **Perm, Kamenka och Kapustin Jar:** bekräftade.
 
 - 2026-11-15: Kontroller och granskning.
   - **Index granskat:** 4 nov 7,0 → 6,4 (band 7 → 6) och 7 nov 4,3 → 6,0
