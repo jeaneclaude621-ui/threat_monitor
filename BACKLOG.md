@@ -27,8 +27,13 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 - **Omräkningen 15 nov gick:** 6,2 → 6,2 med huvudmodellen kl. 12:13.
 
 **Nästa steg:**
-1. **Användaren:** ge `CLOUDFLARE_API_TOKEN` behörigheten D1 Edit. Se
-   punkten nedan.
+1. **Användaren:** D1 Edit på `CLOUDFLARE_API_TOKEN`.
+   - Nyckeln uppdaterades 16 nov, men deployen kl. 07:02 fick ändå
+     "The given account is not valid or is not authorized to access this
+     service [code: 7403]" i steget Database migrations.
+   - Kontrollera att behörigheten är Account → D1 → Edit, att Account
+     Resources omfattar kontot, och att ändringen sparades med Update
+     token. Kör sedan Deploy web app för hand och läs steget.
 2. **Efter 17 nov:** se att svepets `places` kommer med och att fler
    händelser får punkter på kartan.
 3. **Efter en vecka:** titta på Status, under "Gäster utan konto" och
