@@ -308,6 +308,12 @@ def enrich_events(events: list, report_date: str, search_results: list = None,
         ev["topics"] = [t for t in ev.get("topics") or [] if t in TOPICS]
         ev["countries"] = sorted({c.strip().upper() for c in ev.get("countries") or []
                                   if isinstance(c, str) and len(c.strip()) == 2})
+        if "places" in ev:
+            # Version 3.44: where it happened, for the heat map's points.
+            ev["places"] = [{"name": p["name"].strip()[:60], "country": p["country"].strip().upper()}
+                            for p in ev.get("places") or []
+                            if isinstance(p, dict) and isinstance(p.get("name"), str) and p["name"].strip()
+                            and isinstance(p.get("country"), str) and len(p["country"].strip()) == 2][:3]
         if "unknown_sv" in ev:
             ev["unknown_sv"] = [x for x in ev.get("unknown_sv") or [] if isinstance(x, str) and x.strip()]
         if ev.get("direction") not in DIRECTIONS:
@@ -441,6 +447,11 @@ SWEEP_EVENT_FIELDS = """Each event also carries, for the Swedish web app:
    - "topics": one or more of """ + ", ".join(TOPICS) + """;
    - "countries": ISO 3166-1 alpha-2 codes of the countries where it
      happened or that it directly concerns (e.g. "EE", "RO", "UA");
+   - "places": where it physically happened, at most 3, each
+     {"name": "English name of the town, base, port or airport",
+      "country": "XX"} - [] for a statement, a decision or a court case
+     with no place of its own; never the capital only because the
+     government there said or decided something;
    - "known_sv": 2-4 short Swedish sentences - what is established;
    - "unknown_sv": 1-3 short Swedish sentences - what is still unclear
      or unconfirmed;
@@ -459,7 +470,7 @@ SWEEP_EVENT_FIELDS = """Each event also carries, for the Swedish web app:
 
 SWEEP_EVENT_JSON = """{"title": "...", "detail": "...", "sources": "...", "score": 0,
      "title_sv": "...", "summary_sv": "...", "topics": ["..."], "countries": ["..."],
-     "known_sv": ["..."], "unknown_sv": ["..."], "thread_id": "...", "direction": "...",
+     "places": [{"name": "...", "country": "XX"}], "known_sv": ["..."], "unknown_sv": ["..."], "thread_id": "...", "direction": "...",
      "articles": [{"ref": "A1", "outlet": "...", "title": "...", "tier": 1,
                    "published": "...", "summary_sv": "...", "relation": "..."}]}"""
 

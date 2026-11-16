@@ -10,7 +10,7 @@ import json
 import os
 import urllib.request
 
-UA = "Mozilla/5.0 (X11; Linux x86_64) hotmonitor-guest-check"
+UA = "Mozilla/5.0 (X11; Linux x86_64) HM-guest-check"   # not "monitor": the Worker skips that as a bot
 
 
 def main():

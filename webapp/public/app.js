@@ -3539,6 +3539,18 @@ const LOCATIVE_AFTER = /^(?:[- ]?(?:region|oblast|area|airport|harbou?r|port|reg
 const eventPlaceCache = new WeakMap();
 function eventPlaces(e, byC) {
   if (eventPlaceCache.has(e)) return eventPlaceCache.get(e);
+  // Version 3.44: the sweep names the places (e.places) since 16 Nov; those
+  // that the place list knows are used as they are, the text only when none is.
+  if (Array.isArray(e.places) && e.places.length) {
+    const found = [];
+    for (const p of e.places) {
+      const name = String(p && p.name || '').toLowerCase();
+      const pool = byC.get(String(p && p.country || '').toUpperCase()) || [...byC.values()].flat();
+      const pl = name && pool.find((x) => x.names.some((n) => n.toLowerCase() === name));
+      if (pl && !found.includes(pl)) found.push(pl);
+    }
+    if (found.length) { eventPlaceCache.set(e, found); return found; }
+  }
   const known = Array.isArray(e.known_sv) ? e.known_sv.map((k) => (typeof k === 'string' ? k : k && k.text) || '') : [];
   const text = [e.title, e.title_sv, e.summary_sv, e.detail, ...known].filter(Boolean).join(' \n ');
   const hits = [];
