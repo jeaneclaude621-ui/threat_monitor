@@ -80,9 +80,10 @@ JOBS = {
     "telegram_stats": ["src/telegram_log.py", "stats"],  # the per-channel figures now
     "telegram_check": ["src/telegram_log.py", "check"],  # which channels answer, saving nothing
     "models_check": ["src/model_providers.py", "check"],
-    "guest_check": ["src/guest_check.py"],  # read the app as a guest: do guests reach it, are they counted  # the reserve models outside Gemini, one tiny call each
+    "guest_check": ["src/guest_check.py"],
+    "restore_reports": ["src/app_sync.py", "restore"],  # reports the app has but the state lacks  # read the app as a guest: do guests reach it, are they counted  # the reserve models outside Gemini, one tiny call each
 }
-QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check", "forces_places", "precision_sample", "og_image", "telegram", "telegram_stats", "telegram_check", "models_check", "guest_check"}   # forces: a manual extra run; the nightly one runs inside daily
+QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check", "forces_places", "precision_sample", "og_image", "telegram", "telegram_stats", "telegram_check", "models_check", "guest_check", "restore_reports"}   # forces: a manual extra run; the nightly one runs inside daily
 HOST = "cloud"
 
 # Jobs whose output belongs in the code repo, not the state repo: the weekly
@@ -348,6 +349,10 @@ def main() -> int:
 
     code, warnings = run_and_watch(JOBS[args.job])
     if args.job == "hourly":
+        # Reports the app has but the state lacks (a morning run stopped
+        # after its upload, 17-18 Nov 2026): fetched back, no model calls.
+        _, more = run_and_watch(["src/app_sync.py", "restore"])
+        warnings = warnings + more
         # The forces night failed this morning (Gemini overloaded): try it
         # again now; `forces.py retry` does nothing when it did not.
         _, more = run_and_watch(["src/forces.py", "retry"])

@@ -136,6 +136,48 @@ def backup_app(keep: int = 30) -> bool:
         return False
 
 
+def restore_missing(days: int = 30) -> list:
+    """Reports the app has but the state lacks (a run stopped after the
+    upload but before the state was saved, as on 17-18 Nov 2026): fetched
+    back, saved, and put in the index history. Returns the dates restored."""
+    if not _config():
+        return []
+    from common import load_state, save_state
+    from datetime import date as _date
+    since = (_date.today() - timedelta(days=days)).isoformat()
+    try:
+        listed = _request("GET", "/api/reports")
+    except Exception as e:
+        print(f"  ! Restore: the app's report list did not come ({e})")
+        return []
+    missing = sorted(r["date"] for r in listed
+                     if r.get("date", "") >= since and not (OUTPUT_DIR / f"{r['date']}_report_data.json").exists())
+    if not missing:
+        return []
+    state = load_state()
+    hist = {h["date"]: h for h in state.get("threat_index_history", [])}
+    done = []
+    for d in missing:
+        try:
+            rep = _request("GET", f"/api/reports/{d}")
+        except Exception as e:
+            print(f"  ! Restore {d}: {e}")
+            continue
+        if not isinstance(rep, dict) or rep.get("date") != d or rep.get("threat_index") is None:
+            print(f"  ! Restore {d}: not a report")
+            continue
+        (OUTPUT_DIR / f"{d}_report_data.json").write_text(json.dumps(rep, indent=2, ensure_ascii=False), encoding="utf-8")
+        if d not in hist:
+            hist[d] = {"date": d, "value": rep["threat_index"], "value_30d": rep.get("threat_index_30d"),
+                       "band": rep.get("index_band"), "band_30d": rep.get("index_band_30d"), "restored": True}
+        done.append(d)
+        print(f"  Restored {d} from the app: index {rep['threat_index']}, band {rep.get('index_band')}")
+    if done:
+        state["threat_index_history"] = sorted(hist.values(), key=lambda h: h["date"])[-180:]
+        save_state(state)
+    return done
+
+
 def push_trends(payload: dict) -> bool:
     """The trends feed (src/trends.py): items of both sides, the last
     days' summaries and each source's status."""
@@ -300,6 +342,8 @@ if __name__ == "__main__":
             push_forces(forces.payload(forces.load()))
         if strikes.PATH.exists():
             push_strikes(json.load(open(strikes.PATH, encoding="utf-8")))
+    elif cmd == "restore":
+        print(f"  Restored: {', '.join(restore_missing()) or 'nothing missing'}")
     elif cmd == "push-all":
         for f in sorted(OUTPUT_DIR.glob("*_report_data.json")):
             push_report(json.load(open(f, encoding="utf-8")))
