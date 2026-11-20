@@ -293,6 +293,13 @@ def report_run(run: dict):
 
 
 def main() -> int:
+    # `run_job.py --checkpoint MSG`: a job saving the state mid-run
+    # (daily_report.checkpoint), under the same lock as the end of a run.
+    if len(sys.argv) == 3 and sys.argv[1] == "--checkpoint":
+        if has_remote() or (STATE_GIT / ".git").exists():
+            with state_lock():
+                commit_and_push(sys.argv[2])
+        return 0
     ap = argparse.ArgumentParser()
     ap.add_argument("--at", help="Stockholm hours the job is due, e.g. 1,16")
     ap.add_argument("--test", action="store_true",
@@ -301,6 +308,8 @@ def main() -> int:
     args = ap.parse_args()
     os.environ["TZ"] = TIMEZONE
     time.tzset()
+    if not args.test:
+        os.environ["RUN_JOB_CHECKPOINT"] = "1"
 
     ensure_state_repo()
     with state_lock():

@@ -12,6 +12,7 @@ Usage:
 """
 import argparse
 import json
+import os
 import re
 import sys
 from datetime import date, datetime, timedelta
@@ -1128,6 +1129,9 @@ def run_daily_report():
     send_daily_email(report_data, str(pptx_path), executive)
     push_report(report_data)
     backup_app()
+    # Save the state now: what follows (courses, forces, strikes) must never
+    # cost the report if the run is stopped (17-18 Nov 2026).
+    checkpoint("daily report saved")
     # Russia's courses of action, from the finished report (one call; a
     # failure there stops nothing here).
     import courses
@@ -1143,6 +1147,18 @@ def run_daily_report():
     archive_and_clear_log(today - timedelta(days=1))
     save_state(state)
     print("Daily report done.\n")
+
+
+def checkpoint(message: str):
+    """Commit and push the state repo mid-run, through schedule/run_job.py
+    (only in a scheduled run: RUN_JOB_CHECKPOINT is set there)."""
+    if not os.environ.get("RUN_JOB_CHECKPOINT"):
+        return
+    import subprocess
+    root = Path(__file__).resolve().parent.parent
+    r = subprocess.run([sys.executable, str(root / "schedule" / "run_job.py"), "--checkpoint", message],
+                       capture_output=True, text=True, timeout=300)
+    print(f"  State saved mid-run ({message})" if r.returncode == 0 else f"  ! Mid-run save failed: {(r.stderr or r.stdout)[-200:]}")
 
 
 def rescore_today() -> bool:

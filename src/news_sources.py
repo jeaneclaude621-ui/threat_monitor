@@ -99,8 +99,21 @@ def _domain(url: str) -> str:
 # --------------------------------------------------------------------------
 # Sources
 # --------------------------------------------------------------------------
+# 20 Nov 2026: on 17 and 18 Nov Google News answered 503 all morning, and
+# the forces job's one search per base, each waiting 40 s for its retries,
+# ran the morning run into its one-hour limit: the report was mailed and
+# uploaded, but the state was never saved. After GOOGLE_OFF_AFTER failed
+# searches in a row Google News is switched off for the rest of the run.
+GOOGLE_OFF_AFTER = 3
+_google_fails = 0
+_google_off = False
+
+
 def google_news(query: str, lang: str = "en", days: int = 1) -> list:
     """Google News search results as articles. Never raises."""
+    global _google_fails, _google_off
+    if _google_off:
+        return []
     loc = EDITIONS.get(lang, "hl=en-US&gl=US&ceid=US:en")
     url = f"https://news.google.com/rss/search?q={urllib.parse.quote(f'{query} when:{days}d')}&{loc}"
     items = None
@@ -114,7 +127,12 @@ def google_news(query: str, lang: str = "en", days: int = 1) -> list:
             code = getattr(e, "code", None)
             if wait == 30 or not (code == 429 or (isinstance(code, int) and code >= 500)):
                 print(f"  ! Google News search failed for {query!r} ({type(e).__name__}: {str(e)[:100]})")
+                _google_fails += 1
+                if _google_fails >= GOOGLE_OFF_AFTER:
+                    _google_off = True
+                    print(f"  ! Google News off for the rest of this run ({_google_fails} failed searches in a row)")
                 return []
+    _google_fails = 0
     out = []
     for it in items:
         # Titles end in " - Outlet"; the outlet is the item's <source>.

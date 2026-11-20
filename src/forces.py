@@ -43,6 +43,7 @@ import json
 import math
 import os
 import re
+import time
 import sys
 import urllib.parse
 import urllib.request
@@ -58,6 +59,7 @@ import blocklist
 ROOT = Path(__file__).resolve().parent.parent
 CURATED = ROOT / "config" / "forces_curated.json"
 DB_DIR = ROOT / "config" / "forces_db"
+SEARCH_BUDGET_S = 600
 PUBLIC_FORCES = ROOT / "webapp" / "public" / "forces"
 STATE_PATH = DATA_DIR / "forces.json"
 UA = "threat-monitor/1 (https://github.com/jeaneclaude621-ui/threat_monitor)"
@@ -370,7 +372,14 @@ def articles(state: dict, report: dict = None, pool=None) -> list:
     p = news_sources.Pool()
     for q in QUERIES:
         p.add(news_sources.google_news(q))
-    for name in dict.fromkeys(search_name(b) for b in state["bases"] if b["curated"]):
+    # At most SEARCH_BUDGET_S on the per-base searches: the morning run has
+    # one hour in all (17-18 Nov 2026 it ran out here).
+    t0 = time.time()
+    names = list(dict.fromkeys(search_name(b) for b in state["bases"] if b["curated"]))
+    for i, name in enumerate(names):
+        if time.time() - t0 > SEARCH_BUDGET_S:
+            print(f"  ! Forces: base searches stopped after {SEARCH_BUDGET_S // 60} min ({i} of {len(names)})")
+            break
         p.add(news_sources.google_news(f'"{name}" (drone OR strike OR attack OR airfield OR base)'))
     if pool is not None:
         p.add(a for a in pool.items if TOPIC.search(f"{a.get('title', '')} {a.get('summary', '')}"))
