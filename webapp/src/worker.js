@@ -31,6 +31,7 @@
  *   without e-mail addresses; everything else still needs a login.
  */
 
+import { MIGRATIONS } from './migrations.js';
 import { sendPush, allowedEndpoint, b64uDecode, checkPoint } from './webpush.js';
 
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
@@ -441,6 +442,12 @@ async function dispatch(req, path, method, who) {
     allow(method, 'PUT');
     requireMachine(who);
     return ingestAuthorities(request, env);
+  }
+
+  if (path === '/api/ingest/migrate') {
+    allow(method, 'POST');
+    requireMachine(who);
+    return applyMigrations(env);
   }
 
   if (path === '/api/ingest/ai') {
@@ -2184,6 +2191,49 @@ async function aiChat(request, env) {
   return json({ text, model, usage: u, neurons: Math.round(cost), neurons_today: Math.round(used + cost), cap });
 }
 
+// ---------------------------------------------------------------------------
+// Version 3.46: the Worker applies the pending migrations itself (POST
+// /api/ingest/migrate, service token only), called by deploy.yml after each
+// deploy: the deploy token lacks D1 Edit, and `wrangler d1 migrations apply`
+// was refused (code 7403) since 14 Nov. Each pending file runs as one batch
+// (a transaction) together with its row in d1_migrations, which keeps
+// wrangler's own bookkeeping, so either way of applying knows the other.
+function splitSql(sql) {
+  const lines = sql.split('\n').map((l) => l.replace(/--.*$/, '')).filter((l) => l.trim());
+  const out = [];
+  let cur = [];
+  let inTrigger = false;
+  for (const line of lines) {
+    cur.push(line);
+    const t = line.trim();
+    if (/^CREATE\s+TRIGGER/i.test(cur[0].trim())) inTrigger = true;
+    const done = inTrigger ? /^END\s*;\s*$/i.test(t) : /;\s*$/.test(t);
+    if (done) { out.push(cur.join('\n').trim()); cur = []; inTrigger = false; }
+  }
+  if (cur.join('').trim()) out.push(cur.join('\n').trim());
+  return out;
+}
+
+async function applyMigrations(env) {
+  const { results } = await env.DB.prepare('SELECT name FROM d1_migrations').all();
+  const done = new Set((results || []).map((r) => r.name));
+  const applied = [];
+  for (const m of MIGRATIONS) {
+    if (done.has(m.name)) continue;
+    const stmts = splitSql(m.sql);
+    try {
+      await env.DB.batch([
+        ...stmts.map((q) => env.DB.prepare(q)),
+        env.DB.prepare("INSERT INTO d1_migrations (name, applied_at) VALUES (?, datetime('now'))").bind(m.name),
+      ]);
+    } catch (e) {
+      return json({ applied, failed: m.name, error: String(e && e.message || e).slice(0, 300) }, 500);
+    }
+    applied.push(m.name);
+  }
+  return json({ applied, total: MIGRATIONS.length });
+}
+
 async function ingestForces(request, env) {
   const b = await readJson(request);
   if (!b || typeof b !== 'object' || !DATE_RE.test(b.date || '')) throw new HttpError(400, 'body must be a forces map with a date');
@@ -3396,4 +3446,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { startDueRuns, lastDueMs, retryMissingReport, blockedSource, blockedOutlet, resetPublicLatest: () => { publicLatestMemo = null; }, reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
+export const _test = { applyMigrations, splitSql, startDueRuns, lastDueMs, retryMissingReport, blockedSource, blockedOutlet, resetPublicLatest: () => { publicLatestMemo = null; }, reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };

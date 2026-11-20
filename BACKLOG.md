@@ -27,13 +27,7 @@ Saker att följa upp. Det översta är nästa att göra. Flytta en punkt till
 - **Omräkningen 15 nov gick:** 6,2 → 6,2 med huvudmodellen kl. 12:13.
 
 **Nästa steg:**
-1. **Användaren:** D1 Edit på `CLOUDFLARE_API_TOKEN`.
-   - Nyckeln uppdaterades 16 nov, men deployen kl. 07:02 fick ändå
-     "The given account is not valid or is not authorized to access this
-     service [code: 7403]" i steget Database migrations.
-   - Kontrollera att behörigheten är Account → D1 → Edit, att Account
-     Resources omfattar kontot, och att ändringen sparades med Update
-     token. Kör sedan Deploy web app för hand och läs steget.
+1. Klart 20 nov: migrationer körs nu av Workern efter varje deploy (D1 Edit behövs inte).
 2. **Efter 17 nov:** se att svepets `places` kommer med och att fler
    händelser får punkter på kartan.
 3. **Efter en vecka:** titta på Status, under "Gäster utan konto" och
@@ -135,14 +129,6 @@ veckosökningen och som reserv.
 Om det går tillbaka till nästan alla trådar varje gång, skärp instruktionen i
 `src/hourly_monitor.py`.
 
-### Ge deploynyckeln behörigheten D1 Edit
-*Lagt till 2026-11-15.* GitHub-hemligheten `CLOUDFLARE_API_TOKEN` saknar
-D1 Edit. Därför hoppas steget "Database migrations" i `deploy.yml` tyst
-över, och 0014 och 0015 fick köras för hand 15 nov.
-- **Fixa:** lägg till Account → D1 → Edit på nyckeln i Cloudflares
-  kontrollpanel (My Profile → API Tokens).
-- **Annars:** kör nya migrationer för hand.
-
 ### Förnya GitHub-token för Workern innan den går ut
 *Lagt till 2026-10-31.*
 
@@ -157,6 +143,13 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
 Inga just nu.
 
 ## Klart
+
+- 2026-11-20: Migrationer via Workern (Version 3.46). Deploynyckeln saknar
+  D1 Edit, så Workern kör nu själv de migrationer som saknas
+  (`POST /api/ingest/migrate`), anropad av `deploy.yml`. En ny migration
+  kräver bara en ny fil i `webapp/migrations/` och
+  `node webapp/scripts/bundle_migrations.mjs`. 0017 lägger till de tabeller
+  som tidigare skapades av koden.
 
 - 2026-11-20: Översyn av indexets nivå (Version 3.45).
   - **Nivån:** band 6 är rätt för perioden. Dipparna till band 5 berodde på

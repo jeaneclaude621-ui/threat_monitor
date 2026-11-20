@@ -5,6 +5,8 @@
 #                            template "Edit Cloudflare Workers"
 #   CLOUDFLARE_ACCOUNT_ID  - Workers & Pages -> Account details -> Account ID
 # Without them the job says so and stops; nothing else is touched.
+# Migrations go through the Worker after the deploy (Version 3.46) with the
+# service token: HOTMONITOR_URL, CF_ACCESS_CLIENT_ID, CF_ACCESS_CLIENT_SECRET.
 name: Deploy web app
 
 on:
@@ -55,22 +57,34 @@ jobs:
           node scripts/launch_test.mjs
           node scripts/push_test.mjs
           node scripts/retry_test.mjs
+          node scripts/bundle_migrations.mjs --check
+          node --no-warnings scripts/migrate_test.mjs
       - name: Install wrangler
         run: npm ci --no-audit --no-fund
-      - name: Database migrations
-        # Needs D1 Edit on the token; without it the step says so and the
-        # deploy goes on (the new tables are then missing until it is added).
-        continue-on-error: true
-        run: |
-          export CLOUDFLARE_ACCOUNT_ID="$(printf %s "$CLOUDFLARE_ACCOUNT_ID" | tr -d '[:space:]')"
-          export CLOUDFLARE_API_TOKEN="$(printf %s "$CLOUDFLARE_API_TOKEN" | tr -d '[:space:]')"
-          npx wrangler d1 migrations apply hotmonitor --remote
       - name: Deploy
         # Pasted secrets often end in a newline or a space; wrangler refuses them.
         run: |
           export CLOUDFLARE_ACCOUNT_ID="$(printf %s "$CLOUDFLARE_ACCOUNT_ID" | tr -d '[:space:]')"
           export CLOUDFLARE_API_TOKEN="$(printf %s "$CLOUDFLARE_API_TOKEN" | tr -d '[:space:]')"
           npx wrangler deploy
+      - name: Database migrations
+        # Version 3.46: the Worker applies the pending migrations itself
+        # (POST /api/ingest/migrate with the service token): the deploy token
+        # lacks D1 Edit, so `wrangler d1 migrations apply` was refused.
+        env:
+          HOTMONITOR_URL: ${{ secrets.HOTMONITOR_URL }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: |
+          URL="$(printf %s "$HOTMONITOR_URL" | tr -d '[:space:]')"
+          if [ -z "$URL" ] || [ -z "$CF_ACCESS_CLIENT_ID" ]; then echo "::warning::HOTMONITOR_URL / CF_ACCESS_* not set - migrations not applied"; exit 0; fi
+          OUT=$(curl -sS -w '\n%{http_code}' -X POST "$URL/api/ingest/migrate" \
+            -H "CF-Access-Client-Id: $(printf %s "$CF_ACCESS_CLIENT_ID" | tr -d '[:space:]')" \
+            -H "CF-Access-Client-Secret: $(printf %s "$CF_ACCESS_CLIENT_SECRET" | tr -d '[:space:]')" \
+            -H "User-Agent: hotmonitor-deploy/1")
+          CODE=$(printf '%s' "$OUT" | tail -n1); BODY=$(printf '%s' "$OUT" | sed '$d')
+          echo "Migrations: HTTP $CODE $BODY"
+          [ "$CODE" = "200" ] || { echo "::error::Migrations failed: $BODY"; exit 1; }
       - name: Check
         run: |
           VERSION=$(grep -o "hm-v[0-9.]*" public/sw.js | head -1)

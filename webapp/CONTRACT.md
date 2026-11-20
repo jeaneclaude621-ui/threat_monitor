@@ -1132,3 +1132,27 @@ Also in this version:
   12/21 run) fetches reports the app has but the state lacks.
 
 Service worker hm-v3.60.
+
+## Version 3.46: migrations through the Worker
+
+The deploy token lacks D1 Edit, so `wrangler d1 migrations apply` was
+refused (code 7403). The Worker now applies migrations itself.
+- **Bundle:** `scripts/bundle_migrations.mjs` bundles `migrations/*.sql`
+  into `src/migrations.js`. The deploy's tests fail when the bundle is
+  stale (`--check`).
+- **Endpoint:** `POST /api/ingest/migrate` (service token only) applies
+  each migration not yet in `d1_migrations`, in order.
+  - Each file runs as one batch (a transaction), with its row in
+    `d1_migrations`, so wrangler's bookkeeping holds too.
+  - Statements are split on `;` at line ends. A `CREATE TRIGGER … END;`
+    block is one statement.
+  - The answer is {applied, total}, or 500 with the failing file.
+- **Deploy:** `deploy.yml` calls the endpoint after each deploy, with
+  HOTMONITOR_URL and CF_ACCESS_CLIENT_*.
+- **Test:** `scripts/migrate_test.mjs` applies all migrations to an empty
+  SQLite database through the Worker's own code.
+- **0017_runtime_tables.sql:** adds ai_usage, guest_visits and hit_counts
+  (IF NOT EXISTS), the tables the Worker made at runtime.
+
+A new migration now needs only a new file in `migrations/` and
+`node webapp/scripts/bundle_migrations.mjs`.
