@@ -404,6 +404,79 @@ def last_main_day(reports, days: int = EVIDENCE_WINDOW_DAYS):
     return None
 
 
+# Version 3.45 (20 Nov 2026): the band may not fall while the week's
+# evidence for it still holds, and the index moves at most MAX_DAILY_MOVE a
+# day within a band. In the 30 days to 20 Nov the band changed 7 times, every
+# time a one- or two-day dip from 6 to 5 while band 6's conditions of the
+# days before still held: the model judged the day's news alone.
+MAX_DAILY_MOVE = 0.4
+
+
+def band_floor(reports, days: int = EVIDENCE_WINDOW_DAYS):
+    """(band, date) the last `days` days' reports hold today's band at: the
+    highest band a report reached on its own evidence - an event of its own
+    with credibility MIN_BAND_SCORE or more, about NATO/EU - or None. A report
+    whose band was itself held up by this floor does not count, so the floor
+    runs out `days` days after the last day that earned it."""
+    since = (date.today() - timedelta(days=days)).isoformat()
+    best = None
+    for d, r in reports:
+        if d < since or d >= date.today().isoformat() or r.get("index_floor") or not r.get("index_band"):
+            continue
+        events = r.get("events") or []
+        cited = [events[n - 1] for n in (r.get("band_evidence") or []) if isinstance(n, int) and 1 <= n <= len(events)]
+        pool = cited if r.get("band_evidence") else events
+        if any((_model_score(e) or 0) >= MIN_BAND_SCORE and not is_ukraine_only(e) for e in pool):
+            if best is None or r["index_band"] > best[0] or (r["index_band"] == best[0] and d > best[1]):
+                best = (r["index_band"], d)
+    return best
+
+
+def hold_band_floor(result, reports) -> list:
+    """Raises today's band to band_floor's, at the band's base value, and
+    marks the report (index_floor). Returns the checks."""
+    floor = band_floor(reports)
+    band, idx = result.get("index_band"), result.get("threat_index")
+    if not floor or not band or idx is None or band >= floor[0]:
+        return []
+    fb, since = floor
+    result["index_band"], result["threat_index"] = fb, round(max(idx, float(fb)), 1)
+    result["index_floor"] = {"band": fb, "from": since, "model_band": band, "model_index": idx}
+    print(f"  ! Band {band} below the week's band {fb} (evidence {since}) - held at {result['threat_index']}")
+    return [f"Band {band} höjt till {fb}: band {fb}:s villkor från {_sv_date(since)} gäller fortfarande "
+            f"(de gäller i {EVIDENCE_WINDOW_DAYS} dagar). Modellen gav {_sv(idx)}."]
+
+
+def limit_daily_move(result, reports) -> list:
+    """Within the same band as the day before, each index moves at most
+    MAX_DAILY_MOVE. A change of band is left as it is. Returns the checks."""
+    prev = max(((d, r) for d, r in reports if d < date.today().isoformat() and r.get("threat_index") is not None),
+               default=None, key=lambda x: x[0])
+    if not prev:
+        return []
+    checks = []
+    for idx_key, band_key, label in (("threat_index", "index_band", "Index"),
+                                     ("threat_index_30d", "index_band_30d", "30-dagarsindex")):
+        was, band, idx = prev[1].get(idx_key), result.get(band_key), result.get(idx_key)
+        if was is None or idx is None or not band or band != prev[1].get(band_key):
+            continue
+        lim = round(min(max(idx, was - MAX_DAILY_MOVE), was + MAX_DAILY_MOVE), 1)
+        if lim != round(idx, 1):
+            result[idx_key] = lim
+            checks.append(f"{label} {_sv(idx)} begränsat till {_sv(lim)}: högst {_sv(MAX_DAILY_MOVE)} per dag "
+                          f"inom samma band (i går {_sv(was)}).")
+    return checks
+
+
+def _sv_date(d: str) -> str:
+    months = ["jan", "feb", "mars", "april", "maj", "juni", "juli", "aug", "sep", "okt", "nov", "dec"]
+    try:
+        y, m, dd = d.split("-")
+        return f"{int(dd)} {months[int(m) - 1]}"
+    except (ValueError, IndexError):
+        return d
+
+
 def check_band_condition(result) -> list:
     """A band of 7 or more must name a condition of its own kind in
     band_conditions_met (BAND_CONDITION_WORDS); else it drops a band at a
@@ -766,6 +839,7 @@ Respond as strict JSON:
     result["index_checks"] = result.get("index_checks", []) + check_band_condition(result)
     if result.get("sweep_reduced"):
         result["index_checks"] += hold_reserve_day(result, week)
+    result["index_checks"] += hold_band_floor(result, week) + limit_daily_move(result, week)
     result["operator_influence"] = operator_weight.apply_to_index(result, trace)
     limit_ukraine_only(result)
     idx = result.get("threat_index")
@@ -1085,6 +1159,7 @@ def run_daily_report():
         "next_band_partial": sweep.get("next_band_partial", []),
         "band_standing_conditions": sweep.get("band_standing_conditions", []),
         "index_preliminary": sweep.get("index_preliminary"),
+        "index_floor": sweep.get("index_floor"),
         "threat_index_30d": sweep.get("threat_index_30d"),
         "index_band_30d": sweep.get("index_band_30d"),
         "forecast_accuracy": forecast_accuracy,
@@ -1206,7 +1281,9 @@ Respond as strict JSON with exactly these fields:
                                                "event_id": e["id"], "by": "code"} for e in evidence]
     enforce_bands(result)
     apply_index_rules(result, events, set(known_event_ids()))
+    week = load_recent_reports(EVIDENCE_WINDOW_DAYS)
     checks = result.get("index_checks", []) + check_band_condition(result)
+    checks += hold_band_floor(result, week) + limit_daily_move(result, week)
     delta = ((report.get("operator_influence") or {}).get("index_delta")) or 0
     if delta and result.get("index_band") and result.get("threat_index") is not None:
         b = result["index_band"]
@@ -1224,6 +1301,7 @@ Respond as strict JSON with exactly these fields:
         "index_checks": [f"Omräknat {datetime.now():%H:%M} med huvudmodellen: morgonens index var preliminärt "
                          f"({_sv(was)}, hållet nära senaste huvudmodellsdag)."] + checks,
         "index_preliminary": None,
+        "index_floor": result.get("index_floor"),
     })
     report.setdefault("generated_by", {})["index_rescored"] = {"at": datetime.now().isoformat(timespec="minutes"),
                                                                "model": common.MODEL}

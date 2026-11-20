@@ -158,6 +158,18 @@ Inga just nu.
 
 ## Klart
 
+- 2026-11-20: Översyn av indexets nivå (Version 3.45).
+  - **Nivån:** band 6 är rätt för perioden. Dipparna till band 5 berodde på
+    att modellen bara såg dagens nyheter (7 bandbyten på 30 dagar, alla
+    dippar).
+  - **Nya regler:** bandgolv (ett bandvillkor gäller i 7 dagar) och högst
+    ±0,4 per dag inom samma band.
+  - **20 nov rättat:** 5,5 → 6,0.
+  - **17 och 18 nov:** morgonkörningarna stoppades efter en timme av Google
+    News 503 i styrkesökningen. Rapporterna nådde appen men sparades inte i
+    datat. De är nu återställda. Brytare för Google News, tidsgräns för
+    styrkesökningen och mellansparning efter rapporten införda.
+
 - 2026-11-16: De fem baserna med bara OpenStreetMap som källa har nu också
   Wikipedia (en).
   - **Donskoje:** rättad. Su-30SM och Su-24M finns i Tjernjachovsk.

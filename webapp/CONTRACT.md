@@ -1103,3 +1103,32 @@ link with a ready message.
   under "Bjud in en vän".
 
 Service worker hm-v3.59.
+
+## Version 3.45: band floor and daily move limit
+
+`src/daily_report.py` adds two rules after the index rules. They run in the
+morning sweep and in the 12/21 rescore.
+- **Band floor (`hold_band_floor`):** today's band may not fall below the
+  highest band a report of the last 7 days reached on its own evidence.
+  Such a report has an event of its own with credibility ≥ 7, about
+  NATO/EU. The index is raised to the band's base value.
+  - The report gets `index_floor` {band, from, model_band, model_index}.
+  - A floored report is never a floor source, so the floor runs out 7
+    days after the last day that earned it.
+- **Daily move limit (`limit_daily_move`):** within the same band as the
+  day before, each index moves at most 0.4 a day. A change of band is not
+  limited.
+- **In the app:** Idag shows `index_floor` under "Om indexet". The
+  explanation of the index (Om → "Vad betyder siffran?") describes both
+  rules.
+
+Also in this version:
+- **Google News breaker:** Google News is switched off for the run after 3
+  failed searches in a row.
+- **Forces search budget:** the per-base forces searches have 10 minutes.
+- **Mid-run save:** the morning run saves the state right after the
+  report (`daily_report.checkpoint`, `run_job.py --checkpoint`).
+- **Restore:** `app_sync.py restore` (job `restore_reports`, and every
+  12/21 run) fetches reports the app has but the state lacks.
+
+Service worker hm-v3.60.

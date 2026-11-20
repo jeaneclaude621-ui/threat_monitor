@@ -1401,6 +1401,10 @@ function indexNotes(r) {
       : null,
     r.index_review && r.index_review.note_sv
       ? h('div', { class: 'hero-note' }, h('strong', null, `Granskat ${dateShort(r.index_review.date)}: `), r.index_review.note_sv) : null,
+    // Version 3.45: the band held up by the week's evidence.
+    r.index_floor && r.index_floor.band
+      ? h('div', { class: 'hero-note' }, h('strong', null, `Band ${r.index_floor.band} hålls: `),
+        `villkoren från ${dateShort(r.index_floor.from)} gäller fortfarande. Dagens nyheter ensamma gav ${fmt1(r.index_floor.model_index)} (band ${r.index_floor.model_band}).`) : null,
     ...(heroMore(r, oi, true) || []),
     h('a', { class: 'small', href: '#/om?s=index' }, 'Vad betyder siffran?'),
   ].filter(Boolean);
@@ -4938,6 +4942,7 @@ function viewAbout() {
       h('p', null, 'Hotindex är en AI-bedömning, varje dag, av hur spänt läget är mellan Ryssland och Nato/EU, på en skala från 1 till 10. Det mäter vad som händer Nato- och EU-länder, inte hur hårda striderna i Ukraina är. ”Om 30 dagar” är modellens prognos för läget en månad framåt. Indexet är inte Säpos, Försvarsmaktens eller någon annan myndighets bedömning.'),
       h('ol', { class: 'scale-list' }, INDEX_SCALE.map(([n, name, text]) => h('li', null, h('b', null, `${n} ${name}. `), text))),
       h('p', null, 'Inom ett band placeras värdet lågt, mitt i eller högt efter hur tydligt bandets villkor är uppfyllda.'),
+      h('p', null, 'Ett bandvillkor gäller i 7 dagar. Indexet sjunker därför inte till ett lägre band så länge veckans händelser fortfarande uppfyller det högre bandet, bara för att dagen var lugn. Inom samma band rör sig värdet högst 0,4 per dag. Ett nytt band nås bara med nya händelser som uppfyller det.'),
       h('h3', { class: 'about-h3' }, 'Siffran vid varje händelse'),
       h('p', null, 'Den färgade rutan vid en händelse är trovärdighet, 1–10: hur väl uppgiften är bekräftad av oberoende och pålitliga källor. Den säger inget om hur allvarlig händelsen är.'),
       h('h2', { class: 'title-m', id: 'om-ansvar' }, 'Ansvar och kontakt'),
