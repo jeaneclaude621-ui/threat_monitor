@@ -709,6 +709,7 @@ function openSettings() {
         h('p', { class: 'small' }, 'Du får en notis när hotindex ändras med 0,5 eller mer, eller när en ny händelse får 9–10 i trovärdighet.'),
         isAdmin() ? h('p', { class: 'small muted' }, 'Som administratör får du också ett larm om morgonrapporten uteblir.') : null,
         isGuest() ? h('p', { class: 'small muted' }, 'Du behöver inget konto. Notisen går till den här webbläsaren; vi får ingen e-postadress.') : null,
+        h('p', { class: 'small muted' }, 'Inga notiser mellan 22 och 07, och på lördagar och söndagar inte före 10.30. Det som händer under tiden kommer då.'),
         h('p', { class: 'small muted' }, 'Inställningen gäller den här enheten.'),
         followSection(status));
     }

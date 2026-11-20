@@ -56,9 +56,13 @@ const EMAIL_RE = /^[^\s@,;"'<>]{1,64}@[^\s@,;"'<>]{1,190}\.[a-z]{2,}$/i;
 
 const ALARM_AFTER_MINUTES = 7 * 60;   // 07:00 Stockholm time, when quiet hours end
 // No push sounds at night: pushes due 22:00-07:00 Stockholm time wait in
-// meta 'push_deferred' and the cron sends them at 07:00.
+// meta 'push_deferred' and the cron sends them at 07:00. Version 3.47: on
+// Saturdays and Sundays they wait until 10:30 (the cron runs every 30 min
+// until 09:30 UTC, i.e. 10:30 in winter and 11:30 in summer Stockholm time,
+// so 10:30 is always reached).
 const QUIET_FROM_MINUTES = 22 * 60;
 const QUIET_UNTIL_MINUTES = 7 * 60;
+const QUIET_UNTIL_WEEKEND_MINUTES = 10 * 60 + 30;
 const MAX_SUBSCRIPTIONS_PER_USER = 10;
 const INDEX_PUSH_DELTA = 0.5;
 const HIGH_SCORE = 9;
@@ -2396,9 +2400,10 @@ async function setMeta(env, key, value) {
 function stockholmClock(ms) {
   const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Stockholm', year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23', weekday: 'short',
   }).formatToParts(new Date(ms)).map((p) => [p.type, p.value]));
-  return { date: `${parts.year}-${parts.month}-${parts.day}`, minutes: Number(parts.hour) * 60 + Number(parts.minute) };
+  return { date: `${parts.year}-${parts.month}-${parts.day}`, minutes: Number(parts.hour) * 60 + Number(parts.minute),
+    weekend: parts.weekday === 'Sat' || parts.weekday === 'Sun' };
 }
 
 async function getAlarm(env) {
@@ -2674,8 +2679,8 @@ async function reportPush(env, body, date) {
 }
 
 function inQuietHours(ms) {
-  const { minutes } = stockholmClock(ms);
-  return minutes >= QUIET_FROM_MINUTES || minutes < QUIET_UNTIL_MINUTES;
+  const { minutes, weekend } = stockholmClock(ms);
+  return minutes >= QUIET_FROM_MINUTES || minutes < (weekend ? QUIET_UNTIL_WEEKEND_MINUTES : QUIET_UNTIL_MINUTES);
 }
 
 async function getDeferred(env) {
@@ -2716,7 +2721,7 @@ async function getPushQueue(env) {
 }
 
 /** Queues a push for every matching subscription and sends the first batch.
- *  During quiet hours the push is held until 07:00 instead. */
+ *  During quiet hours the push is held until 07:00 (weekends 10:30) instead. */
 async function pushTo(env, { adminsOnly, pref, guests = false, match = null }, payload, urgency = 'normal', budget = newBudget()) {
   if (inQuietHours(Date.now())) {
     const held = await getDeferred(env);
@@ -3446,4 +3451,4 @@ function json(data, status = 200) {
 }
 
 // Exported for tests only.
-export const _test = { applyMigrations, splitSql, startDueRuns, lastDueMs, retryMissingReport, blockedSource, blockedOutlet, resetPublicLatest: () => { publicLatestMemo = null; }, reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };
+export const _test = { inQuietHours, applyMigrations, splitSql, startDueRuns, lastDueMs, retryMissingReport, blockedSource, blockedOutlet, resetPublicLatest: () => { publicLatestMemo = null; }, reportPush, followsMatch, pushTo, drainPushQueue, PUSH_BATCH, guestKey, guestCache, pseudonymize, isPublicPath, verifyAccessJwt, authenticate, identify, userFor, stockholmClock, checkMissingReport, peekUrl, looksLikeFeed, pageTitle, announcedFeed };

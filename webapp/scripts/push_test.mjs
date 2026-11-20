@@ -96,5 +96,21 @@ ok('userinfo refused', !allowedEndpoint('https://x@web.push.apple.com/abc'));
 ok('garbage refused', !allowedEndpoint('not a url'));
 ok('dev origin only when listed', allowedEndpoint('http://127.0.0.1:8799/p/1', 'http://127.0.0.1:8799') && !allowedEndpoint('http://127.0.0.1:8799/p/1'));
 
+// Version 3.47: quiet hours, Stockholm time - 22-07 on weekdays, until 10:30 on weekends.
+{
+  const { _test } = await import('../src/worker.js');
+  const q = (iso) => _test.inQuietHours(Date.parse(iso));
+  ok('weekday 06:59 quiet (winter)', q('2026-11-18T05:59:00Z'));          // Wed 06:59 CET
+  ok('weekday 07:00 open (winter)', !q('2026-11-18T06:00:00Z'));          // Wed 07:00 CET
+  ok('Saturday 07:00 quiet', q('2026-11-21T06:00:00Z'));                  // Sat 07:00 CET
+  ok('Saturday 10:29 quiet', q('2026-11-21T09:29:00Z'));                  // Sat 10:29 CET
+  ok('Saturday 10:30 open', !q('2026-11-21T09:30:00Z'));                  // Sat 10:30 CET
+  ok('Sunday 10:00 quiet (summer)', q('2026-06-14T08:00:00Z'));           // Sun 10:00 CEST
+  ok('Sunday 10:30 open (summer)', !q('2026-06-14T08:30:00Z'));           // Sun 10:30 CEST
+  ok('Friday 22:00 quiet', q('2026-11-20T21:00:00Z'));                    // Fri 22:00 CET
+  ok('Sunday 21:59 open', !q('2026-11-22T20:59:00Z'));                    // Sun 21:59 CET
+  ok('Monday 07:00 open', !q('2026-11-23T06:00:00Z'));                    // Mon 07:00 CET
+}
+
 console.log(`\npush_test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

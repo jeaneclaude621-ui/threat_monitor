@@ -1156,3 +1156,19 @@ refused (code 7403). The Worker now applies migrations itself.
 
 A new migration now needs only a new file in `migrations/` and
 `node webapp/scripts/bundle_migrations.mjs`.
+
+## Version 3.47: weekend mornings without pushes
+
+Pushes have quiet hours, Stockholm time:
+- **Weekdays:** 22:00–07:00, as before.
+- **Saturdays and Sundays:** 22:00–10:30.
+
+A push due in quiet hours is held in meta `push_deferred`. The `*/30 3-9`
+cron sends it at the end of the quiet hours; it runs until 10:30
+Stockholm time in winter and summer alike. This also covers the morning
+report's push and the missing-report alarm to admins.
+
+`stockholmClock` gains `weekend`. The notification settings say so.
+`push_test.mjs` checks the times.
+
+Service worker hm-v3.61.
