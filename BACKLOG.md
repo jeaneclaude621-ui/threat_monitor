@@ -189,7 +189,7 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
   Centralasien, veckor från 2018 till 7 nov 2026. Den gav 4 543 händelser i
   fyra grupper och 417 regioner. Den visas under Incidenter som "Bredare
   bakgrund". Ny fil: `python3 src/acled.py aggregate FIL.xlsx` och sedan
-  repush. Nästa steg kan vara ett kartlager med regionernas punkter.
+  repush. Kartlagret med regionernas punkter finns sedan Version 3.52.
 - **Leidens universitet** har också en datamängd.
 
 ## Gratismodellerna (översyn 21 nov 2026)

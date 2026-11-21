@@ -1197,3 +1197,10 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 #acled .row-num { font-variant-numeric: tabular-nums; font-weight: 600; margin-right: 8px; }
 #acled .list .row { padding: 6px 0; }
 #acled .seg button { padding-left: 6px; padding-right: 6px; font-size: 13px; }
+
+/* Version 3.52: ACLED's regions on the incident map */
+.adot { pointer-events: all; cursor: pointer; stroke-dasharray: 2 1.5; }
+.adot.isel { stroke-dasharray: none; fill-opacity: .35; }
+.iacled-info { padding: 4px 12px 10px; color: var(--muted); }
+.iacled-info:empty { display: none; }
+.iacled-info b { color: var(--ink); }

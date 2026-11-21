@@ -3870,12 +3870,17 @@ async function viewIncidents(q) {
   let compare = q.get('j') === '1' || incUi.compare;
   let sel = q.get('c') || incUi.sel;
   let spot = incUi.spot;
+  // Version 3.52: ACLED's regions as a layer (data.acled_agg)
+  const agg = data.acled_agg && Array.isArray(data.acled_agg.rows) ? data.acled_agg : null;
+  let acledOn = !!agg && (q.get('a') === '1' || !!incUi.acled);
+  let acledPick = null;
 
   // ---- the map
   const VB0 = { ...HEAT_VIEW };
   const svg = svgEl('svg', { class: 'hmap fmap', role: 'img', 'aria-label': 'Karta över incidenter i Europa', viewBox: `${VB0.x} ${VB0.y} ${VB0.w} ${VB0.h}` });
   const landG = svgEl('g'); const heatG = svgEl('g', { class: 'iheat' }); const dotG = svgEl('g');
-  svg.append(svgEl('defs', {}), landG, heatG, dotG);
+  const acledG = svgEl('g', { class: 'iacled' });
+  svg.append(svgEl('defs', {}), landG, heatG, acledG, dotG);
   svg.firstChild.innerHTML = '<filter id="iblur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>'
     + '<pattern id="ihatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--heat-0)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--line)" stroke-width="2"/></pattern>';
   heatG.setAttribute('filter', 'url(#iblur)');
@@ -3902,6 +3907,7 @@ async function viewIncidents(q) {
     const k = Math.max(0.35, vb.w / VB0.w);
     for (const el of dotG.children) el.setAttribute('r', (Number(el.dataset.r) * k).toFixed(2));
     for (const el of heatG.children) el.setAttribute('r', (Number(el.dataset.r) * k).toFixed(2));
+    for (const el of acledG.children) { el.setAttribute('r', (Number(el.dataset.r) * k).toFixed(2)); el.setAttribute('stroke-width', (1.4 * k).toFixed(2)); }
   }
 
   // ---- controls
@@ -3918,6 +3924,8 @@ async function viewIncidents(q) {
   const toIn = h('input', { type: 'date', min: first, max: today, 'aria-label': 'Till datum' });
   const uaBox = h('input', { type: 'checkbox', id: 'inc-ua' });
   const cmpBox = h('input', { type: 'checkbox', id: 'inc-cmp' });
+  const acledBox = h('input', { type: 'checkbox', id: 'inc-acled' });
+  const acledInfo = h('div', { class: 'small iacled-info', role: 'status', 'aria-live': 'polite' });
   const foot = h('div', { class: 'hmap-foot' });
   const comparePane = h('div');
   const hot = h('section', { class: 'section' });
@@ -3936,8 +3944,8 @@ async function viewIncidents(q) {
   const prevRange = () => { const len = ix(to) - ix(from); const pTo = addDays(from, -1); return [addDays(pTo, -len), pTo]; };
 
   function draw() {
-    Object.assign(incUi, { from, to, cats: [...cats], ua, compare, sel, spot });
-    history.replaceState(null, '', `#/karta?v=inc&from=${from}&to=${to}${ua ? '&ua=1' : ''}${compare ? '&j=1' : ''}${sel ? `&c=${sel}` : ''}`);
+    Object.assign(incUi, { from, to, cats: [...cats], ua, compare, sel, spot, acled: acledOn });
+    history.replaceState(null, '', `#/karta?v=inc&from=${from}&to=${to}${ua ? '&ua=1' : ''}${compare ? '&j=1' : ''}${sel ? `&c=${sel}` : ''}${acledOn ? '&a=1' : ''}`);
     const cur = all.filter((i) => shown(i, from, to));
     const [pf, pt] = prevRange();
     const prev = all.filter((i) => shown(i, pf, pt));
@@ -3967,7 +3975,7 @@ async function viewIncidents(q) {
     rFrom.value = String(ix(from)); rTo.value = String(ix(to));
     rFrom.style.zIndex = ix(from) === ix(to) && ix(to) > days / 2 ? '3' : '1'; rTo.style.zIndex = '2';
     fill.style.left = `${pct(from)}%`; fill.style.width = `${pct(to) - pct(from)}%`;
-    fromIn.value = from; toIn.value = to; uaBox.checked = ua; cmpBox.checked = compare;
+    fromIn.value = from; toIn.value = to; uaBox.checked = ua; cmpBox.checked = compare; acledBox.checked = acledOn;
     // map: countries shaded by change when comparing, else by count
     const byC = (l) => l.reduce((m, i) => ((m[i.country] = (m[i.country] || 0) + 1), m), {});
     const cc = byC(cur); const pc = byC(prev);
@@ -4003,6 +4011,7 @@ async function viewIncidents(q) {
       dot.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } });
       dotG.appendChild(dot);
     }
+    drawAcled();
     sizeDots();
     const exact = cur.filter((i) => i.precision === 'ort').length;
     foot.replaceChildren(h('span', null, `${plural(cur.length, 'incident', 'incidenter')}${compare ? ` (föregående period ${prev.length})` : ''}`),
@@ -4040,6 +4049,50 @@ async function viewIncidents(q) {
   }
   const scrollList = () => list.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+  // ACLED's regions in the period: a hollow ring per region, sized by the
+  // number of events, coloured by the group with most. Months are whole:
+  // a period that starts mid-month counts that month's events.
+  function drawAcled() {
+    acledG.replaceChildren();
+    if (!agg || !acledOn) { acledInfo.replaceChildren(); return; }
+    const m0 = from.slice(0, 7); const m1 = to.slice(0, 7);
+    const per = new Map();
+    for (const [m, , ri, c, n] of agg.rows) {
+      if (ri < 0 || m < m0 || m > m1 || (acledCat !== 'all' && c !== acledCat)) continue;
+      if (!per.has(ri)) per.set(ri, { n: 0, by: {} });
+      const e = per.get(ri); e.n += n; e.by[c] = (e.by[c] || 0) + n;
+    }
+    const max = Math.max(1, ...[...per.values()].map((e) => e.n));
+    let total = 0;
+    for (const [ri, e] of [...per.entries()].sort((a, b) => b[1].n - a[1].n)) {
+      const r = agg.regions[ri];
+      if (!r || r[2] == null) continue;
+      total += e.n;
+      const dom = Object.entries(e.by).sort((a, b) => b[1] - a[1])[0][0];
+      const label = `${r[1]} (${acledLand(r[0])}): ${plural(e.n, 'händelse', 'händelser')} enligt ACLED`;
+      const c = svgEl('circle', { cx: FX(r[3]).toFixed(1), cy: FY(r[2]).toFixed(1), class: `adot${acledPick === ri ? ' isel' : ''}`,
+        fill: ACLED_COL[dom] || '#475569', 'fill-opacity': '0.12', stroke: ACLED_COL[dom] || '#475569', tabindex: '0', role: 'button', 'aria-label': label });
+      c.dataset.r = String(3 + 9 * Math.sqrt(e.n / max));
+      c.appendChild(svgEl('title', {}, label));
+      const pick = (ev) => {
+        if (ev) ev.stopPropagation();
+        acledPick = acledPick === ri ? null : ri;
+        drawAcled(); sizeDots();
+      };
+      c.addEventListener('click', pick);
+      c.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } });
+      acledG.appendChild(c);
+    }
+    const picked = acledPick != null && per.get(acledPick);
+    const r = picked && agg.regions[acledPick];
+    acledInfo.replaceChildren(picked
+      ? h('span', null, h('b', null, `${r[1]} (${acledLand(r[0])}): `), `${plural(picked.n, 'händelse', 'händelser')} ${m0 === m1 ? m0 : `${m0} – ${m1}`} – `,
+        Object.entries(picked.by).sort((a, b) => b[1] - a[1]).map(([c, n]) => `${(ACLED_SHORT[c] || c).toLowerCase()} ${n}`).join(', '))
+      : h('span', null, `ACLED-ringar: ${plural(total, 'händelse', 'händelser')} i ${plural(per.size, 'region', 'regioner')}`,
+        acledCat !== 'all' ? ` (${(ACLED_SHORT[acledCat] || acledCat).toLowerCase()})` : '', agg.through && to > agg.through ? ` · ACLED:s data slutar ${dateShort(agg.through)}` : '', '. Tryck på en ring.'));
+  }
+  acledHook = () => { if (acledOn) { drawAcled(); sizeDots(); } };
+
   function miniMap(l) {
     const m = svgEl('svg', { class: 'imini-map', viewBox: `${VB0.x} ${VB0.y} ${VB0.w} ${VB0.h}`, role: 'img', 'aria-hidden': 'true' });
     m.appendChild(svgEl('defs', {})).innerHTML = '<filter id="iblur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>';
@@ -4057,6 +4110,7 @@ async function viewIncidents(q) {
   rTo.addEventListener('input', () => { to = addDays(first, Math.max(Number(rTo.value), ix(from))); draw(); });
   uaBox.addEventListener('change', () => { ua = uaBox.checked; draw(); });
   cmpBox.addEventListener('change', () => { compare = cmpBox.checked; draw(); });
+  acledBox.addEventListener('change', () => { acledOn = acledBox.checked; acledPick = null; draw(); });
 
   const hist = data.history || {};
   const csis = hist.csis || null;
@@ -4070,14 +4124,15 @@ async function viewIncidents(q) {
         h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma in', onclick: () => pz.zoomTo(vb.x + vb.w / 2, vb.y + vb.h / 2, vb.w / 1.6) }, '+'),
         h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma ut', onclick: () => pz.zoomTo(vb.x + vb.w / 2, vb.y + vb.h / 2, vb.w * 1.6) }, '−'),
         h('button', { class: 'chip', type: 'button', onclick: () => { vb = { ...VB0 }; setVb(); } }, 'Hela kartan')) : null,
-      foot),
+      foot, acledInfo),
     h('div', { class: 'card itl' }, h('div', { class: 'ibars-wrap' }, bars), axis,
       h('div', { class: 'hrange' }, h('div', { class: 'hr-track' }), fill, rFrom, rTo),
       h('div', { class: 'hdates' }, h('label', null, 'Från', fromIn), h('label', null, 'Till', toIn)),
       h('p', { class: 'small muted' }, 'Staplar: incidenter per månad, färgade efter slag. Ramen är vald period; streckad ram är jämförelsen.')),
     h('div', { class: 'card itoggles' },
       h('label', { class: 'check-row', for: 'inc-cmp' }, cmpBox, ' Jämför med lika lång period före'),
-      h('label', { class: 'check-row', for: 'inc-ua' }, uaBox, ' Ta med Ukraina (ambassader, fartyg och gränsöverskridande)')),
+      h('label', { class: 'check-row', for: 'inc-ua' }, uaBox, ' Ta med Ukraina (ambassader, fartyg och gränsöverskridande)'),
+      agg ? h('label', { class: 'check-row', for: 'inc-acled' }, acledBox, ' Visa ACLED:s regioner på kartan (bredare bakgrund, ringar)') : null),
     comparePane,
     hot,
     list,
@@ -4156,6 +4211,7 @@ function quickTiles(courses, brief, inc) {
 // narrowed to Russian acts; said so beside the figures.
 const ACLED_COL = { dronare: '#7C3AED', avvarjt: '#0E7490', sprang: '#B91C1C', skadegorelse: '#B45309' };
 let acledCat = 'all';
+let acledHook = null;   // the incident map's ACLED layer, redrawn when the group changes
 const ACLED_SHORT = { dronare: 'Drönare', avvarjt: 'Avvärjda', sprang: 'Spräng', skadegorelse: 'Skadegörelse' };
 const acledLand = (cc) => (cc === 'XK' ? 'Kosovo' : countryName(cc));
 function acledSection(agg) {
@@ -4186,7 +4242,7 @@ function acledSection(agg) {
       h('h2', { class: 'title-m' }, 'Bredare bakgrund enligt ACLED'),
       h('div', { class: 'card card-pad' },
         h('div', { class: 'seg seg-wrap' }, [['all', 'Alla'], ...cats.map((c) => [c, ACLED_SHORT[c] || agg.cats[c]])].map(([k, label]) =>
-          h('button', { type: 'button', 'aria-pressed': String(acledCat === k), onclick: () => { acledCat = k; draw(); } }, label))),
+          h('button', { type: 'button', 'aria-pressed': String(acledCat === k), onclick: () => { acledCat = k; draw(); if (acledHook) acledHook(); } }, label))),
         h('div', { class: 'gbars' }, ys.map((y) => h('div', { class: 'gbar' },
           h('span', { class: 'gbar-n' }, String(tot(y))),
           h('i', { class: 'gstack', style: `height:${Math.max(4, Math.round((56 * tot(y)) / ymax))}px` },
@@ -5093,7 +5149,7 @@ function runsSection(runs) {
 const RELEASE_NOTES = [
   ['2026-11-21', 'Incidentkarta, ACLED och nyheter på Idag', [
     'Karta → Incidenter: faktiska sabotage, drönare, kabelskador, spionage och hot i Europa utom Ryssland och Belarus, med reglage, jämförelse och historik enligt CSIS och IISS.',
-    'Incidenter har en bredare bakgrund enligt ACLED: drönarangrepp, avvärjda vapen, sprängladdningar och skadegörelse per land och år sedan 2018.',
+    'Incidenter har en bredare bakgrund enligt ACLED: drönarangrepp, avvärjda vapen, sprängladdningar och skadegörelse per land och år sedan 2018, och som ringar per region på kartan.',
     'Nya funktioner visas i en ruta överst på Idag tills du har öppnat eller stängt den.',
     'Förstasidan är tätare: tre genvägar under indexet – handlingsalternativ, myndigheter och incidenter.',
     'Körningarna är glesare: inget på natten, kvällskörningen är flyttad till kl. 16.',

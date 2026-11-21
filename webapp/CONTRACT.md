@@ -1284,3 +1284,12 @@ country, the regions with most, and ACLED as the source. Kept apart from
 the log; it has no event text. A newer file: run `aggregate` again.
 
 Service worker hm-v3.66.
+
+## Version 3.52: ACLED's regions on the incident map
+
+A toggle under the incident map ("Visa ACLED:s regioner på kartan", URL
+`a=1`) draws a dashed ring per ACLED region with events in the chosen
+period (whole months), sized by the count and coloured by the group with
+most; the group buttons in the ACLED section filter the layer too. Tapping
+a ring shows the region, the months and the count per group under the map.
+The incident dots stay on top. Service worker hm-v3.67.

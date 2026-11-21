@@ -21,7 +21,7 @@ export const FEATURES = [
   { id: 'genvagar', area: 'idag', title: 'Genvägar under indexet', href: '#/', added: '2026-11-21',
     desc: 'Tre rutor under hotindexet: Rysslands handlingsalternativ, svenska myndigheter och Nato (nya uppgifter senaste dygnet) och incidenter i Europa senaste veckan.', keywords: 'myndigheter nato handlingsalternativ incidenter genväg förstasida' },
   { id: 'acled', area: 'arkiv', title: 'ACLED i incidentkartan', href: '#/karta?v=inc', added: '2026-11-21',
-    desc: 'Bredare bakgrund enligt ACLED (acleddata.com): drönarangrepp, avvärjda vapen, sprängladdningar och skadegörelse per land och år sedan 2018, de senaste 12 månaderna mot 12 före och regionerna med flest.', keywords: 'acled incidenter historik sabotage drönare källa' },
+    desc: 'Bredare bakgrund enligt ACLED (acleddata.com): drönarangrepp, avvärjda vapen, sprängladdningar och skadegörelse per land och år sedan 2018, de senaste 12 månaderna mot 12 före och regionerna med flest. Regionerna kan också visas som ringar på incidentkartan för vald period.', keywords: 'acled incidenter historik sabotage drönare källa' },
   { id: 'incidenter', area: 'arkiv', title: 'Incidentkarta för Europa', href: '#/karta?v=inc', added: '2026-11-21',
     desc: 'Faktiska incidenter i Europa utom Ryssland och Belarus: sabotage, kablar, drönare, spionage, hot, GPS-störning och fysisk påverkan. Period med reglage, jämförelse med perioden före, oroshärdar och historik enligt CSIS och IISS.', keywords: 'incidenter sabotage drönare kablar spionage karta oroshärdar jämför csis iiss' },
   { id: 'index-golv', area: 'idag', title: 'Stabilare hotindex', href: '#/om?s=index', added: '2026-11-20',
