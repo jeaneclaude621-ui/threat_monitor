@@ -283,6 +283,17 @@ def check() -> dict:
             out[label] = len(rows)
         except urllib.error.HTTPError as e:
             out[label] = f"HTTP {e.code}"
+    # The bare minimum, and ACLED's own message, so a 403 can be told apart
+    # from a query the API dislikes. The message names the tier, not data.
+    for label, url in (("minimal", READ_URL + "?_format=json&limit=1"),
+                       ("aggregated", "https://acleddata.com/api/acled/read?_format=json&limit=1&country=Poland")):
+        req = urllib.request.Request(url, headers={"Authorization": f"Bearer {tok}", "User-Agent": UA})
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                body = json.loads(r.read())
+            out[label] = f"ok, {len(body.get('data') or [])} rows"
+        except urllib.error.HTTPError as e:
+            out[label] = f"HTTP {e.code}: {e.read()[:300].decode('utf-8', 'replace')}"
     print(f"ACLED: signed in; events {out}")
     return {"status": "ok", "events": out}
 
