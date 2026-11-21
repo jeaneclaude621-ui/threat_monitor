@@ -310,7 +310,7 @@ function openMore() {
         row('Ämnen', 'Sök och följ', go('#/amnen')),
         row('Myndigheter', 'Svenska lägesbilder', go('#/myndigheter')),
         row('Handlingsalternativ', null, go('#/handlingsalternativ')),
-        row('Funktioner', nNew ? `${nNew} nya` : null, act(openFeatures)),
+        row('Funktioner', nNew ? `${nNew} nya` : null, act(() => { markFeaturesSeen(); openFeatures(); })),
         row('Notiser och hemskärm', null, act(openSettings)),
         canOfferInstall() ? row('Lägg till på hemskärmen', null, act(openInstall)) : null,
         row('Om Hotmonitor', null, go('#/om')),
@@ -1216,6 +1216,7 @@ async function viewReport(date, q) {
     archived ? null : noticeCards(),
     archived ? null : noAccountCard(),
     heroCard(r),
+    archived ? null : whatsNewCard(),
     archived ? null : coursesLink(courses),
     archived ? null : incidentsCard(incidentData),
     archived ? null : newBox(latest, r),
@@ -4992,6 +4993,12 @@ function runsSection(runs) {
 // What has changed, newest first. Added to by hand with each change worth
 // telling the admins about.
 const RELEASE_NOTES = [
+  ['2026-11-21', 'Incidentkarta, ACLED och nyheter på Idag', [
+    'Karta → Incidenter: faktiska sabotage, drönare, kabelskador, spionage och hot i Europa utom Ryssland och Belarus, med reglage, jämförelse och historik enligt CSIS och IISS.',
+    'Händelser från ACLED läggs in i incidentkartan och märks ACLED.',
+    'Nya funktioner visas i en ruta överst på Idag tills du har öppnat eller stängt den.',
+    'Körningarna är glesare: inget på natten, kvällskörningen är flyttad till kl. 16.',
+  ]],
   ['2026-10-15', 'RSS-förfilter i skuggläge', [
     'Timkollen hämtar nu först 21 RSS-flöden (bl.a. SVT, Ekot, DN, SvD, BBC, DW, Guardian, Kyiv Independent och Moscow Times) och ser vilka trådar som har nya artiklar sedan förra kollen.',
     'Skuggläge: alla trådar kollas fortfarande av Claude som förut. Förfiltret antecknar bara vilka anrop det skulle ha hoppat över, så att det kan prövas innan det får spara pengar.',
@@ -5149,6 +5156,33 @@ function newFeatures() {
   return visibleFeatures().filter((f) => f.added >= since).sort((a, b) => (a.added < b.added ? 1 : -1));
 }
 
+
+// Version 3.49: what is new, on Idag, until the reader has opened it or
+// closed it. The newest feature's date is remembered in this browser only.
+const FEAT_SEEN_KEY = 'hm-features-seen';
+function featuresSeen() { try { return localStorage.getItem(FEAT_SEEN_KEY) || ''; } catch { return ''; } }
+function markFeaturesSeen() {
+  const newest = newFeatures()[0];
+  try { if (newest) localStorage.setItem(FEAT_SEEN_KEY, newest.added); } catch { /* private window */ }
+}
+function whatsNewCard() {
+  if (firstVisitNow) return null;
+  const seen = featuresSeen();
+  const fresh = newFeatures().filter((f) => f.added > seen);
+  if (!fresh.length) return null;
+  const card = h('div', { class: 'coa-link new-link', role: 'group', 'aria-label': 'Nytt i appen' });
+  const open = () => { markFeaturesSeen(); card.remove(); openFeatures(); };
+  const dismiss = (ev) => { ev.stopPropagation(); markFeaturesSeen(); card.remove(); };
+  card.append(
+    h('button', { class: 'new-link-main', type: 'button', onclick: open },
+      h('span', { class: 'coa-link-label' }, h('span', { class: 'coa-link-new' }, 'Nytt i appen'), fresh[0].title),
+      h('span', { class: 'coa-link-vals' }, fresh.length > 1
+        ? `${fresh.slice(1, 3).map((f) => f.title).join(', ')}${fresh.length > 3 ? ` och ${fresh.length - 3} till` : ''}`
+        : fresh[0].desc.slice(0, 110) + (fresh[0].desc.length > 110 ? ' …' : '')),
+      chevRight()),
+    h('button', { class: 'new-link-x', type: 'button', 'aria-label': 'Dölj nyheterna', onclick: dismiss }, '×'));
+  return card;
+}
 
 function openFeatures() {
   openSheet((close) => {

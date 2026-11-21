@@ -1148,3 +1148,13 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 }
 .iheat { pointer-events: none; }
 .idot { pointer-events: all; }
+
+/* Version 3.49: Nytt i appen on Idag */
+.new-link { border-left-color: var(--amber); padding: 0; }
+.new-link-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; background: none; border: 0;
+  color: inherit; font: inherit; text-align: left; cursor: pointer; position: relative; padding-right: 30px; }
+.new-link-main .chev { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.new-link-x { flex: none; width: 44px; align-self: stretch; background: none; border: 0; border-left: 1px solid var(--line, rgba(0,0,0,.08));
+  color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; }
+.new-link .coa-link-label { flex-direction: column; align-items: flex-start; gap: 2px; }
+.new-link .coa-link-new { white-space: nowrap; }
