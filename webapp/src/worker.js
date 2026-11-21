@@ -359,6 +359,18 @@ async function dispatch(req, path, method, who) {
     return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
   }
 
+  if (path === '/api/incidents') {
+    allow(method, 'GET');
+    requireReader(who);
+    try {
+      const row = await env.DB.prepare('SELECT data FROM incident_maps ORDER BY date DESC LIMIT 1').first();
+      return row ? new Response(row.data, { status: 200, headers: apiHeaders() }) : json(null);
+    } catch (e) {
+      if (/no such table/i.test(String(e && e.message))) return json(null);
+      throw e;
+    }
+  }
+
   if (path === '/api/strikes') {
     allow(method, 'GET');
     requireReader(who);
@@ -422,6 +434,12 @@ async function dispatch(req, path, method, who) {
     allow(method, 'PUT');
     requireMachine(who);
     return ingestCourses(request, env);
+  }
+
+  if (path === '/api/ingest/incidents') {
+    allow(method, 'PUT');
+    requireMachine(who);
+    return ingestIncidents(request, env);
   }
 
   if (path === '/api/ingest/strikes') {
@@ -626,7 +644,7 @@ function allow(method, expected) {
 // /api/me answers role 'guest'; reads, push, devices, admin, ingest and
 // export always need a login or the machine.
 const PUBLIC_PATHS = new Set(['/api/me', '/api/push/key', '/api/reports', '/api/assessments', '/api/notices', '/api/updates',
-  '/api/courses', '/api/strikes', '/api/forces', '/api/authorities', '/api/trends', '/api/channels']);
+  '/api/courses', '/api/strikes', '/api/incidents', '/api/forces', '/api/authorities', '/api/trends', '/api/channels']);
 const GUEST = Object.freeze({ kind: 'guest' });
 const GUEST_CACHE_MS = 60000;
 const GUEST_CACHE_MAX = 200;
@@ -714,9 +732,10 @@ const GUEST_SECTIONS = [
   ['narrativ', (p) => p === '/api/trends' || p === '/api/channels'],
   ['myndigheter', (p) => p === '/api/authorities'],
   ['handlingsalternativ', (p) => p === '/api/courses'],
+  ['incidenter', (p) => p === '/api/incidents'],
 ];
 const GUEST_SECTION_SV = { start: 'Öppnade appen', idag: 'Idag', rapporter: 'Rapporter och händelser', styrkor: 'Styrkor',
-  narrativ: 'Narrativ', myndigheter: 'Myndigheter', handlingsalternativ: 'Handlingsalternativ' };
+  narrativ: 'Narrativ', myndigheter: 'Myndigheter', handlingsalternativ: 'Handlingsalternativ', incidenter: 'Incidenter' };
 const BOT_UA = /bot|crawl|spider|slurp|preview|facebookexternalhit|curl|wget|python|httpx|go-http|headless|lighthouse|monitor/i;
 let guestSalt = null;   // per isolate: {day, salt}
 const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -2076,6 +2095,35 @@ async function ingestCourses(request, env) {
 // ---------------------------------------------------------------------------
 const FORCE_BRANCHES = new Set(['flyg', 'marin', 'armé', 'luftvärn', 'robot', 'fallskärm']);
 const FORCE_STATUSES = new Set(['anfallen', 'aktiv', 'okänd']);
+
+// Version 3.48: the incident log (src/incidents.py).
+const INCIDENT_CATS = new Set(['sabotage', 'kabel', 'dronare', 'spionage', 'hot', 'gps', 'paverkan']);
+async function ingestIncidents(request, env) {
+  const b = await readJson(request);
+  if (!b || typeof b !== 'object' || !DATE_RE.test(b.date || '')) throw new HttpError(400, 'body must be an incident log with a date');
+  if (!Array.isArray(b.incidents) || b.incidents.length > 5000) throw new HttpError(400, 'incidents must be an array of at most 5000');
+  const str = (v, max) => typeof v === 'string' && v.length <= max;
+  for (const i of b.incidents) {
+    if (!i || !str(i.id, 40) || !DATE_RE.test(i.date || '') || !INCIDENT_CATS.has(i.cat) || !/^[A-Z]{2}$/.test(i.country || '')) {
+      throw new HttpError(400, `incident ${String(i && i.id).slice(0, 40)}: id, date, cat and country`);
+    }
+    if (i.country === 'RU' || i.country === 'BY') throw new HttpError(400, `incident ${i.id}: Russia and Belarus are not in the log`);
+    if (typeof i.lat !== 'number' || typeof i.lon !== 'number' || !str(i.title_sv, 200) || !Array.isArray(i.sources)) {
+      throw new HttpError(400, `incident ${i.id}: lat, lon, title_sv and sources`);
+    }
+    for (const s of i.sources) {
+      if (!s || !str(s.url, 1000) || !/^https?:\/\//.test(s.url)) throw new HttpError(400, `incident ${i.id}: a source needs an http(s) url`);
+      if (blockedSource(s.url) || blockedOutlet(s.outlet)) throw new HttpError(400, `incident ${i.id}: a blocked source`);
+    }
+  }
+  const data = JSON.stringify(b);
+  if (data.length > MAX_BODY_BYTES) throw new HttpError(413, 'incident log too large');
+  await env.DB.batch([
+    env.DB.prepare('INSERT INTO incident_maps (date, data) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET data = excluded.data').bind(b.date, data),
+    env.DB.prepare("DELETE FROM incident_maps WHERE date < date('now', '-7 days')"),
+  ]);
+  return json({ ok: true, incidents: b.incidents.length });
+}
 
 async function ingestStrikes(request, env) {
   const b = await readJson(request);

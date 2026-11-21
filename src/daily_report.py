@@ -1207,6 +1207,9 @@ def run_daily_report():
     # Save the state now: what follows (courses, forces, strikes) must never
     # cost the report if the run is stopped (17-18 Nov 2026).
     checkpoint("daily report saved")
+    # Version 3.48: the incident log from the same articles (one light call).
+    import incidents
+    incidents.run_safe(report_data, pool)
     # Russia's courses of action, from the finished report (one call; a
     # failure there stops nothing here).
     import courses

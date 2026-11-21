@@ -81,9 +81,11 @@ JOBS = {
     "telegram_check": ["src/telegram_log.py", "check"],  # which channels answer, saving nothing
     "models_check": ["src/model_providers.py", "check"],
     "guest_check": ["src/guest_check.py"],
-    "restore_reports": ["src/app_sync.py", "restore"],  # reports the app has but the state lacks  # read the app as a guest: do guests reach it, are they counted  # the reserve models outside Gemini, one tiny call each
+    "restore_reports": ["src/app_sync.py", "restore"],
+    "incidents": ["src/incidents.py", "run"],  # the incident log from a fresh news search (one light call)
+    "incidents_backfill": ["src/incidents.py", "backfill"],  # the incident log from all saved reports  # reports the app has but the state lacks  # read the app as a guest: do guests reach it, are they counted  # the reserve models outside Gemini, one tiny call each
 }
-QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check", "forces_places", "precision_sample", "og_image", "telegram", "telegram_stats", "telegram_check", "models_check", "guest_check", "restore_reports"}   # forces: a manual extra run; the nightly one runs inside daily
+QUIET_JOBS = {"invites", "forces", "forces_survey", "strikes", "forces_images", "repush", "firms_check", "forces_places", "precision_sample", "og_image", "telegram", "telegram_stats", "telegram_check", "models_check", "guest_check", "restore_reports", "incidents", "incidents_backfill"}   # forces: a manual extra run; the nightly one runs inside daily
 HOST = "cloud"
 
 # Jobs whose output belongs in the code repo, not the state repo: the weekly

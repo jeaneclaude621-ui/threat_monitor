@@ -375,6 +375,11 @@ export function loadStrikes() {
   return getJSON('/api/strikes', { cache: 'no-store' });
 }
 
+// Version 3.48: the incident log (src/incidents.py).
+export function loadIncidents() {
+  return getJSON('/api/incidents', { cache: 'no-store' });
+}
+
 export function loadChannels() {
   return getJSON('/api/channels', { cache: 'no-store' });
 }

@@ -5,7 +5,7 @@ import {
   store, onChange, isAdmin, isGuest, loadMe, loadIndex, loadReport, loadAllReports, loadReportsRange, loadedReports, loadAssessments,
   currentByArticle, myRows, chainOf, assess, undo, AuthError, OfflineError, DeniedError, HttpError,
   loadUpdates, loadReads, loadNotices, markRead, isRead, refreshAll, adminGet, adminSend,
-  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, pushPrefs, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes, loadChannels,
+  reportDevice, pushKey, pushSubscribe, pushUnsubscribe, pushPrefs, loadTrends, loadAuthorities, loadCourses, loadForces, loadStrikes, loadChannels, loadIncidents,
 } from './api.js';
 import { gesture, verdictFor, stepFor, vibrate, isDragging } from './swipe.js';
 import { FEATURES, AREAS, NEW_DAYS } from './features.js';
@@ -333,7 +333,7 @@ async function route({ keepScroll = false } = {}) {
     case 'handelse': view = () => viewEvent(rest[0], rest[1]); break;
     case 'arkiv': tab = 'arkiv'; view = () => viewArchive(q); break;
     case 'amnen': tab = 'amnen'; view = () => viewTopics(q); break;
-    case 'karta': tab = 'karta'; view = () => viewMap(q); break;
+    case 'karta': tab = 'karta'; view = () => (q.get('v') === 'inc' ? viewIncidents(q) : viewMap(q)); break;
     // #/trender is the tab's first name; links to it still work.
     case 'narrativ': case 'trender': tab = 'narrativ'; view = () => viewTrends(q); break;
     case 'myndigheter': view = () => viewAuthorities(q); break;
@@ -1053,7 +1053,7 @@ const boxIcon = (paths) => icon(paths, '', '0 0 24 24');
 let idagSide = { at: 0, p: null };
 function loadIdagSide() {
   if (!idagSide.p || Date.now() - idagSide.at > 600000) {
-    idagSide = { at: Date.now(), p: Promise.all([loadStrikes().catch(() => null), loadForces().catch(() => null)]) };
+    idagSide = { at: Date.now(), p: Promise.all([loadStrikes().catch(() => null), loadForces().catch(() => null), loadIncidents().catch(() => null)]) };
   }
   return idagSide.p;
 }
@@ -1123,8 +1123,8 @@ async function viewReport(date, q) {
   // first visit costs a handful of requests (review K1).
   const [r, brief, courses, side] = await Promise.all([loadReport(d),
     archived ? null : loadAuthorities().catch(() => null), archived ? null : loadCourses().catch(() => null),
-    archived ? [null, null] : loadIdagSide()]);
-  const [strikesData, forcesData] = side || [null, null];
+    archived ? [null, null, null] : loadIdagSide()]);
+  const [strikesData, forcesData, incidentData] = side || [null, null, null];
   const reports = loadedReports();
   const top = (r.executive_sv && r.executive_sv.top) || r.top_development;
   const selected = parseFacets(q);
@@ -1217,6 +1217,7 @@ async function viewReport(date, q) {
     archived ? null : noAccountCard(),
     heroCard(r),
     archived ? null : coursesLink(courses),
+    archived ? null : incidentsCard(incidentData),
     archived ? null : newBox(latest, r),
     top ? h('section', { class: 'ibox ibox-top' },
       h('div', { class: 'ibox-kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
@@ -3798,6 +3799,7 @@ async function viewMap(q) {
   rTo.addEventListener('input', () => { const v = Math.max(Number(rTo.value), dayIx(from)); to = addDays(first, v); draw(); });
 
   const node = frag(
+    mapKindSeg('events'),
     h('header', { class: 'page-head' },
       h('div', null, kicker, h('h1', { class: 'title-xl' }, 'Karta')),
       h('div', { class: 'heat-legend', 'aria-hidden': 'true' }, 'Få',
@@ -3820,6 +3822,312 @@ async function viewMap(q) {
   draw();
   setVb();
   return node;
+}
+
+// ---------------------------------------------------------------- Incidenter
+// Version 3.48: physical, subversive incidents in Europe outside Russia and
+// Belarus (src/incidents.py): a heat map with kinds, a period on a two-handled
+// slider over monthly bars, a comparison with the period before, hot spots,
+// the incidents with their sources, and the CSIS/IISS history.
+const INC_CAT = {
+  sabotage: ['Sabotage och brand', '#C2410C'], kabel: ['Kablar och infrastruktur', '#0E7490'],
+  dronare: ['Drönare och luftrum', '#7C3AED'], spionage: ['Spionage och gripanden', '#334155'],
+  hot: ['Hot och våld', '#BE123C'], gps: ['GPS-störning', '#65A30D'], paverkan: ['Fysisk påverkan', '#B45309'],
+};
+const INC_ATTR = { 'bekräftad': ['Bekräftad rysk', 'b-s'], 'misstänkt': ['Misstänkt rysk', 'b-m'], oklar: ['Oklar', 'b-o'] };
+const incUi = { from: null, to: null, cats: null, ua: false, compare: false, sel: null, spot: null, vb: null };
+
+function mapKindSeg(kind) {
+  return h('div', { class: 'seg seg-kind', role: 'group', 'aria-label': 'Karta' },
+    h('a', { href: '#/karta', 'aria-pressed': String(kind === 'events'), class: 'segbtn' }, 'Händelser'),
+    h('a', { href: '#/karta?v=inc', 'aria-pressed': String(kind === 'inc'), class: 'segbtn' }, 'Incidenter'));
+}
+
+async function viewIncidents(q) {
+  const [data, land] = await Promise.all([loadIncidents().catch(() => null),
+    forcesLand || fetch('/forces/countries.json').then((r) => (r.ok ? r.json() : null)).catch(() => null)]);
+  if (land) forcesLand = land;
+  const head = (k) => h('header', { class: 'page-head' }, h('div', null, k || h('div', { class: 'kicker' }, 'Europa utom Ryssland och Belarus'),
+    h('h1', { class: 'title-xl' }, 'Incidenter')));
+  if (!data || !Array.isArray(data.incidents) || !data.incidents.length) {
+    return frag(mapKindSeg('inc'), head(), emptyState('Inga incidenter loggade ännu. Loggen fylls varje morgon efter rapporten.'));
+  }
+  const all = data.incidents.filter((i) => i && i.country !== 'RU' && i.country !== 'BY');
+  const today = data.date || new Date().toISOString().slice(0, 10);
+  const first = all.reduce((m, i) => (i.date < m ? i.date : m), today);
+  const ix = (d) => Math.round((Date.parse(d) - Date.parse(first)) / 864e5);
+  const days = Math.max(1, ix(today));
+  const isD = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || '');
+  const clampD = (d) => (d < first ? first : d > today ? today : d);
+  let from = clampD(isD(q.get('from')) ? q.get('from') : incUi.from || addDays(today, -29));
+  let to = clampD(isD(q.get('to')) ? q.get('to') : incUi.to || today);
+  if (from > to) [from, to] = [to, from];
+  const cats = new Set(incUi.cats || Object.keys(INC_CAT));
+  let ua = q.get('ua') === '1' || incUi.ua;
+  let compare = q.get('j') === '1' || incUi.compare;
+  let sel = q.get('c') || incUi.sel;
+  let spot = incUi.spot;
+
+  // ---- the map
+  const VB0 = { ...HEAT_VIEW };
+  const svg = svgEl('svg', { class: 'hmap fmap', role: 'img', 'aria-label': 'Karta över incidenter i Europa', viewBox: `${VB0.x} ${VB0.y} ${VB0.w} ${VB0.h}` });
+  const landG = svgEl('g'); const heatG = svgEl('g', { class: 'iheat' }); const dotG = svgEl('g');
+  svg.append(svgEl('defs', {}), landG, heatG, dotG);
+  svg.firstChild.innerHTML = '<filter id="iblur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>'
+    + '<pattern id="ihatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--heat-0)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--line)" stroke-width="2"/></pattern>';
+  heatG.setAttribute('filter', 'url(#iblur)');
+  const paths = new Map();
+  if (land) {
+    for (const c of land.countries) {
+      const d = c.rings.map((r) => `M${r.map(([lon, lat]) => `${FX(lon).toFixed(1)} ${FY(lat).toFixed(1)}`).join('L')}Z`).join('');
+      const a2 = NUM_A2[c.id];
+      const ex = c.name === 'Russia' || c.name === 'Belarus';
+      const el = svgEl('path', { d, class: ex ? 'iland iex' : 'iland' });
+      if (a2 && !ex) {
+        el.addEventListener('click', () => { sel = sel === a2 ? null : a2; spot = null; draw(); scrollList(); });
+        if (!paths.has(a2)) paths.set(a2, []);
+        paths.get(a2).push(el);
+      }
+      landG.appendChild(el);
+    }
+  }
+  let vb = incUi.vb || { ...VB0 };
+  const setVb = () => { svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); incUi.vb = vb; sizeDots(); };
+  const pz = attachPanZoom(svg, { get: () => vb, set: (v) => { vb = v; redraw(); }, full: VB0, minW: VB0.w / 10, maxW: VB0.w * 1.2 });
+  const redraw = frameThrottle(setVb);
+  function sizeDots() {
+    const k = Math.max(0.35, vb.w / VB0.w);
+    for (const el of dotG.children) el.setAttribute('r', (Number(el.dataset.r) * k).toFixed(2));
+    for (const el of heatG.children) el.setAttribute('r', (Number(el.dataset.r) * k).toFixed(2));
+  }
+
+  // ---- controls
+  const kicker = h('div', { class: 'kicker' });
+  const chips = h('div', { class: 'chips' });
+  const presets = h('div', { class: 'seg' });
+  const rFrom = h('input', { type: 'range', class: 'hr hr-from', min: 0, max: days, step: 1, 'aria-label': 'Periodens början' });
+  const rTo = h('input', { type: 'range', class: 'hr hr-to', min: 0, max: days, step: 1, 'aria-label': 'Periodens slut' });
+  const fill = h('div', { class: 'hr-fill' });
+  const prevBox = h('div', { class: 'ibar-prev' }); const curBox = h('div', { class: 'ibar-cur' });
+  const bars = h('div', { class: 'ibars' });
+  const axis = h('div', { class: 'iaxis' });
+  const fromIn = h('input', { type: 'date', min: first, max: today, 'aria-label': 'Från datum' });
+  const toIn = h('input', { type: 'date', min: first, max: today, 'aria-label': 'Till datum' });
+  const uaBox = h('input', { type: 'checkbox', id: 'inc-ua' });
+  const cmpBox = h('input', { type: 'checkbox', id: 'inc-cmp' });
+  const foot = h('div', { class: 'hmap-foot' });
+  const comparePane = h('div');
+  const hot = h('section', { class: 'section' });
+  const list = h('section', { class: 'section' });
+
+  // monthly bars over the whole log
+  const months = [];
+  for (let d = first.slice(0, 7); d <= today.slice(0, 7);) {
+    months.push(d);
+    const [y, m] = d.split('-').map(Number);
+    d = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`;
+  }
+  const pct = (d) => (100 * ix(d)) / days;
+
+  const shown = (i, a, b) => i.date >= a && i.date <= b && cats.has(i.cat) && (ua || i.country !== 'UA');
+  const prevRange = () => { const len = ix(to) - ix(from); const pTo = addDays(from, -1); return [addDays(pTo, -len), pTo]; };
+
+  function draw() {
+    Object.assign(incUi, { from, to, cats: [...cats], ua, compare, sel, spot });
+    history.replaceState(null, '', `#/karta?v=inc&from=${from}&to=${to}${ua ? '&ua=1' : ''}${compare ? '&j=1' : ''}${sel ? `&c=${sel}` : ''}`);
+    const cur = all.filter((i) => shown(i, from, to));
+    const [pf, pt] = prevRange();
+    const prev = all.filter((i) => shown(i, pf, pt));
+    const span = ix(to) - ix(from) + 1;
+    kicker.textContent = `${dateShort(from)} ${from.slice(0, 4) !== to.slice(0, 4) ? from.slice(0, 4) : ''} – ${dateShort(to)} ${to.slice(0, 4)} · ${plural(span, 'dag', 'dagar')}`;
+    // chips
+    chips.replaceChildren(...Object.entries(INC_CAT).map(([k, [name, col]]) => {
+      const n = cur.filter((i) => i.cat === k).length + (cats.has(k) ? 0 : all.filter((i) => i.cat === k && i.date >= from && i.date <= to && (ua || i.country !== 'UA')).length);
+      return h('button', { type: 'button', class: `chip ichip${cats.has(k) ? '' : ' off'}`, 'aria-pressed': String(cats.has(k)),
+        onclick: () => { if (cats.has(k)) cats.delete(k); else cats.add(k); if (!cats.size) Object.keys(INC_CAT).forEach((c) => cats.add(c)); draw(); } },
+      h('i', { style: `background:${col}` }), `${name} ${n}`);
+    }));
+    // presets
+    const len = span;
+    presets.replaceChildren(...[['30', '30 dagar', 30], ['90', '90 dagar', 90], ['365', '1 år', 365], ['all', 'Allt', 0]].map(([k, label, n]) =>
+      h('button', { type: 'button', 'aria-pressed': String(n ? to === today && len === n : from === first && to === today),
+        onclick: () => { to = today; from = n ? clampD(addDays(today, -(n - 1))) : first; draw(); } }, label)));
+    // bars
+    const per = months.map((m) => all.filter((i) => i.date.startsWith(m) && cats.has(i.cat) && (ua || i.country !== 'UA')));
+    const max = Math.max(1, ...per.map((p) => p.length));
+    bars.replaceChildren(...per.map((p, k) => h('div', { class: 'ibar', title: `${months[k]}: ${p.length}`, style: `height:${p.length ? Math.max(3, Math.round((56 * p.length) / max)) : 0}px` },
+      ...Object.keys(INC_CAT).map((c) => { const n = p.filter((i) => i.cat === c).length; return n ? h('span', { style: `height:${(100 * n) / p.length}%;background:${INC_CAT[c][1]}` }) : null; }).filter(Boolean))), prevBox, curBox);
+    curBox.style.left = `${pct(from)}%`; curBox.style.width = `${Math.max(0.6, pct(to) - pct(from))}%`;
+    prevBox.hidden = !compare;
+    if (compare) { prevBox.style.left = `${pct(clampD(pf))}%`; prevBox.style.width = `${Math.max(0.6, pct(clampD(pt)) - pct(clampD(pf)))}%`; }
+    axis.replaceChildren(h('span', null, first.slice(0, 4)), h('span', null, months.length > 14 ? '' : dateShort(addDays(first, Math.round(days / 2)))), h('span', null, 'I dag'));
+    rFrom.value = String(ix(from)); rTo.value = String(ix(to));
+    rFrom.style.zIndex = ix(from) === ix(to) && ix(to) > days / 2 ? '3' : '1'; rTo.style.zIndex = '2';
+    fill.style.left = `${pct(from)}%`; fill.style.width = `${pct(to) - pct(from)}%`;
+    fromIn.value = from; toIn.value = to; uaBox.checked = ua; cmpBox.checked = compare;
+    // map: countries shaded by change when comparing, else by count
+    const byC = (l) => l.reduce((m, i) => ((m[i.country] = (m[i.country] || 0) + 1), m), {});
+    const cc = byC(cur); const pc = byC(prev);
+    const cmax = Math.max(1, ...Object.values(cc));
+    for (const [a2, els] of paths) {
+      const n = cc[a2] || 0; const dlt = n - (pc[a2] || 0);
+      const cls = compare ? (dlt > 0 ? (dlt > 2 ? 'iup2' : 'iup1') : dlt < 0 ? (dlt < -2 ? 'idn2' : 'idn1') : '')
+        : (n ? `ih${Math.min(3, Math.ceil((3 * n) / cmax))}` : '');
+      for (const el of els) el.setAttribute('class', `iland ${cls}${a2 === sel ? ' isel' : ''}`);
+    }
+    // points, aggregated by place
+    const spots = new Map();
+    for (const i of cur) {
+      const key = `${i.lat.toFixed(2)},${i.lon.toFixed(2)}`;
+      if (!spots.has(key)) spots.set(key, { key, lat: i.lat, lon: i.lon, items: [], approx: i.precision !== 'ort' });
+      const s = spots.get(key); s.items.push(i); if (i.precision === 'ort') s.approx = false;
+    }
+    const smax = Math.max(1, ...[...spots.values()].map((s) => s.items.length));
+    heatG.replaceChildren(); dotG.replaceChildren();
+    for (const s of [...spots.values()].sort((a, b) => b.items.length - a.items.length)) {
+      const x = FX(s.lon).toFixed(1); const y = FY(s.lat).toFixed(1);
+      const hc = svgEl('circle', { cx: x, cy: y, fill: '#F97316', 'fill-opacity': '0.35' });
+      hc.dataset.r = String(6 + 10 * Math.sqrt(s.items.length / smax));
+      heatG.appendChild(hc);
+      const dom = Object.keys(INC_CAT).map((c) => [c, s.items.filter((i) => i.cat === c).length]).sort((a, b) => b[1] - a[1])[0][0];
+      const dot = svgEl('circle', { cx: x, cy: y, class: `idot${s.approx ? ' iapprox' : ''}${spot === s.key ? ' isel' : ''}`, fill: s.approx ? 'none' : INC_CAT[dom][1],
+        stroke: s.approx ? INC_CAT[dom][1] : '#fff', tabindex: '0', role: 'button',
+        'aria-label': `${s.items[0].place || countryName(s.items[0].country)}: ${plural(s.items.length, 'incident', 'incidenter')}` });
+      dot.dataset.r = String(2.6 + 4.5 * Math.sqrt(s.items.length / smax));
+      dot.appendChild(svgEl('title', {}, `${s.items[0].place || countryName(s.items[0].country)}: ${plural(s.items.length, 'incident', 'incidenter')}`));
+      const pick = (ev) => { if (ev) ev.stopPropagation(); spot = spot === s.key ? null : s.key; sel = null; draw(); scrollList(); };
+      dot.addEventListener('click', pick);
+      dot.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } });
+      dotG.appendChild(dot);
+    }
+    sizeDots();
+    const exact = cur.filter((i) => i.precision === 'ort').length;
+    foot.replaceChildren(h('span', null, `${plural(cur.length, 'incident', 'incidenter')}${compare ? ` (föregående period ${prev.length})` : ''}`),
+      h('span', null, cur.length ? `${exact} med ort · ${cur.length - exact} bara land (ring)` : 'Inga i perioden'));
+    // comparison maps
+    comparePane.replaceChildren(...(compare ? [h('div', { class: 'imini' },
+      h('div', { class: 'card' }, h('p', { class: 'imini-h' }, `Föregående · ${prev.length}`), miniMap(prev)),
+      h('div', { class: 'card' }, h('p', { class: 'imini-h' }, `Vald period · ${cur.length}`), miniMap(cur))),
+    h('p', { class: 'small muted' }, `Föregående period: ${dateShort(pf)} – ${dateShort(pt)}. På kartan ovan är länder med fler incidenter röda och färre blå.`)] : []));
+    // hot spots
+    const keys = [...new Set([...Object.keys(cc), ...Object.keys(pc)])].sort((a, b) => (cc[b] || 0) - (cc[a] || 0) || (pc[b] || 0) - (pc[a] || 0)).slice(0, 8);
+    hot.replaceChildren(h('h2', { class: 'title-m' }, 'Oroshärdar'),
+      keys.length ? h('div', { class: 'card list' }, keys.map((k) => {
+        const n = cc[k] || 0; const dlt = n - (pc[k] || 0);
+        const mine = cur.filter((i) => i.country === k);
+        const dom = mine.length ? Object.keys(INC_CAT).map((c) => [c, mine.filter((i) => i.cat === c).length]).sort((a, b) => b[1] - a[1])[0][0] : null;
+        return h('button', { class: 'row hrow', type: 'button', onclick: () => { sel = k; spot = null; draw(); scrollList(); } },
+          h('span', { class: 'row-main' }, h('span', { class: 'row-title' }, countryName(k)),
+            h('span', { class: 'row-sub' }, [plural(n, 'incident', 'incidenter'), dom ? `mest ${INC_CAT[dom][0].toLowerCase()}` : null].filter(Boolean).join(' · '))),
+          h('span', { class: `idelta ${dlt > 0 ? 'up' : dlt < 0 ? 'dn' : ''}` }, dlt > 0 ? `▲ +${dlt}` : dlt < 0 ? `▼ ${dlt}` : '±0'), chevRight());
+      })) : h('p', { class: 'muted' }, 'Inga incidenter i perioden.'),
+      h('p', { class: 'small muted' }, `Pilen jämför med lika lång period närmast före (${dateShort(pf)} – ${dateShort(pt)}).`));
+    // the list
+    let items = cur;
+    let title = 'Incidenter i perioden';
+    if (spot && spots.has(spot)) { items = spots.get(spot).items; title = items[0].place || countryName(items[0].country); }
+    else if (sel) { items = cur.filter((i) => i.country === sel); title = countryName(sel); }
+    items = items.slice().sort((a, b) => (a.date < b.date ? 1 : -1));
+    const showN = incUi.more ? 200 : 10;
+    list.replaceChildren(...[h('div', { class: 'hlist-head' }, h('h2', { class: 'title-m' }, title),
+      h('span', { class: 'small muted' }, plural(items.length, 'incident', 'incidenter')),
+      sel || spot ? h('button', { class: 'linkbtn', type: 'button', onclick: () => { sel = null; spot = null; draw(); } }, 'Alla') : null),
+    items.length ? h('div', { class: 'card list' }, items.slice(0, showN).map(incidentRow)) : h('p', { class: 'muted' }, 'Inga incidenter.'),
+    items.length > showN ? h('button', { class: 'btn', type: 'button', onclick: () => { incUi.more = true; draw(); } }, `Visa fler (${Math.min(items.length, 200) - showN} till)`) : null].filter(Boolean));
+  }
+  const scrollList = () => list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  function miniMap(l) {
+    const m = svgEl('svg', { class: 'imini-map', viewBox: `${VB0.x} ${VB0.y} ${VB0.w} ${VB0.h}`, role: 'img', 'aria-hidden': 'true' });
+    m.appendChild(svgEl('defs', {})).innerHTML = '<filter id="iblur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>';
+    for (const p of landG.children) m.appendChild(svgEl('path', { d: p.getAttribute('d'), class: p.classList.contains('iex') ? 'iland iex' : 'iland' }));
+    const g = svgEl('g', { filter: 'url(#iblur2)' });
+    for (const i of l) g.appendChild(svgEl('circle', { cx: FX(i.lon).toFixed(1), cy: FY(i.lat).toFixed(1), r: 10, fill: '#F97316', 'fill-opacity': '0.4' }));
+    m.appendChild(g);
+    return m;
+  }
+
+  const setFrom = (d) => { if (!isD(d)) return; from = clampD(d); if (from > to) to = from; draw(); };
+  const setTo = (d) => { if (!isD(d)) return; to = clampD(d); if (to < from) from = to; draw(); };
+  for (const ev of ['input', 'change']) { fromIn.addEventListener(ev, () => setFrom(fromIn.value)); toIn.addEventListener(ev, () => setTo(toIn.value)); }
+  rFrom.addEventListener('input', () => { from = addDays(first, Math.min(Number(rFrom.value), ix(to))); draw(); });
+  rTo.addEventListener('input', () => { to = addDays(first, Math.max(Number(rTo.value), ix(from))); draw(); });
+  uaBox.addEventListener('change', () => { ua = uaBox.checked; draw(); });
+  cmpBox.addEventListener('change', () => { compare = cmpBox.checked; draw(); });
+
+  const hist = data.history || {};
+  const csis = hist.csis || null;
+  const node = frag(
+    mapKindSeg('inc'),
+    head(kicker),
+    chips,
+    presets,
+    h('section', { class: 'card hmap-wrap', 'aria-label': 'Incidentkarta' }, land ? svg : h('p', { class: 'muted card-pad' }, 'Kartan kunde inte laddas.'),
+      land ? h('div', { class: 'fmap-tools' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma in', onclick: () => pz.zoomTo(vb.x + vb.w / 2, vb.y + vb.h / 2, vb.w / 1.6) }, '+'),
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Zooma ut', onclick: () => pz.zoomTo(vb.x + vb.w / 2, vb.y + vb.h / 2, vb.w * 1.6) }, '−'),
+        h('button', { class: 'chip', type: 'button', onclick: () => { vb = { ...VB0 }; setVb(); } }, 'Hela kartan')) : null,
+      foot),
+    h('div', { class: 'card itl' }, h('div', { class: 'ibars-wrap' }, bars), axis,
+      h('div', { class: 'hrange' }, h('div', { class: 'hr-track' }), fill, rFrom, rTo),
+      h('div', { class: 'hdates' }, h('label', null, 'Från', fromIn), h('label', null, 'Till', toIn)),
+      h('p', { class: 'small muted' }, 'Staplar: incidenter per månad, färgade efter slag. Ramen är vald period; streckad ram är jämförelsen.')),
+    h('div', { class: 'card itoggles' },
+      h('label', { class: 'check-row', for: 'inc-cmp' }, cmpBox, ' Jämför med lika lång period före'),
+      h('label', { class: 'check-row', for: 'inc-ua' }, uaBox, ' Ta med Ukraina (ambassader, fartyg och gränsöverskridande)')),
+    comparePane,
+    hot,
+    list,
+    csis ? h('section', { class: 'section' }, h('h2', { class: 'title-m' }, 'Tidigare år enligt CSIS'),
+      h('div', { class: 'card card-pad' },
+        h('div', { class: 'gbars' }, Object.entries(csis.per_year || {}).map(([y, n]) => h('div', { class: 'gbar' },
+          h('span', { class: 'gbar-n' }, String(n)), h('i', { style: `height:${Math.max(4, Math.round((56 * n) / Math.max(...Object.values(csis.per_year))))}px;background:#C2410C` }),
+          h('span', { class: 'gbar-d' }, y === '2025' ? '2025*' : y)))),
+        h('p', { class: 'small' }, `Ryska attacker och planer i Europa ${csis.period}, enligt CSIS databas: ${Object.values(csis.per_year).reduce((a, b) => a + b, 0)} st. `,
+          'Mål: ', Object.entries(csis.targets || {}).map(([k, n]) => `${k.toLowerCase()} ${n}`).join(', '), '. *2025: januari–mars.'),
+        hist.iiss ? h('p', { class: 'small' }, hist.iiss.finding) : null,
+        h('p', { class: 'small muted' }, 'CSIS och IISS räknar med egna metoder; deras siffror går inte att jämföra rakt av med loggen här. Historiska fall på kartan: Wikipedias sammanställning och CSIS, med deras källor.'),
+        h('div', { class: 'chips' }, (hist.sources || []).map((s) => externalButton(s.url, { outlet: s.outlet }, s.outlet))))) : null,
+    h('p', { class: 'notice' }, 'Bara faktiska händelser på marken, till sjöss och i luften i Europa utom Ryssland och Belarus: sabotage, intrång, gripanden, hot och fysisk påverkan. ',
+      'Inte uttalanden, desinformation, beslut eller sanktioner. Varje incident vilar på artiklar ur öppna källor (inte rysk statsmedia) och har en bedömning av om Ryssland pekats ut. ',
+      'Loggen förs av en AI-modell varje morgon och kan innehålla fel; en ring på kartan betyder att bara landet är känt.'));
+  draw();
+  setVb();
+  return node;
+}
+
+function incidentRow(i) {
+  const [cat, col] = INC_CAT[i.cat] || [i.cat, '#666'];
+  const [attr, cls] = INC_ATTR[i.attribution] || INC_ATTR.oklar;
+  const when = i.date_precision === 'månad' ? `${i.date.slice(0, 7)}` : i.date_precision === 'ungefär' ? `ca ${dateShort(i.date)} ${i.date.slice(0, 4)}` : `${dateShort(i.date)} ${i.date.slice(0, 4)}`;
+  return h('details', { class: 'irow' },
+    h('summary', null, h('i', { class: 'idotk', style: `background:${col}` }),
+      h('span', { class: 'row-main' }, h('span', { class: 'row-title' }, i.title_sv),
+        h('span', { class: 'row-sub' }, [when, i.place || countryName(i.country), cat, i.origin === 'historik' ? 'historik' : null].filter(Boolean).join(' · '))),
+      h('span', { class: `ibadge ${cls}` }, attr)),
+    h('div', { class: 'irow-body' }, i.summary_sv ? h('p', { class: 'small' }, i.summary_sv) : null,
+      i.precision !== 'ort' ? h('p', { class: 'small muted' }, `Platsen är ungefärlig: ${i.place_named ? `”${i.place_named}” finns inte i ortslistan, så ` : ''}punkten står i landet.`) : null,
+      h('div', { class: 'chips' }, (i.sources || []).map((s) => externalButton(s.url, { outlet: s.outlet }, s.outlet || hostOf(s.url) || 'Källa')))));
+}
+
+// Idag: the incidents of the last 7 days against the 7 before (Version 3.48).
+function incidentsCard(data) {
+  if (!data || !Array.isArray(data.incidents)) return null;
+  const today = data.date || new Date().toISOString().slice(0, 10);
+  const inc = data.incidents.filter((i) => i.country !== 'UA' && i.origin !== 'historik');
+  const wk = inc.filter((i) => i.date > addDays(today, -7)); const before = inc.filter((i) => i.date <= addDays(today, -7) && i.date > addDays(today, -14));
+  if (!wk.length && !before.length) return null;
+  const by = wk.reduce((m, i) => ((m[i.country] = (m[i.country] || 0) + 1), m), {});
+  const top = Object.entries(by).sort((a, b) => b[1] - a[1])[0];
+  const d = wk.length - before.length;
+  return h('a', { class: 'coa-link inc-link', href: '#/karta?v=inc' },
+    h('span', { class: 'coa-link-main' },
+      h('span', { class: 'coa-link-label' }, 'Incidenter i Europa'),
+      h('span', { class: 'coa-link-vals' },
+        h('span', { class: 'coa-link-val' }, 'Senaste 7 dagarna ', h('b', null, String(wk.length))),
+        h('span', { class: `coa-link-val idelta ${d > 0 ? 'up' : d < 0 ? 'dn' : ''}` }, d > 0 ? `▲ +${d} mot veckan före` : d < 0 ? `▼ ${d} mot veckan före` : 'som veckan före'),
+        top ? h('span', { class: 'coa-link-val' }, 'Mest i ', h('b', null, countryName(top[0]))) : null)),
+    chevRight());
 }
 
 // ---------------------------------------------------------------- Bedöm
@@ -4956,6 +5264,13 @@ function viewAbout() {
         h('a', { href: '/feed.xml', target: '_blank', rel: 'noopener' }, 'feed.xml'), '.'),
       h('h2', { class: 'title-m' }, 'Källor'),
       h('p', null, 'Rysk statsmedia och Telegram används inte som nyhetskällor. Under Narrativ visas den ryska sidan bara som våra svenska sammanfattningar, utan länkar dit.'),
+      h('p', null, 'Incidentkartan (Karta → Incidenter) bygger på samma öppna nyhetskällor och dessutom på: ',
+        h('a', { href: 'https://www.csis.org/analysis/russias-shadow-war-against-west', target: '_blank', rel: 'noopener' }, 'CSIS, ”Russia’s Shadow War Against the West” (2025)'),
+        ' – årssiffror och fall 2022–2025; ',
+        h('a', { href: 'https://www.iiss.org/research-paper/2025/07/the-scale-of-russian-sabotage-operations-against-europes-critical-infrastructure/', target: '_blank', rel: 'noopener' }, 'IISS, ”The Scale of Russian Sabotage Operations Against Europe’s Critical Infrastructure” (2025)'),
+        ' – rapportens huvudresultat; och ',
+        h('a', { href: 'https://en.wikipedia.org/wiki/Russian_sabotage_operations_in_Europe', target: '_blank', rel: 'noopener' }, 'Wikipedias sammanställning av ryska sabotageoperationer i Europa'),
+        ' – daterade historiska fall med artikelns egna källor. CSIS och IISS räknar med egna metoder; deras siffror visas för sig och blandas inte med loggen.'),
       h('h2', { class: 'title-m' }, 'Integritet'),
       h('p', null, guest
         ? 'Du läser utan att logga in. Vad du har läst sparas bara i den här webbläsaren.'

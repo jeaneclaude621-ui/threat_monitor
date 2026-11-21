@@ -1172,3 +1172,53 @@ report's push and the missing-report alarm to admins.
 `push_test.mjs` checks the times.
 
 Service worker hm-v3.61.
+
+## Version 3.48: the incident log and map
+
+`src/incidents.py` keeps a log of physical, subversive incidents in Europe
+outside Russia and Belarus. It holds seven kinds: sabotage, kabel,
+dronare, spionage, hot, gps, paverkan.
+
+**Daily run.** After the report, the day's article pool is narrowed to
+incident-like articles (INCIDENT_WORDS, many languages, at most 140). One
+light-model call lists the incidents, each tied to its articles' refs.
+- **Check:** each incident needs a known kind and a European country (not
+  RU or BY). A date in the future becomes today. At least one cited
+  article is required, and no source may be blocked.
+- **Place:** looked up in `forces/places.json`, else the country's capital
+  with precision "land", which the map draws as a ring.
+- **Merge:** the same kind, country and place within 3 days is one
+  incident, with the sources joined.
+- **Storage:** the log is `data/incidents.json`.
+
+**Pushed to the app** with `PUT /api/ingest/incidents` into `incident_maps`
+(migration 0018), and served by `GET /api/incidents` (guests too).
+
+**History.** `config/incidents_history.json` holds:
+- 23 dated cases 2022–2026, from Wikipedia's compilation and the CSIS
+  brief, with their own sources;
+- the CSIS totals: 52 attacks Jan 2022 – Mar 2025, per year and per target;
+- the IISS finding, an almost fourfold rise 2023–2024; the full IISS paper
+  could not be read automatically.
+
+**Jobs:**
+- `incidents` runs a fresh search;
+- `incidents_backfill` reads the saved reports' events and also_reported
+  in batches;
+- `repush` sends the log too.
+
+**App** (Karta → Incidenter, `#/karta?v=inc`):
+- kind chips that filter;
+- 30 days / 90 days / 1 year / all;
+- monthly stacked bars with a two-handled slider and date fields;
+- a comparison with the equal period before: two mini maps, and countries
+  shaded red for more and blue for fewer;
+- hot spots with deltas;
+- a list of incidents with attribution badges and sources;
+- the CSIS/IISS history;
+- an optional Ukraine filter, off by default.
+
+Idag shows a card with the last 7 days against the 7 before. Om names
+CSIS, IISS and Wikipedia as sources.
+
+Service worker hm-v3.62.

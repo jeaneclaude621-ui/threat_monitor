@@ -67,5 +67,9 @@ export const MIGRATIONS = [
  {
   "name": "0017_runtime_tables.sql",
   "sql": "-- Version 3.46: the tables the Worker has made at runtime since Version\n-- 3.38-3.43 (CREATE TABLE IF NOT EXISTS in worker.js), now as a migration\n-- too, so the schema is in one place. IF NOT EXISTS: they exist already.\nCREATE TABLE IF NOT EXISTS ai_usage (\n  date    TEXT PRIMARY KEY,\n  neurons REAL NOT NULL,\n  calls   INTEGER NOT NULL\n);\nCREATE TABLE IF NOT EXISTS guest_visits (\n  day      TEXT NOT NULL,\n  vid      TEXT NOT NULL,\n  first_ts TEXT NOT NULL,\n  hits     INTEGER NOT NULL,\n  sections INTEGER NOT NULL DEFAULT 0,\n  PRIMARY KEY (day, vid)\n);\nCREATE TABLE IF NOT EXISTS hit_counts (\n  day  TEXT NOT NULL,\n  kind TEXT NOT NULL,\n  n    INTEGER NOT NULL,\n  PRIMARY KEY (day, kind)\n);\n"
+ },
+ {
+  "name": "0018_incidents.sql",
+  "sql": "-- Version 3.48: the incident log (src/incidents.py), the whole log as one\n-- JSON document per day, the newest served at /api/incidents. A week kept.\nCREATE TABLE IF NOT EXISTS incident_maps (\n  date TEXT PRIMARY KEY,\n  data TEXT NOT NULL\n);\n"
  }
 ];

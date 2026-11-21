@@ -18,6 +18,8 @@ export const AREAS = [
 
 export const FEATURES = [
   // Idag
+  { id: 'incidenter', area: 'arkiv', title: 'Incidentkarta för Europa', href: '#/karta?v=inc', added: '2026-11-21',
+    desc: 'Faktiska incidenter i Europa utom Ryssland och Belarus: sabotage, kablar, drönare, spionage, hot, GPS-störning och fysisk påverkan. Period med reglage, jämförelse med perioden före, oroshärdar och historik enligt CSIS och IISS.', keywords: 'incidenter sabotage drönare kablar spionage karta oroshärdar jämför csis iiss' },
   { id: 'index-golv', area: 'idag', title: 'Stabilare hotindex', href: '#/om?s=index', added: '2026-11-20',
     desc: 'Ett bandvillkor gäller i 7 dagar, så indexet faller inte ett band för att en dag var lugn, och inom ett band rör det sig högst 0,4 per dag. När bandet hålls syns det under Om indexet.', keywords: 'hotindex band golv stabilt svängningar metod' },
   { id: 'bjud-in', area: 'idag', title: 'Bjud in en vän', href: '#/', action: 'invite', added: '2026-11-16',

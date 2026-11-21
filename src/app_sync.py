@@ -221,6 +221,20 @@ def push_forces(data: dict) -> bool:
         return False
 
 
+def push_incidents(data: dict) -> bool:
+    """The incident log (src/incidents.py)."""
+    if not _config():
+        print("  App upload skipped - HOTMONITOR_URL / CF_ACCESS_CLIENT_* not set")
+        return False
+    try:
+        _request("PUT", "/api/ingest/incidents", data)
+        print(f"  Uploaded the incident log to web app ({len(data.get('incidents', []))} incidents)")
+        return True
+    except Exception as e:
+        print(f"  ! Incidents upload failed: {e}")
+        return False
+
+
 def push_strikes(data: dict) -> bool:
     """Russia's air attacks on Ukraine, per night (src/strikes.py)."""
     if not _config():
@@ -342,6 +356,9 @@ if __name__ == "__main__":
             push_forces(forces.payload(forces.load()))
         if strikes.PATH.exists():
             push_strikes(json.load(open(strikes.PATH, encoding="utf-8")))
+        import incidents
+        if incidents.PATH.exists():
+            push_incidents(incidents.payload(incidents.load()))
     elif cmd == "restore":
         print(f"  Restored: {', '.join(restore_missing()) or 'nothing missing'}")
     elif cmd == "push-all":
