@@ -505,7 +505,7 @@ def check_band_condition(result) -> list:
 def hold_reserve_day(result, reports) -> list:
     """A reserve-model day may not move the band: both indices stay within
     RESERVE_HOLD of the last main-model day's, in its band, and the day is
-    marked preliminary - the 12:00 and 21:00 runs score it again on the
+    marked preliminary - the 12:00 and 16:00 runs score it again on the
     main model (rescore_today). Returns the checks."""
     main = last_main_day(reports)
     if not main:
@@ -1210,6 +1210,8 @@ def run_daily_report():
     # Version 3.48: the incident log from the same articles (one light call).
     import incidents
     incidents.run_safe(report_data, pool)
+    import acled          # Version 3.49: ACLED, when the account gives event rows
+    acled.run_safe()
     # Russia's courses of action, from the finished report (one call; a
     # failure there stops nothing here).
     import courses
@@ -1240,7 +1242,7 @@ def checkpoint(message: str):
 
 
 def rescore_today() -> bool:
-    """Version 3.36, for the 12:00 and 21:00 runs: today's index, held as
+    """Version 3.36, for the 12:00 and 16:00 runs: today's index, held as
     preliminary because the reserve model wrote the morning sweep, scored
     again on the main model - one call, today's events as they stand, the
     same rules. Does nothing when the index is not preliminary or the main

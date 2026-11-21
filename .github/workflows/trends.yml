@@ -1,5 +1,5 @@
 # The trends feed (src/trends.py), apart from the analysis. The web app's
-# Worker starts it at 08:00, 12:00, 16:00 and 21:00 Stockholm with `at`
+# Worker starts it at 08:00, 12:00 and 16:00 Stockholm with `at`
 # set to that hour (webapp/CONTRACT.md, Version 3.9); GitHub's own schedule,
 # at both UTC hours of each, is the fallback, and run_job.py --at lets the
 # first start that is due run and the others skip. Its own concurrency
@@ -9,7 +9,7 @@ name: Trends
 
 on:
   schedule:
-    - cron: "45 6,7,10,11,14,15,19,20 * * *"   # the fallback, after the Worker's start at half past
+    - cron: "45 6,7,10,11,14,15 * * *"   # the fallback, after the Worker's start at half past
   workflow_dispatch:
     inputs:
       test:
@@ -69,7 +69,7 @@ jobs:
         run: |
           set -o pipefail
           if [ -n "$SCHEDULE" ]; then
-            python schedule/run_job.py --at 8,12,16,21 trends
+            python schedule/run_job.py --at 8,12,16 trends
           elif [ "$DISPATCH_TEST" = "true" ]; then
             python src/trends.py --dry-run
           elif [ -n "$DISPATCH_AT" ]; then

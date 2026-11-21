@@ -7,7 +7,7 @@ name: Telegram log
 
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "17 4-20 * * *"   # 06-22 Stockholm in summer, 05-21 in winter: nothing at night (each run reads 36 hours back)
   workflow_dispatch:
     inputs:
       job:

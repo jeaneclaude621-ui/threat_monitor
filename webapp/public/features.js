@@ -18,6 +18,8 @@ export const AREAS = [
 
 export const FEATURES = [
   // Idag
+  { id: 'acled', area: 'arkiv', title: 'ACLED i incidentkartan', href: '#/karta?v=inc', added: '2026-11-21',
+    desc: 'Händelser från ACLED (acleddata.com) – sabotage, drönare, spionage, kablar och angrepp i Europa – läggs in i incidentkartan, märkta ACLED. Historik från 2022 och nya händelser varje morgon när kontot ger dem.', keywords: 'acled incidenter historik sabotage drönare källa' },
   { id: 'incidenter', area: 'arkiv', title: 'Incidentkarta för Europa', href: '#/karta?v=inc', added: '2026-11-21',
     desc: 'Faktiska incidenter i Europa utom Ryssland och Belarus: sabotage, kablar, drönare, spionage, hot, GPS-störning och fysisk påverkan. Period med reglage, jämförelse med perioden före, oroshärdar och historik enligt CSIS och IISS.', keywords: 'incidenter sabotage drönare kablar spionage karta oroshärdar jämför csis iiss' },
   { id: 'index-golv', area: 'idag', title: 'Stabilare hotindex', href: '#/om?s=index', added: '2026-11-20',
@@ -27,7 +29,7 @@ export const FEATURES = [
   { id: 'hotlaget', area: 'idag', title: 'Hotläget i dag', href: '#/', added: '2026-10-01',
     desc: 'Dagens hotindex, det viktigaste och dygnets händelser med källor.', keywords: 'hotindex index rapport morgonrapport' },
   { id: 'lopande', area: 'idag', title: 'Löpande uppdateringar', href: '#/', added: '2026-11-03',
-    desc: 'Bevakade trådar kontrolleras kl. 12 och 21; nytt visas under Löpande i dag.', keywords: 'trådar bevakning uppdatering nyheter' },
+    desc: 'Bevakade trådar kontrolleras kl. 12 och 16; nytt visas under Löpande i dag.', keywords: 'trådar bevakning uppdatering nyheter' },
   { id: 'meddelanden', area: 'idag', title: 'Meddelanden', href: '#/', added: '2026-10-01',
     desc: 'Korta meddelanden från administratörerna överst på Idag.', keywords: 'notis meddelande' },
   { id: 'myndigheter', area: 'idag', title: 'Svenska myndigheter', href: '#/myndigheter', added: '2026-11-01',

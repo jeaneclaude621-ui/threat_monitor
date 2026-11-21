@@ -2,7 +2,7 @@
 What the Swedish authorities say: Försvarsmakten, MUST, MCF, the
 Government, the Police, Säpo, Tullverket and Kustbevakningen - on the
 situation overall, and the last 24 hours - and, in the same call, what
-NATO itself says, in Swedish. Runs at 07:00 and 17:00 Stockholm.
+NATO itself says, in Swedish. Runs at 07:00 and 16:00 Stockholm.
 
 A page of its own beside the analysis, like the trends feed: nothing else
 reads data/authorities.json, and this job only writes there and to the

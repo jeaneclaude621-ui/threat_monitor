@@ -164,9 +164,34 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
   incidentord per land, en extra lätt fråga per dag.
 - **Om dubbletter blir ett problem:** längre fönster för samma land och
   slag när orten saknas, till exempel 7 dagar.
-- **Längre historik:** ACLED har en öppen datamängd med "suspected Russian
-  activity" sedan 2022. Den kräver gratis registrering och har villkor
-  för vidarespridning. Leidens universitet har också en datamängd.
+- **ACLED (Version 3.49, byggt 21 nov):** `src/acled.py`. Jobbet `acled`
+  körs varje morgon och hämtar de senaste 60 dagarna. `acled_backfill` laddar
+  2022 och framåt en gång. Det kräver GitHub-hemligheterna `ACLED_EMAIL` och
+  `ACLED_PASSWORD`. Kontrollera nivån med `acled_check`. Open-nivån ger
+  troligen inga händelserader, och Research ger dem med 12 månaders
+  fördröjning. Inga ACLED-anteckningar visas, bara ort, slag och "ACLED" som
+  källa. Följ upp antalet i `data/acled.json` och storleken på incidentloggen
+  (taket är 2 MB per uppladdning).
+- **Leidens universitet** har också en datamängd.
+
+## Gratismodellerna (översyn 21 nov 2026)
+
+- **Gemini huvudmodell** (gratisnivå, 20 anrop per dygn och modell): används
+  av morgonrapporten (3–4 anrop) och omräkningen av indexet (0–2). Det blir
+  ungefär 4–6 anrop per dygn. Taket nåddes senast 25–30 okt, innan
+  trådbevakningen flyttades till lite-modellen; sedan dess bara enstaka 429.
+- **Gemini lite-modell** (egen kvot): trådbevakning 2×, narrativ 3×,
+  incidenter 1×, anfall och ISW. Det blir runt 10–15 anrop per dygn.
+- **Tredje modell:** myndigheter 2×, och reserv för de övriga.
+- **Workers AI** (Llama 3.3 70B, 9 000 neurons per dygn): reserv när
+  Gemini svarar 503 eller 429.
+- **Risker:** Google kan sänka gratiskvoten eller byta modellnamn. Koden
+  väljer själv den nyaste lite-modellen, och `models_check` testar
+  reserverna. 503 (hög belastning) förekommer några gånger i veckan och
+  fångas av reserven.
+- **Schemat är glesat ut** (21 nov): inget körs på natten före morgonrapporten.
+  Kvällskörningarna kl. 21 är flyttade till kl. 16. Det sparar 2–3
+  lite-anrop per dygn.
 
 ## Förslag som väntar på beslut
 

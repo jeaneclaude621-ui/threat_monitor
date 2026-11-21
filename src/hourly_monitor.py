@@ -1,5 +1,5 @@
 """
-Runs at 12:00 and 21:00 Stockholm (the 04:00 daily report covers the
+Runs at 12:00 and 16:00 Stockholm (the 04:00 daily report covers the
 night; see .github/workflows/scheduled-jobs.yml). Checks every watchlist thread's current reporting
 against its last known snapshot and classifies what changed:
 NEW_DEVELOPMENT, NO_CHANGE, CORRECTION, or NARRATIVE_SHIFT.

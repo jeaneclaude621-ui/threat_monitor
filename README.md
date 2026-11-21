@@ -7,7 +7,7 @@ produces a consolidated PowerPoint status report every morning at 04:00.
 
 ## What it does
 
-- **At 12:00, 16:00 and 21:00**: rechecks a watchlist of 6 active threads
+- **At 12:00 and 16:00**: rechecks a watchlist of 6 active threads
   against their last known status, all in one Gemini call. Logs whether each is unchanged, has
   a new development, was formally corrected by an outlet, or shows a
   narrative shift without a formal correction.
@@ -25,13 +25,13 @@ produces a consolidated PowerPoint status report every morning at 04:00.
   builds `reports/YYYY-MM-DD_hybrid_threat_monitor.pptx`. If email is
   configured (see "Email delivery" below), it then sends the report to
   the `MAIL_TO` recipients as an iPhone-friendly HTML digest with the deck attached.
-- **At 08:00, 12:00, 16:00 and 21:00: trends** (`src/trends.py`), a feed of
+- **At 08:00, 12:00 and 16:00: trends** (`src/trends.py`), a feed of
   its own that nothing else reads: what spreads on the subject on
   Wikipedia, Google searches, Mastodon and Bluesky, and, kept
   apart, what Russian state and pro-Kremlin Telegram channels push. Growth
   counts, not size. One Gemini summary a day. The app's "Trender" tab
   shows the Russian side only when the reader chooses to see it.
-- **At 07:00 and 17:00: the Swedish authorities** (`src/authorities.py`),
+- **At 07:00 and 16:00: the Swedish authorities** (`src/authorities.py`),
   also read by nothing else: one Gemini summary of what Försvarsmakten, MUST,
   MCF, the Government, the Police, Säpo, Tullverket and Kustbevakningen say
   about the security situation, from their own feeds and from Swedish media
@@ -50,7 +50,7 @@ produces a consolidated PowerPoint status report every morning at 04:00.
 
 Everything runs on GitHub Actions; no computer of your own needs to be
 on. `.github/workflows/scheduled-jobs.yml` runs the daily report (04:00
-Stockholm) and the thread monitor (12:00, 16:00 and 21:00), and
+Stockholm) and the thread monitor (12:00 and 16:00), and
 `.github/workflows/invites.yml` mails queued app invitations every five
 minutes. The repo is public, so Actions minutes are free and unlimited.
 The app is pushed no notifications 22:00-07:00; they wait until 07:00.

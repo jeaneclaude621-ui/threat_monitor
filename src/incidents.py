@@ -89,7 +89,7 @@ def load() -> dict:
 
 def save(state: dict):
     cutoff = (date.today() - timedelta(days=KEEP_DAYS)).isoformat()
-    state["incidents"] = sorted((i for i in state["incidents"] if i["date"] >= cutoff or i.get("origin") == "historik"),
+    state["incidents"] = sorted((i for i in state["incidents"] if i["date"] >= cutoff or i.get("origin") in ("historik", "acled")),
                                 key=lambda i: (i["date"], i["id"]))
     state["updated"] = datetime.now().isoformat(timespec="minutes")
     state["runs"] = state.get("runs", [])[-60:]

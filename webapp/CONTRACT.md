@@ -1222,3 +1222,33 @@ Idag shows a card with the last 7 days against the 7 before. Om names
 CSIS, IISS and Wikipedia as sources.
 
 Service worker hm-v3.62.
+
+## Version 3.49: ACLED in the incident log, and a quieter schedule
+
+**ACLED** (`src/acled.py`, jobs `acled`, `acled_backfill`, `acled_check`):
+- signs in with OAuth (`POST acleddata.com/oauth/token`, password grant,
+  client_id `acled`) with the GitHub secrets `ACLED_EMAIL` and
+  `ACLED_PASSWORD`; without them the job ends quietly;
+- reads `GET acleddata.com/api/acled/read` for the log's European countries
+  without Russia, Belarus and Ukraine, event types Explosions/Remote
+  violence, Strategic developments and Violence against civilians;
+- keeps an event only when its text names sabotage, drones, airspace,
+  espionage, cables, GPS jamming, arson or Russia, maps it to the log's
+  kinds and adds it with `origin: "acled"`, `acled_id`, ACLED as the source
+  and no ACLED notes text (ACLED's terms: attribution, no passing on of the
+  dataset);
+- runs after the incident step in the daily job (last 60 days);
+  `acled_backfill` loads 2022 to today once, year by year;
+- `data/acled.json` keeps each run: rows, kept, added, newest event date
+  (the account tier's delay shows there).
+
+The app labels such incidents "ACLED"; Om names ACLED as a source.
+
+**Schedule** (Stockholm): daily 04:00; authorities 07:00 and 16:00 (was
+17:00); trends 08:30, 12:30 and 16:30 (21:30 dropped); thread monitor
+12:00 and 16:00 (was 21:00); the Telegram log 06-22 only (each run reads 36
+hours back). Nothing runs at night before the daily report.
+`DISPATCH_CRON` `0 2,3,5,6,10,11,14,15 * * *`, `DISPATCH_CRON_HALF`
+`30 6,7,10,11,14,15 * * *`.
+
+Service worker hm-v3.63.

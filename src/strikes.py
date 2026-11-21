@@ -283,7 +283,7 @@ def _article_text(link: str) -> str:
 
 def preliminary(kaggle_newest: str, previous: dict, today: date, with_today: bool = False) -> list:
     """Nights after the dataset's newest, up to yesterday (with_today: up to
-    the night that ended this morning, for the 12:00 and 21:00 runs, when the
+    the night that ended this morning, for the 12:00 and 16:00 runs, when the
     Air Force's figures are out): kept from the previous run when already
     read, else read now in one light call."""
     start = date.fromisoformat(kaggle_newest) + timedelta(days=1) if kaggle_newest else today - timedelta(days=3)
@@ -434,7 +434,7 @@ def run_safe():
 
 
 def retry_if_due():
-    """`strikes.py retry` (the 12:00 and 21:00 runs): fills the nights still
+    """`strikes.py retry` (the 12:00 and 16:00 runs): fills the nights still
     missing up to this morning's (the morning run cannot: the Air Force
     reports later, and Google News sometimes refuses); otherwise nothing."""
     today = date.today()

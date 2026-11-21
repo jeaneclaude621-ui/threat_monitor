@@ -1399,7 +1399,7 @@ function indexNotes(r) {
   const notes = [
     r.index_preliminary
       ? h('div', { class: 'hero-note' }, h('strong', null, 'Preliminärt: '),
-        `Reservmodellen skrev svepet och gav ${fmt1(r.index_preliminary.model_index)}; indexet hålls nära bedömningen ${dateShort(r.index_preliminary.held_from)} och räknas om kl. 12 eller 21.`)
+        `Reservmodellen skrev svepet och gav ${fmt1(r.index_preliminary.model_index)}; indexet hålls nära bedömningen ${dateShort(r.index_preliminary.held_from)} och räknas om kl. 12 eller 16.`)
       : null,
     r.index_review && r.index_review.note_sv
       ? h('div', { class: 'hero-note' }, h('strong', null, `Granskat ${dateShort(r.index_review.date)}: `), r.index_review.note_sv) : null,
@@ -2303,7 +2303,7 @@ function authorityRow(it) {
 async function viewAuthorities(q) {
   const brief = await loadAuthorities();
   const back = backLink('#/', 'Idag');
-  if (!brief) return frag(back, emptyState('Ingen sammanställning ännu. Den görs kl. 07 och 17.'));
+  if (!brief) return frag(back, emptyState('Ingen sammanställning ännu. Den görs kl. 07 och 16.'));
   const isNato = q.get('s') === 'nato';
   const part = isNato ? (brief.nato || { overall_sv: null, items: [] }) : brief;
   const fresh = part.items.filter((i) => i.fresh);
@@ -2329,7 +2329,7 @@ async function viewAuthorities(q) {
     h('p', { class: 'notice' }, isNato
       ? 'AI-sammanfattning, översatt till svenska, av Natos egna kanaler och internationell rapportering. '
       : 'AI-sammanfattning av myndigheternas egna kanaler och svensk nyhetsrapportering. ',
-    '"Via" betyder att uppgiften kommer från medier. Påverkar inte index eller rapportens bedömningar. Uppdateras kl. 07 och 17.'));
+    '"Via" betyder att uppgiften kommer från medier. Påverkar inte index eller rapportens bedömningar. Uppdateras kl. 07 och 16.'));
 }
 
 // ---------------------------------------------------------------- trends (Version 3.9)
@@ -2507,7 +2507,7 @@ async function viewChannels() {
     h('header', { class: 'page-head' }, h('div', null, h('div', { class: 'kicker' }, 'Telegram'), h('h1', { class: 'title-l' }, 'Narrativ'))),
     seg);
   const data = await loadChannels().catch(() => null);
-  if (!data || !data.channels) return frag(head, emptyState('Inga kanalsiffror ännu. De räknas varje natt efter kl. 03 ur loggen av kanalerna.'));
+  if (!data || !data.channels) return frag(head, emptyState('Inga kanalsiffror ännu. De räknas varje morgon vid första körningen ur loggen av kanalerna.'));
   const list = Object.entries(data.channels);
   const sorted = list.slice().sort(([, a], [, b]) => (indVal(b, channelSort) ?? -1) - (indVal(a, channelSort) ?? -1));
   // Who forwards whom, across the channels: the strongest links.
@@ -4086,7 +4086,7 @@ async function viewIncidents(q) {
         h('p', { class: 'small' }, `Ryska attacker och planer i Europa ${csis.period}, enligt CSIS databas: ${Object.values(csis.per_year).reduce((a, b) => a + b, 0)} st. `,
           'Mål: ', Object.entries(csis.targets || {}).map(([k, n]) => `${k.toLowerCase()} ${n}`).join(', '), '. *2025: januari–mars.'),
         hist.iiss ? h('p', { class: 'small' }, hist.iiss.finding) : null,
-        h('p', { class: 'small muted' }, 'CSIS och IISS räknar med egna metoder; deras siffror går inte att jämföra rakt av med loggen här. Historiska fall på kartan: Wikipedias sammanställning och CSIS, med deras källor.'),
+        h('p', { class: 'small muted' }, 'CSIS och IISS räknar med egna metoder; deras siffror går inte att jämföra rakt av med loggen här. Historiska fall på kartan: Wikipedias sammanställning och CSIS, med deras källor. Poster märkta ACLED kommer från ACLED (acleddata.com).'),
         h('div', { class: 'chips' }, (hist.sources || []).map((s) => externalButton(s.url, { outlet: s.outlet }, s.outlet))))) : null,
     h('p', { class: 'notice' }, 'Bara faktiska händelser på marken, till sjöss och i luften i Europa utom Ryssland och Belarus: sabotage, intrång, gripanden, hot och fysisk påverkan. ',
       'Inte uttalanden, desinformation, beslut eller sanktioner. Varje incident vilar på artiklar ur öppna källor (inte rysk statsmedia) och har en bedömning av om Ryssland pekats ut. ',
@@ -4103,7 +4103,7 @@ function incidentRow(i) {
   return h('details', { class: 'irow' },
     h('summary', null, h('i', { class: 'idotk', style: `background:${col}` }),
       h('span', { class: 'row-main' }, h('span', { class: 'row-title' }, i.title_sv),
-        h('span', { class: 'row-sub' }, [when, i.place || countryName(i.country), cat, i.origin === 'historik' ? 'historik' : null].filter(Boolean).join(' · '))),
+        h('span', { class: 'row-sub' }, [when, i.place || countryName(i.country), cat, i.origin === 'historik' ? 'historik' : i.origin === 'acled' ? 'ACLED' : null].filter(Boolean).join(' · '))),
       h('span', { class: `ibadge ${cls}` }, attr)),
     h('div', { class: 'irow-body' }, i.summary_sv ? h('p', { class: 'small' }, i.summary_sv) : null,
       i.precision !== 'ort' ? h('p', { class: 'small muted' }, `Platsen är ungefärlig: ${i.place_named ? `”${i.place_named}” finns inte i ortslistan, så ` : ''}punkten står i landet.`) : null,
@@ -5271,6 +5271,9 @@ function viewAbout() {
         ' – rapportens huvudresultat; och ',
         h('a', { href: 'https://en.wikipedia.org/wiki/Russian_sabotage_operations_in_Europe', target: '_blank', rel: 'noopener' }, 'Wikipedias sammanställning av ryska sabotageoperationer i Europa'),
         ' – daterade historiska fall med artikelns egna källor. CSIS och IISS räknar med egna metoder; deras siffror visas för sig och blandas inte med loggen.'),
+      h('p', null, 'Sedan version 3.49 hämtas också händelser från ',
+        h('a', { href: 'https://acleddata.com/', target: '_blank', rel: 'noopener' }, 'ACLED (Armed Conflict Location & Event Data)'),
+        ' – explosioner, angrepp, drönarobservationer, gripanden och skadegörelse i Europa utom Ryssland, Belarus och Ukraina, där texten nämner sabotage, drönare, spionage, kablar, GPS-störning eller Ryssland. De märks ”ACLED” i listan. ACLED:s data visas med hänvisning till ACLED och kan komma med fördröjning beroende på åtkomstnivå.'),
       h('h2', { class: 'title-m' }, 'Integritet'),
       h('p', null, guest
         ? 'Du läser utan att logga in. Vad du har läst sparas bara i den här webbläsaren.'

@@ -1,6 +1,6 @@
 """
 Trends: what is spreading right now, as a feed of its own beside the
-analysis. Runs at 08:00, 12:00, 16:00 and 21:00 Stockholm.
+analysis. Runs at 08:00, 12:00 and 16:00 Stockholm.
 
 Two sides, kept apart all the way to the app:
 - "open": Wikipedia page views, Google Trends' daily searches, Mastodon

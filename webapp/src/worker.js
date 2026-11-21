@@ -74,10 +74,10 @@ const INVITE_ID_RE = /^[0-9a-f-]{36}$/;
 // .github/workflows/scheduled-jobs.yml.
 const RUN_JOBS = {
   daily: { label: 'Morgonrapport', hours: [4], maxMinutes: 45, workflow: 'scheduled-jobs.yml' },
-  hourly: { label: 'Trådbevakning', hours: [12, 21], maxMinutes: 20, workflow: 'scheduled-jobs.yml' },
+  hourly: { label: 'Trådbevakning', hours: [12, 16], maxMinutes: 20, workflow: 'scheduled-jobs.yml' },
   // Version 3.26: half past, so it does not start with the thread check at 12 and 21.
-  trends: { label: 'Narrativ', hours: [8, 12, 16, 21], minute: 30, maxMinutes: 25, workflow: 'trends.yml' },
-  authorities: { label: 'Myndigheter', hours: [7, 17], maxMinutes: 15, workflow: 'authorities.yml' },
+  trends: { label: 'Narrativ', hours: [8, 12, 16], minute: 30, maxMinutes: 25, workflow: 'trends.yml' },
+  authorities: { label: 'Myndigheter', hours: [7, 16], maxMinutes: 15, workflow: 'authorities.yml' },
 };
 const RUN_START_GRACE_MIN = 75;   // GitHub's own cron, the fallback, can lag
 const RUN_ID_RE = /^[0-9a-f]{32}$/;
@@ -87,9 +87,9 @@ const MAC_QUIET_MIN = 30;
 // Version 3.8: the cron that starts the runs (wrangler.jsonc). It fires at
 // both UTC hours that can be each Stockholm hour in RUN_JOBS, summer and
 // winter time; startDueRuns starts only the jobs due at the Stockholm hour.
-const DISPATCH_CRON = '0 2,3,5,6,7,10,11,14,15,16,19,20 * * *';
+const DISPATCH_CRON = '0 2,3,5,6,10,11,14,15 * * *';
 // The jobs due at half past (`minute: 30` in RUN_JOBS), same idea.
-const DISPATCH_CRON_HALF = '30 6,7,10,11,14,15,19,20 * * *';          // the invitation job (GitHub Actions) polls every 5 min; its cron can lag
+const DISPATCH_CRON_HALF = '30 6,7,10,11,14,15 * * *';          // the invitation job (GitHub Actions) polls every 5 min; its cron can lag
 
 // Reasons written to security_log (CONTRACT.md, Version 2).
 const R = {

@@ -931,7 +931,7 @@ def _ask_with_retry(prompt: str, system: str):
 
 
 def _mark_retry(state: dict, today: date, err) -> None:
-    """The night failed: the 12:00 and 21:00 runs (schedule/run_job.py) try it again."""
+    """The night failed: the 12:00 and 16:00 runs (schedule/run_job.py) try it again."""
     state["retry"] = {"date": today.isoformat(), "reason": str(err)[:200]}
     with open(STATE_PATH, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=1)
