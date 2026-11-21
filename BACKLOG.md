@@ -153,6 +153,12 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
    Omgångarna är nu 20 poster, med en tydlig uppmaning att ta med alla.
 4. **Dubbletter:** få. Ett troligt par (Polen 6 och 11 nov, samma
    spionnätverk) ligger utanför fönstret på 3 dagar.
+5. **Andra bakåtfyllnaden (21 nov, med modellkoordinater och omgångar om 20):**
+   35 incidenter (tidigare 33). 23 har ort (tidigare 8) och 12 bara land.
+   40 av 181 poster blev förslag (tidigare 37). Inga namngivna orter
+   saknades. Två troliga dubbelpar finns: Moldavien 30 sep och 3 okt,
+   Storbritannien 11 och 16 nov. Platsprecisionen är löst. Täckningen är
+   fortfarande den svaga punkten.
 5. **CSIS och IISS:** IISS-rapporten blockerar maskinläsning (403), så
    bara huvudresultatet används. CSIS publicerar inte sin databas, bara
    årssiffror och några namngivna fall.
