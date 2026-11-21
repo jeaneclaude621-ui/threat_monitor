@@ -138,6 +138,36 @@ ut faller körningarna tillbaka på GitHubs opålitliga schema. Skapa en ny toke
 och kör `npx wrangler secret put GITHUB_DISPATCH_TOKEN` i Terminal-appen,
 från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
 
+### Incidentkartan: erfarenheter och nästa justeringar
+*Lagt till 2026-11-21 (Version 3.48).*
+
+**Erfarenheter från första veckan:**
+1. **Källfältet:** första bakåtfyllnaden behöll 0 av 35 förslag, eftersom
+   poolens artiklar har `link` och inte `url`. Rättat, och testat med
+   riktiga fältnamn.
+2. **Platserna:** 25 av 33 incidenter hamnade bara i landet. Modellen
+   angav ofta ingen ort, och de orter den angav saknades ibland i
+   ortslistan (Sulina, Telenești, Gotland). Nu anger modellen
+   koordinater, som godtas inom 250 km från en känd ort i samma land.
+3. **Täckningen:** omgångar om 45 poster gav 37 incidenter av 181 poster.
+   Omgångarna är nu 20 poster, med en tydlig uppmaning att ta med alla.
+4. **Dubbletter:** få. Ett troligt par (Polen 6 och 11 nov, samma
+   spionnätverk) ligger utanför fönstret på 3 dagar.
+5. **CSIS och IISS:** IISS-rapporten blockerar maskinläsning (403), så
+   bara huvudresultatet används. CSIS publicerar inte sin databas, bara
+   årssiffror och några namngivna fall.
+
+**Att följa upp:**
+- **Morgonkörningen 22 nov:** första dagliga körningen. Kontrollera antal
+  incidentlika artiklar, föreslagna och sparade (`incidents.py stats`).
+- **Om täckningen är låg:** ett tredje sökpass med Google News på
+  incidentord per land, en extra lätt fråga per dag.
+- **Om dubbletter blir ett problem:** längre fönster för samma land och
+  slag när orten saknas, till exempel 7 dagar.
+- **Längre historik:** ACLED har en öppen datamängd med "suspected Russian
+  activity" sedan 2022. Den kräver gratis registrering och har villkor
+  för vidarespridning. Leidens universitet har också en datamängd.
+
 ## Förslag som väntar på beslut
 
 Inga just nu.
