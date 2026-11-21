@@ -123,6 +123,27 @@ def _fold(s: str) -> str:
     return "".join(c for c in unicodedata.normalize("NFKD", s or "") if not unicodedata.combining(c)).lower().strip()
 
 
+def km(a_lat, a_lon, b_lat, b_lon) -> float:
+    import math
+    p1, p2 = math.radians(a_lat), math.radians(b_lat)
+    d = math.sin((p2 - p1) / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(math.radians(b_lon - a_lon) / 2) ** 2
+    return 6371 * 2 * math.asin(math.sqrt(d))
+
+
+MODEL_COORD_KM = 250   # model coordinates are kept only this close to a known place of the same country
+
+
+def plausible(lat, lon, country: str) -> bool:
+    """The model's coordinates, if they lie in the country (near one of its known places)."""
+    try:
+        lat, lon = float(lat), float(lon)
+    except (TypeError, ValueError):
+        return False
+    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+        return False
+    return any(km(lat, lon, la, lo) <= MODEL_COORD_KM for names, n, la, lo, cap in places().get(country, []))
+
+
 def locate(place, country: str):
     """(name, lat, lon, precision): the place in the country's list, else
     the country's capital marked as only the country ('land'), else None."""
@@ -220,10 +241,16 @@ def clean(raw: dict, refs: dict, origin: str, today: str) -> dict:
     if not loc:
         return None
     name, lat, lon, precision = loc
+    geo = "ortslista" if precision == "ort" else None
+    # 21 Nov 2026: a third of the named places (Sulina, Telenesti, Gotland ...)
+    # were not in the place list. The model's own coordinates are used then,
+    # if they lie in the country.
+    if precision != "ort" and raw.get("place") and plausible(raw.get("lat"), raw.get("lon"), country):
+        name, lat, lon, precision, geo = str(raw["place"]).strip()[:80], float(raw["lat"]), float(raw["lon"]), "ort", "modell"
     attr = raw.get("attribution") if raw.get("attribution") in ATTRIBUTION else "oklar"
     out = {"date": d, "cat": cat, "country": country, "place": name or None,
            "place_named": (str(raw.get("place")).strip()[:80] or None) if raw.get("place") else None,
-           "lat": round(lat, 3), "lon": round(lon, 3), "precision": precision,
+           "lat": round(lat, 3), "lon": round(lon, 3), "precision": precision, "geo": geo,
            "title_sv": title, "summary_sv": str(raw.get("summary_sv") or "").strip()[:400],
            "attribution": attr, "sources": sources[:8], "origin": origin}
     out["id"] = _id(out)
@@ -251,18 +278,21 @@ For each incident:
 - "date": the day it happened (YYYY-MM-DD), as the articles give it; if they do not, the article's date;
 - "cat": one of the kinds above;
 - "country": ISO 3166-1 alpha-2 of where it happened (the sea area's nearest coastal state for cables);
-- "place": the town, base, port or airport, in English, or null when the articles name none;
+- "place": the town, base, port, airport or island, in English, or null when the articles name none;
+  for a sea area, the nearest coastal town or island the articles name;
+- "lat", "lon": approximate decimal coordinates of that place (null when "place" is null);
 - "title_sv": a short Swedish headline, max ~10 words;
 - "summary_sv": one or two Swedish sentences of what happened, max ~35 words;
 - "attribution": "bekräftad" when a government, prosecutor or court attributes it to Russia or its
   services; "misstänkt" when officials or the articles say Russia is suspected; "oklar" otherwise;
 - "refs": the refs of the articles it rests on, copied exactly (e.g. ["A3", "A17"]).
-One incident once, however many articles report it. If there are none, answer {{"incidents": []}}.
+List ALL such incidents, also small ones (a drone over a base, a cut cable, one arrest) - completeness
+matters. One incident once, however many articles report it. If there are none, answer {{"incidents": []}}.
 
 Articles:
 {lines}
 
-Respond as strict JSON: {{"incidents": [{{"date": "...", "cat": "...", "country": "..", "place": "...",
+Respond as strict JSON: {{"incidents": [{{"date": "...", "cat": "...", "country": "..", "place": "...", "lat": 0.0, "lon": 0.0,
 "title_sv": "...", "summary_sv": "...", "attribution": "...", "refs": ["A1"]}}]}}"""
 
 
@@ -343,11 +373,15 @@ def seed_history(state: dict) -> int:
     return n
 
 
-def backfill(batch: int = 45) -> dict:
+def backfill(batch: int = 20) -> dict:
     """The saved reports' events and also_reported, as articles, in batches
-    of `batch`: each gets its report's date. No feeds are read again."""
+    of `batch`: each gets its report's date. No feeds are read again. What
+    an earlier backfill found is rebuilt; the daily runs' incidents stay.
+    (21 Nov 2026: batches of 45 gave 37 incidents from 181 items; smaller
+    batches let the light model list more.)"""
     import common
     state = load()
+    state["incidents"] = [i for i in state["incidents"] if i.get("origin") != "efterhand"]
     seed_history(state)
     items = []
     for f in sorted(OUTPUT_DIR.glob("*_report_data.json")):

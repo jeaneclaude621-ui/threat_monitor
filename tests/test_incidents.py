@@ -79,3 +79,13 @@ def test_pool_articles_with_link_are_sources():
     refs = {"A1": {"title": "Fire", "source": "Reuters", "link": "https://www.reuters.com/x"}}
     c = I.clean(raw(), refs, "svep", TODAY)
     assert c and c["sources"][0]["url"] == "https://www.reuters.com/x"
+
+
+def test_model_coordinates_used_when_the_place_list_lacks_the_town():
+    c = I.clean(raw(country="RO", place="Sulina", lat=45.16, lon=29.65), REFS, "svep", TODAY)
+    assert c["precision"] == "ort" and c["place"] == "Sulina" and c["geo"] == "modell"
+
+
+def test_model_coordinates_outside_the_country_are_refused():
+    c = I.clean(raw(country="RO", place="Sulina", lat=59.3, lon=18.0), REFS, "svep", TODAY)
+    assert c["precision"] == "land"
