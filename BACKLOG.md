@@ -178,6 +178,13 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
   fördröjning. Inga ACLED-anteckningar visas, bara ort, slag och "ACLED" som
   källa. Följ upp antalet i `data/acled.json` och storleken på incidentloggen
   (taket är 2 MB per uppladdning).
+  **21 nov:** inloggningen fungerar, men alla läsanrop, även det minsta,
+  svarar `403 {"message":"Access denied"}`. Kontot ligger på Open-nivån,
+  som inte ger API-åtkomst till händelser. Det som krävs är Research-nivå
+  (en ansökan hos ACLED, helst med en adress från en organisation), eller en
+  manuell nedladdning av ACLED:s aggregerade fil för Europa från webben,
+  som läses in en gång. Morgonjobbet skriver bara en rad om 403 och går
+  vidare.
 - **Leidens universitet** har också en datamängd.
 
 ## Gratismodellerna (översyn 21 nov 2026)
