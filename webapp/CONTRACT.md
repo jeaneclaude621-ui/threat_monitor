@@ -1266,3 +1266,21 @@ Service worker hm-v3.63.
   opened or closed (localStorage `hm-features-seen`).
 
 Service worker hm-v3.65.
+
+## Version 3.51: ACLED's aggregated data under Incidenter
+
+The account's Open tier answers 403 on every API read, so ACLED's
+aggregated Europe file (downloaded from the website, weekly counts per
+country, region and sub-event) is loaded once: `python3 src/acled.py
+aggregate FILE.xlsx` writes `data/acled_agg.json` - four groups (drone
+strikes, disrupted weapons, explosives, property destruction), the log's
+countries without Ukraine, Russia, Belarus, Armenia and Azerbaijan, by
+month, country and region with ACLED's centroid. The incident payload
+carries it as `acled_agg` ({source, since, through, cats, regions:
+[cc, region, lat, lon], rows: [month, cc, region index, cat, events]}).
+The app shows "Bredare bakgrund enligt ACLED" under Incidenter: groups,
+yearly stacked bars, the last 12 months against the 12 before per
+country, the regions with most, and ACLED as the source. Kept apart from
+the log; it has no event text. A newer file: run `aggregate` again.
+
+Service worker hm-v3.66.

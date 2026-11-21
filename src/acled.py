@@ -24,6 +24,17 @@ notes text - and the app names ACLED as the source.
     python3 src/acled.py run                 # the last 60 days (the daily job)
     python3 src/acled.py backfill [FROM]     # from FROM (default 2022-01-01) to today, once
     python3 src/acled.py check               # sign-in and tier only
+    python3 src/acled.py aggregate FILE.xlsx # ACLED's aggregated Europe file (Open tier, from the web), once
+
+The aggregated file (Version 3.51): the Open tier cannot read events, but
+ACLED's website offers weekly counts per country, region and sub-event type
+for Europe and Central Asia. `aggregate` keeps four sub-event groups that
+come closest to the log - drone strikes, disrupted weapons (drones shot
+down, bombs defused), explosives and property destruction - for the log's
+countries without Russia, Belarus and Ukraine, by month, country and region
+(with ACLED's region centroid), in data/acled_agg.json. The counts have no
+event text, so they cannot be narrowed to Russian or subversive acts: the
+app shows them apart from the log, as ACLED's wider background.
 """
 import json
 import os
@@ -298,11 +309,141 @@ def check() -> dict:
     return {"status": "ok", "events": out}
 
 
+# --------------------------------------------------------------------------
+# The aggregated file
+# --------------------------------------------------------------------------
+AGG = DATA_DIR / "acled_agg.json"
+AGG_CATS = {
+    "dronare": ("Drönar- och luftangrepp", ("Air/drone strike",)),
+    "avvarjt": ("Avvärjda vapen (nedskjutna drönare, desarmerade laddningar)", ("Disrupted weapons use",)),
+    "sprang": ("Sprängladdningar och granater", ("Remote explosive/landmine/IED", "Grenade", "Suicide bomb")),
+    "skadegorelse": ("Skadegörelse och förstörelse", ("Looting/property destruction",)),
+}
+SUB_CAT = {sub: k for k, (_, subs) in AGG_CATS.items() for sub in subs}
+COUNTRY_ISO = {
+    "Norway": "NO", "Sweden": "SE", "Finland": "FI", "Denmark": "DK", "Estonia": "EE", "Latvia": "LV",
+    "Lithuania": "LT", "Poland": "PL", "Germany": "DE", "Slovakia": "SK", "Romania": "RO", "Moldova": "MD",
+    "United Kingdom": "GB", "France": "FR", "Belgium": "BE", "Netherlands": "NL", "Iceland": "IS",
+    "Bulgaria": "BG", "Hungary": "HU", "Czech Republic": "CZ", "Austria": "AT", "Italy": "IT", "Spain": "ES",
+    "Greece": "GR", "Portugal": "PT", "Ireland": "IE", "Switzerland": "CH", "Croatia": "HR", "Serbia": "RS",
+    "Slovenia": "SI", "Bosnia and Herzegovina": "BA", "Montenegro": "ME", "North Macedonia": "MK",
+    "Albania": "AL", "Luxembourg": "LU", "Cyprus": "CY", "Malta": "MT", "Kosovo": "XK", "Georgia": "GE",
+    "Liechtenstein": "LI", "Monaco": "MC", "San Marino": "SM",
+    "Andorra": "AD", "Faroe Islands": "FO", "Greenland": "GL",
+}
+
+
+def xlsx_rows(path):
+    """The rows of the first sheet as dicts, read straight from the zip:
+    ACLED's file names a drawing it does not hold, which openpyxl refuses."""
+    import xml.etree.ElementTree as ET
+    import zipfile
+    ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+    z = zipfile.ZipFile(path)
+    ss = [''.join(t.text or '' for t in si.iter(ns + 't'))
+          for si in ET.fromstring(z.read('xl/sharedStrings.xml')).iter(ns + 'si')]
+
+    def col(ref):
+        n = 0
+        for ch in re.match(r'[A-Z]+', ref).group():
+            n = n * 26 + ord(ch) - 64
+        return n - 1
+    head = None
+    with z.open('xl/worksheets/sheet1.xml') as f:
+        for _, el in ET.iterparse(f):
+            if el.tag != ns + 'row':
+                continue
+            vals = {}
+            for c in el.iter(ns + 'c'):
+                v, t = c.find(ns + 'v'), c.get('t')
+                if t == 'inlineStr':
+                    val = ''.join(x.text or '' for x in c.iter(ns + 't'))
+                elif v is None:
+                    val = ''
+                else:
+                    val = ss[int(v.text)] if t == 's' else v.text
+                vals[col(c.get('r'))] = val
+            el.clear()
+            row = [vals.get(i, '') for i in range(max(vals) + 1)] if vals else []
+            if head is None:
+                head = row
+            elif row:
+                yield dict(zip(head, row))
+
+
+def _week(v) -> date:
+    """WEEK is an Excel day number (or an ISO date in a CSV export)."""
+    try:
+        return date(1899, 12, 30) + timedelta(days=int(float(v)))
+    except ValueError:
+        return date.fromisoformat(str(v)[:10])
+
+
+def aggregate(path, rows=None) -> dict:
+    """ACLED's aggregated file to data/acled_agg.json: by month, country,
+    region and group, the number of events, with the region's centroid."""
+    from collections import defaultdict
+    cells, places = defaultdict(int), {}
+    weeks = []
+    for r in rows if rows is not None else xlsx_rows(path):
+        cc, cat = COUNTRY_ISO.get(r.get("COUNTRY")), SUB_CAT.get(r.get("SUB_EVENT_TYPE"))
+        try:
+            wk = _week(r["WEEK"])
+        except (KeyError, ValueError):
+            continue
+        weeks.append(wk)
+        if not cc or not cat:
+            continue
+        try:
+            n = int(float(r.get("EVENTS") or 0))
+        except ValueError:
+            continue
+        region = str(r.get("ADMIN1") or "").strip()[:60]
+        cells[(wk.strftime("%Y-%m"), cc, region, cat)] += n
+        if region and (cc, region) not in places:
+            try:
+                places[(cc, region)] = (round(float(r["CENTROID_LATITUDE"]), 2), round(float(r["CENTROID_LONGITUDE"]), 2))
+            except (KeyError, ValueError):
+                pass
+    regions = sorted({(cc, rg) for (_, cc, rg, _) in cells if rg})
+    rix = {k: i for i, k in enumerate(regions)}
+    out = {
+        "source": "ACLED, www.acleddata.com - aggregated data, Europe and Central Asia",
+        "file": Path(path).name if path else None,
+        "since": min(weeks).isoformat() if weeks else None,
+        "through": (max(weeks) + timedelta(days=6)).isoformat() if weeks else None,
+        "loaded": date.today().isoformat(),
+        "cats": {k: v[0] for k, v in AGG_CATS.items()},
+        # [country, region, lat, lon]
+        "regions": [[cc, rg, *places.get((cc, rg), (None, None))] for cc, rg in regions],
+        # [month, country, region index or -1, cat, events]
+        "rows": sorted([m, cc, rix.get((cc, rg), -1), cat, n] for (m, cc, rg, cat), n in cells.items() if n),
+    }
+    AGG.parent.mkdir(parents=True, exist_ok=True)
+    AGG.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    total = sum(r[4] for r in out["rows"])
+    print(f"  ACLED aggregated: {out['since']}..{out['through']}, {len(out['rows'])} cells, {total} events, "
+          f"{len(regions)} regions, {AGG.stat().st_size // 1024} kB")
+    return out
+
+
+def agg_payload():
+    try:
+        return json.loads(AGG.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "check"
     if cmd == "run":
         run()
     elif cmd == "backfill":
         backfill(*(sys.argv[2:3]))
+    elif cmd == "aggregate":
+        aggregate(sys.argv[2])
+        st = incidents.load()
+        incidents.seed_history(st)
+        incidents.push(st)
     else:
         check()

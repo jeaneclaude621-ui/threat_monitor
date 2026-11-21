@@ -446,7 +446,17 @@ def payload(state: dict) -> dict:
     h = history()
     return {"generated_at": datetime.now().isoformat(timespec="minutes"), "date": date.today().isoformat(),
             "cats": CATS, "incidents": state["incidents"],
-            "history": {k: h.get(k) for k in ("csis", "iiss", "sources")}}
+            "history": {k: h.get(k) for k in ("csis", "iiss", "sources")},
+            "acled_agg": _acled_agg()}
+
+
+def _acled_agg():
+    """ACLED's aggregated counts (src/acled.py aggregate), when loaded."""
+    try:
+        from acled import agg_payload
+        return agg_payload()
+    except Exception:
+        return None
 
 
 def push(state: dict) -> bool:

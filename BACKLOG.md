@@ -185,6 +185,11 @@ från mappen `webapp/`. Se `webapp/DEPLOY.md`, Version 3.8.
   manuell nedladdning av ACLED:s aggregerade fil för Europa från webben,
   som läses in en gång. Morgonjobbet skriver bara en rad om 403 och går
   vidare.
+  **Inläst 21 nov (Version 3.51):** ACLED:s aggregerade fil för Europa och
+  Centralasien, veckor från 2018 till 7 nov 2026. Den gav 4 543 händelser i
+  fyra grupper och 417 regioner. Den visas under Incidenter som "Bredare
+  bakgrund". Ny fil: `python3 src/acled.py aggregate FIL.xlsx` och sedan
+  repush. Nästa steg kan vara ett kartlager med regionernas punkter.
 - **Leidens universitet** har också en datamängd.
 
 ## Gratismodellerna (översyn 21 nov 2026)

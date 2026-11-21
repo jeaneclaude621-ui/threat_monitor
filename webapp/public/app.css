@@ -1189,3 +1189,11 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 .page-head-today .head-date { margin-top: 2px; }
 .page-head-today .title-xl { margin-top: 0; }
 .qt-k .se-flag { width: 14px; height: 10px; border-radius: 2px; }
+
+/* Version 3.51: ACLED background */
+.gstack { display: flex; flex-direction: column-reverse; overflow: hidden; border-radius: 3px 3px 0 0; }
+.gstack span { display: block; width: 100%; }
+.seg-wrap { flex-wrap: wrap; }
+#acled .row-num { font-variant-numeric: tabular-nums; font-weight: 600; margin-right: 8px; }
+#acled .list .row { padding: 6px 0; }
+#acled .seg button { padding-left: 6px; padding-right: 6px; font-size: 13px; }

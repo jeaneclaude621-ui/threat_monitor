@@ -47,3 +47,20 @@ def test_fetch_merges_and_skips_seen(tmp_path, monkeypatch):
     assert r["rows"] == 2 and r["kept"] == 1 and r["added"] == 1
     r2 = acled.fetch("2025-01-01", "2025-12-31", "t", get=lambda url: {"data": rows})
     assert r2["kept"] == 0
+
+
+def test_aggregate_keeps_groups_and_countries(tmp_path, monkeypatch):
+    monkeypatch.setattr(acled, "AGG", tmp_path / "agg.json")
+    rows = [
+        {"WEEK": "45962", "COUNTRY": "Poland", "ADMIN1": "Lublin", "SUB_EVENT_TYPE": "Air/drone strike", "EVENTS": "3",
+         "CENTROID_LATITUDE": "51.2", "CENTROID_LONGITUDE": "22.9"},
+        {"WEEK": "45962", "COUNTRY": "Poland", "ADMIN1": "Lublin", "SUB_EVENT_TYPE": "Peaceful protest", "EVENTS": "9"},
+        {"WEEK": "45962", "COUNTRY": "Ukraine", "ADMIN1": "Kyiv", "SUB_EVENT_TYPE": "Air/drone strike", "EVENTS": "50"},
+        {"WEEK": "2025-09-15", "COUNTRY": "Romania", "ADMIN1": "Tulcea", "SUB_EVENT_TYPE": "Disrupted weapons use", "EVENTS": "2",
+         "CENTROID_LATITUDE": "45.1", "CENTROID_LONGITUDE": "28.8"},
+    ]
+    out = acled.aggregate(None, rows=rows)
+    assert sum(r[4] for r in out["rows"]) == 5
+    assert {r[1] for r in out["rows"]} == {"PL", "RO"}
+    assert out["regions"][0][:2] in (["PL", "Lublin"], ["RO", "Tulcea"])
+    assert set(out["cats"]) == {"dronare", "avvarjt", "sprang", "skadegorelse"}

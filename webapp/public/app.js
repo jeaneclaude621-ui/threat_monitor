@@ -4091,6 +4091,7 @@ async function viewIncidents(q) {
         hist.iiss ? h('p', { class: 'small' }, hist.iiss.finding) : null,
         h('p', { class: 'small muted' }, 'CSIS och IISS räknar med egna metoder; deras siffror går inte att jämföra rakt av med loggen här. Historiska fall på kartan: Wikipedias sammanställning och CSIS, med deras källor. Poster märkta ACLED kommer från ACLED (acleddata.com).'),
         h('div', { class: 'chips' }, (hist.sources || []).map((s) => externalButton(s.url, { outlet: s.outlet }, s.outlet))))) : null,
+    acledSection(data.acled_agg),
     h('p', { class: 'notice' }, 'Bara faktiska händelser på marken, till sjöss och i luften i Europa utom Ryssland och Belarus: sabotage, intrång, gripanden, hot och fysisk påverkan. ',
       'Inte uttalanden, desinformation, beslut eller sanktioner. Varje incident vilar på artiklar ur öppna källor (inte rysk statsmedia) och har en bedömning av om Ryssland pekats ut. ',
       'Loggen förs av en AI-modell varje morgon och kan innehålla fel; en ring på kartan betyder att bara landet är känt.'));
@@ -4147,6 +4148,65 @@ function quickTiles(courses, brief, inc) {
       h('span', { class: `qt-s idelta ${d > 0 ? 'up' : d < 0 ? 'dn' : ''}` }, `7 dagar${d ? ` · ${d > 0 ? '▲ +' : '▼ '}${d}` : ''}`)));
   }
   return tiles.length ? h('nav', { class: `qtiles n${tiles.length}`, 'aria-label': 'Genvägar' }, tiles) : null;
+}
+
+// Version 3.51: ACLED's aggregated counts (src/acled.py aggregate) - a
+// wider background apart from the log: by year, the countries and regions
+// of the last 12 months against the 12 before. No event text, so not
+// narrowed to Russian acts; said so beside the figures.
+const ACLED_COL = { dronare: '#7C3AED', avvarjt: '#0E7490', sprang: '#B91C1C', skadegorelse: '#B45309' };
+let acledCat = 'all';
+const ACLED_SHORT = { dronare: 'Drönare', avvarjt: 'Avvärjda', sprang: 'Spräng', skadegorelse: 'Skadegörelse' };
+const acledLand = (cc) => (cc === 'XK' ? 'Kosovo' : countryName(cc));
+function acledSection(agg) {
+  if (!agg || !Array.isArray(agg.rows) || !agg.rows.length) return null;
+  const sec = h('section', { class: 'section', id: 'acled' });
+  const cats = Object.keys(agg.cats || {});
+  const through = agg.through || agg.rows[agg.rows.length - 1][0];
+  const endM = through.slice(0, 7);
+  const monthsBack = (m, n) => { let [y, mo] = m.split('-').map(Number); mo -= n; while (mo <= 0) { mo += 12; y -= 1; } return `${y}-${String(mo).padStart(2, '0')}`; };
+  const curFrom = monthsBack(endM, 11); const prevFrom = monthsBack(endM, 23); const prevTo = monthsBack(endM, 12);
+  const draw = () => {
+    const rows = agg.rows.filter((r) => acledCat === 'all' || r[3] === acledCat);
+    // years, stacked by group
+    const years = {};
+    for (const [m, , , c, n] of rows) { const y = m.slice(0, 4); years[y] = years[y] || {}; years[y][c] = (years[y][c] || 0) + n; }
+    const ys = Object.keys(years).sort();
+    const tot = (y) => Object.values(years[y]).reduce((a, b) => a + b, 0);
+    const ymax = Math.max(1, ...ys.map(tot));
+    // countries and regions, last 12 months against the 12 before
+    const cur = {}; const prev = {}; const reg = {};
+    for (const [m, cc, ri, , n] of rows) {
+      if (m >= curFrom && m <= endM) { cur[cc] = (cur[cc] || 0) + n; if (ri >= 0) reg[ri] = (reg[ri] || 0) + n; }
+      else if (m >= prevFrom && m <= prevTo) prev[cc] = (prev[cc] || 0) + n;
+    }
+    const top = Object.entries(cur).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const regTop = Object.entries(reg).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    sec.replaceChildren(
+      h('h2', { class: 'title-m' }, 'Bredare bakgrund enligt ACLED'),
+      h('div', { class: 'card card-pad' },
+        h('div', { class: 'seg seg-wrap' }, [['all', 'Alla'], ...cats.map((c) => [c, ACLED_SHORT[c] || agg.cats[c]])].map(([k, label]) =>
+          h('button', { type: 'button', 'aria-pressed': String(acledCat === k), onclick: () => { acledCat = k; draw(); } }, label))),
+        h('div', { class: 'gbars' }, ys.map((y) => h('div', { class: 'gbar' },
+          h('span', { class: 'gbar-n' }, String(tot(y))),
+          h('i', { class: 'gstack', style: `height:${Math.max(4, Math.round((56 * tot(y)) / ymax))}px` },
+            ...cats.filter((c) => years[y][c]).map((c) => h('span', { style: `height:${(100 * years[y][c]) / tot(y)}%;background:${ACLED_COL[c] || '#666'}` }))),
+          h('span', { class: 'gbar-d' }, y === through.slice(0, 4) ? `${y}*` : y)))),
+        acledCat === 'all' ? h('div', { class: 'chips' }, cats.map((c) => h('span', { class: 'chip ichip' }, h('i', { style: `background:${ACLED_COL[c]}` }), agg.cats[c]))) : null,
+        h('h3', { class: 'feat-h' }, 'Senaste 12 månaderna mot 12 före'),
+        top.length ? h('div', { class: 'list' }, top.map(([cc, n]) => {
+          const d = n - (prev[cc] || 0);
+          return h('div', { class: 'row srow' }, h('span', { class: 'row-main' }, h('span', { class: 'row-title' }, acledLand(cc))),
+            h('span', { class: 'row-num' }, String(n)), h('span', { class: `idelta ${d > 0 ? 'up' : d < 0 ? 'dn' : ''}` }, d > 0 ? `▲ +${d}` : d < 0 ? `▼ ${d}` : '±0'));
+        })) : h('p', { class: 'small muted' }, 'Inga händelser av den typen.'),
+        regTop.length ? h('p', { class: 'small' }, h('b', null, 'Flest i regionerna: '),
+          regTop.map(([ri, n]) => { const r = agg.regions[ri]; return `${r[1]} (${acledLand(r[0])}) ${n}`; }).join(' · ')) : null,
+        h('p', { class: 'small muted' }, `Antal händelser per vecka enligt ACLED:s aggregerade data, ${agg.since ? agg.since.slice(0, 4) : ''}–${dateShort(through)} ${through.slice(0, 4)}. *Hittills i år. `,
+          'Utan Ukraina, Ryssland, Belarus och krigen i Kaukasus. Siffrorna saknar händelsetext och kan därför inte avgränsas till ryska eller subversiva handlingar – de visar den bredare nivån av våld och skadegörelse och blandas inte med incidentloggen ovan.'),
+        h('div', { class: 'chips' }, externalButton('https://acleddata.com/', { outlet: 'ACLED' }, 'Källa: ACLED, acleddata.com'))));
+  };
+  draw();
+  return sec;
 }
 
 // Idag: the incidents of the last 7 days against the 7 before (Version 3.48).
@@ -5033,7 +5093,7 @@ function runsSection(runs) {
 const RELEASE_NOTES = [
   ['2026-11-21', 'Incidentkarta, ACLED och nyheter på Idag', [
     'Karta → Incidenter: faktiska sabotage, drönare, kabelskador, spionage och hot i Europa utom Ryssland och Belarus, med reglage, jämförelse och historik enligt CSIS och IISS.',
-    'Händelser från ACLED läggs in i incidentkartan och märks ACLED.',
+    'Incidenter har en bredare bakgrund enligt ACLED: drönarangrepp, avvärjda vapen, sprängladdningar och skadegörelse per land och år sedan 2018.',
     'Nya funktioner visas i en ruta överst på Idag tills du har öppnat eller stängt den.',
     'Förstasidan är tätare: tre genvägar under indexet – handlingsalternativ, myndigheter och incidenter.',
     'Körningarna är glesare: inget på natten, kvällskörningen är flyttad till kl. 16.',
@@ -5346,7 +5406,7 @@ function viewAbout() {
         ' – daterade historiska fall med artikelns egna källor. CSIS och IISS räknar med egna metoder; deras siffror visas för sig och blandas inte med loggen.'),
       h('p', null, 'Sedan version 3.49 hämtas också händelser från ',
         h('a', { href: 'https://acleddata.com/', target: '_blank', rel: 'noopener' }, 'ACLED (Armed Conflict Location & Event Data)'),
-        ' – explosioner, angrepp, drönarobservationer, gripanden och skadegörelse i Europa utom Ryssland, Belarus och Ukraina, där texten nämner sabotage, drönare, spionage, kablar, GPS-störning eller Ryssland. De märks ”ACLED” i listan. ACLED:s data visas med hänvisning till ACLED och kan komma med fördröjning beroende på åtkomstnivå.'),
+        '. Under Incidenter visas ”Bredare bakgrund enligt ACLED”: antal drönarangrepp, avvärjda vapen, sprängladdningar och skadegörelse per land och år sedan 2018, ur ACLED:s aggregerade data för Europa (utan Ukraina, Ryssland, Belarus och krigen i Kaukasus). Siffrorna saknar händelsetext och blandas inte med incidentloggen. Med en högre åtkomstnivå läggs ACLED:s enskilda händelser också in i loggen, märkta ”ACLED”.'),
       h('h2', { class: 'title-m' }, 'Integritet'),
       h('p', null, guest
         ? 'Du läser utan att logga in. Vad du har läst sparas bara i den här webbläsaren.'
