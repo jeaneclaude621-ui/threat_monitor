@@ -206,9 +206,11 @@ def clean(raw: dict, refs: dict, origin: str, today: str) -> dict:
     sources = []
     for r in raw.get("refs") or []:
         a = refs.get(str(r).strip())
-        if a and a.get("url") and a["url"] not in {s["url"] for s in sources}:
+        # pool articles carry "link"; saved report articles carry "url"
+        url = a and (a.get("url") or a.get("link"))
+        if url and url not in {s["url"] for s in sources}:
             sources.append({"outlet": a.get("source") or a.get("outlet") or "", "title": a.get("title") or "",
-                            "url": a["url"]})
+                            "url": url})
     if not sources:
         return None
     title = str(raw.get("title_sv") or "").strip()[:140]

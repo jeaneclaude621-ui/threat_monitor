@@ -72,3 +72,10 @@ def test_prefilter_finds_incidents_and_skips_the_rest():
              {"title": "Polen: sabotaż na torach", "summary": ""}]
     got = I.incident_like(items)
     assert len(got) == 2
+
+
+def test_pool_articles_with_link_are_sources():
+    """20 Nov 2026: the backfill kept 0 of 35 - pool articles carry "link", not "url"."""
+    refs = {"A1": {"title": "Fire", "source": "Reuters", "link": "https://www.reuters.com/x"}}
+    c = I.clean(raw(), refs, "svep", TODAY)
+    assert c and c["sources"][0]["url"] == "https://www.reuters.com/x"
