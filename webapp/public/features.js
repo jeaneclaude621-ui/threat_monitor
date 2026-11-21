@@ -17,6 +17,8 @@ export const AREAS = [
 ];
 
 export const FEATURES = [
+  { id: 'nya-funktioner', area: 'app', title: 'Nya funktioner syns direkt', href: '#/', added: '2026-11-21',
+    desc: 'En lysande knapp ”N nya funktioner” och en förhandsvisning överst på Idag, och en siffra på Mer, tills du har sett dem. Även ändrade funktioner visas igen.', keywords: 'nytt nyheter funktioner uppdatering' },
   // Idag
   { id: 'genvagar', area: 'idag', title: 'Genvägar under indexet', href: '#/', added: '2026-11-21',
     desc: 'Tre rutor under hotindexet: Rysslands handlingsalternativ, svenska myndigheter och Nato (nya uppgifter senaste dygnet) och incidenter i Europa senaste veckan.', keywords: 'myndigheter nato handlingsalternativ incidenter genväg förstasida' },

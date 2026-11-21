@@ -1204,3 +1204,23 @@ details.also[open] summary .chev { transform: rotate(90deg); }
 .iacled-info { padding: 4px 12px 10px; color: var(--muted); }
 .iacled-info:empty { display: none; }
 .iacled-info b { color: var(--ink); }
+
+/* Version 3.53: new functions - a glowing button and a preview */
+.new-card { padding: 8px 10px 6px 12px; border-left: 4px solid var(--amber); }
+.new-card-head { display: flex; align-items: center; gap: 8px; }
+.new-card-head .linkbtn { margin-left: auto; font-size: 13px; }
+.new-card-head .new-link-x { width: 36px; min-height: 36px; border-left: 0; }
+.feat-glow { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 12px; border-radius: 15px; border: 0;
+  background: var(--amber); color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  animation: featGlow 2.2s ease-in-out infinite; }
+.feat-glow .feat-dot { background: #fff; }
+span.feat-glow { min-height: 22px; padding: 0 9px; font-size: 12px; }
+@keyframes featGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, .55); } 50% { box-shadow: 0 0 0 7px rgba(217, 119, 6, 0); } }
+@media (prefers-reduced-motion: reduce) { .feat-glow { animation: none; box-shadow: 0 0 0 3px rgba(217, 119, 6, .35); } }
+.new-card-list { list-style: none; margin: 4px 0 0; padding: 0; }
+.new-card-row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 0; border: 0; border-top: 1px solid var(--line-2);
+  background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.new-card-row .chev { flex: none; color: var(--muted); }
+.new-card-more { font-size: 13px; padding: 4px 0; }
+.new-card-row .feat-desc { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.new-card-row .feat-main { flex: 1; }

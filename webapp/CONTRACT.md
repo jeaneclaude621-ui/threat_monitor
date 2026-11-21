@@ -1293,3 +1293,15 @@ period (whole months), sized by the count and coloured by the group with
 most; the group buttons in the ACLED section filter the layer too. Tapping
 a ring shows the region, the months and the count per group under the map.
 The incident dots stay on top. Service worker hm-v3.67.
+
+## Version 3.53: new functions always show
+
+The 3.49 card remembered a date, so a function added or changed later the
+same day stayed hidden. Now each function is remembered as seen by its id
+and a hash of its title and text (localStorage `hm-features-seen-v2`): a new
+or changed row in features.js shows again. Idag: a card with a glowing
+"N nya funktioner" button (opens the menu), "Alla funktioner", × and up to
+three rows that each go to the function. The Mer tab's badge adds the
+unseen functions, and Mer → Funktioner glows with the count. Rule: every
+new or changed function gets a row (or an updated text) in features.js.
+Service worker hm-v3.68.

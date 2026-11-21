@@ -298,10 +298,10 @@ function openMore() {
   openSheet((close) => {
     const go = (href) => () => { close(); if (location.hash === href) route(); else location.hash = href; };
     const act = (fn) => () => { close(); setTimeout(fn, 0); };
-    const nNew = firstVisitNow ? 0 : newFeatures().length;
+    const nNew = unseenFeatures().length;
     const unreadArchive = badgeCounts.arkiv || 0;
-    const row = (label, note, onclick) => h('li', null,
-      h('button', { class: 'more-row', type: 'button', onclick }, h('span', null, label), note ? h('span', { class: 'more-note' }, note) : null));
+    const row = (label, note, onclick, glow) => h('li', null,
+      h('button', { class: 'more-row', type: 'button', onclick }, h('span', null, label), note ? h('span', { class: `more-note${glow ? ' feat-glow' : ''}` }, note) : null));
     return frag(
       h('h2', { class: 'title-m' }, 'Mer'),
       h('button', { class: 'btn primary invite-more', type: 'button', onclick: act(openInviteFriend) }, inviteIcon(), 'Bjud in en vän – gratis, inget konto'),
@@ -310,7 +310,7 @@ function openMore() {
         row('Ämnen', 'Sök och följ', go('#/amnen')),
         row('Myndigheter', 'Svenska lägesbilder', go('#/myndigheter')),
         row('Handlingsalternativ', null, go('#/handlingsalternativ')),
-        row('Funktioner', nNew ? `${nNew} nya` : null, act(() => { markFeaturesSeen(); openFeatures(); })),
+        row('Funktioner', nNew ? `${nNew} nya` : null, act(() => { markFeaturesSeen(); openFeatures(); }), nNew > 0),
         row('Notiser och hemskärm', null, act(openSettings)),
         canOfferInstall() ? row('Lägg till på hemskärmen', null, act(openInstall)) : null,
         row('Om Hotmonitor', null, go('#/om')),
@@ -940,7 +940,7 @@ async function computeBadges() {
 function paintBadges() {
   for (const a of document.querySelectorAll('.tabbar [data-tab]')) {
     // Arkiv sits behind "Mer" (Version 3.29): its unread count shows there.
-    const n = (a.dataset.tab === 'mer' ? badgeCounts.arkiv : badgeCounts[a.dataset.tab]) || 0;
+    const n = (a.dataset.tab === 'mer' ? (badgeCounts.arkiv || 0) + unseenFeatures().length : badgeCounts[a.dataset.tab]) || 0;
     let b = a.querySelector('.tbadge');
     if (!n) { if (b) b.remove(); a.removeAttribute('aria-description'); continue; }
     if (!b) { b = h('span', { class: 'tbadge', 'aria-hidden': 'true' }); a.append(b); }
@@ -5150,7 +5150,7 @@ const RELEASE_NOTES = [
   ['2026-11-21', 'Incidentkarta, ACLED och nyheter på Idag', [
     'Karta → Incidenter: faktiska sabotage, drönare, kabelskador, spionage och hot i Europa utom Ryssland och Belarus, med reglage, jämförelse och historik enligt CSIS och IISS.',
     'Incidenter har en bredare bakgrund enligt ACLED: drönarangrepp, avvärjda vapen, sprängladdningar och skadegörelse per land och år sedan 2018, och som ringar per region på kartan.',
-    'Nya funktioner visas i en ruta överst på Idag tills du har öppnat eller stängt den.',
+    'Nya och ändrade funktioner visas med en lysande knapp och en förhandsvisning överst på Idag, och räknas på Mer, tills du har sett dem.',
     'Förstasidan är tätare: tre genvägar under indexet – handlingsalternativ, myndigheter och incidenter.',
     'Körningarna är glesare: inget på natten, kvällskörningen är flyttad till kl. 16.',
   ]],
@@ -5312,30 +5312,52 @@ function newFeatures() {
 }
 
 
-// Version 3.49: what is new, on Idag, until the reader has opened it or
-// closed it. The newest feature's date is remembered in this browser only.
-const FEAT_SEEN_KEY = 'hm-features-seen';
-function featuresSeen() { try { return localStorage.getItem(FEAT_SEEN_KEY) || ''; } catch { return ''; } }
-function markFeaturesSeen() {
-  const newest = newFeatures()[0];
-  try { if (newest) localStorage.setItem(FEAT_SEEN_KEY, newest.added); } catch { /* private window */ }
+// Version 3.53: what is new, on Idag. Each function is remembered as seen
+// by its id and a hash of its title and text, so a function added or
+// changed later the same day shows again (3.49 kept a date, and missed
+// those). Kept in this browser only. A glowing "N nya funktioner" button
+// opens the menu; each row in the preview goes to the function.
+const FEAT_SEEN_KEY = 'hm-features-seen-v2';
+function featKey(f) {
+  let x = 0;
+  for (const ch of `${f.title}|${f.desc}`) x = (x * 31 + ch.charCodeAt(0)) | 0;
+  return `${f.id}:${(x >>> 0).toString(36)}`;
+}
+function seenKeys() {
+  try { return new Set(JSON.parse(localStorage.getItem(FEAT_SEEN_KEY) || '[]')); } catch { return new Set(); }
+}
+function unseenFeatures() {
+  if (firstVisitNow) return [];
+  const seen = seenKeys();
+  return newFeatures().filter((f) => !seen.has(featKey(f)));
+}
+function markFeaturesSeen(list) {
+  const seen = seenKeys();
+  for (const f of list || newFeatures()) seen.add(featKey(f));
+  try { localStorage.setItem(FEAT_SEEN_KEY, JSON.stringify([...seen].slice(-300))); } catch { /* private window */ }
+  paintBadges();
+}
+function goFeature(f) {
+  if (f.action) { setTimeout(() => FEATURE_ACTIONS[f.action] && FEATURE_ACTIONS[f.action](), 0); return; }
+  if (location.hash === f.href || (f.href === '#/' && !location.hash)) route(); else location.hash = f.href;
 }
 function whatsNewCard() {
-  if (firstVisitNow) return null;
-  const seen = featuresSeen();
-  const fresh = newFeatures().filter((f) => f.added > seen);
+  const fresh = unseenFeatures();
   if (!fresh.length) return null;
-  const card = h('div', { class: 'coa-link new-link', role: 'group', 'aria-label': 'Nytt i appen' });
-  const open = () => { markFeaturesSeen(); card.remove(); openFeatures(); };
-  const dismiss = (ev) => { ev.stopPropagation(); markFeaturesSeen(); card.remove(); };
+  const card = h('section', { class: 'card new-card', 'aria-label': 'Nya funktioner' });
+  const done = (list) => { markFeaturesSeen(list); if (!unseenFeatures().length) card.remove(); };
   card.append(
-    h('button', { class: 'new-link-main', type: 'button', onclick: open },
-      h('span', { class: 'coa-link-label' }, h('span', { class: 'coa-link-new' }, 'Nytt i appen'), fresh[0].title),
-      h('span', { class: 'coa-link-vals' }, fresh.length > 1
-        ? `${fresh.slice(1, 3).map((f) => f.title).join(', ')}${fresh.length > 3 ? ` och ${fresh.length - 3} till` : ''}`
-        : fresh[0].desc.slice(0, 110) + (fresh[0].desc.length > 110 ? ' …' : '')),
-      chevRight()),
-    h('button', { class: 'new-link-x', type: 'button', 'aria-label': 'Dölj nyheterna', onclick: dismiss }, '×'));
+    h('div', { class: 'new-card-head' },
+      h('button', { class: 'feat-glow', type: 'button', onclick: () => { done(); openFeatures(); } },
+        h('span', { class: 'feat-dot', 'aria-hidden': 'true' }), plural(fresh.length, 'ny funktion', 'nya funktioner')),
+      h('button', { class: 'linkbtn', type: 'button', onclick: () => { done(); openFeatures(); } }, 'Alla funktioner'),
+      h('button', { class: 'new-link-x', type: 'button', 'aria-label': 'Dölj nyheterna', onclick: () => { markFeaturesSeen(); card.remove(); } }, '×')),
+    h('ul', { class: 'new-card-list' }, fresh.slice(0, 3).map((f) => h('li', null,
+      h('button', { class: 'new-card-row', type: 'button', onclick: () => { done([f]); goFeature(f); } },
+        h('span', { class: 'feat-main' }, h('span', { class: 'feat-title' }, f.title),
+          h('span', { class: 'feat-desc' }, f.desc.length > 120 ? `${f.desc.slice(0, 118)} …` : f.desc)),
+        chevRight())))),
+    fresh.length > 3 ? h('button', { class: 'linkbtn new-card-more', type: 'button', onclick: () => { done(); openFeatures(); } }, `och ${fresh.length - 3} till`) : null);
   return card;
 }
 
