@@ -1252,3 +1252,17 @@ hours back). Nothing runs at night before the daily report.
 `30 6,7,10,11,14,15 * * *`.
 
 Service worker hm-v3.63.
+
+## Version 3.50: a tighter Idag
+
+- "Hotläget" first, the date under it, the buttons on the same row.
+- Under the index, three tiles (`quickTiles`): Russia's courses of action
+  (`#/handlingsalternativ`), the Swedish authorities and Nato
+  (`#/myndigheter`, items fresh in 24 h) and incidents (`#/karta?v=inc`,
+  the last 7 days against the 7 before). They replace the courses link and
+  the incident card; the authorities, which were only under Mer and in the
+  assessment box, are one tap from Idag.
+- "Nytt i appen" (Version 3.49): a card with the new functions until it is
+  opened or closed (localStorage `hm-features-seen`).
+
+Service worker hm-v3.65.

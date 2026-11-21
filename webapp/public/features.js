@@ -18,6 +18,8 @@ export const AREAS = [
 
 export const FEATURES = [
   // Idag
+  { id: 'genvagar', area: 'idag', title: 'Genvägar under indexet', href: '#/', added: '2026-11-21',
+    desc: 'Tre rutor under hotindexet: Rysslands handlingsalternativ, svenska myndigheter och Nato (nya uppgifter senaste dygnet) och incidenter i Europa senaste veckan.', keywords: 'myndigheter nato handlingsalternativ incidenter genväg förstasida' },
   { id: 'acled', area: 'arkiv', title: 'ACLED i incidentkartan', href: '#/karta?v=inc', added: '2026-11-21',
     desc: 'Händelser från ACLED (acleddata.com) – sabotage, drönare, spionage, kablar och angrepp i Europa – läggs in i incidentkartan, märkta ACLED. Historik från 2022 och nya händelser varje morgon när kontot ger dem.', keywords: 'acled incidenter historik sabotage drönare källa' },
   { id: 'incidenter', area: 'arkiv', title: 'Incidentkarta för Europa', href: '#/karta?v=inc', added: '2026-11-21',

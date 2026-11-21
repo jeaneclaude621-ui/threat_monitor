@@ -1203,10 +1203,13 @@ async function viewReport(date, q) {
 
   return frag(
     date ? backLink('#/arkiv', 'Arkiv') : null,
-    h('header', { class: 'page-head' },
-      h('div', null,
+    h('header', { class: `page-head${archived ? '' : ' page-head-today'}` },
+      archived ? h('div', null,
         h('div', { class: 'kicker' }, dateLong(d)),
-        h('h1', { class: 'title-xl' }, archived ? 'Rapport' : 'Hotläget')),
+        h('h1', { class: 'title-xl' }, 'Rapport'))
+        : h('div', null,
+          h('h1', { class: 'title-xl' }, 'Hotläget'),
+          h('div', { class: 'kicker head-date' }, dateLong(d))),
       h('div', { class: 'head-actions' },
         date ? null : inviteButton(),
         h('button', { class: 'icon-btn', type: 'button', 'aria-label': archived ? 'Dela rapporten' : 'Dela dagens läge', title: 'Dela', onclick: () => shareLink(share) }, shareIcon()),
@@ -1216,9 +1219,8 @@ async function viewReport(date, q) {
     archived ? null : noticeCards(),
     archived ? null : noAccountCard(),
     heroCard(r),
+    archived ? null : quickTiles(courses, brief, incidentData),
     archived ? null : whatsNewCard(),
-    archived ? null : coursesLink(courses),
-    archived ? null : incidentsCard(incidentData),
     archived ? null : newBox(latest, r),
     top ? h('section', { class: 'ibox ibox-top' },
       h('div', { class: 'ibox-kicker amber' }, archived ? 'Viktigast den dagen' : 'Viktigast i dag'),
@@ -1382,7 +1384,7 @@ function heroCard(r) {
         h('div', { class: 'hero-value' }, fmt1(r.threat_index), h('small', null, ' /10')),
         h('div', { class: 'hero-sub' }, [r.index_band ? `Band ${r.index_band}` : null, TREND[r.trend_label] || r.trend_label].filter(Boolean).join(' · '))),
       hasF ? h('div', null,
-        h('div', { class: 'hero-label amber' }, 'OM 30 DAGAR (PROGNOS)'),
+        h('div', { class: 'hero-label amber' }, 'PROGNOS 30 DAGAR'),
         h('div', { class: 'hero-value amber' }, fmt1(r.threat_index_30d), h('small', null, ' /10')),
         h('div', { class: 'hero-sub' }, r.index_band_30d ? `Band ${r.index_band_30d}` : '')) : null),
     h('div', { class: 'scale', role: 'img', 'aria-label': `Skala 0 till 10: i dag ${fmt1(r.threat_index)}${hasF ? `, prognos ${fmt1(r.threat_index_30d)}` : ''}` },
@@ -4111,6 +4113,42 @@ function incidentRow(i) {
       h('div', { class: 'chips' }, (i.sources || []).map((s) => externalButton(s.url, { outlet: s.outlet }, s.outlet || hostOf(s.url) || 'Källa')))));
 }
 
+// Version 3.50: three tiles under the index - Russia's courses of action,
+// the Swedish authorities and Nato, and the incidents - so each is one tap
+// from Idag and takes a third of a row.
+function dateCompact(d) {
+  const t = new Date(`${d}T12:00:00`);
+  return Number.isNaN(t.getTime()) ? d : t.toLocaleDateString('sv-SE', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '');
+}
+function quickTiles(courses, brief, inc) {
+  const tiles = [];
+  if (courses && Array.isArray(courses.courses) && courses.courses.length) {
+    const moved = courses.courses.some((c) => c.previous_likelihood && c.previous_likelihood !== c.likelihood);
+    tiles.push(h('a', { class: 'qtile qt-coa', href: '#/handlingsalternativ', 'aria-label': 'Rysslands handlingsalternativ' },
+      h('span', { class: 'qt-k' }, 'Handlingsalt.', moved ? h('i', { class: 'qt-dot', title: 'ändrat' }) : null),
+      h('span', { class: 'qt-lines' }, courses.courses.slice(0, 3).map((c) => h('span', null, c.label, ' ', h('b', null, c.likelihood))))));
+  }
+  if (brief && Array.isArray(brief.items)) {
+    const fresh = [...brief.items, ...((brief.nato && brief.nato.items) || [])].filter((i) => i.fresh).length;
+    tiles.push(h('a', { class: 'qtile qt-auth', href: '#/myndigheter', 'aria-label': 'Svenska myndigheter och Nato' },
+      h('span', { class: 'qt-k' }, 'Myndigheter'),
+      h('span', { class: 'qt-v' }, fresh ? String(fresh) : '–'),
+      h('span', { class: 'qt-s' }, fresh ? (fresh === 1 ? 'ny senaste 24 h' : 'nya senaste 24 h') : 'Sverige och Nato')));
+  }
+  if (inc && Array.isArray(inc.incidents)) {
+    const today = inc.date || new Date().toISOString().slice(0, 10);
+    const list = inc.incidents.filter((i) => i.country !== 'UA' && i.origin !== 'historik');
+    const wk = list.filter((i) => i.date > addDays(today, -7)).length;
+    const before = list.filter((i) => i.date <= addDays(today, -7) && i.date > addDays(today, -14)).length;
+    const d = wk - before;
+    tiles.push(h('a', { class: 'qtile qt-inc', href: '#/karta?v=inc', 'aria-label': 'Incidenter i Europa' },
+      h('span', { class: 'qt-k' }, 'Incidenter'),
+      h('span', { class: 'qt-v' }, String(wk)),
+      h('span', { class: `qt-s idelta ${d > 0 ? 'up' : d < 0 ? 'dn' : ''}` }, `7 dagar${d ? ` · ${d > 0 ? '▲ +' : '▼ '}${d}` : ''}`)));
+  }
+  return tiles.length ? h('nav', { class: `qtiles n${tiles.length}`, 'aria-label': 'Genvägar' }, tiles) : null;
+}
+
 // Idag: the incidents of the last 7 days against the 7 before (Version 3.48).
 function incidentsCard(data) {
   if (!data || !Array.isArray(data.incidents)) return null;
@@ -4997,6 +5035,7 @@ const RELEASE_NOTES = [
     'Karta → Incidenter: faktiska sabotage, drönare, kabelskador, spionage och hot i Europa utom Ryssland och Belarus, med reglage, jämförelse och historik enligt CSIS och IISS.',
     'Händelser från ACLED läggs in i incidentkartan och märks ACLED.',
     'Nya funktioner visas i en ruta överst på Idag tills du har öppnat eller stängt den.',
+    'Förstasidan är tätare: tre genvägar under indexet – handlingsalternativ, myndigheter och incidenter.',
     'Körningarna är glesare: inget på natten, kvällskörningen är flyttad till kl. 16.',
   ]],
   ['2026-10-15', 'RSS-förfilter i skuggläge', [
