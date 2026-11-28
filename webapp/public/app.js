@@ -2669,6 +2669,52 @@ function systemFor(cat, text, ids = []) {
   return null;
 }
 function unitFor(cat, text) { return cat.unitByName.get(fnorm(text)) || null; }
+
+// Version 3.54: what a base holds, from every source the app has - the
+// base's own list, the weekly Wikipedia reading and the equipment of the
+// units based there - one row per system, with the number where the
+// reading found one (survey.counts).
+function baseUnits(b, cat) {
+  const out = new Map();
+  const add = (id, name) => { const k = id || fnorm(name); if (k && !out.has(k)) out.set(k, { id, name: id ? (cat.units.get(id)?.name_sv || name) : name }); };
+  for (const id of b.unit_ids || []) add(id, id);
+  if (b.db_id) for (const u of cat.units.values()) if ((u.garrison || []).includes(b.db_id)) add(u.id, u.name_sv);
+  for (const t of b.units || []) add(unitFor(cat, t), t);
+  const sv = b.survey && !b.survey.none ? b.survey : null;
+  for (const t of (sv && sv.units) || []) { const id = unitFor(cat, t); if (!id || !out.has(id)) add(id, t); }
+  // The same unit named twice in different words ("929:e statliga ..." and
+  // "929:a statliga ..."): its number and the next word's start; the
+  // catalogue's name wins.
+  const key = (n) => { const m = String(n).match(/(\d+)\D*?\s+([a-zåäö]{4})/i); return m ? `${m[1]}${m[2].toLowerCase()}` : fnorm(n).slice(0, 12); };
+  const seen = new Map();
+  for (const u of out.values()) { const k = key(u.name); if (!seen.has(k) || (u.id && !seen.get(k).id)) seen.set(k, u); }
+  return [...seen.values()];
+}
+function baseKit(b, cat) {
+  const out = new Map();
+  const add = (text, via) => {
+    const id = systemFor(cat, text, b.system_ids || []) || (cat.systems.has(text) ? text : null);
+    const k = id || fnorm(String(text).replace(MAKERS, ''));
+    if (!k) return;
+    if (!out.has(k)) out.set(k, { id, sys: id ? cat.systems.get(id) : null, name: id ? cat.systems.get(id).name : String(text), via: [], count: null });
+    const e = out.get(k);
+    if (via && !e.via.includes(via)) e.via.push(via);
+  };
+  for (const id of b.system_ids || []) add(id, null);
+  for (const t of b.equipment || []) add(t, null);
+  const sv = b.survey && !b.survey.none ? b.survey : null;
+  for (const t of (sv && sv.equipment) || []) add(t, null);
+  for (const u of baseUnits(b, cat)) {
+    const unit = u.id && cat.units.get(u.id);
+    for (const id of (unit && unit.equipment) || []) add(id, unit.name_sv);
+  }
+  for (const [t, n] of Object.entries((sv && sv.counts) || {})) {
+    const id = systemFor(cat, t, b.system_ids || []);
+    const e = out.get(id || fnorm(String(t).replace(MAKERS, '')));
+    if (e && n) e.count = String(n).slice(0, 24);
+  }
+  return [...out.values()].sort((a, c) => (c.count ? 1 : 0) - (a.count ? 1 : 0) || (c.sys ? 1 : 0) - (a.sys ? 1 : 0) || a.name.localeCompare(c.name));
+}
 const COUNTRY_FORCES = { RU: 'Ryssland', BY: 'Belarus', UA: 'Ukraina (ockuperat)', SY: 'Syrien', AM: 'Armenien', TJ: 'Tadzjikistan',
   KG: 'Kirgizistan', GE: 'Georgien (utbrytarregion)', MD: 'Moldavien (Transnistrien)' };
 // Open the map at a base (by app id or database id).
@@ -3096,7 +3142,8 @@ async function viewForces() {
     return [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 12);
   }
 
-  const MIN_W = FULL.w / 300;
+  // Version 3.54: down to ~8 km across, so bases at one airfield come apart.
+  const MIN_W = FULL.w / 2000;
   const redraw = frameThrottle(() => draw());
   const pz = attachPanZoom(svg, { get: () => vb, set: (v) => { vb = v; redraw(); }, full: FULL, minW: MIN_W });
   const zoomTo = (x, y, w) => { pz.zoomTo(x, y, w); };
@@ -3127,7 +3174,7 @@ async function viewForces() {
     }
     const singles = []; const groupBoxes = [];
     for (const g of groups.values()) {
-      if (g.length === 1 || vb.w <= MIN_W * 1.01) { singles.push(...g); continue; }
+      if (g.length === 1 || vb.w <= MIN_W * 6) { singles.push(...g); continue; }
       const x = g.reduce((s2, b) => s2 + b.x, 0) / g.length; const y = g.reduce((s2, b) => s2 + b.y, 0) / g.length;
       const r = px * (9 + Math.sqrt(g.length) * 2.2);
       groupBoxes.push([x - r, y - r, x + r, y + r]);
@@ -3137,28 +3184,49 @@ async function viewForces() {
       node.addEventListener('click', () => zoomTo(x, y, Math.max(MIN_W, vb.w / 3)));
       ptsG.appendChild(node);
     }
+    // Version 3.54: bases on (nearly) the same spot spread on a small ring
+    // with a line to the true point, so each can be tapped.
+    const spread = new Map();
+    const near = px * 16;
+    const used = new Set();
+    for (const b of singles) {
+      if (used.has(b)) continue;
+      const bunch = singles.filter((o) => !used.has(o) && Math.hypot(o.x - b.x, o.y - b.y) < near);
+      if (bunch.length < 2) continue;
+      const cx = bunch.reduce((t, o) => t + o.x, 0) / bunch.length; const cy = bunch.reduce((t, o) => t + o.y, 0) / bunch.length;
+      const rr = px * (14 + 3 * bunch.length);
+      bunch.forEach((o, k) => {
+        used.add(o);
+        const a = (2 * Math.PI * k) / bunch.length - Math.PI / 2;
+        spread.set(o, [cx + rr * Math.cos(a), cy + rr * Math.sin(a)]);
+        ptsG.appendChild(svgEl('line', { class: 'fspider', x1: o.x, y1: o.y, x2: cx + rr * Math.cos(a), y2: cy + rr * Math.sin(a), 'stroke-width': px * 1.2 }));
+      });
+    }
+    const at = (b) => spread.get(b) || [b.x, b.y];
     // Labels where they fit: the chosen base first, then attacked ones,
     // then those with known forces; never over another base or label.
     const rank = (b) => (b === selected ? 0 : b.status === 'anfallen' ? 1 : (b.curated || b.db_id) ? 2 : 3);
-    const boxes = [...groupBoxes, ...singles.map((b) => [b.x - px * 7, b.y - px * 7, b.x + px * 7, b.y + px * 7])];
+    const boxes = [...groupBoxes, ...singles.map((b) => { const [x, y] = at(b); return [x - px * 7, y - px * 7, x + px * 7, y + px * 7]; })];
     const free = (bx) => !boxes.some((o) => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1]);
     const labelled = new Set();
     for (const b of [...singles].sort((a, c) => rank(a) - rank(c))) {
       if (labelled.size >= 80) break;
-      const w = px * (b.name.length * 6.4 + 4); const x0 = b.x + px * 9; const y0 = b.y - px * 7;
+      const [bxx, byy] = at(b);
+      const w = px * (b.name.length * 6.4 + 4); const x0 = bxx + px * 9; const y0 = byy - px * 7;
       const bx = [x0, y0, x0 + w, y0 + px * 14];
       if (!free(bx)) continue;
       boxes.push(bx); labelled.add(b);
-      labelsG.appendChild(svgEl('text', { class: 'flab', x: x0, y: b.y + px * 4, 'font-size': px * 11.5, 'stroke-width': px * 3 }, b.name));
+      labelsG.appendChild(svgEl('text', { class: 'flab', x: x0, y: byy + px * 4, 'font-size': px * 11.5, 'stroke-width': px * 3 }, b.name));
     }
     for (const b of singles) {
       const [, letter, colour] = FORCE_BRANCH[b.branch] || ['', '?', '#555'];
       const node = svgEl('g', { class: `fpt${b.status === 'anfallen' ? ' hit' : ''}${b === selected ? ' sel' : ''}${b.curated || b.db_id ? ' cur' : ''}`,
         tabindex: '0', role: 'button', 'aria-label': b.name });
       // A larger invisible circle makes the base easy to hit with a finger.
-      node.append(svgEl('circle', { class: 'fhit', cx: b.x, cy: b.y, r: px * 14 }),
-        svgEl('circle', { cx: b.x, cy: b.y, r: px * (b.curated || b.db_id ? 7 : 5), fill: colour }));
-      if (b.curated || b.db_id) node.append(svgEl('text', { x: b.x, y: b.y + px * 3.3, 'font-size': px * 8.5 }, letter));
+      const [bx2, by2] = at(b);
+      node.append(svgEl('circle', { class: 'fhit', cx: bx2, cy: by2, r: px * (spread.has(b) ? 9 : 14) }),
+        svgEl('circle', { cx: bx2, cy: by2, r: px * (b.curated || b.db_id ? 7 : 5), fill: colour }));
+      if (b.curated || b.db_id) node.append(svgEl('text', { x: bx2, y: by2 + px * 3.3, 'font-size': px * 8.5 }, letter));
       node.addEventListener('click', () => select(b));
       ptsG.appendChild(node);
     }
@@ -3187,27 +3255,56 @@ async function viewForces() {
     const changed = !same(orig.units, b.units) || !same(orig.equipment, b.equipment);
     const otherBase = (id) => byId.get(id)?.name || id;
     const age = ageNote([b.updated, statusDate(b.status_as_of)].filter(Boolean).sort().pop());
+    // Version 3.54: short facts, status and attacks first; then what is
+    // there - each system with a small picture and the number where a
+    // source gives one - and the units; the links last.
+    const kit = baseKit(b, cat);
+    const units = baseUnits(b, cat);
+    const sv = b.survey && !b.survey.none ? b.survey : null;
+    const about = b.description_sv || (sv && sv.summary_sv) || null;
+    const attacks = events.filter((e) => e.kind === 'anfallen');
+    const lastHit = attacks[0];
+    const srcUrls = new Set((b.sources || []).map((x) => decodeURIComponent(x.url || '').toLowerCase()));
+    const links = [...(b.sources || []).map((x) => externalButton(x.url, { outlet: x.outlet, date: x.accessed }, x.outlet || 'Källa')),
+      sv && sv.source && !srcUrls.has(decodeURIComponent(sv.source.url || '').toLowerCase()) ? externalButton(sv.source.url, { outlet: sv.source.outlet }, sv.source.outlet) : null,
+      b.source ? externalButton(b.source, { outlet: 'Wikidata' }, 'Wikidata') : null,
+      b.image?.source_url ? externalButton(b.image.source_url, { outlet: 'Wikimedia Commons' }, 'Bild: Wikimedia Commons') : null].filter(Boolean);
     detail.replaceChildren(h('section', { class: 'card card-pad fdetail' },
-      h('div', { class: 'coa-head-row' },
-        h('span', { class: `fstatus ${b.status}`, style: age?.stale ? 'opacity:.55' : null }, FORCE_STATUS[b.status]),
-        age ? h('span', { class: 'small muted' }, age.text) : null),
-      h('h2', { class: 'coa-title' }, b.name, b.name_ru ? h('span', { class: 'small muted' }, ` · ${b.name_ru}`) : null),
-      h('p', { class: 'small muted' }, [FORCE_BRANCH[b.branch]?.[0], COUNTRY_FORCES[b.country] || countryName(b.country), b.military_district,
-        `${b.lat.toFixed(2)}° N, ${b.lon.toFixed(2)}° E`].filter(Boolean).join(' · ')),
-      b.image?.file ? h('figure', { class: 'ffig' }, zoomableImg({ class: 'fimg', src: `/forces/img/${b.image.file}`, alt: b.name, loading: 'lazy' },
-        `${b.name} · Bild: ${latin(b.image.author) || 'okänd'} · ${b.image.license || ''}`),
-        h('figcaption', { class: 'small muted' }, `Bild: ${latin(b.image.author) || 'okänd'} · ${b.image.license || ''} · `,
-          b.image.source_url ? externalButton(b.image.source_url, { outlet: 'Wikimedia Commons' }, 'Wikimedia Commons') : null)) : null,
-      b.description_sv ? h('p', { class: 'body-sm' }, b.description_sv) : null,
-      b.units.length ? h('div', null, h('h3', { class: 'fsub' }, 'Förband nu'), h('div', { class: 'chips' }, b.units.map((t) => {
-        const uid = unitFor(cat, t);
-        return uid ? h('a', { class: 'chip', href: `#/styrkor?unit=${encodeURIComponent(uid)}` }, t) : h('span', { class: 'chip static' }, t);
-      }))) : null,
-      b.equipment.length ? h('div', null, h('h3', { class: 'fsub' }, 'Materiel'), h('div', { class: 'chips' }, b.equipment.map((t) => {
-        const sid = systemFor(cat, t, b.system_ids || []);
-        return sid ? h('a', { class: 'chip', href: `#/styrkor?sys=${encodeURIComponent(sid)}` }, t)
-          : h('button', { class: 'chip', type: 'button', onclick: () => { query = t; search.value = t; draw(); } }, t);
-      }))) : null,
+      h('div', { class: 'fd-top' },
+        h('div', { class: 'fd-head' },
+          h('div', { class: 'coa-head-row' },
+            h('span', { class: `fstatus ${b.status}`, style: age?.stale ? 'opacity:.55' : null }, FORCE_STATUS[b.status]),
+            age ? h('span', { class: 'small muted' }, age.text) : null),
+          h('h2', { class: 'coa-title' }, b.name, b.name_ru ? h('span', { class: 'small muted' }, ` · ${b.name_ru}`) : null),
+          h('p', { class: 'small muted' }, [FORCE_BRANCH[b.branch]?.[0], COUNTRY_FORCES[b.country] || countryName(b.country), b.military_district].filter(Boolean).join(' · '))),
+        b.image?.file ? zoomableImg({ class: 'fd-thumb', src: `/forces/img/${b.image.file}`, alt: b.name, loading: 'lazy' },
+          `${b.name} · Bild: ${latin(b.image.author) || 'okänd'} · ${b.image.license || ''}`) : null),
+      about ? h('p', { class: 'body-sm' }, about) : null,
+      h('div', { class: 'fd-facts' },
+        h('div', null, h('span', { class: 'fd-k' }, 'Status'), h('span', null, b.status === 'anfallen' && lastHit ? `Anfallen ${dateShort(lastHit.date)}` : (b.status_sv && !/^anfallen/.test(b.status_sv) ? b.status_sv : FORCE_STATUS[b.status]))),
+        h('div', null, h('span', { class: 'fd-k' }, 'Senaste anfall'), h('span', null, lastHit ? `${dateShort(lastHit.date)} ${lastHit.date.slice(0, 4)}` : 'Inget känt')),
+        h('div', null, h('span', { class: 'fd-k' }, 'Bestyckning'), h('span', null, kit.length ? plural(kit.length, 'system', 'system') : 'Okänd')),
+        h('div', null, h('span', { class: 'fd-k' }, 'Förband'), h('span', null, units.length ? String(units.length) : 'Okända'))),
+      events.length ? h('div', null, h('h3', { class: 'fsub' }, 'Anfall och uppföljningar'),
+        h('ul', { class: 'coa-signs' }, events.map((e) => h('li', { class: `coa-sign ${e.kind === 'anfallen' ? 'obs' : 'part'}` },
+          h('i'), h('span', null, h('b', null, `${dateShort(e.date)} ${e.date.slice(0, 4)}${e.kind === 'uppföljning' ? ', uppföljning' : ''}: `), e.text_sv,
+            firmsLine(e.firms),
+            ' ', forceSources(e.sources), e.kind === 'anfallen' ? [' ', firmsButton(b.lat, b.lon, e.date)] : null))))) : null,
+      h('div', null, h('h3', { class: 'fsub' }, 'Bestyckning'),
+        kit.length ? h('div', { class: 'card list fkit' }, kit.map((k) => {
+          const img = k.sys && k.sys.image && k.sys.image.file;
+          const inner = [img ? h('img', { class: 'fkit-img', src: `/forces/img/${img}`, alt: '', loading: 'lazy' }) : h('span', { class: 'fkit-img fkit-none', 'aria-hidden': 'true' }, (k.name || '?').slice(0, 2)),
+            h('span', { class: 'row-main' }, h('span', { class: 'row-title' }, k.name),
+              h('span', { class: 'row-sub' }, [k.sys && (k.sys.role_sv || k.sys.category_sv), k.via.length ? `via ${k.via.join(', ')}` : null].filter(Boolean).join(' · '))),
+            h('span', { class: 'fkit-n' }, k.count ? k.count : '–'),
+            k.id ? chevRight() : null];
+          return k.id ? h('a', { class: 'row fkit-row', href: `#/styrkor?sys=${encodeURIComponent(k.id)}` }, ...inner)
+            : h('button', { class: 'row fkit-row', type: 'button', onclick: () => { query = k.name; search.value = k.name; draw(); } }, ...inner);
+        })) : h('p', { class: 'small muted' }, 'Ingen bestyckning känd från källorna än.'),
+        kit.length ? h('p', { class: 'small muted' }, 'Antal där en källa anger det (Wikipedia via veckoläsningen); annars –. Underlaget är öppna källor och kan vara inaktuellt.') : null),
+      units.length ? h('div', null, h('h3', { class: 'fsub' }, 'Förband'), h('div', { class: 'chips' }, units.map((u) => u.id
+        ? h('a', { class: 'chip', href: `#/styrkor?unit=${encodeURIComponent(u.id)}` }, u.name)
+        : h('span', { class: 'chip static' }, u.name)))) : null,
       changed ? h('p', { class: 'small muted' }, h('b', null, 'Ursprungligt underlag: '),
         [orig.units.join(', '), orig.equipment.join(', ')].filter(Boolean).join(' · ') || 'inget') : null,
       changes.length ? h('div', null, h('h3', { class: 'fsub' }, 'Ändringar i styrkan'),
@@ -3215,17 +3312,12 @@ async function viewForces() {
           h('span', null, h('b', null, `${dateShort(c.date)}: ${forceChangeText(c)}`),
             c.to_base ? ` → ${otherBase(c.to_base)}` : '', c.from_base ? ` (från ${otherBase(c.from_base)})` : '',
             h('br'), c.text_sv, ' ', forceSources(c.sources)))))) : null,
-      events.length ? h('div', null, h('h3', { class: 'fsub' }, 'Anfall och uppföljningar'),
-        h('ul', { class: 'coa-signs' }, events.map((e) => h('li', { class: `coa-sign ${e.kind === 'anfallen' ? 'obs' : 'part'}` },
-          h('i'), h('span', null, h('b', null, `${dateShort(e.date)} ${e.date.slice(0, 4)}${e.kind === 'uppföljning' ? ', uppföljning' : ''}: `), e.text_sv,
-            firmsLine(e.firms),
-            ' ', forceSources(e.sources), e.kind === 'anfallen' ? [' ', firmsButton(b.lat, b.lon, e.date)] : null))))) : null,
-      surveyBlock(b.survey),
-      !b.curated && !b.units.length && !b.equipment.length && !(b.survey && b.survey.summary_sv)
-        ? h('p', { class: 'small muted' }, b.survey ? 'Bara position och typ är kända: Wikipedia har ingen artikel om basen.' : 'Bara position och typ är kända än. Veckosökningen läser basens Wikipedia-artikel inom en vecka.') : null,
-      b.status_sv ? statusLine('Grunddata: ', `${b.status_sv}. Från öppna källor, inte verifierat.`, b.status_as_of) : null,
-      (b.sources || []).length ? h('div', { class: 'chips' }, b.sources.map((s) => externalButton(s.url, { outlet: s.outlet, date: s.accessed }, s.outlet || 'Källa'))) : null,
-      b.source ? externalButton(b.source, { outlet: 'Wikidata' }, 'Wikidata') : null));
+      !about && !kit.length && !units.length
+        ? h('p', { class: 'small muted' }, sv ? 'Bara position och typ är kända.' : 'Bara position och typ är kända än. Veckosökningen läser basens Wikipedia-artikel inom en vecka.') : null,
+      h('div', null, h('h3', { class: 'fsub' }, 'Länkar'),
+        h('p', { class: 'small muted' }, `${b.lat.toFixed(3)}° N, ${b.lon.toFixed(3)}° E`, sv ? ` · Wikipedia läst ${dateShort(sv.date)}${sv.as_of ? `, uppgifterna avser ${sv.as_of}` : ''}` : ''),
+        links.length ? h('div', { class: 'chips' }, links) : null,
+        h('p', { class: 'small muted' }, 'Från öppna källor, inte verifierat.'))));
     if (zoom) detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
@@ -5147,6 +5239,11 @@ function runsSection(runs) {
 // What has changed, newest first. Added to by hand with each change worth
 // telling the admins about.
 const RELEASE_NOTES = [
+  ['2026-11-28', 'Basrutan och zoomen på styrkekartan', [
+    'En bas visar kort info, status och anfall först, sedan bestyckning med miniatyrbilder och antal, förband och länkar.',
+    'Bestyckningen samlar basens egen lista, Wikipedia-läsningen och förbandens materiel.',
+    'Kartan zoomar djupare, och baser på samma plats sprids ut med en linje till den riktiga punkten.',
+  ]],
   ['2026-11-21', 'Incidentkarta, ACLED och nyheter på Idag', [
     'Karta → Incidenter: faktiska sabotage, drönare, kabelskador, spionage och hot i Europa utom Ryssland och Belarus, med reglage, jämförelse och historik enligt CSIS och IISS.',
     'Incidenter har en bredare bakgrund enligt ACLED: drönarangrepp, avvärjda vapen, sprängladdningar och skadegörelse per land och år sedan 2018, och som ringar per region på kartan.',

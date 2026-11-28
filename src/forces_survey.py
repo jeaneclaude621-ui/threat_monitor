@@ -118,7 +118,9 @@ def article(lang: str, title: str) -> str:
 def due(bases: list, today: date) -> list:
     """Bases never surveyed first, then those surveyed longest ago."""
     cutoff = (today - timedelta(days=REFRESH_DAYS)).isoformat()
-    todo = [b for b in bases if not b.get("survey") or b["survey"]["date"] <= cutoff]
+    # Version 3.54: a survey from before the counts is read again too.
+    todo = [b for b in bases if not b.get("survey") or b["survey"]["date"] <= cutoff
+            or ("counts" not in b["survey"] and not b["survey"].get("none"))]
     return sorted(todo, key=lambda b: (b.get("survey") or {}).get("date", ""))
 
 
@@ -136,13 +138,31 @@ article and record, for a Swedish monitor:
   natural (e.g. "121:a gardes tunga bombflygregementet").
 - "equipment": aircraft, ships, missiles or systems there now (e.g. "Tu-160",
   "S-400", "Borej-klass").
+- "counts": for items in "equipment" whose number at the base the article
+  states, that number as written, e.g. {"Tu-160": "16", "Su-34": "ca 24",
+  "S-400": "2 divisioner"}. Leave out what the article gives no number for;
+  never guess.
 - "as_of": the latest year the article's facts about units refer to, or null.
 Only what the article says; empty lists when it names nothing current.
 
 {chr(10).join(parts)}
 
 Respond as strict JSON:
-{{"bases": [{{"id": "Q123", "summary_sv": "...", "units": ["..."], "equipment": ["..."], "as_of": 2024}}]}}"""
+{{"bases": [{{"id": "Q123", "summary_sv": "...", "units": ["..."], "equipment": ["..."], "counts": {{"...": "..."}}, "as_of": 2024}}]}}"""
+
+
+def _counts(v, equipment: list) -> dict:
+    """Version 3.54: the numbers the article gives, for listed equipment only."""
+    if not isinstance(v, dict):
+        return {}
+    names = {e.lower(): e for e in equipment}
+    out = {}
+    for k, n in v.items():
+        k = str(k).strip()[:150]
+        n = str(n).strip()[:40] if isinstance(n, (str, int, float)) else ""
+        if k and n and k.lower() in names and re.search(r"\d|en|ett|två|tre|fyra|fem|sex|sju|åtta|nio|tio|tolv", n.lower()):
+            out[names[k.lower()]] = n
+    return dict(list(out.items())[:15])
 
 
 def _strs(v, n=15, size=150) -> list:
@@ -186,7 +206,8 @@ def run(state: dict, batches: int = NIGHTLY_BATCHES) -> int:
                 continue
             as_of = a.get("as_of") if isinstance(a.get("as_of"), int) and 1990 <= a["as_of"] <= today.year else None
             b["survey"] = {"date": today.isoformat(), "summary_sv": (a.get("summary_sv") or "").strip()[:800] or None,
-                           "units": _strs(a.get("units")), "equipment": _strs(a.get("equipment")), "as_of": as_of,
+                           "units": _strs(a.get("units")), "equipment": _strs(a.get("equipment")),
+                           "counts": _counts(a.get("counts"), _strs(a.get("equipment"))), "as_of": as_of,
                            "source": {"url": f"https://{lang}.wikipedia.org/wiki/{urllib.parse.quote(title.replace(' ', '_'))}",
                                       "outlet": f"Wikipedia ({lang})"}}
             done += 1

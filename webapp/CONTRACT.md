@@ -1305,3 +1305,22 @@ three rows that each go to the function. The Mer tab's badge adds the
 unseen functions, and Mer → Funktioner glows with the count. Rule: every
 new or changed function gets a row (or an updated text) in features.js.
 Service worker hm-v3.68.
+
+## Version 3.54: the base card and deeper zoom on the forces map
+
+- Zoom to `FULL.w / 2000` (about 8 km across). Below `MIN_W * 6` bases are
+  not grouped; bases within 16 screen px spread on a small ring with a line
+  to the true point (`.fspider`).
+- The base card: status, name, a thumbnail; the short description; a facts
+  grid (status, latest attack, number of systems, units); attacks and
+  follow-ups; "Bestyckning" - one row per system (`baseKit`) from the
+  base's own list, the weekly Wikipedia reading and the equipment of the
+  units based there (unit_ids, units whose garrison is the base), with the
+  catalogue's picture, role, "via" unit and the number from
+  `survey.counts`; units (`baseUnits`, the same unit in two spellings
+  once); changes; links (sources, Wikipedia, Wikidata, Commons).
+- `src/forces_survey.py` asks for `counts` (equipment -> number as the
+  article writes it, only listed equipment, never guessed); surveys made
+  before the counts are due again.
+
+Service worker hm-v3.69.

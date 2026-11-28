@@ -17,6 +17,8 @@ export const AREAS = [
 ];
 
 export const FEATURES = [
+  { id: 'baskort', area: 'styrkor', title: 'Ny basruta på kartan', href: '#/styrkor', added: '2026-11-28',
+    desc: 'Tryck på en bas: kort info, status och senaste anfall överst, sedan bestyckningen med miniatyrbild och antal där en källa anger det, förbanden och sist länkarna. Kartan zoomar nu ner till några kilometer, och baser på samma plats sprids ut så att var och en går att trycka på.', keywords: 'baser bestyckning materiel antal bilder zoom styrkor karta' },
   { id: 'nya-funktioner', area: 'app', title: 'Nya funktioner syns direkt', href: '#/', added: '2026-11-21',
     desc: 'En lysande knapp ”N nya funktioner” och en förhandsvisning överst på Idag, och en siffra på Mer, tills du har sett dem. Även ändrade funktioner visas igen.', keywords: 'nytt nyheter funktioner uppdatering' },
   // Idag
