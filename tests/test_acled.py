@@ -64,3 +64,11 @@ def test_aggregate_keeps_groups_and_countries(tmp_path, monkeypatch):
     assert {r[1] for r in out["rows"]} == {"PL", "RO"}
     assert out["regions"][0][:2] in (["PL", "Lublin"], ["RO", "Tulcea"])
     assert set(out["cats"]) == {"dronare", "avvarjt", "sprang", "skadegorelse"}
+
+
+def test_forces_survey_prompt_renders():
+    import forces_survey
+    b = {"id": "Q1", "name": "Engels", "branch": "flyg", "country": "RU"}
+    text = forces_survey.prompt_for([(b, ("en", "Engels-2", "Tu-160 bombers are based here."))])
+    assert '"Tu-160": "16"' in text and '"counts": {"...": "..."}' in text
+    assert forces_survey._counts({"Tu-160": "16", "X": "?"}, ["Tu-160"]) == {"Tu-160": "16"}

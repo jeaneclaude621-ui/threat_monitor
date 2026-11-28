@@ -139,8 +139,8 @@ article and record, for a Swedish monitor:
 - "equipment": aircraft, ships, missiles or systems there now (e.g. "Tu-160",
   "S-400", "Borej-klass").
 - "counts": for items in "equipment" whose number at the base the article
-  states, that number as written, e.g. {"Tu-160": "16", "Su-34": "ca 24",
-  "S-400": "2 divisioner"}. Leave out what the article gives no number for;
+  states, that number as written, e.g. {{"Tu-160": "16", "Su-34": "ca 24",
+  "S-400": "2 divisioner"}}. Leave out what the article gives no number for;
   never guess.
 - "as_of": the latest year the article's facts about units refer to, or null.
 Only what the article says; empty lists when it names nothing current.
